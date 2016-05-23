@@ -17,7 +17,8 @@ class Entry:
       self.genus                    = self.rest.split(";")[0]
       self.genus_name_from_last     = self.last_rank_from_orig_name.split()[0]
       self.species                  = self.last_rank_from_orig_name.split()[1]
-
+      self.strain                   = ""
+      
       try:
         self.species_sp             = self.last_rank_from_orig_name.split(" sp. ")[1]
       except:
@@ -27,9 +28,7 @@ class Entry:
         self.strain_name            = self.last_rank_from_orig_name.split()[2:]
       except:
         self.strain_name            = ""
-        
-      self.print_all()
-          
+                  
     def print_all(self):
       print "=" * 20
       print "line = %s" % line
@@ -80,19 +79,18 @@ class Entry:
       
     def compare_genus(self):
       if (self.genus != self.genus_name_from_last):
-        print "+" * 20
+        print "-" * 20
         print "self.genus = %s" % self.genus
         print "self.genus_name_from_last = %s" % self.genus_name_from_last
         print "self.orig_name = %s" % self.orig_name
 
     def compare_last(self):
-      if (" ".join(self.strain_name) != self.species_sp):
+      if (" ".join(self.strain_name) != self.species_sp) and (self.strain_name != ['sp.']):
         print "+" * 20
         print "self.strain_name = %s" % self.strain_name
         print "self.species_sp = %s" % self.species_sp
         print "self.orig_name = %s" % self.orig_name
-
-
+        self.strain = " ".join(self.strain_name)
         
     def new_clean_taxonomy_base(self):
       return self.domain + ";" + self.phylum + ";" + self.class_r + ";" + self.order + ";"
@@ -102,7 +100,7 @@ class Entry:
       return self.new_clean_taxonomy_base() + self.family.replace(" ", "_") + ";" + self.genus.replace(" ", "_") + ";" + self.species + ";" + "_".join(self.strain_name)
 
     def new_clean_taxonomy2(self):
-      return self.new_clean_taxonomy_base() + self.family.replace(" ", "_") + ";" + self.genus.replace(" ", "_") + ";" + self.species + ";" + "_".join(self.strain_name)
+      return self.new_clean_taxonomy_base() + self.family.replace(" ", "_") + ";" + self.genus.replace(" ", "_")
 
       
     def update_query(self, new_line):
@@ -122,13 +120,18 @@ if __name__ == '__main__':
 
   for line in content:
     try:
+      # print "=" * 20
+      # print "line = %s" % line
       e = Entry(line)
+
+      # e.print_all()
+      
       # e.compare_genus()
-      e.compare_last()
+      # e.compare_last()
       
       new_line = e.new_clean_taxonomy2()
-      # print "new_line = %s" % self.new_line
-      # update_query
+      # print "new_line = %s" % new_line
+      e.update_query(new_line)
       
     except: 
       raise
