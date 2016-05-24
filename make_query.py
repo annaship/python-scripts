@@ -13,10 +13,23 @@ class Entry:
       self.clean_name               = line.split(",")[1].strip()
       self.number_of_ranks          = len(self.orig_name.split(";"))
       self.last_rank_from_orig_name = self.orig_name.split(";")[-1]
-      self.domain, self.phylum, self.class_r, self.order, self.family, self.rest = self.orig_name.split(";", 5)
+      try:
+        self.domain, self.phylum, self.class_r, self.order, self.family, self.rest = self.orig_name.split(";", 5)
+      except ValueError:
+        print "This line has %s ranks." % (len(self.orig_name.split(";")))
+        print line
+        pass
+      except:  
+        print "Problem with "
+        print line              
+        raise
+        
       self.genus                    = self.rest.split(";")[0]
       self.genus_name_from_last     = self.last_rank_from_orig_name.split()[0]
-      self.species                  = self.last_rank_from_orig_name.split()[1]
+      try:
+        self.species                = self.last_rank_from_orig_name.split()[1]
+      except:
+        self.species                = ""
       self.strain                   = ""
       
       try:
@@ -113,7 +126,7 @@ class Entry:
       
 
 if __name__ == '__main__':
-  fname = "newbpcdb2_env454_Clostridium_12_5-23-16.csv"
+  fname = "newbpcdb2_env454_Clostridium_13_5-24-16.csv"
 
   with open(fname) as f:
     content = f.readlines()
@@ -124,7 +137,7 @@ if __name__ == '__main__':
       # print "line = %s" % line
       e = Entry(line)
 
-      # e.print_all()
+      e.print_all()
       
       # e.compare_genus()
       # e.compare_last()
