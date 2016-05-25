@@ -5,7 +5,7 @@ import util
 
 class Update_refhvr_ids:
   def __init__(self):
-    pass
+    self.separate_refids_arr = []
     
   def drop_table(self, table_name):
     query = "DROP TABLE IF EXISTS %s;" % (table_name)
@@ -88,7 +88,25 @@ class Update_refhvr_ids:
   def separate_refids(self, d):
     for key, value in d.iteritems():
       for r in value.split(","):
-        print "%s,%s" % (key, r)
+        # print "%s,%s" % (key, r)
+        self.separate_refids_arr.append((key, r))
+    print "self.separate_refids_arr AAA"
+    print self.separate_refids_arr
+    # [(80054275L, 'v6_CB202'), (284705110L, 'v6_BE739'),
+        
+  def create_rep_id_refhvr_id_temp(self):
+    query = """
+      create table rep_id_refhvr_id_temp
+      (
+        rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT primary key,
+        rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
+        refhvr_id varchar(16) NOT NULL,
+        UNIQUE KEY rep_id_refhvr (rep_id, refhvr_id)
+      )
+  
+      """
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
 if __name__ == '__main__':
   vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
@@ -107,7 +125,9 @@ if __name__ == '__main__':
   res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
   print field_names
   update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
-  
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_temp") # Don't need it!
+  # update_refhvr_ids.create_rep_id_refhvr_id_temp() # Don't need it!
+  # TODO: make insert self.separate_refids_arr into rep_id_refhvr_id
   
   
 
