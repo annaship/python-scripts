@@ -115,6 +115,16 @@ class Entry:
     def new_clean_taxonomy2(self):
       return self.new_clean_taxonomy_base() + self.family.replace(" ", "_") + ";" + self.genus.replace(" ", "_")
 
+    def new_clean_taxonomy3(self):
+      if self.family.startswith("Clostridiaceae"):
+        if not self.genus.startswith("uncultured"):
+          return self.new_clean_taxonomy_base() + self.family.replace(" ", "_") + ";" + self.genus.replace(" ", "_")
+      else:
+        return ""
+
+    def new_clean_taxonomy4(self):
+      return self.new_clean_taxonomy_base() + self.family.replace(" ", "_")
+
       
     def update_query(self, new_line):
       print """
@@ -126,24 +136,25 @@ class Entry:
       
 
 if __name__ == '__main__':
-  fname = "newbpcdb2_env454_Clostridium_13_5-24-16.csv"
+  fname = "newbpcdb2_env454_Clostridium_14_5-24-16.csv"
 
   with open(fname) as f:
     content = f.readlines()
 
   for line in content:
     try:
-      # print "=" * 20
-      # print "line = %s" % line
       e = Entry(line)
 
-      e.print_all()
+      # e.print_all()
       
       # e.compare_genus()
       # e.compare_last()
       
-      new_line = e.new_clean_taxonomy2()
-      # print "new_line = %s" % new_line
+      new_line = e.new_clean_taxonomy4()
+      # print "=" * 20
+      # print "line = %s" % line
+      # print "e.orig_name = %s" % e.orig_name
+      # print "new_line    = %s" % new_line
       e.update_query(new_line)
       
     except: 
