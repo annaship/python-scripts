@@ -75,6 +75,13 @@ class Update_refhvr_ids:
     print query
     vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
+  def get_rep_id_refhvr_ids(self):
+    query = """
+      SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp
+    """
+    print query
+    return vampsdev_vamps_mysql_util.execute_fetch_select(query)
+    
     
 
 if __name__ == '__main__':
@@ -89,7 +96,9 @@ if __name__ == '__main__':
   # update_refhvr_ids.insert_refids_per_dataset_temp()
   # update_refhvr_ids.get_dataset_id()
   # update_refhvr_ids.get_project_id()
-  update_refhvr_ids.insert_into_refids_per_dataset()
+  # update_refhvr_ids.insert_into_refids_per_dataset()
+  res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
+  print field_names
   
   
 
