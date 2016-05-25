@@ -3,12 +3,63 @@
 
 import util
 
+class Update_refhvr_ids:
+  def __init__(self):
+    pass
+    
+  def drop_table(self, table_name):
+    query = "DROP TABLE IF EXISTS %s;" % (table_name)
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+  def create_table_refids_per_dataset_temp(self):
+    query = """
+    create table refids_per_dataset_temp
+    (
+      refids_per_dataset_id int unsigned NOT NULL AUTO_INCREMENT primary key,
+      frequency double NOT NULL DEFAULT '0' COMMENT 'sum seq_count (for this seq/project/dataset across all lines and runs) divided by dataset_count',
+      project varchar(32) NOT NULL,
+      dataset varchar(64) NOT NULL DEFAULT '',
+      refhvr_ids text NOT NULL,
+      seq_count int(11) unsigned NOT NULL COMMENT 'sum seq_count for this seq/project/dataset across all lines and runs',
+      distance decimal(7,5) DEFAULT NULL COMMENT 'gast_distance AS distance',
+      rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
+      dataset_count mediumint(8) unsigned NOT NULL COMMENT 'number of reads in the dataset',
+      dataset_id smallint(5) unsigned NOT NULL,
+      project_id mediumint(5) unsigned NOT NULL,
+      UNIQUE KEY rep_id (rep_id),
+      key dataset (dataset),
+      key project (project)
+    );
+
+    """
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+  def insert_refids_per_dataset_temp(self):
+    query = """
+    insert ignore into refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
+      select v.frequency, v.project, v.dataset, v.refhvr_ids, v.seq_count, v.distance, v.rep_id, v.dataset_count
+        from vamps_sequences_transfer_temp v
+        LEFT JOIN refids_per_dataset USING(rep_id)
+        WHERE refids_per_dataset.rep_id IS NULL
+        LIMIT 500
+    """
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+
 if __name__ == '__main__':
   vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
   query = "show tables"
   a = vampsdev_vamps_mysql_util.execute_fetch_select(query)
+  
+  update_refhvr_ids = Update_refhvr_ids()
   print "AAA"
-  print a
+  update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  update_refhvr_ids.create_table_refids_per_dataset_temp()
+  update_refhvr_ids.insert_refids_per_dataset_temp()
+  
+  
 
 """
 incremantal

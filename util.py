@@ -31,7 +31,7 @@ class Mysql_util:
 
             # self.conn = MySQLdb.connect(host = host, db = db, read_default_file = read_default_file, port = port)
             self.conn    =  MySQLdb.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
-            print "host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file)
+            # print "host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file)
             
             self.cursor = self.conn.cursor()
 
