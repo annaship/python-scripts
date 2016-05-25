@@ -81,18 +81,14 @@ class Update_refhvr_ids:
     """
     print query
     return vampsdev_vamps_mysql_util.execute_fetch_select(query)
-    
-  def separate_refids(self, res):
-    d = {}
-    for line in res:
-      # print line
-      d[line[0]] = line[1]
 
+  def make_dictionary_from_res(self, res):
+    return {line[0]: line[1] for line in res}
+    
+  def separate_refids(self, d):
     for key, value in d.iteritems():
       for r in value.split(","):
         print "%s,%s" % (key, r)
-    
-        # (287450560L, 'v6_BY349,v6_DP992')
     
 if __name__ == '__main__':
   vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
@@ -110,7 +106,7 @@ if __name__ == '__main__':
   # update_refhvr_ids.insert_into_refids_per_dataset()
   res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
   print field_names
-  update_refhvr_ids.separate_refids(res)
+  update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
   
   
   
