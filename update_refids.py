@@ -43,10 +43,39 @@ class Update_refhvr_ids:
         from vamps_sequences_transfer_temp v
         LEFT JOIN refids_per_dataset USING(rep_id)
         WHERE refids_per_dataset.rep_id IS NULL
-        LIMIT 500
+    """
+  
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+  def get_dataset_id(self):
+    query = """
+      update refids_per_dataset_temp
+        join new_dataset using(dataset)
+        set refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
     """
     print query
     vampsdev_vamps_mysql_util.execute_no_fetch(query)
+
+  def get_project_id(self):
+    query = """
+      update refids_per_dataset_temp
+        join new_project using(project)
+        set refids_per_dataset_temp.project_id = new_project.project_id;
+    """
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+
+  def insert_into_refids_per_dataset(self):
+    query = """
+      insert ignore into refids_per_dataset (frequency, seq_count, distance, rep_id, dataset_count, dataset_id, project_id)
+        select frequency, seq_count, distance, rep_id, dataset_count, dataset_id, project_id
+        from refids_per_dataset_temp
+    """
+    print query
+    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+    
 
 if __name__ == '__main__':
   vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
@@ -54,10 +83,13 @@ if __name__ == '__main__':
   a = vampsdev_vamps_mysql_util.execute_fetch_select(query)
   
   update_refhvr_ids = Update_refhvr_ids()
-  print "AAA"
-  update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  update_refhvr_ids.create_table_refids_per_dataset_temp()
-  update_refhvr_ids.insert_refids_per_dataset_temp()
+  # print "AAA"
+  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  # update_refhvr_ids.create_table_refids_per_dataset_temp()
+  # update_refhvr_ids.insert_refids_per_dataset_temp()
+  # update_refhvr_ids.get_dataset_id()
+  # update_refhvr_ids.get_project_id()
+  update_refhvr_ids.insert_into_refids_per_dataset()
   
   
 
