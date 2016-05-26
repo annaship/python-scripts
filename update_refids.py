@@ -128,7 +128,7 @@ class Update_refhvr_ids:
     query = """INSERT IGNORE INTO rep_id_refhvr_id_temp (rep_id, refhvr_id)
       VALUES %s; 
     """ % separate_refids_string
-    print "Separate fields len: "
+    print "INSERT IGNORE INTO rep_id_refhvr_id_temp\nSeparate fields len: "
     print len(self.separate_refids_arr)
     # print query
     return mysql_utils.execute_no_fetch(query)
@@ -173,9 +173,8 @@ if __name__ == '__main__':
   if (utils.is_local() == True):
     mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
   else:
-    print "NOT local LLL"
+    mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
     
-  # mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
   
@@ -183,17 +182,17 @@ if __name__ == '__main__':
   # print "AAA"
   # !!! Uncomment !!!
   
-  # USE: utils.benchmarking(pr.parse_project_csv, "parse_project_csv", project_csv_file_name)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
-  utils.benchmarking(update_refhvr_ids.drop_table, "drop_table rep_id_refhvr_id_temp", "rep_id_refhvr_id_temp")
-  # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
-  utils.benchmarking(update_refhvr_ids.drop_table, "drop_table refids_per_dataset_temp", "refids_per_dataset_temp")
-
-  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  
-  utils.benchmarking(update_refhvr_ids.create_table_refids_per_dataset_temp, "create_table_refids_per_dataset_temp")
-  # update_refhvr_ids.create_table_refids_per_dataset_temp()
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.create_table_refids_per_dataset_temp()
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
@@ -221,6 +220,7 @@ if __name__ == '__main__':
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "make_dictionary_from_res"
   update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
