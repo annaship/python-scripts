@@ -35,13 +35,18 @@ class Update_refhvr_ids:
     print query
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-  def insert_refids_per_dataset_temp(self):      
-    query1 = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
+  def insert_refids_per_dataset_temp_from_seq_temp(self):    
+    # use for testing with short vamps_sequences_transfer_temp
+    query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
       SELECT frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count
         FROM vamps_sequences_transfer_temp
     """
     # real  57m45.418s
 
+    print query
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+  def insert_refids_per_dataset_temp(self):      
     query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
       SELECT DISTINCT v.frequency, v.project, v.dataset, v.refhvr_ids, v.seq_count, v.distance, v.rep_id, vamps_projects_datasets.dataset_count
         FROM vamps_sequences v
