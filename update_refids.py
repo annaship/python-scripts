@@ -127,7 +127,9 @@ class Update_refhvr_ids:
     query = """INSERT IGNORE INTO rep_id_refhvr_id_temp (rep_id, refhvr_id)
       VALUES %s; 
     """ % separate_refids_string
-    print query
+    print "Separate fields len: "
+    print len(self.separate_refids_arr)
+    # print query
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
   def drop_col_refids_per_dataset_temp(self):
@@ -160,12 +162,9 @@ if __name__ == '__main__':
   # print "AAA"
   # !!! Uncomment !!!
   
-  rowcount, lastrowid = update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  rowcount, lastrowid = update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  rowcount, lastrowid = update_refhvr_ids.create_table_refids_per_dataset_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  update_refhvr_ids.create_table_refids_per_dataset_temp()
   rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
@@ -186,6 +185,10 @@ if __name__ == '__main__':
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_previous")
+  update_refhvr_ids.drop_table("refids_per_dataset_previous")
+  
   update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
   update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
   update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
