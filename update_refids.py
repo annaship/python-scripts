@@ -35,7 +35,7 @@ class Update_refhvr_ids:
     print query
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-  def insert_refids_per_dataset_temp_from_seq_temp(self):    
+  def insert_refids_per_dataset_temp(self):    
     # use for testing with short vamps_sequences_transfer_temp
     query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
       SELECT frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count
@@ -46,15 +46,16 @@ class Update_refhvr_ids:
     print query
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-  def insert_refids_per_dataset_temp(self):      
-    query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
-      SELECT DISTINCT v.frequency, v.project, v.dataset, v.refhvr_ids, v.seq_count, v.distance, v.rep_id, vamps_projects_datasets.dataset_count
-        FROM vamps_sequences v
-        JOIN vamps_projects_datasets USING(project, dataset)
-    ;
-    """
-    print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+  # def insert_refids_per_dataset_temp(self):
+  #   query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)
+  #     SELECT DISTINCT v.frequency, v.project, v.dataset, v.refhvr_ids, v.seq_count, v.distance, v.rep_id, vamps_projects_datasets.dataset_count
+  #       FROM vamps_sequences v
+  #       JOIN vamps_projects_datasets USING(project, dataset)
+  #   ;
+  #   """
+  #   # 01:06:44
+  #   print query
+  #   return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
   def get_dataset_id(self):
     query = """UPDATE refids_per_dataset_temp
@@ -72,13 +73,14 @@ class Update_refhvr_ids:
     print query
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-  # def 
-  """
-  alter table refids_per_dataset_temp
-    add  FOREIGN KEY (`project_id`) REFERENCES `new_project` (`project_id`),
-    add  FOREIGN KEY (`dataset_id`) REFERENCES `new_dataset` (`dataset_id`)
-  ;
-  """
+  def foreign_key_refids_per_dataset_temp(self):
+    query = """ALTER TABLE refids_per_dataset_temp
+      ADD  FOREIGN KEY (`project_id`) REFERENCES `new_project` (`project_id`),
+      ADD  FOREIGN KEY (`dataset_id`) REFERENCES `new_dataset` (`dataset_id`)
+      ;
+      """
+    print query
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
 
   # def insert_into_refids_per_dataset(self):
   #   query = """
@@ -128,19 +130,26 @@ class Update_refhvr_ids:
     print query
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-    """
-    TODO:
-    alter table refids_per_dataset_temp
-    drop column project,
-    drop column dataset,
-    drop column refhvr_ids
-    """
+  def drop_col_refids_per_dataset_temp(self):
+    query = """ALTER TABLE refids_per_dataset_temp
+      drop column project,
+      drop column dataset,
+      drop column refhvr_ids;
+      """
+    print query
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+  
+  def foreign_key_rep_id_refhvr_id_temp(self):
+    query = """ALTER TABLE rep_id_refhvr_id_temp
+      ADD FOREIGN KEY (rep_id) REFERENCES refids_per_dataset_temp (rep_id);
+      """
+    print query
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-    """
-    TODO:
-    alter table rep_id_refhvr_id_temp
-    add FOREIGN KEY (`rep_id`) REFERENCES `refids_per_dataset_temp` (`rep_id`)
-    """
+  def rename_table(self, table_name_from, table_name_to):
+    query = "RENAME TABLE %s TO %s;" % (table_name_from, table_name_to)
+    print query
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
 if __name__ == '__main__':
   vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
@@ -150,32 +159,37 @@ if __name__ == '__main__':
   update_refhvr_ids = Update_refhvr_ids()
   # print "AAA"
   # !!! Uncomment !!!
+  
+  rowcount, lastrowid = update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   rowcount, lastrowid = update_refhvr_ids.drop_table("refids_per_dataset_temp")
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   rowcount, lastrowid = update_refhvr_ids.create_table_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  
-  # rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # rowcount, lastrowid = update_refhvr_ids.get_project_id()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-"""  todo:
-  alter table refids_per_dataset_temp
-    add  FOREIGN KEY (`project_id`) REFERENCES `new_project` (`project_id`),
-    add  FOREIGN KEY (`dataset_id`) REFERENCES `new_dataset` (`dataset_id`);
-""" 
-  # res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
-  # print field_names
-  # rowcount, lastrowid = update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # rowcount, lastrowid = update_refhvr_ids.drop_table("rep_id_refhvr_id_temp") # Don't need it!
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp() # Don't need it!
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id()
-  
+  rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.get_project_id()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
+  print field_names
+  update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
+
+  rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
+  update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
+  update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
+  update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
 
 """
 from scratch
@@ -289,19 +303,18 @@ alter table refids_per_dataset_temp
 drop column project,
 drop column dataset,
 drop column refhvr_ids
-
-
-alter table refids_per_dataset_temp
-drop column project,
-drop column dataset
--- Query OK, 0 rows affected (1 hour 49 min 18.73 sec)
-Query OK, 0 rows affected (1 hour 57 min 47.58 sec)
-
-alter table refids_per_dataset_temp
-drop column refhvr_ids
--- arthur
--- Query OK, 0 rows affected (1 hour 38 min 11.67 sec)
-Query OK, 0 rows affected (1 hour 28 min 43.88 sec)
+#
+# alter table refids_per_dataset_temp
+# drop column project,
+# drop column dataset
+# -- Query OK, 0 rows affected (1 hour 49 min 18.73 sec)
+# Query OK, 0 rows affected (1 hour 57 min 47.58 sec)
+#
+# alter table refids_per_dataset_temp
+# drop column refhvr_ids
+# -- arthur
+# -- Query OK, 0 rows affected (1 hour 38 min 11.67 sec)
+# Query OK, 0 rows affected (1 hour 28 min 43.88 sec)
 
 
 alter table rep_id_refhvr_id_temp
