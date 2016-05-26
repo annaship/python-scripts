@@ -154,9 +154,10 @@ class Update_refhvr_ids:
     return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
 if __name__ == '__main__':
-  vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
-  query = "show tables"
-  a = vampsdev_vamps_mysql_util.execute_fetch_select(query)
+  # vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
+  vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
+  # query = "show tables"
+  # a = vampsdev_vamps_mysql_util.execute_fetch_select(query)
   
   update_refhvr_ids = Update_refhvr_ids()
   # print "AAA"
