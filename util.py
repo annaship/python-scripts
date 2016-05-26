@@ -1,6 +1,7 @@
 import os
 import MySQLdb
 import logging
+import timeit
 
 class Mysql_util:
     """
@@ -165,7 +166,7 @@ class Utils:
 
     def benchmarking(self, func, func_name, *args, **kwargs):
       print "START %s" % func_name
-      wrapped  = utils.wrapper(func, *args)
+      wrapped  = self.wrapper(func, *args)
       time_res = timeit.timeit(wrapped, number = 1)
       print 'time: %.2f s' % time_res
       # USE: utils.benchmarking(pr.parse_project_csv, "parse_project_csv", project_csv_file_name)

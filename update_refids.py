@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import util
+import time
 
 class Update_refhvr_ids:
   def __init__(self):
@@ -10,7 +11,7 @@ class Update_refhvr_ids:
   def drop_table(self, table_name):
     query = "DROP TABLE IF EXISTS %s;" % (table_name)
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   def create_table_refids_per_dataset_temp(self):
     query = """CREATE TABLE refids_per_dataset_temp
@@ -33,7 +34,7 @@ class Update_refhvr_ids:
 
     """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   def insert_refids_per_dataset_temp(self):    
     # use for testing with short vamps_sequences_transfer_temp
@@ -44,7 +45,7 @@ class Update_refhvr_ids:
     # real  57m45.418s
 
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   # def insert_refids_per_dataset_temp(self):
   #   query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)
@@ -55,7 +56,7 @@ class Update_refhvr_ids:
   #   """
   #   # 01:06:44
   #   print query
-  #   return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+  #   return mysql_utils.execute_no_fetch(query)
     
   def get_dataset_id(self):
     query = """UPDATE refids_per_dataset_temp
@@ -63,7 +64,7 @@ class Update_refhvr_ids:
         SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
     """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
 
   def get_project_id(self):
     query = """UPDATE refids_per_dataset_temp
@@ -71,7 +72,7 @@ class Update_refhvr_ids:
         SET refids_per_dataset_temp.project_id = new_project.project_id;
     """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   def foreign_key_refids_per_dataset_temp(self):
     query = """ALTER TABLE refids_per_dataset_temp
@@ -80,7 +81,7 @@ class Update_refhvr_ids:
       ;
       """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
 
   # def insert_into_refids_per_dataset(self):
   #   query = """
@@ -89,12 +90,12 @@ class Update_refhvr_ids:
   #       from refids_per_dataset_temp
   #   """
   #   print query
-  #   return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+  #   return mysql_utils.execute_no_fetch(query)
     
   def get_rep_id_refhvr_ids(self):
     query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
     print query
-    return vampsdev_vamps_mysql_util.execute_fetch_select(query)
+    return mysql_utils.execute_fetch_select(query)
 
   def make_dictionary_from_res(self, res):
     return {line[0]: line[1] for line in res}
@@ -119,7 +120,7 @@ class Update_refhvr_ids:
   
       """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   def insert_into_rep_id_refhvr_id_temp(self):
     separate_refids_string = str(self.separate_refids_arr).strip('[]')
@@ -130,7 +131,7 @@ class Update_refhvr_ids:
     print "Separate fields len: "
     print len(self.separate_refids_arr)
     # print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   def drop_col_refids_per_dataset_temp(self):
     query = """ALTER TABLE refids_per_dataset_temp
@@ -139,61 +140,130 @@ class Update_refhvr_ids:
       drop column refhvr_ids;
       """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
   
   def foreign_key_rep_id_refhvr_id_temp(self):
     query = """ALTER TABLE rep_id_refhvr_id_temp
       ADD FOREIGN KEY (rep_id) REFERENCES refids_per_dataset_temp (rep_id);
       """
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
     
   def rename_table(self, table_name_from, table_name_to):
     query = "RENAME TABLE %s TO %s;" % (table_name_from, table_name_to)
     print query
-    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch(query)
+    
+  def benchmark_w_return_1(self):
+    print  "\n"
+    print "-" * 10
+    return time.time()
+    
+  def benchmark_w_return_2(self, t0):
+    t1 = time.time()
+    total = t1-t0
+    print 'time: %.2f s' % total
+    #
+    # print "time_res = %s s" % total
+    
     
 if __name__ == '__main__':
-  # vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
-  vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
+  utils = util.Utils()
+
+  if (utils.is_local() == True):
+    mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
+  else:
+    print "NOT local LLL"
+    
+  # mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
   # query = "show tables"
-  # a = vampsdev_vamps_mysql_util.execute_fetch_select(query)
+  # a = mysql_utils.execute_fetch_select(query)
   
   update_refhvr_ids = Update_refhvr_ids()
   # print "AAA"
   # !!! Uncomment !!!
   
-  update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
-  update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  update_refhvr_ids.create_table_refids_per_dataset_temp()
+  # USE: utils.benchmarking(pr.parse_project_csv, "parse_project_csv", project_csv_file_name)
+  
+  utils.benchmarking(update_refhvr_ids.drop_table, "drop_table rep_id_refhvr_id_temp", "rep_id_refhvr_id_temp")
+  # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  
+  utils.benchmarking(update_refhvr_ids.drop_table, "drop_table refids_per_dataset_temp", "refids_per_dataset_temp")
+
+  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  
+  utils.benchmarking(update_refhvr_ids.create_table_refids_per_dataset_temp, "create_table_refids_per_dataset_temp")
+  # update_refhvr_ids.create_table_refids_per_dataset_temp()
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.get_project_id()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
   print field_names
-  update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
+  update_refhvr_ids.benchmark_w_return_2(t0)
 
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.drop_table("rep_id_refhvr_id_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.drop_table("refids_per_dataset_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
+  update_refhvr_ids.benchmark_w_return_2(t0)
 
 """
 from scratch
