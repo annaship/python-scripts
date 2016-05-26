@@ -10,11 +10,10 @@ class Update_refhvr_ids:
   def drop_table(self, table_name):
     query = "DROP TABLE IF EXISTS %s;" % (table_name)
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
   def create_table_refids_per_dataset_temp(self):
-    query = """
-    create table refids_per_dataset_temp
+    query = """CREATE TABLE refids_per_dataset_temp
     (
       refids_per_dataset_id int unsigned NOT NULL AUTO_INCREMENT primary key,
       frequency double NOT NULL DEFAULT '0' COMMENT 'sum seq_count (for this seq/project/dataset across all lines and runs) divided by dataset_count',
@@ -34,34 +33,47 @@ class Update_refhvr_ids:
 
     """
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
   def insert_refids_per_dataset_temp(self):      
-    query = """
-    INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
+    query1 = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
       SELECT frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count
-        from vamps_sequences_transfer_temp
+        FROM vamps_sequences_transfer_temp
+    """
+    # real  57m45.418s
+
+    query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
+      SELECT DISTINCT v.frequency, v.project, v.dataset, v.refhvr_ids, v.seq_count, v.distance, v.rep_id, vamps_projects_datasets.dataset_count
+        FROM vamps_sequences v
+        JOIN vamps_projects_datasets USING(project, dataset)
+    ;
     """
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
   def get_dataset_id(self):
-    query = """
-      update refids_per_dataset_temp
-        join new_dataset using(dataset)
-        set refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
+    query = """UPDATE refids_per_dataset_temp
+        JOIN new_dataset using(dataset)
+        SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
     """
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
 
   def get_project_id(self):
-    query = """
-      update refids_per_dataset_temp
-        join new_project using(project)
-        set refids_per_dataset_temp.project_id = new_project.project_id;
+    query = """UPDATE refids_per_dataset_temp
+        JOIN new_project using(project)
+        SET refids_per_dataset_temp.project_id = new_project.project_id;
     """
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+  # def 
+  """
+  alter table refids_per_dataset_temp
+    add  FOREIGN KEY (`project_id`) REFERENCES `new_project` (`project_id`),
+    add  FOREIGN KEY (`dataset_id`) REFERENCES `new_dataset` (`dataset_id`)
+  ;
+  """
 
   # def insert_into_refids_per_dataset(self):
   #   query = """
@@ -70,12 +82,10 @@ class Update_refhvr_ids:
   #       from refids_per_dataset_temp
   #   """
   #   print query
-  #   vampsdev_vamps_mysql_util.execute_no_fetch(query)
+  #   return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
   def get_rep_id_refhvr_ids(self):
-    query = """
-      SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp
-    """
+    query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
     print query
     return vampsdev_vamps_mysql_util.execute_fetch_select(query)
 
@@ -92,28 +102,40 @@ class Update_refhvr_ids:
     # [(80054275L, 'v6_CB202'), (284705110L, 'v6_BE739'),
         
   def create_rep_id_refhvr_id_temp(self):
-    query = """
-      create table rep_id_refhvr_id_temp
+    query = """CREATE table rep_id_refhvr_id_temp
       (
-        rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT primary key,
+        rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
         rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
-        refhvr_id varchar(16) NOT NULL,
+        refhvr_id varchar(32) NOT NULL,
         UNIQUE KEY rep_id_refhvr (rep_id, refhvr_id)
       )
   
       """
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
     
-  def insert_into_rep_id_refhvr_id(self):
+  def insert_into_rep_id_refhvr_id_temp(self):
     separate_refids_string = str(self.separate_refids_arr).strip('[]')
 
-    query = """
-      INSERT IGNORE INTO rep_id_refhvr_id (rep_id, refhvr_id)
+    query = """INSERT IGNORE INTO rep_id_refhvr_id_temp (rep_id, refhvr_id)
       VALUES %s; 
     """ % separate_refids_string
     print query
-    vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    return vampsdev_vamps_mysql_util.execute_no_fetch(query)
+    
+    """
+    TODO:
+    alter table refids_per_dataset_temp
+    drop column project,
+    drop column dataset,
+    drop column refhvr_ids
+    """
+    
+    """
+    TODO:
+    alter table rep_id_refhvr_id_temp
+    add FOREIGN KEY (`rep_id`) REFERENCES `refids_per_dataset_temp` (`rep_id`)
+    """
     
 if __name__ == '__main__':
   vampsdev_vamps_mysql_util = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
@@ -123,13 +145,17 @@ if __name__ == '__main__':
   update_refhvr_ids = Update_refhvr_ids()
   # print "AAA"
   # !!! Uncomment !!!
-  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  # update_refhvr_ids.create_table_refids_per_dataset_temp()
-  # update_refhvr_ids.insert_refids_per_dataset_temp()
-  # real  57m45.418s
+  rowcount, lastrowid = update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.create_table_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   
-  update_refhvr_ids.get_dataset_id()
-  update_refhvr_ids.get_project_id()
+  # rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # rowcount, lastrowid = update_refhvr_ids.get_project_id()
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
 """  todo:
   alter table refids_per_dataset_temp
     add  FOREIGN KEY (`project_id`) REFERENCES `new_project` (`project_id`),
@@ -137,10 +163,13 @@ if __name__ == '__main__':
 """ 
   # res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
   # print field_names
-  # update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
-  # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp") # Don't need it!
-  # update_refhvr_ids.create_rep_id_refhvr_id_temp() # Don't need it!
-  # update_refhvr_ids.insert_into_rep_id_refhvr_id()
+  # rowcount, lastrowid = update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # rowcount, lastrowid = update_refhvr_ids.drop_table("rep_id_refhvr_id_temp") # Don't need it!
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp() # Don't need it!
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id()
   
 
 """
@@ -210,7 +239,7 @@ create table rep_id_refhvr_id_temp
 (
   rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT primary key,
   rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
-  refhvr_id varchar(16) NOT NULL,
+  refhvr_id varchar(32) NOT NULL,
   UNIQUE KEY rep_id_refhvr (rep_id, refhvr_id)
 )
 done

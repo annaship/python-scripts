@@ -60,7 +60,8 @@ class Mysql_util:
       if self.cursor:
           self.cursor.execute(sql)
           self.conn.commit()
-          return self.cursor.lastrowid
+          # return self.cursor.lastrowid
+          return (self.cursor.rowcount, self.cursor.lastrowid)
 
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE"):
       try:
