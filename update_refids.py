@@ -133,14 +133,20 @@ class Update_refhvr_ids:
     # print query
     return mysql_utils.execute_no_fetch(query)
     
-  def drop_col_refids_per_dataset_temp(self):
-    query = """ALTER TABLE refids_per_dataset_temp
-      drop column project,
-      drop column dataset,
-      drop column refhvr_ids;
-      """
+  def drop_col_refids_per_dataset_temp(self, column_names_arr):
+    # query = """ALTER TABLE refids_per_dataset_temp
+    #   drop column project,
+    #   drop column dataset,
+    #   drop column refhvr_ids;
+    #   """
+    l = len(column_names_arr)
+    query = "ALTER TABLE refids_per_dataset_temp drop column %s" % column_names_arr[0]
+    if len > 1:
+      for x in range(1, l):
+        query += ", drop column %s" % (column_names_arr[x])
     print query
     return mysql_utils.execute_no_fetch(query)
+
   
   def foreign_key_rep_id_refhvr_id_temp(self):
     query = """ALTER TABLE rep_id_refhvr_id_temp
@@ -213,6 +219,12 @@ if __name__ == '__main__':
   rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
@@ -235,7 +247,7 @@ if __name__ == '__main__':
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp()
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
