@@ -100,27 +100,20 @@ class Update_refhvr_ids:
   def make_dictionary_from_res(self, res):
     return {line[0]: line[1] for line in res}
     
-  def separate_refids(self, d):
-    for key, value in d.iteritems():
-      for r in value.split(","):
-        # print "%s,%s" % (key, r)
-        self.separate_refids_arr.append((int(key), r))
-    # print "self.separate_refids_arr AAA"
-    # print self.separate_refids_arr
-    # [(80054275L, 'v6_CB202'), (284705110L, 'v6_BE739'),
+  # def separate_refids(self, d):
+  #   for key, value in d.iteritems():
+  #     for r in value.split(","):
+  #       # print "%s,%s" % (key, r)
+  #       self.separate_refids_arr.append((int(key), r))
+  #   # print "self.separate_refids_arr AAA"
+  #   # print self.separate_refids_arr
+  #   # [(80054275L, 'v6_CB202'), (284705110L, 'v6_BE739'),
 
     
-  def separate_refids1(self, res):
-    # self.separate_refids_arr = []
+  def separate_refids(self, res):
     for line in res:
-      # print "line[0] = %s: line[1] = %s" % (line[0], line[1])
-      
       for r in line[1].split(","):
-        # print "%s,%s" % (key, r)
         self.separate_refids_arr.append((int(line[0]), r))
-    # print "self.separate_refids_arr BBB"
-    # print self.separate_refids_arr
-        
         
   def create_rep_id_refhvr_id_temp(self):
     query = """CREATE table rep_id_refhvr_id_temp
@@ -244,16 +237,15 @@ if __name__ == '__main__':
   print field_names
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "make_dictionary_from_res and separate_refids"
-  update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
-  update_refhvr_ids.benchmark_w_return_2(t0)
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # print "make_dictionary_from_res and separate_refids"
+  # update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
+  # update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "separate_refids1"
-  update_refhvr_ids.separate_refids1(res)
+  print "separate_refids"
+  update_refhvr_ids.separate_refids(res)
   update_refhvr_ids.benchmark_w_return_2(t0)
-
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
@@ -264,37 +256,37 @@ if __name__ == '__main__':
   rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("rep_id_refhvr_id_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("refids_per_dataset_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("refids_per_dataset_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
+  update_refhvr_ids.benchmark_w_return_2(t0)
 
 """
 from scratch
