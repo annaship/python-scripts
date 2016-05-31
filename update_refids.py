@@ -46,18 +46,7 @@ class Update_refhvr_ids:
 
     print query
     return mysql_utils.execute_no_fetch(query)
-    
-  # def insert_refids_per_dataset_temp(self):
-  #   query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)
-  #     SELECT DISTINCT v.frequency, v.project, v.dataset, v.refhvr_ids, v.seq_count, v.distance, v.rep_id, vamps_projects_datasets.dataset_count
-  #       FROM vamps_sequences v
-  #       JOIN vamps_projects_datasets USING(project, dataset)
-  #   ;
-  #   """
-  #   # 01:06:44
-  #   print query
-  #   return mysql_utils.execute_no_fetch(query)
-    
+        
   def get_dataset_id(self):
     query = """UPDATE refids_per_dataset_temp
         JOIN new_dataset using(dataset)
@@ -82,34 +71,12 @@ class Update_refhvr_ids:
       """
     print query
     return mysql_utils.execute_no_fetch(query)
-
-  # def insert_into_refids_per_dataset(self):
-  #   query = """
-  #     INSERT IGNORE INTO refids_per_dataset (frequency, seq_count, distance, rep_id, dataset_count, dataset_id, project_id)
-  #       SELECT frequency, seq_count, distance, rep_id, dataset_count, dataset_id, project_id
-  #       from refids_per_dataset_temp
-  #   """
-  #   print query
-  #   return mysql_utils.execute_no_fetch(query)
     
   def get_rep_id_refhvr_ids(self):
     query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
     print query
     return mysql_utils.execute_fetch_select(query)
 
-  def make_dictionary_from_res(self, res):
-    return {line[0]: line[1] for line in res}
-    
-  # def separate_refids(self, d):
-  #   for key, value in d.iteritems():
-  #     for r in value.split(","):
-  #       # print "%s,%s" % (key, r)
-  #       self.separate_refids_arr.append((int(key), r))
-  #   # print "self.separate_refids_arr AAA"
-  #   # print self.separate_refids_arr
-  #   # [(80054275L, 'v6_CB202'), (284705110L, 'v6_BE739'),
-
-    
   def separate_refids(self, res):
     for line in res:
       for r in line[1].split(","):
@@ -232,15 +199,11 @@ if __name__ == '__main__':
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   """  rep_id_refhvr_id  """
+  
   t0 = update_refhvr_ids.benchmark_w_return_1()
   res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
   print field_names
   update_refhvr_ids.benchmark_w_return_2(t0)
-
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # print "make_dictionary_from_res and separate_refids"
-  # update_refhvr_ids.separate_refids(update_refhvr_ids.make_dictionary_from_res(res))
-  # update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "separate_refids"
@@ -288,8 +251,10 @@ if __name__ == '__main__':
   update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
   update_refhvr_ids.benchmark_w_return_2(t0)
 
+
 """
 from scratch
+  second part
 time mysql -h vampsdb vamps -e "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp" | tail -n+2 >rep_id_refhvr_ids.csv
 jake
 real    16m29.463s
