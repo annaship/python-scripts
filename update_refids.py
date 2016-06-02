@@ -88,6 +88,19 @@ class Update_refhvr_ids:
       # if file_mode == "wb":
       #   csv_writer.writerow(field_names) # write headers
       csv_writer.writerows(data_from_db)
+      
+  # def write_file(lines):
+  #   f = open('myfile','w')
+  #   f.write('hi there\n') # python will convert \n to os.linesep
+  #   f.close()
+  # TODO: read csv instead?
+  
+  # def write_data(line):
+  #   for r in line[1].strip('"').split(","):
+  #     print "%s,%s" % (line[0], r)
+  #
+  # for line in open(filename):
+  #     process_data(line.split())
 
   def separate_refids(self, res):
     for line in res:
@@ -409,9 +422,12 @@ KEY `pr_dataset` (`project_id`,`dataset_id`)
 is faster for refids_per_dataset then project_id
 same
 ===
-RENAME TABLE rep_id_refhvr_id TO rep_id_refhvr_id_previous
-RENAME TABLE refids_per_dataset TO refids_per_dataset_previous
-RENAME TABLE refids_per_dataset_temp TO refids_per_dataset
-RENAME TABLE rep_id_refhvr_id_temp TO rep_id_refhvr_id
+drop table rep_id_refhvr_id_previous;
+drop table refids_per_dataset_previous;
+
+RENAME TABLE rep_id_refhvr_id TO rep_id_refhvr_id_previous;
+RENAME TABLE refids_per_dataset TO refids_per_dataset_previous;
+RENAME TABLE refids_per_dataset_temp TO refids_per_dataset;
+RENAME TABLE rep_id_refhvr_id_temp TO rep_id_refhvr_id;
 
 """
