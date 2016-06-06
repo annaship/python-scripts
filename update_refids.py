@@ -7,7 +7,7 @@ import csv, os
 
 class Update_refhvr_ids:
   def __init__(self):
-    self.separate_refids_arr = []
+    self.write_separate_refids_arr = []
     
   def drop_table(self, table_name):
     query = "DROP TABLE IF EXISTS %s;" % (table_name)
@@ -91,9 +91,9 @@ class Update_refhvr_ids:
     with open(in_file_path_name, 'rb') as in_f:
       reader = csv.reader(in_f)
       for line in reader:  
-        self.separate_refid(line, out_file)
+        self.write_separate_refid(line, out_file)
           
-  def separate_refid(self, line, out_file):
+  def write_separate_refid(self, line, out_file):
     for r in line[1].strip('"').split(","):
       out_file.write("%s,%s" % (line[0], r))
       out_file.write("\n")
@@ -178,50 +178,44 @@ if __name__ == '__main__':
   # print "AAA"
   # !!! Uncomment !!!
   
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.create_table_refids_per_dataset_temp()
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.get_project_id()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.create_table_refids_per_dataset_temp()
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.get_project_id()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
 
   """  rep_id_refhvr_id  """
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
   db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
   print "db_res[0][0]"
-  # res, field_names = update_refhvr_ids.get_rep_id_refhvr_ids()
-  # print field_names
   update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
@@ -238,6 +232,10 @@ if __name__ == '__main__':
   out_f.close()
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
@@ -247,182 +245,33 @@ if __name__ == '__main__':
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
   #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("rep_id_refhvr_id_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("refids_per_dataset_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-
-
-"""
-from scratch
-  second part
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
----
-vamps
-
-time mysql -h vampsdb vamps -e "SELECT rep_id, refhvr_ids FROM refids_per_dataset" | tail -n+2 >rep_id_refhvr_ids.csv
-real	7m41.957s
-
-create table rep_id_refhvr_id
-(
-  rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT primary key,
-  rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
-  refhvr_id varchar(16) NOT NULL,
-  UNIQUE KEY rep_id_refhvr (rep_id, refhvr_id)
-)
-
-/workspace/ashipunova/refhvrid$ 
-time cat rep_id_refhvr_ids.csv | tail -n+2 >rep_id_refhvr_ids1.csv
-real	1m35.578s
-
-time python separate_refids.py rep_id_refhvr_ids1.csv > rep_id_refhvr_ids_separated.csv; mail_done
-real	22m35.823s
-
-time mysql -h vampsdb vamps -e "LOAD DATA LOCAL INFILE '/workspace/ashipunova/refhvrid/rep_id_refhvr_ids_separated.csv' IGNORE INTO TABLE rep_id_refhvr_id  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);"; mail_done
-jake
-real    84m21.264s
-
-SELECT count(rep_id)
-FROM rep_id_refhvr_id
-298578304
-
-SELECT count(rep_id)
-FROM refids_per_dataset
-230039552
-
-alter table refids_per_dataset
-drop column refhvr_ids
-arthur
-Query OK, 0 rows affected (1 hour 38 min 11.67 sec)
-
-alter table rep_id_refhvr_id
-add FOREIGN KEY (`rep_id`) REFERENCES `refids_per_dataset` (`rep_id`)
-arthur
-Query OK, 298578304 rows affected (3 hours 11 min 7.93 sec)
-
-less -N /usr/local/www/vamps/docs/vamps/common_code/taxonomy/crosstab.php
-
-less -N /usr/local/www/vamps/docs/vamps/sequences/just_local_gis.php
-
-===
-time mysql -h vampsdb vamps -e "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp" | tail -n+2 >rep_id_refhvr_ids.csv
-jake
-real    16m29.463s
--- real  7m41.957s
-
-create table rep_id_refhvr_id_temp
-(
-  rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT primary key,
-  rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
-  refhvr_id varchar(16) NOT NULL,
-  UNIQUE KEY rep_id_refhvr (rep_id, refhvr_id)
-)
-done
-
-/workspace/ashipunova/refhvrid$ 
-time cat rep_id_refhvr_ids.csv | tail -n+2 >rep_id_refhvr_ids1.csv
--- real  1m35.578s
-real	0m46.172s
-
-time python separate_refids.py rep_id_refhvr_ids1.csv > rep_id_refhvr_ids_separated.csv; mail_done
--- real  22m35.823s
-jake screen
-real    108m43.848s
-
-time mysql -h vampsdb vamps -e "LOAD DATA LOCAL INFILE '/workspace/ashipunova/refhvrid/rep_id_refhvr_ids_separated.csv' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);"; mail_done
--- jake
--- real    84m21.264s
-artur
-Query OK, 312817494 rows affected, 65535 warnings (1 hour 37 min 44.84 sec)
-| Warning | 1265 | Data truncated for column 'refhvr_id' at row 157971 |
-
-once)
-alter table rep_id_refhvr_id
-change column refhvr_id `refhvr_id` varchar(32) NOT NULL
-Records: 312817494  Duplicates: 0  Warnings: 0
-
-SELECT count(rep_id)
-FROM rep_id_refhvr_id_temp
--- 298578304
-|     312817494 |
-+---------------+
-1 row in set (1 min 29.60 sec)
-
-SELECT count(rep_id)
-FROM refids_per_dataset_temp
--- 230039552
-|     240594962 |
-+---------------+
-1 row in set (8 min 13.48 sec)
-
-alter table refids_per_dataset_temp
-drop column project,
-drop column dataset,
-drop column refhvr_ids
-
-
-alter table refids_per_dataset_temp
-drop column project,
-drop column dataset
--- Query OK, 0 rows affected (1 hour 49 min 18.73 sec)
-Query OK, 0 rows affected (1 hour 57 min 47.58 sec)
-
-alter table refids_per_dataset_temp
-drop column refhvr_ids
--- arthur
--- Query OK, 0 rows affected (1 hour 38 min 11.67 sec)
-Query OK, 0 rows affected (1 hour 28 min 43.88 sec)
-
-
-alter table rep_id_refhvr_id_temp
-add FOREIGN KEY (`rep_id`) REFERENCES `refids_per_dataset_temp` (`rep_id`)
--- arthur
--- Query OK, 298578304 rows affected (3 hours 11 min 7.93 sec)
-Query OK, 312817494 rows affected (7 hours 47 min 52.72 sec)
-
-
-less -N /usr/local/www/vamps/docs/vamps/common_code/taxonomy/crosstab.php
-
-less -N /usr/local/www/vamps/docs/vamps/sequences/just_local_gis.php
-===
-done)
-check if 
-KEY `pr_dataset` (`project_id`,`dataset_id`)
-is faster for refids_per_dataset then project_id
-same
-===
-drop table rep_id_refhvr_id_previous;
-drop table refids_per_dataset_previous;
-
-RENAME TABLE rep_id_refhvr_id TO rep_id_refhvr_id_previous;
-RENAME TABLE refids_per_dataset TO refids_per_dataset_previous;
-RENAME TABLE refids_per_dataset_temp TO refids_per_dataset;
-RENAME TABLE rep_id_refhvr_id_temp TO rep_id_refhvr_id;
-
-"""
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("rep_id_refhvr_id_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("refids_per_dataset_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("rep_id_refhvr_id", "rep_id_refhvr_id_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("refids_per_dataset", "refids_per_dataset_previous")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("refids_per_dataset_temp", "refids_per_dataset")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.rename_table("rep_id_refhvr_id_temp", "rep_id_refhvr_id")
+  update_refhvr_ids.benchmark_w_return_2(t0)
