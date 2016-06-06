@@ -3,7 +3,7 @@
 
 import util
 import time
-import csv
+import csv, os
 
 class Update_refhvr_ids:
   def __init__(self):
@@ -78,33 +78,25 @@ class Update_refhvr_ids:
     print query
     return mysql_utils.execute_fetch_select(query)
     
-  def write_to_csv_file(self, file_name, res, file_mode = "wb"):
+  def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
     data_from_db, field_names = res
     # print "VVVV"
     # print field_names
 
-    with open(file_name, file_mode) as csv_file:
+    with open(in_file_path_name, file_mode) as csv_file:
       csv_writer = csv.writer(csv_file)
-      # if file_mode == "wb":
-      #   csv_writer.writerow(field_names) # write headers
       csv_writer.writerows(data_from_db)
       
-  def process_file(self, in_filename, out_file):
-    with open(in_filename, 'rb') as in_f:
+  def process_file(self, in_file_path_name, out_file):
+    with open(in_file_path_name, 'rb') as in_f:
       reader = csv.reader(in_f)
       for line in reader:  
         self.separate_refid(line, out_file)
-        
-  def process_data(self, line):
-    print "AAA line"
-    print line
-    
+          
   def separate_refid(self, line, out_file):
-    # print line
     for r in line[1].strip('"').split(","):
       out_file.write("%s,%s" % (line[0], r))
       out_file.write("\n")
-      # print "%s,%s" % (line[0], r)
 
     
   # def write_file(lines):
@@ -126,7 +118,7 @@ class Update_refhvr_ids:
         self.separate_refids_arr.append((int(line[0]), r))
         
   def create_rep_id_refhvr_id_temp(self):
-    query = """CREATE table rep_id_refhvr_id_temp
+    query = """CREATE TABLE IF NOT EXISTS rep_id_refhvr_id_temp
       (
         rep_id_refhvr_id_id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
         rep_id int(10) unsigned NOT NULL COMMENT 'sequence_pdr_info_ill_id AS rep_id',
@@ -137,7 +129,11 @@ class Update_refhvr_ids:
       """
     print query
     return mysql_utils.execute_no_fetch(query)
-    
+  
+  def load_into_rep_id_refhvr_id_temp(self):
+    pass
+  # LOAD DATA LOCAL INFILE '/workspace/ashipunova/refhvrid/rep_id_refhvr_ids_separated.csv' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);
+  
   def insert_into_rep_id_refhvr_id_temp(self):
     separate_refids_string = str(self.separate_refids_arr).strip('[]')
 
@@ -197,8 +193,13 @@ if __name__ == '__main__':
   else:
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
     
+  csv_dir      = "/tmp"
   in_filename  = "rep_id_refhvr_ids.csv"
   out_filename = "rep_id_refhvr_ids_separated.csv"
+  in_file_path_name  = os.path.join(csv_dir, in_filename)
+  out_file_path_name = os.path.join(csv_dir, out_filename)
+  print in_file_path_name
+  print out_file_path_name
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
   
@@ -254,27 +255,22 @@ if __name__ == '__main__':
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "write_to_csv_file"
-  update_refhvr_ids.write_to_csv_file("rep_id_refhvr_ids.csv", db_res)
+  update_refhvr_ids.write_to_csv_file(in_file_path_name, db_res)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "process_file"
-  out_f = open(out_filename, "w")
-  update_refhvr_ids.process_file(in_filename, out_f)
+  
+  out_f = open(out_file_path_name, "w")
+  update_refhvr_ids.process_file(in_file_path_name, out_f)
   update_refhvr_ids.benchmark_w_return_2(t0)
   out_f.close()
 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # print "separate_refids"
-  # update_refhvr_ids.separate_refids(res)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id_temp()
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
