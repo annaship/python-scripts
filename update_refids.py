@@ -89,6 +89,24 @@ class Update_refhvr_ids:
       #   csv_writer.writerow(field_names) # write headers
       csv_writer.writerows(data_from_db)
       
+  def process_file(self, in_filename, out_file):
+    with open(in_filename, 'rb') as in_f:
+      reader = csv.reader(in_f)
+      for line in reader:  
+        self.separate_refid(line, out_file)
+        
+  def process_data(self, line):
+    print "AAA line"
+    print line
+    
+  def separate_refid(self, line, out_file):
+    # print line
+    for r in line[1].strip('"').split(","):
+      out_file.write("%s,%s" % (line[0], r))
+      out_file.write("\n")
+      # print "%s,%s" % (line[0], r)
+
+    
   # def write_file(lines):
   #   f = open('myfile','w')
   #   f.write('hi there\n') # python will convert \n to os.linesep
@@ -179,6 +197,8 @@ if __name__ == '__main__':
   else:
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
     
+  in_filename  = "rep_id_refhvr_ids.csv"
+  out_filename = "rep_id_refhvr_ids_separated.csv"
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
   
@@ -189,35 +209,35 @@ if __name__ == '__main__':
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # update_refhvr_ids.drop_table("refids_per_dataset_temp")
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # update_refhvr_ids.create_table_refids_per_dataset_temp()
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.get_project_id()
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  # 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
@@ -236,6 +256,14 @@ if __name__ == '__main__':
   print "write_to_csv_file"
   update_refhvr_ids.write_to_csv_file("rep_id_refhvr_ids.csv", db_res)
   update_refhvr_ids.benchmark_w_return_2(t0)
+
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "process_file"
+  out_f = open(out_filename, "w")
+  update_refhvr_ids.process_file(in_filename, out_f)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  out_f.close()
 
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # print "separate_refids"
