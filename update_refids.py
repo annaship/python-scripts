@@ -97,25 +97,6 @@ class Update_refhvr_ids:
     for r in line[1].strip('"').split(","):
       out_file.write("%s,%s" % (line[0], r))
       out_file.write("\n")
-
-    
-  # def write_file(lines):
-  #   f = open('myfile','w')
-  #   f.write('hi there\n') # python will convert \n to os.linesep
-  #   f.close()
-  # TODO: read csv instead?
-  
-  # def write_data(line):
-  #   for r in line[1].strip('"').split(","):
-  #     print "%s,%s" % (line[0], r)
-  #
-  # for line in open(filename):
-  #     process_data(line.split())
-
-  def separate_refids(self, res):
-    for line in res:
-      for r in line[1].split(","):
-        self.separate_refids_arr.append((int(line[0]), r))
         
   def create_rep_id_refhvr_id_temp(self):
     query = """CREATE TABLE IF NOT EXISTS rep_id_refhvr_id_temp
@@ -130,21 +111,11 @@ class Update_refhvr_ids:
     print query
     return mysql_utils.execute_no_fetch(query)
   
-  def load_into_rep_id_refhvr_id_temp(self):
-    pass
-  # LOAD DATA LOCAL INFILE '/workspace/ashipunova/refhvrid/rep_id_refhvr_ids_separated.csv' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);
-  
-  def insert_into_rep_id_refhvr_id_temp(self):
-    separate_refids_string = str(self.separate_refids_arr).strip('[]')
-
-    query = """INSERT IGNORE INTO rep_id_refhvr_id_temp (rep_id, refhvr_id)
-      VALUES %s; 
-    """ % separate_refids_string
-    print "INSERT IGNORE INTO rep_id_refhvr_id_temp\nSeparate fields len: "
-    print len(self.separate_refids_arr)
-    # print query
+  def load_into_rep_id_refhvr_id_temp(self, out_file_path_name):
+    query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);" % (out_file_path_name)
+    print query
     return mysql_utils.execute_no_fetch(query)
-    
+  
   def drop_col_refids_per_dataset_temp(self, column_names_arr):
     # query = """ALTER TABLE refids_per_dataset_temp
     #   drop column project,
@@ -271,10 +242,10 @@ if __name__ == '__main__':
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
   
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.insert_into_rep_id_refhvr_id_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(out_file_path_name)
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
   #
   # t0 = update_refhvr_ids.benchmark_w_return_1()
   # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
