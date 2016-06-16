@@ -5,11 +5,14 @@
 import IlluminaUtils.lib.fastalib as fa
 import os
 import sys
+import argparse
+
 
 class Fa_seq_len:
   def __init__(self):
-    self.usage = """python count_seq_len_fa.py DIRNAME [-ve]"""
-    self.all_dirs = set()
+    self.usage     = """python count_seq_len_fa.py -d DIRNAME [-ve]"""
+    self.all_dirs  = set()
+    self.start_dir = ""
     
   def get_files(self, walk_dir_name, ext = ""):
       files = {}
@@ -40,21 +43,53 @@ class Fa_seq_len:
       seq_len = len(seq)
       print seq_len
   
-  def print_short_seq(self, f_input, file_name):
+  def print_short_seq(self, f_input, file_name, min_len):
     for idx, seq in enumerate(f_input.sequences):
       seq_len = len(seq)
-      if seq_len < 200:
+      if seq_len < int(min_len):
         print f_input.ids[idx]
         print seq
-        print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
+        print "WARNING, sequence length in %s = %s. It's less than %s!" % (file_name, seq_len, min_len)
         self.all_dirs.add(fa_files[file_name][0])
+
+  def get_args(self, argv):
+     try:
+       parser = argparse.ArgumentParser(description = self.usage)
+     except:
+       raise
+       
+     for opt, arg in opts:
+        if opt == '-h':
+           print self.usage
+           sys.exit()
+        elif opt in ("-d", "--dir"):
+           self.start_dir = arg
 
 
 if __name__ == '__main__':
   seq_len = Fa_seq_len()
-  is_verbatim = seq_len.is_verbatim()
+  # seq_len.get_args(sys.argv[1:])
   
-  start_dir = sys.argv[1]
+  parser = argparse.ArgumentParser(description = seq_len.usage)
+
+  parser.add_argument("-d", "--dir",
+    required = False, action = "store", dest = "start_dir", default = '.',
+    help = """Input directory name, default - current.""")
+  parser.add_argument("-ve","--verbatim",
+    required = False, action = "store_true", dest = "is_verbatim",
+    help = """Print an additional inforamtion""")
+  parser.add_argument("-l", "--length",
+    required = False, action = "store", dest = "min_len", default = '200',
+    help = """Seq length threshold, default - 200.""")
+  
+  args = parser.parse_args()
+  print "args = "
+  print args
+  
+  is_verbatim = args.is_verbatim
+  
+  start_dir = args.start_dir
+  # start_dir = sys.argv[1]
   if (is_verbatim):
     print "Start from %s" % start_dir
     print "Getting file names"
@@ -63,14 +98,13 @@ if __name__ == '__main__':
   if (is_verbatim):
     print "Found %s fa files" % (len(fa_files))
   
-  
   for file_name in fa_files:
     if (is_verbatim):
       print file_name
 
     try:
       f_input  = fa.ReadFasta(file_name)
-      # seq_len.print_short_seq(f_input, file_name)
+      # seq_len.print_short_seq(f_input, file_name, args.min_len)
       seq_len.get_seq_len_distrib(f_input)
 
     except RuntimeError:
@@ -84,4 +118,5 @@ if __name__ == '__main__':
   if (is_verbatim):
     print "Current directory:"
     print seq_len.all_dirs
+  
   
