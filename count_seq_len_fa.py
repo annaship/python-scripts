@@ -10,7 +10,6 @@ import argparse
 
 class Fa_seq_len:
   def __init__(self):
-    self.usage     = """python count_seq_len_fa.py -d DIRNAME [-ve]"""
     self.all_dirs  = set()
     self.start_dir = ""
     
@@ -70,21 +69,28 @@ if __name__ == '__main__':
   seq_len = Fa_seq_len()
   # seq_len.get_args(sys.argv[1:])
   
-  parser = argparse.ArgumentParser(description = seq_len.usage)
+  # parser = argparse.ArgumentParser(description = seq_len.usage)
+  parser = argparse.ArgumentParser()
 
   parser.add_argument("-d", "--dir",
     required = False, action = "store", dest = "start_dir", default = '.',
-    help = """Input directory name, default - current.""")
+    help = """Input directory name, default - current""")
   parser.add_argument("-ve","--verbatim",
     required = False, action = "store_true", dest = "is_verbatim",
     help = """Print an additional inforamtion""")
   parser.add_argument("-l", "--length",
     required = False, action = "store", dest = "min_len", default = '200',
-    help = """Seq length threshold, default - 200.""")
-
+    help = """Seq length threshold, default - 200""")
   parser.add_argument("-e", "--ext",
     required = False, action = "store", dest = "ext", default = '.fa',
-    help = """File ending, default - .fa.""")
+    help = """File ending, default - .fa""")
+  parser.add_argument("-hi", "--histogram",
+    required = False, action = "store_true", dest = "histogram",
+    help = """Run get_seq_len_distrib""")
+  parser.add_argument("-s", "--short_s",
+    required = False, action = "store_true", dest = "short_s",
+    help = """Run print_short_seq""")
+    
   
   args = parser.parse_args()
   print "args = "
@@ -108,8 +114,10 @@ if __name__ == '__main__':
 
     try:
       f_input  = fa.ReadFasta(file_name)
-      seq_len.print_short_seq(f_input, file_name, args.min_len)
-      seq_len.get_seq_len_distrib(f_input)
+      if (args.short_s):
+        seq_len.print_short_seq(f_input, file_name, args.min_len)
+      if (args.histogram):
+        seq_len.get_seq_len_distrib(f_input)
 
     except RuntimeError:
       if (is_verbatim):
