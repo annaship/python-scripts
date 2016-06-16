@@ -24,7 +24,7 @@ class Fa_seq_len:
               files[full_name] = (dirname, file_base, file_extension)
       return files
 
-  def check_if_verb(self):
+  def is_verbatim(self):
     try: 
       if sys.argv[2] == "-ve":
         return True
@@ -48,82 +48,40 @@ class Fa_seq_len:
         print seq
         print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
         self.all_dirs.add(fa_files[file_name][0])
-  
-
-  # start_dir = sys.argv[1]
-  # print "Start from %s" % start_dir
-  # print "Getting file names"
-
-
-  #fa_files = get_files("/xraid2-2/sequencing/Illumina", ".fastq.gz")
-  # "/xraid2-2/sequencing/Illumina/20151014ns"
-  # fa_files = self.get_files(start_dir, ".fa")
-  # print "Found %s fa files" % (len(fa_files))
-
-  # check_if_verb = self.check_if_verb()
-
-  # for file_name in fa_files:
-  #   if (check_if_verb):
-  #     print file_name
-  #
-  #   try:
-  #     f_input  = fa.ReadFasta(file_name)
-  #
-  #     # for idx, seq in enumerate(f_input.sequences):
-  #     #   seq_len = len(seq)
-  #     #   if seq_len < 200:
-  #     #     print f_input.ids[idx]
-  #     #     print seq
-  #     #     print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
-  #     #     all_dirs.add(fa_files[file_name][0])
-  #   except RuntimeError:
-  #     if (check_if_verb):
-  #       print sys.exc_info()[0]
-  #   except:
-  #     print "Unexpected error:", sys.exc_info()[0]
-  #     raise
-  #     next
-  #
-  # print "Current directory:"
-  # print all_dirs
 
 
 if __name__ == '__main__':
   seq_len = Fa_seq_len()
+  is_verbatim = seq_len.is_verbatim()
   
   start_dir = sys.argv[1]
-  print "Start from %s" % start_dir
-  print "Getting file names"
+  if (is_verbatim):
+    print "Start from %s" % start_dir
+    print "Getting file names"
   
   fa_files = seq_len.get_files(start_dir, ".fa")
-  print "Found %s fa files" % (len(fa_files))
+  if (is_verbatim):
+    print "Found %s fa files" % (len(fa_files))
   
-  check_if_verb = seq_len.check_if_verb()
   
   for file_name in fa_files:
-    if (check_if_verb):
+    if (is_verbatim):
       print file_name
 
-    
     try:
       f_input  = fa.ReadFasta(file_name)
-      seq_len.print_short_seq(f_input, file_name)
-      
-      # for idx, seq in enumerate(f_input.sequences):
-      #   seq_len = len(seq)
-      #   if seq_len < 200:
-      #     print f_input.ids[idx]
-      #     print seq
-      #     print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
-      #     all_dirs.add(fa_files[file_name][0])
+      # seq_len.print_short_seq(f_input, file_name)
+      seq_len.get_seq_len_distrib(f_input)
+
     except RuntimeError:
-      if (check_if_verb):
+      if (is_verbatim):
         print sys.exc_info()[0]
     except:
       print "Unexpected error:", sys.exc_info()[0]
       raise
       next
 
-  print "Current directory:"
-  print seq_len.all_dirs
+  if (is_verbatim):
+    print "Current directory:"
+    print seq_len.all_dirs
   
