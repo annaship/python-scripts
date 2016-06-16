@@ -47,17 +47,13 @@ for file_name in fa_files:
   try:
     f_input  = fa.ReadFasta(file_name)
     
-    print "AAA"
-    print f_input.sequences
-    print "BBB"
-    # for _ in range(5000):
-    # #while f_input.next():
-    #   f_input.fasta.next()
-    #   seq_len = len(f_input.fasta.seq)
-    #   print f_input.fasta.id
-    #   if (seq_len < 200):
-    #     print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
-    #     all_dirs.add(fa_files[file_name][0])
+    for idx, seq in enumerate(f_input.sequences):
+      seq_len = len(seq)
+      if seq_len < 200:
+        print f_input.ids[idx]
+        print seq
+        print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
+        all_dirs.add(fa_files[file_name][0])
   except RuntimeError:
     if (check_if_verb):
       print sys.exc_info()[0]
