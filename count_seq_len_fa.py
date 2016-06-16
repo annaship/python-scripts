@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     try:
       f_input  = fa.ReadFasta(file_name)
-      # seq_len.print_short_seq(f_input, file_name, args.min_len)
+      seq_len.print_short_seq(f_input, file_name, args.min_len)
       seq_len.get_seq_len_distrib(f_input)
 
     except RuntimeError:
