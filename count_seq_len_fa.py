@@ -2,6 +2,8 @@ import IlluminaUtils.lib.fastalib as fa
 import os
 import sys
 
+usage = """python count_seq_len_fa.py DIRNAME [-ve]"""
+
 def get_files(walk_dir_name, ext = ""):
     files = {}
     filenames = []
@@ -62,6 +64,7 @@ for file_name in fa_files:
     raise
     next
 
+print "Current directory:"
 print all_dirs
 
 
