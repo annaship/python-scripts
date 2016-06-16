@@ -40,15 +40,14 @@ class Fa_seq_len:
       seq_len = len(seq)
       print seq_len
   
-  def print_short_seq(self, f_input):
+  def print_short_seq(self, f_input, file_name):
     for idx, seq in enumerate(f_input.sequences):
       seq_len = len(seq)
       if seq_len < 200:
         print f_input.ids[idx]
         print seq
         print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
-        all_dirs.add(fa_files[file_name][0])
-    return all_dirs
+        self.all_dirs.add(fa_files[file_name][0])
   
 
   # start_dir = sys.argv[1]
@@ -105,18 +104,18 @@ if __name__ == '__main__':
     if (check_if_verb):
       print file_name
 
-    all_dirs = seq_len.all_dirs
     
     try:
       f_input  = fa.ReadFasta(file_name)
-    
-      for idx, seq in enumerate(f_input.sequences):
-        seq_len = len(seq)
-        if seq_len < 200:
-          print f_input.ids[idx]
-          print seq
-          print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
-          all_dirs.add(fa_files[file_name][0])
+      seq_len.print_short_seq(f_input, file_name)
+      
+      # for idx, seq in enumerate(f_input.sequences):
+      #   seq_len = len(seq)
+      #   if seq_len < 200:
+      #     print f_input.ids[idx]
+      #     print seq
+      #     print "WARNING, sequence length in %s = %s. It's less than 200!" % (file_name, seq_len)
+      #     all_dirs.add(fa_files[file_name][0])
     except RuntimeError:
       if (check_if_verb):
         print sys.exc_info()[0]
@@ -126,5 +125,5 @@ if __name__ == '__main__':
       next
 
   print "Current directory:"
-  print all_dirs
+  print seq_len.all_dirs
   
