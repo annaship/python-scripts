@@ -81,6 +81,10 @@ if __name__ == '__main__':
   parser.add_argument("-l", "--length",
     required = False, action = "store", dest = "min_len", default = '200',
     help = """Seq length threshold, default - 200.""")
+
+  parser.add_argument("-e", "--ext",
+    required = False, action = "store", dest = "ext", default = '.fa',
+    help = """File ending, default - .fa.""")
   
   args = parser.parse_args()
   print "args = "
@@ -94,7 +98,7 @@ if __name__ == '__main__':
     print "Start from %s" % start_dir
     print "Getting file names"
   
-  fa_files = seq_len.get_files(start_dir, ".fa")
+  fa_files = seq_len.get_files(start_dir, args.ext)
   if (is_verbatim):
     print "Found %s fa files" % (len(fa_files))
   
