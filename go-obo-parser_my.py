@@ -9,6 +9,7 @@ added database utility by Anna Shipunova 2016-10-27
 """
 from __future__ import with_statement
 from collections import defaultdict
+import itertools
 
 __author__    = "Uli Koehler"
 __copyright__ = "Copyright 2013 Uli Koehler"
@@ -111,7 +112,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #Iterate over GO terms
     # termCounter = 0
-    all_term_dict = parseGOOBO(args.infile)
+    all_term_dict_res = parseGOOBO(args.infile)
+    all_term_dict, all_term_dict_2 = itertools.tee(all_term_dict_res)
+    
     print "HHH: all_term_dict type = %s" % type(all_term_dict)
     # for goTerm in all_term_dict:
     #     termCounter += 1
@@ -130,7 +133,7 @@ if __name__ == "__main__":
     
     parents = {}
     print "SSS start get_term_path"
-    for goTerm in all_term_dict:
+    for goTerm in all_term_dict_2:
         print goTerm
         
         if 'is_a' in goTerm:
