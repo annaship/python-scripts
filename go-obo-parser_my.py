@@ -21,7 +21,26 @@ def processGOTerm(goTerm):
     their only member.
     Returns the modified object as a dictionary.
     """
-    return {key: value[0] for key, value in goTerm.items()}
+    ret = dict(goTerm) #Input is a defaultdict, might express unexpected behaviour
+    for key, value in ret.iteritems():
+        if len(value) == 1:
+            ret[key] = value[0]
+            
+    # print "RET = "
+    # print ret
+    #
+    # print "RET2 = "
+    # print {key: value[0] for key, value in ret.items() if len(value) == 1}
+    #
+    return ret
+    """
+    EEE: type(goTerm['is_a']) = <type 'str'>
+    PPP parents
+    {}
+    {'is_a': ['CHEBI:33693 ! oxygen hydride', 'CHEBI:37176 ! mononuclear parent hydride', 'CHEBI:52625 ! inorganic hydroxy compound'], 'id': 'CHEBI:15377', 'name': 'water'}
+    
+    """
+    
 
 def parseGOOBO(filename):
     """
@@ -112,10 +131,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     #Iterate over GO terms
     # termCounter = 0
-    all_term_dict_res = parseGOOBO(args.infile)
-    all_term_dict, all_term_dict_2 = itertools.tee(all_term_dict_res)
+    # all_term_dict_res = parseGOOBO(args.infile)
+    all_term_dict, all_term_dict_2 = itertools.tee(parseGOOBO(args.infile))
     
-    print "HHH: all_term_dict type = %s" % type(all_term_dict)
+    # print "HHH: all_term_dict type = %s" % type(all_term_dict)
     # for goTerm in all_term_dict:
     #     termCounter += 1
     #     print goTerm
