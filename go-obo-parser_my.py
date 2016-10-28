@@ -25,21 +25,7 @@ def processGOTerm(goTerm):
     for key, value in ret.iteritems():
         if len(value) == 1:
             ret[key] = value[0]
-            
-    # print "RET = "
-    # print ret
-    #
-    # print "RET2 = "
-    # print {key: value[0] for key, value in ret.items() if len(value) == 1}
-    #
     return ret
-    """
-    EEE: type(goTerm['is_a']) = <type 'str'>
-    PPP parents
-    {}
-    {'is_a': ['CHEBI:33693 ! oxygen hydride', 'CHEBI:37176 ! mononuclear parent hydride', 'CHEBI:52625 ! inorganic hydroxy compound'], 'id': 'CHEBI:15377', 'name': 'water'}
-    
-    """
     
 
 def parseGOOBO(filename):
@@ -120,11 +106,8 @@ def get_term_path(goTerm, parents):
     # print parents
         
 def clean_definition(definition):
-    # print "definition = %s" % definition
-    
     cl_def = definition.strip(' []').replace('"', '')
     return ''.join([i if ord(i) < 128 else ' ' for i in cl_def])
-    # print "aa = %s" % aa
 
 if __name__ == "__main__":
     """Print out the number of GO objects in the given GO OBO file"""
@@ -132,33 +115,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('infile', help='The input file in GO OBO v1.2 format.')
     args = parser.parse_args()
-    #Iterate over GO terms
-    # termCounter = 0
-    # all_term_dict_res = parseGOOBO(args.infile)
     all_term_dict = parseGOOBO(args.infile)
-    
-    # print "HHH: all_term_dict type = %s" % type(all_term_dict)
-    # for goTerm in all_term_dict:
-    #     termCounter += 1
-    #     print goTerm
-    # print "Found %d GO terms" % termCounter
-    
     
     insert_term_query = """
     insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
       values 
-    """
-
-    """
-cnts = 0    
-term_cnt = len(list(all_term_dict))
-for goTerm in all_term_dict:
-    cnts += 1
-    # print goTerm
-    insert_term_query += create_insert_term_query(goTerm)
-    if cnts < term_cnt:
-        print cnts, term_cnt
-        insert_term_query += ","
     """
     cnts = 0    
     all_term_dict_l = list(all_term_dict)
@@ -173,6 +134,7 @@ for goTerm in all_term_dict:
     
     parents = {}
     # print "SSS start get_term_path"
+    
     for goTerm in all_term_dict_l:
         # print goTerm
         
