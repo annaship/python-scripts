@@ -95,7 +95,7 @@ def create_insert_term_query(goTerm):
             is_root_term = 1
             is_leaf      = 0
     
-        insert_term_query_1 = """(1, "%s", "%s", "%s", "%s", "%s", "%s", "%s"), \n""" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
+        insert_term_query_1 = """(1, "%s", "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
     except KeyError:
         pass
     except:
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     #Iterate over GO terms
     # termCounter = 0
     # all_term_dict_res = parseGOOBO(args.infile)
-    all_term_dict, all_term_dict_2 = itertools.tee(parseGOOBO(args.infile))
+    all_term_dict = parseGOOBO(args.infile)
     
     # print "HHH: all_term_dict type = %s" % type(all_term_dict)
     # for goTerm in all_term_dict:
@@ -148,14 +148,32 @@ if __name__ == "__main__":
     insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
       values 
     """
-    
-    for goTerm in all_term_dict:
+
+    """
+cnts = 0    
+term_cnt = len(list(all_term_dict))
+for goTerm in all_term_dict:
+    cnts += 1
+    # print goTerm
+    insert_term_query += create_insert_term_query(goTerm)
+    if cnts < term_cnt:
+        print cnts, term_cnt
+        insert_term_query += ","
+    """
+    cnts = 0    
+    all_term_dict_l = list(all_term_dict)
+    term_cnt = len(all_term_dict_l)
+    for goTerm in all_term_dict_l:
         # print goTerm
+        cnts += 1
         insert_term_query += create_insert_term_query(goTerm)
+        if cnts < term_cnt:
+            insert_term_query += ", "
+        
     
     parents = {}
     # print "SSS start get_term_path"
-    for goTerm in all_term_dict_2:
+    for goTerm in all_term_dict_l:
         # print goTerm
         
         if 'is_a' in goTerm:
