@@ -57,7 +57,7 @@ def parseGOOBO(filename):
             
 def create_insert_term_query(goTerm):
     """ 
-    insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
+    insert into term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
     (1, )
     
         {'is_a': ['CHEBI:25585 ! nonmetal atom', 'CHEBI:33300 ! pnictogen'], 'id': 'CHEBI:25555', 'name': 'nitrogen atom'}
@@ -72,7 +72,6 @@ def create_insert_term_query(goTerm):
             definition = clean_definition(goTerm['def'])
         else:
             definition = ""
-        namespace = 'envo'
         if 'is_a' in goTerm:
             is_root_term = 0
             is_leaf      = 1
@@ -80,7 +79,7 @@ def create_insert_term_query(goTerm):
             is_root_term = 1
             is_leaf      = 0
     
-        insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
+        insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, "0", is_root_term, is_leaf)
     except KeyError:
         pass
     except:
@@ -110,7 +109,7 @@ def clean_definition(definition):
     
 def combine_insert_term_query(all_term_dict_l):
     insert_term_query = """
-    insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
+    insert into term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
       values 
     """
     cnts = 0    
