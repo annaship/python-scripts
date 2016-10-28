@@ -95,7 +95,7 @@ def create_insert_term_query(goTerm):
             is_root_term = 1
             is_leaf      = 0
     
-        insert_term_query_1 = "(1, '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
+        insert_term_query_1 = """(1, "%s", "%s", "%s", "%s", "%s", "%s", "%s"), \n""" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
     except KeyError:
         pass
     except:
@@ -105,23 +105,26 @@ def create_insert_term_query(goTerm):
 def get_term_path(goTerm, parents):
     term_identifier = goTerm['id']
     # 'is_a': ['CHEBI:25585 ! nonmetal atom', 'CHEBI:33300 ! pnictogen']
-    print "EEE: type(goTerm['is_a']) = %s" % type(goTerm['is_a'])
+    # print "EEE: type(goTerm['is_a']) = %s" % type(goTerm['is_a'])
     if (type(goTerm['is_a']) == 'str'):
         parents[term_identifier] = ent.split(' ! ')
     elif (type(goTerm['is_a']) == 'list'):
         for ent in goTerm['is_a']:
-            print "TTT"
-            print ent
+            # print "TTT"
+            # print ent
             a = ent.split(' ! ')
-            print "AAA"
-            print a
+            # print "AAA"
+            # print a
             parents[term_identifier].append(ent.split(' ! '))
-    print "PPP parents"
-    print parents
+    # print "PPP parents"
+    # print parents
         
 def clean_definition(definition):
-    # definition
-    pass
+    # print "definition = %s" % definition
+    
+    cl_def = definition.strip(' []').replace('"', '')
+    return ''.join([i if ord(i) < 128 else ' ' for i in cl_def])
+    # print "aa = %s" % aa
 
 if __name__ == "__main__":
     """Print out the number of GO objects in the given GO OBO file"""
@@ -143,19 +146,20 @@ if __name__ == "__main__":
     
     insert_term_query = """
     insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
-      values (
+      values 
     """
+    
     for goTerm in all_term_dict:
         # print goTerm
         insert_term_query += create_insert_term_query(goTerm)
-    insert_term_query += ");"
     
     parents = {}
-    print "SSS start get_term_path"
+    # print "SSS start get_term_path"
     for goTerm in all_term_dict_2:
-        print goTerm
+        # print goTerm
         
         if 'is_a' in goTerm:
             get_term_path(goTerm, parents)
     
-    print "NNN insert_term_query = %s" % insert_term_query
+    # print "NNN insert_term_query = %s" % insert_term_query
+    print insert_term_query
