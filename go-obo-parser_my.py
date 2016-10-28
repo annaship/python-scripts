@@ -130,7 +130,11 @@ def combine_insert_term_query(all_term_dict_l):
     insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
     # print len(insert_term_query)
     a = chunks(insert_term_query, 50)
+
     for aa in a:
+        b = ", ".join(aa)
+        print_out_term_query(b)
+        print type(b)
         print len(aa)
     return insert_term_query
 
@@ -142,8 +146,19 @@ def chunks(l, n):
 def split_insert_term_query(insert_term_query):
     pass
     
-def print_out_term_query(insert_term_query):
-    pass
+def print_out_term_query(to_print):
+    first_line = """
+    INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
+      VALUES
+    """
+
+    i = 0
+    while os.path.exists("out%s.sql" % i):
+        i += 1
+    target = open("out%s.sql" % i, "w")
+    
+    write_file(first_line, to_print, target)
+    
     
 def combine_insert_term_query2(all_term_dict_l):
     insert_term_query = ""
