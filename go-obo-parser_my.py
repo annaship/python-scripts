@@ -72,14 +72,21 @@ def create_insert_term_query(goTerm):
             definition = clean_definition(goTerm['def'])
         else:
             definition = ""
+            
+        if ('is_obsolete' in goTerm) and (goTerm['is_obsolete'] == "true") :
+            is_obsolete = 1
+        else:
+            is_obsolete = 0
+        
         if 'is_a' in goTerm:
             is_root_term = 0
             is_leaf      = 1
         else:
             is_root_term = 1
             is_leaf      = 0
+            
     
-        insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, "0", is_root_term, is_leaf)
+        insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
     except KeyError:
         pass
     except:
@@ -104,7 +111,7 @@ def get_term_path(goTerm, parents):
     # print parents
         
 def clean_definition(definition):
-    cl_def = definition.strip(' []').replace('"', '')
+    cl_def = definition.strip(' []').replace('"', '').replace('\\', '')
     return ''.join([i if ord(i) < 128 else ' ' for i in cl_def])
     
 def combine_insert_term_query(all_term_dict_l):
