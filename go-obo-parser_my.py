@@ -25,8 +25,7 @@ def processGOTerm(goTerm):
     for key, value in ret.iteritems():
         if len(value) == 1:
             ret[key] = value[0]
-    return ret
-    
+    return ret    
 
 def parseGOOBO(filename):
     """
@@ -81,7 +80,7 @@ def create_insert_term_query(goTerm):
             is_root_term = 1
             is_leaf      = 0
     
-        insert_term_query_1 = """(1, "%s", "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
+        insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, namespace, "0", is_root_term, is_leaf)
     except KeyError:
         pass
     except:
@@ -108,6 +107,20 @@ def get_term_path(goTerm, parents):
 def clean_definition(definition):
     cl_def = definition.strip(' []').replace('"', '')
     return ''.join([i if ord(i) < 128 else ' ' for i in cl_def])
+    
+def combine_insert_term_query(all_term_dict_l):
+    insert_term_query = """
+    insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
+      values 
+    """
+    cnts = 0    
+    for goTerm in all_term_dict_l:
+        # print goTerm
+        cnts += 1
+        insert_term_query += create_insert_term_query(goTerm)
+        if cnts < len(all_term_dict_l):
+            insert_term_query += ", "
+    return insert_term_query
 
 if __name__ == "__main__":
     """Print out the number of GO objects in the given GO OBO file"""
@@ -116,24 +129,12 @@ if __name__ == "__main__":
     parser.add_argument('infile', help='The input file in GO OBO v1.2 format.')
     args = parser.parse_args()
     all_term_dict = parseGOOBO(args.infile)
-    
-    insert_term_query = """
-    insert into term (ontology_id, term_name, identifier, definition, namespace, is_obsolete, is_root_term, is_leaf)
-      values 
-    """
-    cnts = 0    
     all_term_dict_l = list(all_term_dict)
-    term_cnt = len(all_term_dict_l)
-    for goTerm in all_term_dict_l:
-        # print goTerm
-        cnts += 1
-        insert_term_query += create_insert_term_query(goTerm)
-        if cnts < term_cnt:
-            insert_term_query += ", "
+    
+    insert_term_query = combine_insert_term_query(all_term_dict_l)
         
     
     parents = {}
-    # print "SSS start get_term_path"
     
     for goTerm in all_term_dict_l:
         # print goTerm
