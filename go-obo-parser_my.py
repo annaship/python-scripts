@@ -124,7 +124,28 @@ def write_file(header, query, target):
     print target.tell()
     target.close()
 
+
 def combine_insert_term_query(all_term_dict_l):
+    insert_term_query_l = []
+    insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
+    # print len(insert_term_query)
+    a = chunks(insert_term_query, 50)
+    for aa in a:
+        print len(aa)
+    return insert_term_query
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+        
+def split_insert_term_query(insert_term_query):
+    pass
+    
+def print_out_term_query(insert_term_query):
+    pass
+    
+def combine_insert_term_query2(all_term_dict_l):
     insert_term_query = ""
     first_line = """
     INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
