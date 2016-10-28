@@ -57,20 +57,13 @@ def parseGOOBO(filename):
             yield processGOTerm(currentGOTerm)
 
 def create_insert_term_query(goTerm):
-    """
-    insert into term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-    (1, )
-
-        {'is_a': ['CHEBI:25585 ! nonmetal atom', 'CHEBI:33300 ! pnictogen'], 'id': 'CHEBI:25555', 'name': 'nitrogen atom'}
-
-    """
     insert_term_query_1 = ""
 
     try:
-        term_name = goTerm['name']
+        term_name = clean_term(goTerm['name'])
         identifier = goTerm['id']
         if 'def' in goTerm:
-            definition = clean_definition(goTerm['def'])
+            definition = clean_term(goTerm['def'])
         else:
             definition = ""
 
@@ -79,7 +72,7 @@ def create_insert_term_query(goTerm):
         else:
             is_obsolete = 0
 
-        if 'is_a' in goTerm:
+        if ('is_a' in goTerm) or ('relationship' in goTerm) :
             is_root_term = 0
             is_leaf      = 1
         else:
@@ -111,9 +104,9 @@ def get_term_path(goTerm, parents):
     # print "PPP parents"
     # print parents
 
-def clean_definition(definition):
-    cl_def = definition.strip(' []').replace('"', '').replace('\\', '')
-    return ''.join([i if ord(i) < 128 else ' ' for i in cl_def])
+def clean_term(term):
+    cl_term = term.strip(' []').replace('"', '').replace('\\', '')
+    return ''.join([i if ord(i) < 128 else ' ' for i in cl_term])
 
 def write_file(header, query, target):
 
@@ -148,37 +141,6 @@ def print_out_term_query(to_print):
     
     write_file(first_line, to_print, target)
     
-    
-def combine_insert_term_query2(all_term_dict_l):
-    insert_term_query = ""
-    first_line = """
-    INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-      VALUES
-    """
-    cnts = 0
-    cnts_max = 0
-    max_lines = 50
-    i = 0
-    
-    for goTerm in all_term_dict_l:
-        # print goTerm
-        
-        cnts += 1
-        cnts_max += 1
-        insert_term_query += create_insert_term_query(goTerm)
-        if cnts_max == max_lines:
-            while os.path.exists("out%s.sql" % i):
-                i += 1
-
-            target = open("out%s.sql" % i, "w")
-            
-            write_file(first_line, insert_term_query, target)
-            cnts_max = 0
-        if cnts < len(all_term_dict_l):
-            insert_term_query += ", "
-            next
-    return insert_term_query
-
 if __name__ == "__main__":
     """Print out the number of GO objects in the given GO OBO file"""
     import argparse
