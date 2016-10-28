@@ -120,22 +120,14 @@ def write_file(header, query, target):
     target.write(header)
     target.write("\n")
     target.write(query)
-    print "target.tell()"
-    print target.tell()
     target.close()
 
 
 def combine_insert_term_query(all_term_dict_l):
-    insert_term_query_l = []
     insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
-    # print len(insert_term_query)
-    a = chunks(insert_term_query, 50)
-
-    for aa in a:
-        b = ", ".join(aa)
-        print_out_term_query(b)
-        print type(b)
-        print len(aa)
+    max_lines = 7000
+    for chunk in chunks(insert_term_query, max_lines):
+        print_out_term_query(", ".join(chunk))
     return insert_term_query
 
 def chunks(l, n):
@@ -143,9 +135,6 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
         
-def split_insert_term_query(insert_term_query):
-    pass
-    
 def print_out_term_query(to_print):
     first_line = """
     INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
