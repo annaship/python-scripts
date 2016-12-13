@@ -15,6 +15,12 @@ class Chimeras:
       self.chg_file               = ""
       self.output_file_name       = ""
       self.dir_name               = ""
+      
+  def usage(self):
+      """Subtracts reads provided in *txt.chimeric.fa and db.chimeric.fa from *unique.chg.
+      Files should be in the same directory.
+      Command line: python /xraid/bioware/linux/seqinfo/bin/subtract_chimeric.py -i FILENAME.unique.chg
+      """
 
   def get_file_name_parts(self, input_file_arg):
       # print "input_file_arg = "
@@ -29,6 +35,7 @@ class Chimeras:
       print "file_prefix = "
       print file_prefix
       
+      self.unique_file            = file_prefix + ".unique"
       self.chimeric_file_name_txt = file_prefix + ".unique.chimeras.txt.chimeric.fa"
       self.chimeric_file_name_db  = file_prefix + ".unique.chimeras.db.chimeric.fa"
       self.chg_file               = file_prefix + ".unique.chg"
@@ -37,33 +44,44 @@ class Chimeras:
   def get_chimeric_ids(self, file_name):
       ids = set()
       print "Get ids from %s" % file_name
-      read_fasta     = fa.ReadFasta(file_name)
-      ids.update(set(read_fasta.ids))
+      # read_fasta     = fa.ReadFasta(file_name)
+      # # ids.update(set(read_fasta.ids))
+      # ids = set(read_fasta.ids)
+      chimeric_fasta = fa.SequenceSource(file_name, lazy_init = False) 
+      
+      while chimeric_fasta.next():
+          ids.add(chimeric_fasta.id)
+      chimeric_fasta.close()
       return ids
-
     
   def move_out_chimeric(self):
-      chimeric_ids = self.get_chimeric_ids()
-      for idx_key in self.input_file_names:
-          fasta_file_path    = os.path.join(self.indir, self.input_file_names[idx_key])   
-          read_fasta         = fa.ReadFasta(fasta_file_path)
-          read_fasta.close()
+      txt_ids = self.get_chimeric_ids(os.path.join(self.dir_name, self.chimeric_file_name_txt))
+      # print "txt_ids = "
+      # print txt_ids
+      db_ids  = self.get_chimeric_ids(os.path.join(self.dir_name, self.chimeric_file_name_db))
+      # print "db_ids = "
+      # print db_ids
+      
+      all_chimeric_ids = set(txt_ids) | set(db_ids)
+      print "len(all_chimeric_ids) = "
+      print len(all_chimeric_ids)
+      
+      # read_fasta         = fa.ReadFasta(self.chg_file)
+      # read_fasta.close()
+      # 
+      non_chimeric_fasta = fa.FastaOutput(os.path.join(self.dir_name, self.output_file_name))
 
-          non_chimeric_file  = fasta_file_path + self.nonchimeric_suffix
-          non_chimeric_fasta = fa.FastaOutput(non_chimeric_file)
-
-          fasta              = fa.SequenceSource(fasta_file_path, lazy_init = False) 
-          while fasta.next():
-              if not fasta.id in chimeric_ids:
-                  non_chimeric_fasta.store(fasta, store_frequencies = False)
-          non_chimeric_fasta.close()
+      orig_fasta         = fa.SequenceSource(os.path.join(self.dir_name, self.chg_file), lazy_init = False) 
+      while orig_fasta.next():
+          if not orig_fasta.id in all_chimeric_ids:
+              non_chimeric_fasta.store(orig_fasta, store_frequencies = False)
+      non_chimeric_fasta.close()
 
 if __name__ == '__main__':
     chimeras = Chimeras()
-    # seq_len.get_args(sys.argv[1:])
 
-    # parser = argparse.ArgumentParser(description = seq_len.usage)
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description = chimeras.usage)
+    # parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--dir",
         required = False, action = "store", dest = "start_dir", default = '.',
@@ -78,11 +96,5 @@ if __name__ == '__main__':
 
     
     chimeras.get_file_name_parts(args.input_file)
-    txt_ids = chimeras.get_chimeric_ids(os.path.join(chimeras.dir_name, chimeras.chimeric_file_name_txt))
-    print "txt_ids = "
-    print txt_ids
-    db_ids  = chimeras.get_chimeric_ids(os.path.join(chimeras.dir_name, chimeras.chimeric_file_name_db))
-    print "db_ids = "
-    print db_ids
-    
+    chimeras.move_out_chimeric()
     
