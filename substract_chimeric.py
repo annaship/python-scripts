@@ -14,6 +14,7 @@ class Chimeras:
       self.chimeric_file_name_db  = ""
       self.chg_file               = ""
       self.output_file_name       = ""
+      self.dir_name               = ""
 
   def get_file_name_parts(self, input_file_arg):
       # print "input_file_arg = "
@@ -21,6 +22,8 @@ class Chimeras:
       # 
       # print "os.path.basename"
       # print os.path.basename(input_file_arg)
+      
+      self.dir_name = os.path.dirname(input_file_arg)
       
       file_prefix = os.path.basename(input_file_arg).split(".")[0]
       print "file_prefix = "
@@ -30,25 +33,12 @@ class Chimeras:
       self.chimeric_file_name_db  = file_prefix + ".unique.chimeras.db.chimeric.fa"
       self.chg_file               = file_prefix + ".unique.chg"
       self.output_file_name       = file_prefix + ".unique.nonchimeric.fa"
-      
-  def is_chimera_check_file(self, filename):
-          return filename.endswith((self.chimeras_suffix + self.denovo_suffix, self.chimeras_suffix + self.ref_suffix, self.chimeric_suffix, self.nonchimeric_suffix))
     
-  def get_chimera_file_names(self, cur_dirname):
-      cur_file_names = []        
-      for dirname, dirnames, filenames in os.walk(cur_dirname):
-          cur_file_names = [filename for filename in filenames if (self.is_chimera_check_file(filename))]
-      return cur_file_names
-    
-  def get_chimeric_ids(self):
+  def get_chimeric_ids(self, file_name):
       ids = set()
-      if file_name.endswith(self.chimeric_suffix):
-          both_or_denovo = self.get_chimeras_suffix(file_ratio, file_name)
-          if file_name.endswith(both_or_denovo):                    
-              file_name_path = os.path.join(self.outdir, file_name)        
-              self.utils.print_both("Get ids from %s" % file_name_path)
-              read_fasta     = fa.ReadFasta(file_name_path)
-              ids.update(set(read_fasta.ids))
+      print "Get ids from %s" % file_name
+      read_fasta     = fa.ReadFasta(file_name)
+      ids.update(set(read_fasta.ids))
       return ids
 
     
@@ -88,4 +78,11 @@ if __name__ == '__main__':
 
     
     chimeras.get_file_name_parts(args.input_file)
+    txt_ids = chimeras.get_chimeric_ids(os.path.join(chimeras.dir_name, chimeras.chimeric_file_name_txt))
+    print "txt_ids = "
+    print txt_ids
+    db_ids  = chimeras.get_chimeric_ids(os.path.join(chimeras.dir_name, chimeras.chimeric_file_name_db))
+    print "db_ids = "
+    print db_ids
+    
     
