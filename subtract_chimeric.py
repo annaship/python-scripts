@@ -17,18 +17,12 @@ class Chimeras:
       self.dir_name               = ""
       
   def usage(self):
-      """Subtracts reads provided in *txt.chimeric.fa and db.chimeric.fa from *unique.chg.
+      print """Subtracts reads provided in *txt.chimeric.fa and db.chimeric.fa from *unique.chg.
       Files should be in the same directory.
       Command line: python /xraid/bioware/linux/seqinfo/bin/subtract_chimeric.py -i FILENAME.unique.chg
       """
 
   def get_file_name_parts(self, input_file_arg):
-      # print "input_file_arg = "
-      # print input_file_arg
-      # 
-      # print "os.path.basename"
-      # print os.path.basename(input_file_arg)
-      
       self.dir_name = os.path.dirname(input_file_arg)
       
       file_prefix = os.path.basename(input_file_arg).split(".")[0]
@@ -44,6 +38,7 @@ class Chimeras:
   def get_chimeric_ids(self, file_name):
       ids = set()
       print "Get ids from %s" % file_name
+      # todo: benchmark
       # read_fasta     = fa.ReadFasta(file_name)
       # # ids.update(set(read_fasta.ids))
       # ids = set(read_fasta.ids)
@@ -56,22 +51,14 @@ class Chimeras:
     
   def move_out_chimeric(self):
       txt_ids = self.get_chimeric_ids(os.path.join(self.dir_name, self.chimeric_file_name_txt))
-      # print "txt_ids = "
-      # print txt_ids
       db_ids  = self.get_chimeric_ids(os.path.join(self.dir_name, self.chimeric_file_name_db))
-      # print "db_ids = "
-      # print db_ids
-      
       all_chimeric_ids = set(txt_ids) | set(db_ids)
       print "len(all_chimeric_ids) = "
       print len(all_chimeric_ids)
       
-      # read_fasta         = fa.ReadFasta(self.chg_file)
-      # read_fasta.close()
-      # 
       non_chimeric_fasta = fa.FastaOutput(os.path.join(self.dir_name, self.output_file_name))
-
       orig_fasta         = fa.SequenceSource(os.path.join(self.dir_name, self.chg_file), lazy_init = False) 
+
       while orig_fasta.next():
           if not orig_fasta.id in all_chimeric_ids:
               non_chimeric_fasta.store(orig_fasta, store_frequencies = False)
@@ -80,8 +67,8 @@ class Chimeras:
 if __name__ == '__main__':
     chimeras = Chimeras()
 
-    parser = argparse.ArgumentParser(description = chimeras.usage)
-    # parser = argparse.ArgumentParser()
+    # parser = argparse.ArgumentParser(description = chimeras.usage)
+    parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--dir",
         required = False, action = "store", dest = "start_dir", default = '.',
