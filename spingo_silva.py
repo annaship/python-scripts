@@ -44,7 +44,7 @@ class Taxonomy:
         # print taxon
         
         taxon_split = taxon.split(";")
-        print len(taxon_split)
+        # print len(taxon_split)
 
         binomial = self.get_binomial(taxon_split)
         # print "binomial = %s" % binomial
@@ -59,38 +59,24 @@ class Taxonomy:
         reverse_from_family = [i for i in reversed(taxon_split[:5])]
             # print i
 
-        out_header = ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
-        print "OOO out"
-        print out_header
+        return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
 
     def parse_taxonomy(self, filename):
-      with open(filename, "r") as infile:
-          for line in infile:
-              # current_output_text = ""
-              line = line.strip()
-              if not line: continue #Skip empty
-              # print line
-              header, sequence = line.split("\t#\t")
-              # current_output_text = ">" + line.replace("\t#\t", "\n")
-              # print header
-              # print sequence
-              self.format_header(header)
-          
-              # JQ817537.1.1383 Archaea #   A
-          #     if line == "[Term]":
-          #         if currentGOTerm: yield processGOTerm(currentGOTerm)
-          #         currentGOTerm = defaultdict(list)
-          #     elif line == "[Typedef]":
-          #         #Skip [Typedef sections]
-          #         currentGOTerm = None
-          #     else: #Not [Term]
-          #         #Only process if we're inside a [Term] environment
-          #         if currentGOTerm is None: continue
-          #         key, sep, val = line.partition(":")
-          #         currentGOTerm[key].append(val.strip())
-          # #Add last term
-          # if currentGOTerm is not None:
-          #     yield processGOTerm(currentGOTerm)
+        with open(filename, "r") as infile:
+            for line in infile:
+                # current_output_text = ""
+                line = line.strip()
+                if not line: continue #Skip empty
+                # print line
+                header, sequence = line.split("\t#\t")
+                # current_output_text = ">" + line.replace("\t#\t", "\n")
+                # print header
+                # print sequence
+                out_header = self.format_header(header)
+                print out_header
+                print sequence
+
+
 
 
 if __name__ == '__main__':
@@ -115,8 +101,8 @@ if __name__ == '__main__':
         help = """Input file name""")
 
     args = parser.parse_args()
-    print "args = "
-    print args
+    # print "args = "
+    # print args
 
     
     taxonomy.parse_taxonomy(args.input_file)
