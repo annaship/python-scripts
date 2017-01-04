@@ -47,14 +47,14 @@ class Taxonomy:
         print len(taxon_split)
 
         binomial = self.get_binomial(taxon_split)
-        print "binomial = %s" % binomial
+        # print "binomial = %s" % binomial
         
         genus = self.get_genus(taxon_split)            
-        print "genus = %s" % genus
+        # print "genus = %s" % genus
             
         self.fill_out_empty_ranks(taxon_split)
 
-        print taxon_split[:5]
+        # print taxon_split[:5]
         
         reverse_from_family = [i for i in reversed(taxon_split[:5])]
             # print i
