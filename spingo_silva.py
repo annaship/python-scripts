@@ -23,6 +23,14 @@ class Taxonomy:
             pass
         except:
             raise
+
+    def get_genus(self, taxon_split):
+        try:
+            return taxon_split[5]
+        except IndexError:
+            pass
+        except:
+            raise
         
     
     def format_header(self, header):
@@ -40,7 +48,10 @@ class Taxonomy:
 
         binomial = self.get_binomial(taxon_split)
         print binomial
+        
+        genus = self.get_genus(taxon_split)
             
+        print "genus = %s" % genus
             
         self.fill_out_empty_ranks(taxon_split)
         
