@@ -15,19 +15,8 @@ class Taxonomy:
     
     def fill_out_empty_ranks(self, taxon_split):
         for i in range(8):
-            try:
-                print "III = %s" % (i)
-                if not taxon_split[i]:
-                    # taxon_split[i] = "NA"
-                    print "not taxon_split[i]"
-                    print taxon_split[i]
-            except IndexError:
+            if (len(taxon_split) < i+1):
                 taxon_split.append("NA")
-                
-                pass
-                # taxon_split[i+1] = "NA"
-            except:
-                raise
         
     
     def format_header(self, header):
