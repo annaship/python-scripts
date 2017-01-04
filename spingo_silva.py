@@ -13,20 +13,7 @@ class Taxonomy:
     time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
     """
     
-    def format_header(self, header):
-        # print header
-        # AF251436.1.1466   Bacteria;Actinobacteria;Acidimicrobiia;Acidimicrobiales;Acidimicrobiaceae;Ferrimicrobium;acidiphilum
-        
-        id, taxon = header.split("\t")
-        # print id
-        # print taxon
-        
-        taxon_split = taxon.split(";")
-        print len(taxon_split)
-        # for i in reversed(taxon_split):
-        #     print i
-            
-        # for i in range(len(taxon_split)):
+    def fill_out_empty_ranks(self, taxon_split):
         for i in range(8):
             try:
                 print "III = %s" % (i)
@@ -41,7 +28,20 @@ class Taxonomy:
                 # taxon_split[i+1] = "NA"
             except:
                 raise
-                
+        
+    
+    def format_header(self, header):
+        # print header
+        # AF251436.1.1466   Bacteria;Actinobacteria;Acidimicrobiia;Acidimicrobiales;Acidimicrobiaceae;Ferrimicrobium;acidiphilum
+        
+        id, taxon = header.split("\t")
+        # print id
+        # print taxon
+        
+        taxon_split = taxon.split(";")
+        print len(taxon_split)
+            
+        self.fill_out_empty_ranks(taxon_split)    
 
         for i in reversed(taxon_split):
             print i
