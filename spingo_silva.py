@@ -20,7 +20,7 @@ class Taxonomy:
         try:
             return taxon_split[5] + "_" + taxon_split[6]
         except IndexError:
-            pass
+            return "NA"
         except:
             raise
 
@@ -28,7 +28,7 @@ class Taxonomy:
         try:
             return taxon_split[5]
         except IndexError:
-            pass
+            return "NA"
         except:
             raise
         
@@ -47,16 +47,21 @@ class Taxonomy:
         print len(taxon_split)
 
         binomial = self.get_binomial(taxon_split)
-        print binomial
+        print "binomial = %s" % binomial
         
-        genus = self.get_genus(taxon_split)
-            
+        genus = self.get_genus(taxon_split)            
         print "genus = %s" % genus
             
         self.fill_out_empty_ranks(taxon_split)
+
+        print taxon_split[:5]
         
-        # for i in reversed(taxon_split):
-        #     print i
+        reverse_from_family = [i for i in reversed(taxon_split[:5])]
+            # print i
+
+        out_header = ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
+        print "OOO out"
+        print out_header
 
     def parse_taxonomy(self, filename):
       with open(filename, "r") as infile:
