@@ -12,6 +12,10 @@ class Taxonomy:
     """
     time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
     """
+    
+    def format_header(self, header):
+        print header
+        
 
     def parse_taxonomy(self, filename):
       with open(filename, "r") as infile:
@@ -20,9 +24,11 @@ class Taxonomy:
               line = line.strip()
               if not line: continue #Skip empty
               # print line
-              a = line.split("\t#\t")
+              header, sequence = line.split("\t#\t")
               # current_output_text = ">" + line.replace("\t#\t", "\n")
-              print a
+              # print header
+              # print sequence
+              self.format_header(header)
           
               # JQ817537.1.1383 Archaea #   A
           #     if line == "[Term]":
