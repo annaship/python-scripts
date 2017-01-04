@@ -23,6 +23,8 @@ class Taxonomy:
     def format_header(self, header):
         # print header
         # AF251436.1.1466   Bacteria;Actinobacteria;Acidimicrobiia;Acidimicrobiales;Acidimicrobiaceae;Ferrimicrobium;acidiphilum
+        # goal:
+        # >S001014081   Ilumatobacter_fluminis  Ilumatobacter   NA  Acidimicrobiaceae
         
         id, taxon = header.split("\t")
         # print id
@@ -30,11 +32,20 @@ class Taxonomy:
         
         taxon_split = taxon.split(";")
         print len(taxon_split)
-            
-        self.fill_out_empty_ranks(taxon_split)    
 
-        for i in reversed(taxon_split):
-            print i
+        try:
+            binomial = taxon_split[5] + "_" + taxon_split[6]
+            print binomial
+        except IndexError:
+            pass
+        except:
+            raise
+            
+            
+        self.fill_out_empty_ranks(taxon_split)
+        
+        # for i in reversed(taxon_split):
+        #     print i
 
     def parse_taxonomy(self, filename):
       with open(filename, "r") as infile:
