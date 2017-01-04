@@ -14,9 +14,10 @@ class Taxonomy:
     """
     
     def fill_out_empty_ranks(self, taxon_split):
-        for i in range(8):
-            if (len(taxon_split) < i+1):
-                taxon_split.append("NA")
+        return [taxon_split.append("NA") for i in range(8) if (len(taxon_split) < i+1)]
+        # for i in range(8):
+        #     if (len(taxon_split) < i+1):
+        #         taxon_split.append("NA")
         
     
     def format_header(self, header):
