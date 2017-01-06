@@ -9,7 +9,8 @@ class Taxonomy:
     def __init__(self):
         self.output_text = {}
         self.ranks = ["domain", "phylum", "class", "order", "family", "genus", "species"]
-
+        self.rank_level = ""
+        
     """
     time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
     """
@@ -57,13 +58,17 @@ class Taxonomy:
 
         # print taxon_split[:5]
         
+        print "self.rank_level = "
+        print self.rank_level
         reverse_from_family = [i for i in reversed(taxon_split[:5])]
         print "reverse_from_family = "
         print reverse_from_family
 
         return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
 
-    def parse_taxonomy(self, filename):
+    def parse_taxonomy(self, args):
+        filename = args.input_file
+        self.rank_level = args.rank_level
         with open(filename, "r") as infile:
             for line in infile:
                 # current_output_text = ""
@@ -104,7 +109,7 @@ if __name__ == '__main__':
         required = True, action = "store", dest = "input_file",
         help = """Input file name""")
     parser.add_argument("-r", "--rank",
-        required = True, action = "store", dest = "rank_level", default = 'domain',
+        required = False, action = "store", dest = "rank_level", default = 'domain',
         help = """The highest taxonomic rank (one of %s)""" % ", ".join(ranks))
 
     args = parser.parse_args()
@@ -112,5 +117,5 @@ if __name__ == '__main__':
     # print args
 
     
-    taxonomy.parse_taxonomy(args.input_file)
+    taxonomy.parse_taxonomy(args)
     
