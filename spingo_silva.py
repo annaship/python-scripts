@@ -64,12 +64,14 @@ class Taxonomy:
         rank_number = int(self.ranks.index(self.rank_level.lower())) + 1
         print "rank_number = "
         print rank_number
-        reverse_from_family = [i for i in reversed(taxon_split[:rank_number])]
+        reverse_from_family1 = [i for i in reversed(taxon_split[:rank_number])]
+        reverse_from_family = reverse_from_family1[0]
         # reverse_from_family = [i for i in reversed(taxon_split[:5])]
         print "reverse_from_family = "
         print reverse_from_family
 
-        return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
+        return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + reverse_from_family
+        # "\t".join(reverse_from_family)
 
     def parse_taxonomy(self, args):
         filename = args.input_file
