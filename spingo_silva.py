@@ -7,8 +7,8 @@ import argparse
 
 class Taxonomy:
     def __init__(self):
-        output_text = {}
-        ranks = ["domain", "phylum", "class", "order", "family", "genus", "species"]
+        self.output_text = {}
+        self.ranks = ["domain", "phylum", "class", "order", "family", "genus", "species"]
 
     """
     time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
@@ -58,6 +58,8 @@ class Taxonomy:
         # print taxon_split[:5]
         
         reverse_from_family = [i for i in reversed(taxon_split[:5])]
+        print "reverse_from_family = "
+        print reverse_from_family
 
         return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
 
@@ -83,6 +85,8 @@ if __name__ == '__main__':
 
 
     taxonomy = Taxonomy()
+    ranks = taxonomy.ranks
+    print ranks
     parser = argparse.ArgumentParser()
     # parser = argparse.ArgumentParser(description='''Demultiplex Illumina fastq. Will make fastq files per barcode from "in_barcode_file_name".
     # Command line example: time python demultiplex_use.py --in_barcode_file_name "prep_template.txt" --in_fastq_file_name S1_L001_R1_001.fastq.gz --out_dir results --compressed
@@ -100,8 +104,8 @@ if __name__ == '__main__':
         required = True, action = "store", dest = "input_file",
         help = """Input file name""")
     parser.add_argument("-r", "--rank",
-        required = True, action = "store", dest = "rank_level",
-        help = """The highest taxonomic rank""")
+        required = True, action = "store", dest = "rank_level", default = 'domain',
+        help = """The highest taxonomic rank (one of %s)""" % ", ".join(ranks))
 
     args = parser.parse_args()
     # print "args = "
