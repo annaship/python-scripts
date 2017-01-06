@@ -60,7 +60,12 @@ class Taxonomy:
         
         print "self.rank_level = "
         print self.rank_level
-        reverse_from_family = [i for i in reversed(taxon_split[:5])]
+        
+        rank_number = int(self.ranks.index(self.rank_level.lower())) + 1
+        print "rank_number = "
+        print rank_number
+        reverse_from_family = [i for i in reversed(taxon_split[:rank_number])]
+        # reverse_from_family = [i for i in reversed(taxon_split[:5])]
         print "reverse_from_family = "
         print reverse_from_family
 
