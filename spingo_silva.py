@@ -8,6 +8,7 @@ import argparse
 class Taxonomy:
     def __init__(self):
         output_text = {}
+        ranks = ["domain", "phylum", "class", "order", "family", "genus", "species"]
 
     """
     time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
@@ -57,7 +58,6 @@ class Taxonomy:
         # print taxon_split[:5]
         
         reverse_from_family = [i for i in reversed(taxon_split[:5])]
-            # print i
 
         return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + "\t".join(reverse_from_family)
 
@@ -99,6 +99,9 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--in",
         required = True, action = "store", dest = "input_file",
         help = """Input file name""")
+    parser.add_argument("-r", "--rank",
+        required = True, action = "store", dest = "rank_level",
+        help = """The highest taxonomic rank""")
 
     args = parser.parse_args()
     # print "args = "
