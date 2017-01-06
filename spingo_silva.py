@@ -91,14 +91,11 @@ class Taxonomy:
                 print sequence
 
 
-
-
 if __name__ == '__main__':
 
 
     taxonomy = Taxonomy()
     ranks = taxonomy.ranks
-    print ranks
     parser = argparse.ArgumentParser()
     # parser = argparse.ArgumentParser(description='''Demultiplex Illumina fastq. Will make fastq files per barcode from "in_barcode_file_name".
     # Command line example: time python demultiplex_use.py --in_barcode_file_name "prep_template.txt" --in_fastq_file_name S1_L001_R1_001.fastq.gz --out_dir results --compressed
