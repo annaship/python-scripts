@@ -27,22 +27,15 @@ class Taxonomy:
             self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
         except:
             raise
+        return id
 
         # print "self.parsed_line"
         # print self.parsed_line
 
-    def parse_taxon_string(self, taxon_string):
+    def parse_taxon_string(self, taxon_string, id):
+        print "id from parse_taxon_string = %s" % id
         taxon_string_arr = taxon_string.split(";")[::2][1:]
-        taxonomy_only = ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
-        print "taxon_string_arr"
-        print  taxon_string_arr
-        print "taxonomy_only"
-        print  taxonomy_only
-        # .remove('xyz');
-        # d = dict(taxon_string.split(";") for item in s.split(";"))
-
-        # print "taxon_string_arr"
-        # print taxon_string_arr
+        return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
 
     def parse_taxonomy(self, args):
         filename = args.input_file
@@ -50,10 +43,10 @@ class Taxonomy:
             for line in infile:
                 line = line.strip()
                 if not line: continue #Skip empty
-                print line
+                # print line
                 header, taxon_string = line.split("\t")
-                print "taxon_string"
-                print taxon_string
+                # print "taxon_string"
+                # print taxon_string
                 """
                 header
                 >S000655554 uncultured bacterium; L2Sp-28
@@ -61,9 +54,11 @@ class Taxonomy:
                 Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
 
                 """
-                self.parse_header(header)
-                self.parse_taxon_string(taxon_string)
-
+                id = self.parse_header(header)
+                taxonomy_only = self.parse_taxon_string(header, id)
+                print "all"
+                print self.parsed_line
+                print taxonomy_only
                 # out_header = self.format_header(header)
                 # print out_header
                 # print sequence
