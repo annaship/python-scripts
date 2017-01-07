@@ -33,11 +33,11 @@ class Taxonomy:
 
     def parse_taxon_string(self, taxon_string):
         taxon_string_arr = taxon_string.split(";")[::2][1:]
-        a = [x.strip('"').strip("'") for x in taxon_string_arr]
+        taxonomy_only = ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
         print "taxon_string_arr"
         print  taxon_string_arr
-        print "a"
-        print  a
+        print "taxonomy_only"
+        print  taxonomy_only
         # .remove('xyz');
         # d = dict(taxon_string.split(";") for item in s.split(";"))
 
