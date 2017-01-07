@@ -4,6 +4,7 @@
 import os
 import sys
 import argparse
+import gzip
 
 class Taxonomy:
     """
@@ -38,7 +39,9 @@ class Taxonomy:
 
     def parse_taxonomy(self, args):
         filename = args.input_file
-        with open(filename, "r") as infile:
+        with gzip.open(filename, 'rb') as infile:
+        #
+        # with open(filename, "r") as infile:
             for line in infile:
                 line = line.strip()
                 if not line: continue #Skip empty
