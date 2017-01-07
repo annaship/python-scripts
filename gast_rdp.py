@@ -7,15 +7,11 @@ import argparse
 import gzip
 
 class Taxonomy:
-    """
-    From release11_2_Bacteria_unaligned.fa.gz
-    >S000655540 uncultured bacterium; L2Sp-13	Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
-    to silva.tax
-    AAAA02010377.14668.16277        Bacteria;Proteobacteria;Alphaproteobacteria;Rickettsiales       1
-
-    """
-    def __init__(self):
+    def __init__(self, args):
         self.parsed_line = {}
+        self.compressed = args.compressed
+        self.filename   = args.input_file
+        self.infile     = self.open_file()
 
     def parse_header(self, header):
         # print "header"
@@ -36,36 +32,27 @@ class Taxonomy:
     def parse_taxon_string(self, taxon_string):
         taxon_string_arr = taxon_string.split(";")[::2][1:]
         return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
+    
+    def open_file(self):
+        if self.compressed:
+            return gzip.open(self.filename, 'rb')
+        else:
+            return open(self.filename, "r")
 
-    def parse_taxonomy(self, args):
-        filename = args.input_file
-        with gzip.open(filename, 'rb') as infile:
-        #
-        # with open(filename, "r") as infile:
-            for line in infile:
-                line = line.strip()
-                if not line: continue #Skip empty
-                # print line
-                header, taxon_string = line.split("\t")
-                # print "taxon_string"
-                # print taxon_string
-                """
-                header
-                >S000655554 uncultured bacterium; L2Sp-28
-                taxon_string
-                Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
+    def parse_taxonomy(self):
+        for line in self.infile.readlines() :        
+            header, taxon_string = line.split("\t")
+            """
+            header
+            >S000655554 uncultured bacterium; L2Sp-28
+            taxon_string
+            Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
 
-                """
-                id = self.parse_header(header)
-                taxonomy_only = self.parse_taxon_string(taxon_string)
-                # print taxonomy_only
-                self.parsed_line[id]["taxonomy_only"] = taxonomy_only
-                
-                # print "all"
-                # print self.parsed_line
-                # out_header = self.format_header(header)
-                # print out_header
-                # print sequence
+            """
+            id = self.parse_header(header)
+            taxonomy_only = self.parse_taxon_string(taxon_string)
+            self.parsed_line[id]["taxonomy_only"] = taxonomy_only
+
     def print_taxonomy(self):
         for k,v in self.parsed_line.items():
             # print "self.parsed_line: k = %s, v = %s" % (k, v)
@@ -75,31 +62,24 @@ class Taxonomy:
 if __name__ == '__main__':
 
 
-    taxonomy = Taxonomy()
-    parser = argparse.ArgumentParser()
-    # parser = argparse.ArgumentParser(description='''Demultiplex Illumina fastq. Will make fastq files per barcode from "in_barcode_file_name".
-    # Command line example: time python demultiplex_use.py --in_barcode_file_name "prep_template.txt" --in_fastq_file_name S1_L001_R1_001.fastq.gz --out_dir results --compressed
-    #
-    # ''')
-    # todo: add user_config
-    # parser.add_argument('--user_config', metavar = 'CONFIG_FILE',
-    #                                     help = 'User configuration to run')
-    # parser.add_argument('--in_barcode_file_name', required = True,
-    #                                     help = 'Comma delimited file with sample names in the first column and its barcodes in the second.')
-    #
-
+    parser = argparse.ArgumentParser(description='''Takes > lines from rdp files, makes gast_silva like files.
+    From release11_2_Bacteria_unaligned.fa.gz
+    >S000655540 uncultured bacterium; L2Sp-13	Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
+    to silva.tax
+    AAAA02010377.14668.16277        Bacteria;Proteobacteria;Alphaproteobacteria;Rickettsiales       1
+    ''')
 
     parser.add_argument("-i", "--in",
         required = True, action = "store", dest = "input_file",
         help = """Input file name""")
-    # parser.add_argument("-r", "--rank",
-    #     required = False, action = "store", dest = "rank_level", default = 'domain',
-    #     help = """The highest taxonomic rank (one of %s)""" % ", ".join(ranks))
+    parser.add_argument('--compressed', '-c', action = "store_true", default = False,
+                                        help = 'Use if fastq compressed. Default is a %(default)s.')
 
     args = parser.parse_args()
     # print "args = "
     # print args
 
+    taxonomy = Taxonomy(args)
 
-    taxonomy.parse_taxonomy(args)
+    taxonomy.parse_taxonomy()
     taxonomy.print_taxonomy()
