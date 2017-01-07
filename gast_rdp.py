@@ -64,8 +64,9 @@ class Taxonomy:
                 # print out_header
                 # print sequence
     def print_taxonomy(self):
-        for k,v in self.parsed_line:
-            print "self.parsed_line: k = %s, v = %s" % (k, v)
+        for k,v in self.parsed_line.items():
+            # print "self.parsed_line: k = %s, v = %s" % (k, v)
+            print "%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
 
 
 if __name__ == '__main__':
