@@ -32,8 +32,7 @@ class Taxonomy:
         # print "self.parsed_line"
         # print self.parsed_line
 
-    def parse_taxon_string(self, taxon_string, id):
-        print "id from parse_taxon_string = %s" % id
+    def parse_taxon_string(self, taxon_string):
         taxon_string_arr = taxon_string.split(";")[::2][1:]
         return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
 
@@ -55,13 +54,18 @@ class Taxonomy:
 
                 """
                 id = self.parse_header(header)
-                taxonomy_only = self.parse_taxon_string(header, id)
-                print "all"
-                print self.parsed_line
-                print taxonomy_only
+                taxonomy_only = self.parse_taxon_string(taxon_string)
+                # print taxonomy_only
+                self.parsed_line[id]["taxonomy_only"] = taxonomy_only
+                
+                # print "all"
+                # print self.parsed_line
                 # out_header = self.format_header(header)
                 # print out_header
                 # print sequence
+    def print_taxonomy(self):
+        for k,v in self.parsed_line:
+            print "self.parsed_line: k = %s, v = %s" % (k, v)
 
 
 if __name__ == '__main__':
@@ -94,3 +98,4 @@ if __name__ == '__main__':
 
 
     taxonomy.parse_taxonomy(args)
+    taxonomy.print_taxonomy()
