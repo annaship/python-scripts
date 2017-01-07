@@ -11,29 +11,36 @@ class Taxonomy:
     >S000655540 uncultured bacterium; L2Sp-13	Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
     to silva.tax
     AAAA02010377.14668.16277        Bacteria;Proteobacteria;Alphaproteobacteria;Rickettsiales       1
-    
+
     """
     def __init__(self):
-        self.parsed_line = {}        
+        self.parsed_line = {}
 
     def parse_header(self, header):
-        print "header"
-        print header
+        # print "header"
+        # print header
         id = header.split(" ")[0]
         try:
-            self.parsed_line[id]["binomial"] = header.split(" ")[1:]
+            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
         except KeyError:
             self.parsed_line[id] = {}
-            self.parsed_line[id]["binomial"] = header.split(" ")[1:]
+            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
         except:
             raise
-            
-        print "self.parsed_line"
-        print self.parsed_line
-        
+
+        # print "self.parsed_line"
+        # print self.parsed_line
+
     def parse_taxon_string(self, taxon_string):
-        pass
-                
+        taxon_string_arr = taxon_string.split(";")[::2][1:]
+        print "taxon_string_arr"
+        print  taxon_string_arr
+        # .remove('xyz');
+        # d = dict(taxon_string.split(";") for item in s.split(";"))
+
+        # print "taxon_string_arr"
+        # print taxon_string_arr
+
     def parse_taxonomy(self, args):
         filename = args.input_file
         with open(filename, "r") as infile:
@@ -49,11 +56,11 @@ class Taxonomy:
                 >S000655554 uncultured bacterium; L2Sp-28
                 taxon_string
                 Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
-                
+
                 """
                 self.parse_header(header)
                 self.parse_taxon_string(taxon_string)
-                
+
                 # out_header = self.format_header(header)
                 # print out_header
                 # print sequence
@@ -66,14 +73,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser = argparse.ArgumentParser(description='''Demultiplex Illumina fastq. Will make fastq files per barcode from "in_barcode_file_name".
     # Command line example: time python demultiplex_use.py --in_barcode_file_name "prep_template.txt" --in_fastq_file_name S1_L001_R1_001.fastq.gz --out_dir results --compressed
-    # 
+    #
     # ''')
     # todo: add user_config
     # parser.add_argument('--user_config', metavar = 'CONFIG_FILE',
     #                                     help = 'User configuration to run')
     # parser.add_argument('--in_barcode_file_name', required = True,
     #                                     help = 'Comma delimited file with sample names in the first column and its barcodes in the second.')
-    # 
+    #
 
 
     parser.add_argument("-i", "--in",
@@ -87,6 +94,5 @@ if __name__ == '__main__':
     # print "args = "
     # print args
 
-    
+
     taxonomy.parse_taxonomy(args)
-    
