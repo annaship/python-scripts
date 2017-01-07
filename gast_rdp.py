@@ -7,18 +7,33 @@ import argparse
 
 class Taxonomy:
     """
-    From
+    From release11_2_Bacteria_unaligned.fa.gz
     >S000655540 uncultured bacterium; L2Sp-13	Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
-    to
+    to silva.tax
     AAAA02010377.14668.16277        Bacteria;Proteobacteria;Alphaproteobacteria;Rickettsiales       1
     
     """
     def __init__(self):
-        pass        
+        self.parsed_line = {}        
 
-    def format_header(self, header):
+    def parse_header(self, header):
+        print "header"
+        print header
+        id = header.split(" ")[0]
+        try:
+            self.parsed_line[id]["binomial"] = header.split(" ")[1:]
+        except KeyError:
+            self.parsed_line[id] = {}
+            self.parsed_line[id]["binomial"] = header.split(" ")[1:]
+        except:
+            raise
+            
+        print "self.parsed_line"
+        print self.parsed_line
+        
+    def parse_taxon_string(self, taxon_string):
         pass
-
+                
     def parse_taxonomy(self, args):
         filename = args.input_file
         with open(filename, "r") as infile:
@@ -27,10 +42,17 @@ class Taxonomy:
                 if not line: continue #Skip empty
                 print line
                 header, taxon_string = line.split("\t")
-                print "header"
-                print header
-                print "sequence"
-                print sequence
+                print "taxon_string"
+                print taxon_string
+                """
+                header
+                >S000655554 uncultured bacterium; L2Sp-28
+                taxon_string
+                Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
+                
+                """
+                self.parse_header(header)
+                self.parse_taxon_string(taxon_string)
                 
                 # out_header = self.format_header(header)
                 # print out_header
