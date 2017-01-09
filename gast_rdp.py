@@ -28,6 +28,11 @@ class Files:
       for k, v in self.out_file_names.items():
         self.out_files[k] = open(v, "w")
 
+    def close_output_files(self):
+      print "close_output_files"
+      for k, v in self.out_file_names.items():
+        self.out_files[k].close()
+
 class Parser:
     def __init__(self, files):
         self.parsed_line = {}
@@ -54,15 +59,6 @@ class Parser:
         print "self.parsed_lin from parse_seq"
         print self.parsed_line
         self.parsed_line[id]["seq"] = seq
-        # try:
-        #     self.parsed_line[id]["seq"] = seq
-        # except KeyError:
-        #     self.parsed_line[id] = {}
-        #     self.parsed_line[id]["binomial_plus"] = " ".join(header.split("\t")[1:]).replace("; ", ";")
-        # except:
-        #     raise
-        # return id
-
 
     def parse_header(self, header):
         id = header.split(" ")[0]
@@ -73,25 +69,18 @@ class Parser:
             self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
         except:
             raise
-        print "id from parse_header"
-        print id
-
-        print "self.parsed_line from parse_header"
-        print self.parsed_line
-
         return id
-
 
     def parse_taxon_string(self, taxon_string):
         taxon_string_arr = taxon_string.split(";")[::2][1:]
         return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
 
-    def print_taxonomy(self):
+    def print_results(self):
         for k,v in self.parsed_line.items():
             print "self.parsed_line: k = %s, v = %s" % (k, v)
             
             self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
-        self.out_files["tax"].close()
+            self.out_files["fa"].write('>%s\t%s\n' % (k, v['seq']))
 
 if __name__ == '__main__':
 
@@ -117,4 +106,5 @@ if __name__ == '__main__':
     parser = Parser(files)
 
     parser.parse_input()
-    parser.print_taxonomy()
+    parser.print_results()
+    files.close_output_files()
