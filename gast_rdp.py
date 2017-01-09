@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 import gzip
+import IlluminaUtils.lib.fastalib as fa
 
 class Files:
     def __init__(self, args):
@@ -12,39 +13,41 @@ class Files:
         # self.infile     = self.open_file()
         self.compressed = args.compressed
         self.out_file_names = {"fa": "gast_rdp.fa", "tax": "gast_rdp.tax"}
-        
+
     def open_file(self):
         if self.compressed:
             return gzip.open(self.filename, 'rb')
         else:
             return open(self.filename, "r")
-        
+
     def open_out_sample_files(self):
       print "open_output_files"
       for k, v in self.out_file_names.items():
         self.out_files[k] = open(v, "a")
-        
-        # chimeric_fasta = fa.SequenceSource(file_name, lazy_init = False) 
-        # 
-        # while chimeric_fasta.next():
-        #     ids.add(chimeric_fasta.id)
-        # chimeric_fasta.close()
-    
 
 class Parser:
     def __init__(self, files):
         self.parsed_line = {}
-        self.infile      = files.open_file()
+        # self.infile      = files.open_file()
+        self.filename   = files.filename
+        self.number_of_sequences = 0
+        
+    def parse_input(self):
+        fasta = fa.SequenceSource(self.filename)
+        while fasta.next():
+            fasta.seq = fasta.seq.upper()
+            self.number_of_sequences += 1
+            self.parse_taxonomy(fasta.id)
 
     def parse_header(self, header):
         # print "header"
         # print header
         id = header.split(" ")[0]
         try:
-            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
+            self.parsed_line[id]["binomial_plus"] = " ".join(header.split("\t")[1:]).replace("; ", ";")
         except KeyError:
             self.parsed_line[id] = {}
-            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
+            self.parsed_line[id]["binomial_plus"] = " ".join(header.split("\t")[1:]).replace("; ", ";")
         except:
             raise
         return id
@@ -55,29 +58,26 @@ class Parser:
     def parse_taxon_string(self, taxon_string):
         taxon_string_arr = taxon_string.split(";")[::2][1:]
         return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
-    
-    def parse_taxonomy(self):
-        for line in self.infile.readlines() :        
-            header, taxon_string = line.split("\t")
-            """
-            header
-            >S000655554 uncultured bacterium; L2Sp-28
-            taxon_string
-            Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
 
-            """
-            id = self.parse_header(header)
-            taxonomy_only = self.parse_taxon_string(taxon_string)
-            self.parsed_line[id]["taxonomy_only"] = taxonomy_only
+    def parse_taxonomy(self, header_line):
+        header, taxon_string = header_line.split("\t")
+        """
+        header
+        >S000655554 uncultured bacterium; L2Sp-28
+        taxon_string
+        Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
+
+        """
+        id = self.parse_header(header)
+        taxonomy_only = self.parse_taxon_string(taxon_string)
+        self.parsed_line[id]["taxonomy_only"] = taxonomy_only
 
     def print_taxonomy(self):
         for k,v in self.parsed_line.items():
-            # print "self.parsed_line: k = %s, v = %s" % (k, v)
+            print "self.parsed_line: k = %s, v = %s" % (k, v)
             print "%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
 
-
 if __name__ == '__main__':
-
 
     parser = argparse.ArgumentParser(description='''Takes > lines from rdp files, makes gast_silva like files.
     From release11_2_Bacteria_unaligned.fa.gz
@@ -99,5 +99,5 @@ if __name__ == '__main__':
     files = Files(args)
     parser = Parser(files)
 
-    parser.parse_taxonomy()
+    parser.parse_input()
     parser.print_taxonomy()
