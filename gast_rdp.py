@@ -7,12 +7,15 @@ import argparse
 import gzip
 import IlluminaUtils.lib.fastalib as fa
 
+"""TODO: write into file separately seq and tax"""
+
 class Files:
     def __init__(self, args):
         self.filename   = args.input_file
         # self.infile     = self.open_file()
         self.compressed = args.compressed
         self.out_file_names = {"fa": "gast_rdp.fa", "tax": "gast_rdp.tax"}
+        self.out_files = {}
 
     def open_file(self):
         if self.compressed:
@@ -20,10 +23,19 @@ class Files:
         else:
             return open(self.filename, "r")
 
-    def open_out_sample_files(self):
+    def open_output_files(self):
       print "open_output_files"
       for k, v in self.out_file_names.items():
-        self.out_files[k] = open(v, "a")
+        self.out_files[k] = open(v, "w")
+        
+        """
+        fasta_for_trimmed_sequences    = open(GetFilePath('V6_PRIMERS_REMOVED'), 'w')
+        
+        fasta_for_trimmed_sequences.write('>%s\n' % fasta.id)
+        fasta_for_trimmed_sequences.write('%s\n' % sequence)
+        fasta_for_trimmed_sequences.close()
+        
+        """
 
 class Parser:
     def __init__(self, files):
@@ -97,6 +109,7 @@ if __name__ == '__main__':
     # print args
 
     files = Files(args)
+    files.open_output_files()
     parser = Parser(files)
 
     parser.parse_input()
