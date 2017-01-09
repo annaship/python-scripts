@@ -40,46 +40,57 @@ class Parser:
         while fasta.next():
             fasta.seq = fasta.seq.upper()
             self.number_of_sequences += 1
-            self.parse_taxonomy(fasta.id)
-
-    def parse_header(self, header):
-        # print "header"
-        # print header
-        id = header.split(" ")[0]
-        try:
-            self.parsed_line[id]["binomial_plus"] = " ".join(header.split("\t")[1:]).replace("; ", ";")
-        except KeyError:
-            self.parsed_line[id] = {}
-            self.parsed_line[id]["binomial_plus"] = " ".join(header.split("\t")[1:]).replace("; ", ";")
-        except:
-            raise
+            id = self.parse_taxonomy(fasta.id)
+            self.parse_seq(id, fasta.seq)
+            
+    def parse_taxonomy(self, header_line):
+        header, taxon_string = header_line.split("\t")
+        id = self.parse_header(header)
+        taxonomy_only = self.parse_taxon_string(taxon_string)
+        self.parsed_line[id]["taxonomy_only"] = taxonomy_only
         return id
 
-        # print "self.parsed_line"
-        # print self.parsed_line
+    def parse_seq(self, id, seq):
+        print "self.parsed_lin from parse_seq"
+        print self.parsed_line
+        self.parsed_line[id]["seq"] = seq
+        # try:
+        #     self.parsed_line[id]["seq"] = seq
+        # except KeyError:
+        #     self.parsed_line[id] = {}
+        #     self.parsed_line[id]["binomial_plus"] = " ".join(header.split("\t")[1:]).replace("; ", ";")
+        # except:
+        #     raise
+        # return id
+
+
+    def parse_header(self, header):
+        id = header.split(" ")[0]
+        try:
+            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
+        except KeyError:
+            self.parsed_line[id] = {}
+            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
+        except:
+            raise
+        print "id from parse_header"
+        print id
+
+        print "self.parsed_line from parse_header"
+        print self.parsed_line
+
+        return id
+
 
     def parse_taxon_string(self, taxon_string):
         taxon_string_arr = taxon_string.split(";")[::2][1:]
         return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
 
-    def parse_taxonomy(self, header_line):
-        header, taxon_string = header_line.split("\t")
-        """
-        header
-        >S000655554 uncultured bacterium; L2Sp-28
-        taxon_string
-        Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
-
-        """
-        id = self.parse_header(header)
-        taxonomy_only = self.parse_taxon_string(taxon_string)
-        self.parsed_line[id]["taxonomy_only"] = taxonomy_only
-
     def print_taxonomy(self):
         for k,v in self.parsed_line.items():
+            print "self.parsed_line: k = %s, v = %s" % (k, v)
+            
             self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
-            # print "self.parsed_line: k = %s, v = %s" % (k, v)
-            print ">%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
         self.out_files["tax"].close()
 
 if __name__ == '__main__':
