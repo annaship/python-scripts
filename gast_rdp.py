@@ -6,12 +6,27 @@ import sys
 import argparse
 import gzip
 
-class Taxonomy:
+class Files:
     def __init__(self, args):
-        self.parsed_line = {}
-        self.compressed = args.compressed
         self.filename   = args.input_file
-        self.infile     = self.open_file()
+        # self.infile     = self.open_file()
+        self.compressed = args.compressed
+        
+    def open_file(self):
+        if self.compressed:
+            return gzip.open(self.filename, 'rb')
+        else:
+            return open(self.filename, "r")
+        
+        
+class Sequences:
+    def __init__(self):
+        pass
+        
+class Taxonomy:
+    def __init__(self, files):
+        self.parsed_line = {}
+        self.infile      = files.open_file()
 
     def parse_header(self, header):
         # print "header"
@@ -33,12 +48,6 @@ class Taxonomy:
         taxon_string_arr = taxon_string.split(";")[::2][1:]
         return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
     
-    def open_file(self):
-        if self.compressed:
-            return gzip.open(self.filename, 'rb')
-        else:
-            return open(self.filename, "r")
-
     def parse_taxonomy(self):
         for line in self.infile.readlines() :        
             header, taxon_string = line.split("\t")
@@ -79,7 +88,8 @@ if __name__ == '__main__':
     # print "args = "
     # print args
 
-    taxonomy = Taxonomy(args)
+    files = Files(args)
+    taxonomy = Taxonomy(files)
 
     taxonomy.parse_taxonomy()
     taxonomy.print_taxonomy()
