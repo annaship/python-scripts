@@ -40,9 +40,9 @@ class Files:
 class Parser:
     def __init__(self, files):
         self.parsed_line = {}
-        # self.infile      = files.open_file()
-        self.filename   = files.filename
+        self.filename  = files.filename
         self.number_of_sequences = 0
+        self.out_files = files.out_files
         
     def parse_input(self):
         fasta = fa.SequenceSource(self.filename)
@@ -86,8 +86,9 @@ class Parser:
 
     def print_taxonomy(self):
         for k,v in self.parsed_line.items():
-            print "self.parsed_line: k = %s, v = %s" % (k, v)
-            print "%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
+            self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
+            # print "self.parsed_line: k = %s, v = %s" % (k, v)
+            # print "%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
 
 if __name__ == '__main__':
 
