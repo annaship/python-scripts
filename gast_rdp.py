@@ -27,15 +27,6 @@ class Files:
       print "open_output_files"
       for k, v in self.out_file_names.items():
         self.out_files[k] = open(v, "w")
-        
-        """
-        fasta_for_trimmed_sequences    = open(GetFilePath('V6_PRIMERS_REMOVED'), 'w')
-        
-        fasta_for_trimmed_sequences.write('>%s\n' % fasta.id)
-        fasta_for_trimmed_sequences.write('%s\n' % sequence)
-        fasta_for_trimmed_sequences.close()
-        
-        """
 
 class Parser:
     def __init__(self, files):
@@ -88,7 +79,8 @@ class Parser:
         for k,v in self.parsed_line.items():
             self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
             # print "self.parsed_line: k = %s, v = %s" % (k, v)
-            # print "%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
+            print ">%s\t%s;%s\t1" % (k, v['taxonomy_only'], v['binomial_plus'])
+        self.out_files["tax"].close()
 
 if __name__ == '__main__':
 
