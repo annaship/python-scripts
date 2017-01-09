@@ -11,6 +11,7 @@ class Files:
         self.filename   = args.input_file
         # self.infile     = self.open_file()
         self.compressed = args.compressed
+        self.out_file_names = {"fa": "gast_rdp.fa", "tax": "gast_rdp.tax"}
         
     def open_file(self):
         if self.compressed:
@@ -18,12 +19,19 @@ class Files:
         else:
             return open(self.filename, "r")
         
+    def open_out_sample_files(self):
+      print "open_output_files"
+      for k, v in self.out_file_names.items():
+        self.out_files[k] = open(v, "a")
         
-class Sequences:
-    def __init__(self):
-        pass
-        
-class Taxonomy:
+        # chimeric_fasta = fa.SequenceSource(file_name, lazy_init = False) 
+        # 
+        # while chimeric_fasta.next():
+        #     ids.add(chimeric_fasta.id)
+        # chimeric_fasta.close()
+    
+
+class Parser:
     def __init__(self, files):
         self.parsed_line = {}
         self.infile      = files.open_file()
@@ -89,7 +97,7 @@ if __name__ == '__main__':
     # print args
 
     files = Files(args)
-    taxonomy = Taxonomy(files)
+    parser = Parser(files)
 
-    taxonomy.parse_taxonomy()
-    taxonomy.print_taxonomy()
+    parser.parse_taxonomy()
+    parser.print_taxonomy()
