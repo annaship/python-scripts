@@ -17,11 +17,11 @@ class Files:
         self.out_file_names = {"fa": "gast_rdp.fa", "tax": "gast_rdp.tax"}
         self.out_files = {}
 
-    def open_file(self):
-        if self.compressed:
-            return gzip.open(self.filename, 'rb')
-        else:
-            return open(self.filename, "r")
+    # def open_file(self):
+    #     if self.compressed:
+    #         return gzip.open(self.filename, 'rb')
+    #     else:
+    #         return open(self.filename, "r")
 
     def open_output_files(self):
       print "open_output_files"
@@ -39,9 +39,12 @@ class Parser:
         self.filename  = files.filename
         self.number_of_sequences = 0
         self.out_files = files.out_files
+        self.compressed = files.compressed
         
     def parse_input(self):
-        fasta = fa.SequenceSource(self.filename)
+        print "self.compressed = "
+        print self.compressed
+        fasta = fa.SequenceSource(self.filename, self.compressed)
         while fasta.next():
             fasta.seq = fasta.seq.upper()
             self.number_of_sequences += 1
@@ -56,8 +59,8 @@ class Parser:
         return id
 
     def parse_seq(self, id, seq):
-        print "self.parsed_lin from parse_seq"
-        print self.parsed_line
+        # print "self.parsed_lin from parse_seq"
+        # print self.parsed_line
         self.parsed_line[id]["seq"] = seq
 
     def parse_header(self, header):
@@ -77,7 +80,7 @@ class Parser:
 
     def print_results(self):
         for k,v in self.parsed_line.items():
-            print "self.parsed_line: k = %s, v = %s" % (k, v)
+            # print "self.parsed_line: k = %s, v = %s" % (k, v)
             
             self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
             self.out_files["fa"].write('>%s\t%s\n' % (k, v['seq']))
