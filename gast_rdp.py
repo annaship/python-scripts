@@ -83,7 +83,7 @@ class Parser:
             # print "self.parsed_line: k = %s, v = %s" % (k, v)
             
             self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
-            self.out_files["fa"].write('>%s\t%s\n' % (k, v['seq']))
+            self.out_files["fa"].write('>%s\n%s\n' % (k, v['seq']))
 
 if __name__ == '__main__':
 
