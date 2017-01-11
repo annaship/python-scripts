@@ -67,23 +67,16 @@ class Parser:
         genus_from_taxonomy_only = ""
         genus_from_binomial_plus = ""
         the_rest_of_binomial = ""
-        print "\n===\nfrom make_taxon_string 1"
-        # print "self.parsed_line[id][taxonomy_only]"
-        # print self.parsed_line[id]["taxonomy_only"]
         genus_from_taxonomy_only = self.parsed_line[id]['taxonomy_only'].split(";")[-1]
         genus_from_binomial_plus = self.parsed_line[id]['binomial_plus'].split(" ")[0]
         the_rest_of_binomial     = self.parsed_line[id]['binomial_plus'].split(" ")[1:]
-        print "id = %s,\ngenus_from_taxonomy_only = %s, genus_from_binomial_plus = %s,\nthe rest of binomial = %s" % (id, genus_from_taxonomy_only, genus_from_binomial_plus, the_rest_of_binomial)
         if genus_from_taxonomy_only == genus_from_binomial_plus:
-            self.parsed_line[id]["taxon_string"] = self.parsed_line[id]['taxonomy_only'] + ";" +  "_".join(the_rest_of_binomial)
-             # ";".join(self.parsed_line[id]['binomial_plus'].split(";")[1:]).replace(" ", "_")
+            self.parsed_line[id]["taxon_string"] = self.parsed_line[id]['taxonomy_only'] + ";" + "_".join(the_rest_of_binomial)
         else:
             self.parsed_line[id]["taxon_string"] = self.parsed_line[id]['taxonomy_only'] + ";" + self.parsed_line[id]['binomial_plus'].replace(" ", "_")
-        print "from make_taxon_string 2"
-        print "self.parsed_line[id][taxon_string]"
-        print self.parsed_line[id]["taxon_string"]
-        
-
+        # print "from make_taxon_string 2"
+        # print "self.parsed_line[id][taxon_string]"
+        # print self.parsed_line[id]["taxon_string"]
 
     def parse_header(self, header):
         id = header.split(" ")[0]
