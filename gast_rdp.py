@@ -55,8 +55,8 @@ class Parser:
         taxonomy_only = self.parse_taxon_string(taxon_string)
         self.parsed_line[id]["taxonomy_only"] = taxonomy_only
         self.make_taxon_string(id)
-        print "self.parsed_line"
-        print self.parsed_line
+        # print "self.parsed_line"
+        # print self.parsed_line
         
         return id
 
