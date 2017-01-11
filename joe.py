@@ -1,7 +1,7 @@
 # Hi Peeps,
 # I have a python function that looks through millions of key value relationships in a dictionary and tries to find matching keys/values in other dicts.  If it finds a mat,, it will add 1 to a counter..  It looks like this.
 # 
-
+---
 Av_T0 = {'key1':'1', 'key2':'20', 'key3':'300'}
 pairs_dict = {'key1':'1', 'key4':'4000', 'key3':'300'}
 sample_name = 'Av11_pair_one'
@@ -9,6 +9,7 @@ coverage_dict = {'key1':['1', '10'], 'key3':['300', '3'], 'key5':'50000'}
 min_cov_value = 10
 table_position = 0
 
+---
 def collect_hits_0(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position):
     allelic_count = 0
     a = []
@@ -88,15 +89,80 @@ def collect_hits_2(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value,
     
     # return a    
     return a
+    
+def collect_hits_3(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position):
+    allelic_count = 0
+    a = []
+    non_allelic_count = 0
+    for key in pairs_dict.keys():
+        if key in coverage_dict.keys() and key in Av_T0.keys() and int(coverage_dict[key][table_position]) > min_cov_value:
+            allelic_count += 1
+    for key in coverage_dict.keys():
+        if key not in pairs_dict.keys() and key in Av_T0.keys() and int(coverage_dict[key][table_position]) > min_cov_value:
+            non_allelic_count += 1
+    
+    a.append(sample_name + "," + str(allelic_count) + "," + str(non_allelic_count))
+    
+    return a
+
+def collect_hits_4(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position):
+    allelic_count = 0
+    a = []
+    non_allelic_count = 0
+    allelic_count_l = [key for key in pairs_dict.keys() if key in coverage_dict.keys() and key in Av_T0.keys() and int(coverage_dict[key][table_position]) > min_cov_value]
+    allelic_count = len(allelic_count_l)
+    
+    non_allelic_count_l = [key for key in coverage_dict.keys() if key not in pairs_dict.keys() and key in Av_T0.keys() and int(coverage_dict[key][table_position]) > min_cov_value]
+    non_allelic_count = len(non_allelic_count_l)
+    
+    a.append(sample_name + "," + str(allelic_count) + "," + str(non_allelic_count))
+    
+    return a
+
+*) todo create subdict first by int(coverage_dict[key][table_position]) > min_cov_value
+def collect_hits_5(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position):
+    allelic_count = 0
+    a = []
+    non_allelic_count = 0
+    
+    coverage_dict_ok = {k: coverage_dict[k] for k in coverage_dict.keys() if }
+    dictionary['C1'] = [x+1 for x in dictionary['C1']]
+    
+    
+    >>> for k, v in coverage_dict.items():
+    ...     for x in v:
+    ...             if int(x) > int(min_cov_value):
+    ...                     print "URA"
+    ...                     print x
+    
+    allelic_count_l = [key for key in pairs_dict.keys() if key in coverage_dict.keys() and key in Av_T0.keys() and int(coverage_dict[key][table_position]) > min_cov_value]
+    allelic_count = len(allelic_count_l)
+    
+    non_allelic_count_l = [key for key in coverage_dict.keys() if key not in pairs_dict.keys() and key in Av_T0.keys() and int(coverage_dict[key][table_position]) > min_cov_value]
+    non_allelic_count = len(non_allelic_count_l)
+    
+    a.append(sample_name + "," + str(allelic_count) + "," + str(non_allelic_count))
+    
+    return a
 
 inters_0 = collect_hits_0(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)
 inters_1 = collect_hits_1(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)
 inters_2 = collect_hits_2(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)
+inters_3 = collect_hits_3(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)
+inters_4 = collect_hits_4(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)
 
 print(timeit.timeit("collect_hits_0(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)", setup="from __main__ import collect_hits_0, Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position", number=10000000))
+48.6235201359
+64.53489995
 
 print(timeit.timeit("collect_hits_2(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)", setup="from __main__ import collect_hits_2, Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position", number=10000000))
+53.0215709209
 
+print(timeit.timeit("collect_hits_3(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)", setup="from __main__ import collect_hits_3, Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position", number=10000000))
+64.663351059
+
+print(timeit.timeit("collect_hits_4(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position)", setup="from __main__ import collect_hits_4, Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position", number=10000000))
+64.3443729877
 
 from multiprocessing import Pool
 pool = Pool()
@@ -171,3 +237,12 @@ if __name__ == '__main__':
 
 
 print(timeit.timeit("Process(target=collect_hits_01, args=(Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position, return_dict)).start()", setup="from __main__ import collect_hits_0, Av_T0, pairs_dict, sample_name, coverage_dict, min_cov_value, table_position", number=10000000))
+=====
+
+
+pairs_one_dict = {'GSADVT00027351001_1894': ['1894', 'T', 'A'], 'GSADVT00027990001_479': ['479', 'C', 'T']}
+AvT0_dict_one = { 'GSADVT00005150001_2582': ['2582', 'SNV', '1', 'T', 'G', '', 'Heterozygous', '46', '109', '42.2018348624', '0.4565217391', '37.7173913043'], 'GSADVT00041852001_2043': ['2043', 'SNV', '1', 'G', 'A', '', 'Heterozygous', '4', '14', '28.5714285714', '0.25', '37.5']}
+'Av11_pair_one' = text that I append to output
+pairs_positions_dict_one = {'GSADVT00000104001_410': ['15', '8', '6', '3', '2', '6', '1', '0', '2', '14', '14', '3'], 'GSADVT00000102001_2178': ['0', '1', '0', '1', '0', '3', '1', '0', '0', '4', '1', '4']}
+
+
