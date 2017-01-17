@@ -510,31 +510,52 @@ for i, group in enumerate(grouper(input_tweets, 5000)):
     with open('outputbatch_{}.json'.format(i), 'w') as outputfile:
         json.dump(list(group), outputfile)
 ====
-done) create original data (/workspace/ashipunova/joe/create_original_data.py)
-*) create partial data
-
-*) python scripts to use partial data
-def create_sub_data():
+=--
+def create_get_counts_multi1(return_dict):
+    start = time.time()
     with open('pairs_dict.json') as pairs_dict_json:
-        pairs_dict = json.load(pairs_dict_json)
-    with open('coverage_dict.json') as coverage_dict_json:
-        coverage_dict = json.load(coverage_dict_json)
-    with open('Av_T0.json') as Av_T0_json:
-        Av_T0 = json.load(Av_T0_json)
-    p1 = Process(target=make_av_t0_inters_coverage, args=(Av_T0, coverage_dict))
-    p2 = Process(target=make_coverage_dict_ok_keys, args=(coverage_dict, min_cov_value))
+        pairs_dict = json.load(pairs_dict_json)    
+    dur = time.time() - start
+    print "json.load(pairs_dict_json)"
+    print dur   
+    #
+    start = time.time()
+    pairs_dict_keys    = set(pairs_dict.keys())
+    dur = time.time() - start
+    print "set(pairs_dict.keys())"
+    print dur   
+    #
+    start = time.time()
+    p1 = Process(target=get_allelic_counts1, args=(pairs_dict_keys, return_dict))
+    p2 = Process(target=get_non_allelic_counts1, args=(pairs_dict_keys, return_dict))
     p1.start()
     p2.start()
     p1.join()
     p2.join()
-    
-start = time.time()
-create_sub_data()
-dur = time.time() - start
-print dur
-61.2140572071
+    dur = time.time() - start
+    print "Processes"
+    print dur   
+    #
+    start = time.time()
+    a = []
+    a.append(sample_name + "," + str(return_dict['allelic_count']) + "," + str(return_dict['non_allelic_count']))
+    return_dict['results'] = a
+    dur = time.time() - start
+    print a
+    print "a.append"
+    print dur   
+====
+done) create original data (/workspace/ashipunova/joe/create_original_data.py)
+cd /workspace/ashipunova/joe; time python /workspace/ashipunova/joe/create_original_data.py; mail_done
+real    129m51.097s
+
+*) create partial data
 
 *) split subdata
+
+min_cov_value = 10
+table_position = 0
+sample_name = 'Av11_pair_one'
 
 def make_av_t0_inters_coverage(Av_T0, coverage_dict):
     av_t0_inters_coverage = set(set(Av_T0.keys()).intersection(coverage_dict.keys()))
@@ -550,10 +571,6 @@ def make_av_t0_inters_coverage_inters_coverage_dict_ok(coverage_dict_ok_keys, av
     av_t0_inters_coverage_inters_coverage_dict_ok = set(coverage_dict_ok_keys).intersection(av_t0_inters_coverage)
     with open('av_t0_inters_coverage_inters_coverage_dict_ok.json', 'w') as f:
         json.dump(list(set(av_t0_inters_coverage_inters_coverage_dict_ok)), f)
-
-min_cov_value = 10
-table_position = 0
-sample_name = 'Av11_pair_one'
 
 def collect_hits_7(sample_name, min_cov_value, table_position):
     # start = time.time()
@@ -730,6 +747,27 @@ a.append
 9.78013801575
 9.60346508026
 
+*) python scripts to use partial data
+def create_sub_data():
+    with open('pairs_dict.json') as pairs_dict_json:
+        pairs_dict = json.load(pairs_dict_json)
+    with open('coverage_dict.json') as coverage_dict_json:
+        coverage_dict = json.load(coverage_dict_json)
+    with open('Av_T0.json') as Av_T0_json:
+        Av_T0 = json.load(Av_T0_json)
+    p1 = Process(target=make_av_t0_inters_coverage, args=(Av_T0, coverage_dict))
+    p2 = Process(target=make_coverage_dict_ok_keys, args=(coverage_dict, min_cov_value))
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+
+start = time.time()
+create_sub_data()
+dur = time.time() - start
+print dur
+61.2140572071
+
 *) get non_allelic_count as len - allelic_count
 
 *) create shell script to go over partial data
@@ -762,38 +800,46 @@ rocket
 ~$ cd /workspace/ashipunova/joe; time python /workspace/ashipunova/joe/create_original_data.py; mail_done
 real    12m40.784s
 
+=== start ===
+import json
+from multiprocessing import Process, Manager
+import time
 
-=--
-def create_get_counts_multi1(return_dict):
-    start = time.time()
+min_cov_value = 10
+table_position = 0
+sample_name = 'Av11_pair_one'
+
+def make_av_t0_inters_coverage(Av_T0, coverage_dict):
+    av_t0_inters_coverage = set(set(Av_T0.keys()).intersection(coverage_dict.keys()))
+    with open('av_t0_inters_coverage.json', 'w') as f:
+        json.dump(list(av_t0_inters_coverage), f)
+
+def make_coverage_dict_ok_keys(coverage_dict, min_cov_value):
+    coverage_dict_ok_keys = [k for k, v in coverage_dict.items() for x in v if int(x) > int(min_cov_value)]
+    with open('coverage_dict_ok_keys.json', 'w') as f:
+        json.dump(list(set(coverage_dict_ok_keys)), f)
+
+def make_av_t0_inters_coverage_inters_coverage_dict_ok(coverage_dict_ok_keys, av_t0_inters_coverage):
+    av_t0_inters_coverage_inters_coverage_dict_ok = set(coverage_dict_ok_keys).intersection(av_t0_inters_coverage)
+    with open('av_t0_inters_coverage_inters_coverage_dict_ok.json', 'w') as f:
+        json.dump(list(set(av_t0_inters_coverage_inters_coverage_dict_ok)), f)
+
+def create_sub_data():
     with open('pairs_dict.json') as pairs_dict_json:
-        pairs_dict = json.load(pairs_dict_json)    
-    dur = time.time() - start
-    print "json.load(pairs_dict_json)"
-    print dur   
-    #
-    start = time.time()
-    pairs_dict_keys    = set(pairs_dict.keys())
-    dur = time.time() - start
-    print "set(pairs_dict.keys())"
-    print dur   
-    #
-    start = time.time()
-    p1 = Process(target=get_allelic_counts1, args=(pairs_dict_keys, return_dict))
-    p2 = Process(target=get_non_allelic_counts1, args=(pairs_dict_keys, return_dict))
+        pairs_dict = json.load(pairs_dict_json)
+    with open('coverage_dict.json') as coverage_dict_json:
+        coverage_dict = json.load(coverage_dict_json)
+    with open('Av_T0.json') as Av_T0_json:
+        Av_T0 = json.load(Av_T0_json)
+    p1 = Process(target=make_av_t0_inters_coverage, args=(Av_T0, coverage_dict))
+    p2 = Process(target=make_coverage_dict_ok_keys, args=(coverage_dict, min_cov_value))
     p1.start()
     p2.start()
     p1.join()
     p2.join()
-    dur = time.time() - start
-    print "Processes"
-    print dur   
-    #
-    start = time.time()
-    a = []
-    a.append(sample_name + "," + str(return_dict['allelic_count']) + "," + str(return_dict['non_allelic_count']))
-    return_dict['results'] = a
-    dur = time.time() - start
-    print a
-    print "a.append"
-    print dur   
+
+start = time.time()
+create_sub_data()
+dur = time.time() - start
+print dur
+
