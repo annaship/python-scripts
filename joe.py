@@ -1019,4 +1019,20 @@ if __name__ == '__main__':
     >>> print results
     ['Av11_pair_one,2,5000002']
 
-print(timeit.timeit("create_get_counts_multi2()", setup="from __main__ import create_get_counts_multi2", number=1))
+
+json.load(pairs_dict_json)
+156.543590069
+set(pairs_dict.keys())
+2.2940299511
+get_allelic_counts2
+0.000720024108887
+get_non_allelic_counts2
+3.81469726562e-06
+results.append
+5.96046447754e-06
+>>> dur = time.time() - start
+>>> print dur
+181.494456053
+>>> print results
+['Av11_pair_one,2,5000002']
+
