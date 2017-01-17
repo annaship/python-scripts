@@ -7,8 +7,6 @@ import argparse
 import gzip
 import IlluminaUtils.lib.fastalib as fa
 
-"""TODO: write into file separately seq and tax"""
-
 class Files:
     def __init__(self, args):
         self.filename   = args.input_file
@@ -56,13 +54,31 @@ class Parser:
         id = self.parse_header(header)
         taxonomy_only = self.parse_taxon_string(taxon_string)
         self.parsed_line[id]["taxonomy_only"] = taxonomy_only
+        self.make_taxon_string(id)
+        # print "self.parsed_line"
+        # print self.parsed_line
+        
         return id
 
     def parse_seq(self, id, seq):
-        # print "self.parsed_lin from parse_seq"
-        # print self.parsed_line
         self.parsed_line[id]["seq"] = seq
 
+    def make_taxon_string(self, id):
+        genus_from_taxonomy_only = ""
+        genus_from_binomial_plus = ""
+        the_rest_of_binomial = ""
+        genus_from_taxonomy_only = self.parsed_line[id]['taxonomy_only'].split(";")[-1]
+        genus_from_binomial_plus = self.parsed_line[id]['binomial_plus'].split(" ")[0]
+        the_rest_of_binomial     = self.parsed_line[id]['binomial_plus'].split(" ")[1:]
+        if genus_from_taxonomy_only == genus_from_binomial_plus:
+            self.parsed_line[id]["taxon_string"] = self.parsed_line[id]['taxonomy_only'] + ";" + "_".join(the_rest_of_binomial)
+        else:
+            self.parsed_line[id]["taxon_string"] = self.parsed_line[id]['taxonomy_only'] + ";" + self.parsed_line[id]['binomial_plus'].replace(" ", "_")
+        # print "from make_taxon_string 2"
+        # print "self.parsed_line[id][taxon_string]"
+        # print self.parsed_line[id]["taxon_string"]
+
+>>>>>>> origin/master
     def parse_header(self, header):
         id = header.split(" ")[0]
         try:
@@ -82,7 +98,6 @@ class Parser:
         for k,v in self.parsed_line.items():
             # print "self.parsed_line: k = %s, v = %s" % (k, v)
             
-            self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
             self.out_files["fa"].write('>%s\n%s\n' % (k, v['seq']))
 
 if __name__ == '__main__':
