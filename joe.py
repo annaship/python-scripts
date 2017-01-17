@@ -605,7 +605,8 @@ print dur
 0.424619913101
 
 
-def get_allelic_counts(pairs_dict_keys):
+def get_allelic_counts(pairs_dict_keys, return_dict):
+    allelic_count = 0
     with open('av_t0_inters_coverage_inters_coverage_dict_ok.json') as av_t0_inters_coverage_inters_coverage_dict_ok_json:
         av_t0_inters_coverage_inters_coverage_dict_ok = json.load(av_t0_inters_coverage_inters_coverage_dict_ok_json)
     allelic_count = 0
@@ -615,40 +616,121 @@ def get_allelic_counts(pairs_dict_keys):
     # check if intersection len is faster
     return_dict['allelic_count'] = allelic_count
 
-def get_non_allelic_counts(pairs_dict_keys):
+def get_non_allelic_counts(pairs_dict_keys, return_dict):
+    non_allelic_count = 0
     with open('av_t0_inters_coverage_inters_coverage_dict_ok.json') as av_t0_inters_coverage_inters_coverage_dict_ok_json:
         av_t0_inters_coverage_inters_coverage_dict_ok = json.load(av_t0_inters_coverage_inters_coverage_dict_ok_json)
-    allelic_count = 0
     for key in av_t0_inters_coverage_inters_coverage_dict_ok:
         if key not in pairs_dict_keys:
             non_allelic_count += 1
+    print non_allelic_count
     # check if intersection len is faster
     return_dict['non_allelic_count'] = non_allelic_count
     
-    
+----
+def get_allelic_counts1(pairs_dict_keys, return_dict):
+    allelic_count = 0
+    with open('av_t0_inters_coverage_inters_coverage_dict_ok.json') as av_t0_inters_coverage_inters_coverage_dict_ok_json:
+        av_t0_inters_coverage_inters_coverage_dict_ok = json.load(av_t0_inters_coverage_inters_coverage_dict_ok_json)
+    allelic_count = 0
+    allelic = set(av_t0_inters_coverage_inters_coverage_dict_ok).intersection(set(pairs_dict_keys))
+    allelic_count =  len(allelic)
+    #
+    return_dict['allelic_count'] = allelic_count
 
-def create_get_counts_multi():
+def get_non_allelic_counts1(pairs_dict_keys, return_dict):
+    non_allelic_count = 0
+    with open('av_t0_inters_coverage_inters_coverage_dict_ok.json') as av_t0_inters_coverage_inters_coverage_dict_ok_json:
+        av_t0_inters_coverage_inters_coverage_dict_ok = json.load(av_t0_inters_coverage_inters_coverage_dict_ok_json)
+    allelic_count = 0
+    non_allelic = set(pairs_dict_keys) - set(av_t0_inters_coverage_inters_coverage_dict_ok)
+    
+    # non_allelic_count_l = [key for key in coverage_dict.keys() if key not in pairs_dict.keys() and key in Av_T0.keys() and key in coverage_dict_ok_keys]
+    non_allelic_count = len(non_allelic)
+    
+    return_dict['non_allelic_count'] = non_allelic_count
+    
+----
+def create_get_counts_multi(return_dict):
+    start = time.time()
     with open('pairs_dict.json') as pairs_dict_json:
         pairs_dict = json.load(pairs_dict_json)    
+    dur = time.time() - start
+    print "json.load(pairs_dict_json)"
+    print dur   
+    #
+    start = time.time()
     pairs_dict_keys    = set(pairs_dict.keys())
-    p1 = Process(target=get_allelic_counts, args=(pairs_dict_keys))
-    p2 = Process(target=get_non_allelic_counts, args=(pairs_dict_keys))
+    dur = time.time() - start
+    print "set(pairs_dict.keys())"
+    print dur   
+    #
+    start = time.time()
+    p1 = Process(target=get_allelic_counts, args=(pairs_dict_keys, return_dict))
+    p2 = Process(target=get_non_allelic_counts, args=(pairs_dict_keys, return_dict))
     p1.start()
     p2.start()
     p1.join()
     p2.join()
+    dur = time.time() - start
+    print "Processes"
+    print dur   
+    #
+    start = time.time()
     a = []
     a.append(sample_name + "," + str(return_dict['allelic_count']) + "," + str(return_dict['non_allelic_count']))
-    a
+    return_dict['results'] = a
+    dur = time.time() - start
+    print a
+    print "a.append"
+    print dur   
 
 
-start = time.time()
-create_get_counts_multi()
-dur = time.time() - start
-print dur
-8.95432400703
+if __name__ == '__main__':
+    manager = Manager()
+    return_dict = manager.dict()
+    # 
+    start = time.time()
+    create_get_counts_multi1(return_dict)
+    dur = time.time() - start
+    print dur
+    print return_dict
+json.load(pairs_dict_json)
+9.33207607269
+set(pairs_dict.keys())
+0.183407068253
+Processes
+0.594051122665
+['Av11_pair_one,1,500003']
+a.append
+0.00127410888672
+11.1398279667
+11.072217226
 
+{'non_allelic_count': 500003, 'allelic_count': 1, 'results': ['Av11_pair_one,1,500003']}
 
+if __name__ == '__main__':
+    manager = Manager()
+    return_dict = manager.dict()
+    # 
+    start = time.time()
+    create_get_counts_multi(return_dict)
+    dur = time.time() - start
+    print dur
+    print return_dict
+json.load(pairs_dict_json)
+8.86399292946
+set(pairs_dict.keys())
+0.185638189316
+Processes
+0.277464866638
+a.append
+0.00126194953918
+10.3748760223
+9.78013801575
+9.60346508026
+
+*) get non_allelic_count as len - allelic_count
 
 *) create shell script to go over partial data
 
@@ -662,20 +744,56 @@ cd /workspace/ashipunova/joe; time python /workspace/ashipunova/joe/create_origi
 rocket
 
 ---
-if __name__ == '__main__':
-    manager = Manager()
-    return_dict = manager.dict()
-    dur = 0
-    
-    start = time.time()
-    Process(target=get_allelic_counts, args=().start()
-    Process(target=get_non_allelic_counts, args=()).start()
-    dur = time.time() - start
-    print int(dur)
-    
-    a = []
-    a.append(sample_name + "," + str(return_dict['allelic_count']) + "," + str(return_dict['non_allelic_count']))
-    a
+# if __name__ == '__main__':
+#     manager = Manager()
+#     return_dict = manager.dict()
+#     dur = 0
+#
+#     start = time.time()
+#     Process(target=get_allelic_counts, args=().start()
+#     Process(target=get_non_allelic_counts, args=()).start()
+#     dur = time.time() - start
+#     print int(dur)
+#
+#     a = []
+#     a.append(sample_name + "," + str(return_dict['allelic_count']) + "," + str(return_dict['non_allelic_count']))
+#     a
 ===
 ~$ cd /workspace/ashipunova/joe; time python /workspace/ashipunova/joe/create_original_data.py; mail_done
 real    12m40.784s
+
+
+=--
+def create_get_counts_multi1(return_dict):
+    start = time.time()
+    with open('pairs_dict.json') as pairs_dict_json:
+        pairs_dict = json.load(pairs_dict_json)    
+    dur = time.time() - start
+    print "json.load(pairs_dict_json)"
+    print dur   
+    #
+    start = time.time()
+    pairs_dict_keys    = set(pairs_dict.keys())
+    dur = time.time() - start
+    print "set(pairs_dict.keys())"
+    print dur   
+    #
+    start = time.time()
+    p1 = Process(target=get_allelic_counts1, args=(pairs_dict_keys, return_dict))
+    p2 = Process(target=get_non_allelic_counts1, args=(pairs_dict_keys, return_dict))
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+    dur = time.time() - start
+    print "Processes"
+    print dur   
+    #
+    start = time.time()
+    a = []
+    a.append(sample_name + "," + str(return_dict['allelic_count']) + "," + str(return_dict['non_allelic_count']))
+    return_dict['results'] = a
+    dur = time.time() - start
+    print a
+    print "a.append"
+    print dur   
