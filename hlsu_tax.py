@@ -4,110 +4,111 @@
 import os
 import sys
 import argparse
-import gzip
-import IlluminaUtils.lib.fastalib as fa
 
-"""TODO: write into file separately seq and tax"""
-
-class Files:
-    def __init__(self, args):
-        self.filename   = args.input_file
-        # self.infile     = self.open_file()
-        self.compressed = args.compressed
-        self.out_file_names = {"fa": "gast_rdp.fa", "tax": "gast_rdp.tax"}
-        self.out_files = {}
-
-    # def open_file(self):
-    #     if self.compressed:
-    #         return gzip.open(self.filename, 'rb')
-    #     else:
-    #         return open(self.filename, "r")
-
-    def open_output_files(self):
-      print "open_output_files"
-      for k, v in self.out_file_names.items():
-        self.out_files[k] = open(v, "w")
-
-    def close_output_files(self):
-      print "close_output_files"
-      for k, v in self.out_file_names.items():
-        self.out_files[k].close()
-
-class Parser:
-    def __init__(self, files):
-        self.parsed_line = {}
-        self.filename  = files.filename
-        self.number_of_sequences = 0
-        self.out_files = files.out_files
-        self.compressed = files.compressed
+class Taxonomy:
+    def __init__(self):
+        self.output_text = {}
+        self.ranks = ["domain", "phylum", "class", "order", "family", "genus", "species"]
+        self.rank_level = ""
         
-    def parse_input(self):
-        print "self.compressed = "
-        print self.compressed
-        fasta = fa.SequenceSource(self.filename, self.compressed)
-        while fasta.next():
-            fasta.seq = fasta.seq.upper()
-            self.number_of_sequences += 1
-            id = self.parse_taxonomy(fasta.id)
-            self.parse_seq(id, fasta.seq)
-            
-    def parse_taxonomy(self, header_line):
-        header, taxon_string = header_line.split("\t")
-        id = self.parse_header(header)
-        taxonomy_only = self.parse_taxon_string(taxon_string)
-        self.parsed_line[id]["taxonomy_only"] = taxonomy_only
-        return id
+    """
+    time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
+    """
+    
+    def fill_out_empty_ranks(self, taxon_split):
+        return [taxon_split.append("NA") for i in range(8) if (len(taxon_split) < i+1)]
 
-    def parse_seq(self, id, seq):
-        # print "self.parsed_lin from parse_seq"
-        # print self.parsed_line
-        self.parsed_line[id]["seq"] = seq
-
-    def parse_header(self, header):
-        id = header.split(" ")[0]
+    def get_binomial(self, taxon_split):
+        print "taxon_split from get_binomial"
+        print taxon_split
         try:
-            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
-        except KeyError:
-            self.parsed_line[id] = {}
-            self.parsed_line[id]["binomial_plus"] = " ".join(header.split(" ")[1:]).replace("; ", ";")
+            return taxon_split[5] + "_" + taxon_split[6]
+        except IndexError:
+            return "NA"
         except:
             raise
-        return id
 
-    def parse_taxon_string(self, taxon_string):
-        taxon_string_arr = taxon_string.split(";")[::2][1:]
-        return ";".join([x.strip('"').strip("'") for x in taxon_string_arr])
+    def get_genus(self, taxon_split):
+        try:
+            return taxon_split[5]
+        except IndexError:
+            return "NA"
+        except:
+            raise
+        
+    
+    def format_header(self, header):
+        # print header LSUcultures334_taxonomy.txt
+        # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum
+        # goal:
+        # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;parvum;f._patelliferum
+        
+        id, taxon = header.split("\t")
+        print id
+        print taxon
+        
+        taxon_split = taxon.split(";")
+        print len(taxon_split)
 
-    def print_results(self):
-        for k,v in self.parsed_line.items():
-            # print "self.parsed_line: k = %s, v = %s" % (k, v)
+        binomial = self.get_binomial(taxon_split)
+        # print "binomial = %s" % binomial
+        
+        genus = self.get_genus(taxon_split)            
+        # print "genus = %s" % genus
             
-            self.out_files["tax"].write('>%s\t%s;%s\t1\n' % (k, v['taxonomy_only'], v['binomial_plus']))
-            self.out_files["fa"].write('>%s\n%s\n' % (k, v['seq']))
+        self.fill_out_empty_ranks(taxon_split)
+
+        # print taxon_split[:5]
+        
+        # print "self.rank_level = "
+        # print self.rank_level
+        
+        # rank_number = int(self.ranks.index(self.rank_level.lower()))
+        # print "rank_number = "
+        # print rank_number
+        # reverse_from_family1 = [i for i in reversed(taxon_split[:rank_number + 1])]
+        # reverse_from_family = reverse_from_family1[4 - rank_number]
+        # reverse_from_family = [i for i in reversed(taxon_split[:5])]
+        # print "reverse_from_family = "
+        # print reverse_from_family
+
+        return ">" + id + "\t" + binomial + "\t" + genus + "\tNA\t" + reverse_from_family
+        # "\t".join(reverse_from_family)
+
+    def parse_taxonomy(self, args):
+        filename = args.input_file
+        # self.rank_level = args.rank_level
+        with open(filename, "r") as infile:
+            for line in infile:
+                # current_output_text = ""
+                line = line.strip()
+                if not line: continue #Skip empty
+                print line
+                header, sequence = line.split("\t#\t")
+                # current_output_text = ">" + line.replace("\t#\t", "\n")
+                # print header
+                # print sequence
+                out_header = self.format_header(header)
+                print out_header
+                print sequence
+
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='''Takes > lines from rdp files, makes gast_silva like files.
-    From release11_2_Bacteria_unaligned.fa.gz
-    >S000655540 uncultured bacterium; L2Sp-13	Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ilumatobacter;genus
-    to silva.tax
-    AAAA02010377.14668.16277        Bacteria;Proteobacteria;Alphaproteobacteria;Rickettsiales       1
-    ''')
+
+    taxonomy = Taxonomy()
+    ranks = taxonomy.ranks
+    parser = argparse.ArgumentParser()
+
 
     parser.add_argument("-i", "--in",
         required = True, action = "store", dest = "input_file",
         help = """Input file name""")
-    parser.add_argument('--compressed', '-c', action = "store_true", default = False,
-                                        help = 'Use if fastq compressed. Default is a %(default)s.')
 
     args = parser.parse_args()
     # print "args = "
     # print args
 
-    files = Files(args)
-    files.open_output_files()
-    parser = Parser(files)
-
-    parser.parse_input()
-    parser.print_results()
-    files.close_output_files()
+    
+    taxonomy.parse_taxonomy(args)
+    
