@@ -44,10 +44,11 @@ class Taxonomy:
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;parvum;f._patelliferum
         
         id, taxon = header.split("\t")
-        print id
-        print taxon
+        print "id = %s" % id
+        print "taxon = %s" % taxon
         
         taxon_split = taxon.split(";")
+        print "len(taxon_split)"
         print len(taxon_split)
 
         binomial = self.get_binomial(taxon_split)
@@ -83,14 +84,15 @@ class Taxonomy:
                 # current_output_text = ""
                 line = line.strip()
                 if not line: continue #Skip empty
-                print line
-                header, sequence = line.split("\t#\t")
+                print "line.split() in parse_taxonomy"
+                print line.split()
+                header, sequence = line.split()
                 # current_output_text = ">" + line.replace("\t#\t", "\n")
-                # print header
-                # print sequence
-                out_header = self.format_header(header)
-                print out_header
-                print sequence
+                print "header = %s" % header
+                print "sequence = %s" % sequence
+                # out_header = self.format_header(header)
+                # print "out_header = %s" % out_header
+                # print "sequence = %s" % sequence
 
 
 if __name__ == '__main__':
