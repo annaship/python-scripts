@@ -21,19 +21,19 @@ class Taxonomy:
         return [taxon_split.append("NA") for i in range(8) if (len(taxon_split) < i+1)]
 
     def get_binomial(self, taxon_split):
-        current_tax_dict = {}
+        
         # print "taxon_split[5] from get_binomial"
         # print taxon_split[5]
         
         try:
             print "from get_binomial"
             print "superkingdom (%s)\nphylum (%s)\nclass (%s)\norder (%s)\nfamily (%s)\ngenus (%s)\nbinomial (%s)" % (taxon_split[0], taxon_split[1], taxon_split[2], taxon_split[3], taxon_split[4], taxon_split[5], taxon_split[6])
-            
-            for idx, rank in enumerate(self.ranks):
-                current_tax_dict[rank] = taxon_split[idx]
+            #
+            # for idx, rank in enumerate(self.ranks):
+            #     current_tax_dict[rank] = taxon_split[idx]
                 
-            print 'YYY: current_tax_dict'
-            print current_tax_dict
+            # print 'YYY: current_tax_dict'
+            # print current_tax_dict
 
             binomial_all = taxon_split[6].split("_")
             genus = binomial_all[0]
@@ -60,22 +60,24 @@ class Taxonomy:
             raise
         
     
-    def format_header(self, line):
+    def parse_line(self, line):
         # print header LSUcultures334_taxonomy.txt
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum  1
         # goal:
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;parvum;f._patelliferum
-        print "LLL line from format_header"
-        print line
         ref_id, taxon_string, num = line.split()
-        print "LLL1 ref_id = %s" % ref_id
-        print "LLL2 taxon_string = %s" % taxon_string
         
         taxon_split = taxon_string.split(";")
-        print "len(taxon_split)"
-        print len(taxon_split)
+        if len(taxon_split) != 7:
+            print "len(taxon_split)"
+            print len(taxon_split) 
 
-        self.all_tax_ranks[ref_id] = self.get_binomial(taxon_split)
+        current_tax_dict = {}
+        for idx, rank in enumerate(self.ranks):
+            current_tax_dict[rank] = taxon_split[idx]
+        
+        self.all_tax_ranks[ref_id] = current_tax_dict
+        
         # self.get_binomial(taxon_split)
         # print "binomial = %s" % binomial
         #
@@ -109,9 +111,12 @@ class Taxonomy:
                 # current_output_text = ""
                 line = line.strip()
                 if not line: continue #Skip empty
-                out_header = self.format_header(line)
+                out_header = self.parse_line(line)
+                
                 # print "out_header = %s" % out_header
                 # print "sequence = %s" % sequence
+        print 'YYY: all_tax_ranks'
+        print self.all_tax_ranks
 
 
 if __name__ == '__main__':
