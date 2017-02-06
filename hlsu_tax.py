@@ -13,53 +13,8 @@ class Taxonomy:
         self.rank_level = ""
         # self.all_tax_ranks = collections.defaultdict()
         self.all_tax_ranks = {}
-        
-    """
-    time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
-    """
-    
-    def fill_out_empty_ranks(self, taxon_split):
-        return [taxon_split.append("NA") for i in range(8) if (len(taxon_split) < i+1)]
 
-    def get_binomial(self, taxon_split):
-        
-        # print "taxon_split[5] from get_binomial"
-        # print taxon_split[5]
-        
-        try:
-            print "from get_binomial"
-            print "superkingdom (%s)\nphylum (%s)\nclass (%s)\norder (%s)\nfamily (%s)\ngenus (%s)\nbinomial (%s)" % (taxon_split[0], taxon_split[1], taxon_split[2], taxon_split[3], taxon_split[4], taxon_split[5], taxon_split[6])
-            #
-            # for idx, rank in enumerate(self.ranks):
-            #     current_tax_dict[rank] = taxon_split[idx]
-                
-            # print 'YYY: current_tax_dict'
-            # print current_tax_dict
 
-            binomial_all = taxon_split[6].split("_")
-            genus = binomial_all[0]
-            if taxon_split[5] != genus:
-                print "OHOHOH taxon_split[5] (%s) != genus (%s)" % (taxon_split[5], genus)
-                
-            species = binomial_all[1]
-            strain = " ".join(binomial_all[2:])
-            print "GGG genus = %s, species = %s, strain = %s" % (genus, species, strain)
-            return genus, species, strain
-            
-            print 
-        except IndexError:
-            return "NA"
-        except:
-            raise
-
-    def get_genus(self, taxon_split):
-        try:
-            return taxon_split[6]
-        except IndexError:
-            return "NA"
-        except:
-            raise
-        
     def clean_binomial(self):
         # print 'YYY: all_tax_ranks'
         # print self.all_tax_ranks
@@ -67,7 +22,16 @@ class Taxonomy:
         for ref_id, tax_dict in self.all_tax_ranks.items():
             if tax_dict["species"].startswith(tax_dict["genus"]):
                 tax_dict["species"] = tax_dict["species"].replace(tax_dict["genus"] + "_", "")
-
+        # 'JX660799': {'domain': 'Eukaryota', 'family': 'Phaeocystaceae', 'order': 'Phaeocystales', 'phylum': 'Haptophyta', 'species': 'sp._JD-2012', 'genus': 'Phaeocystis', 'class': 'Haptophyceae'}
+        
+        
+    def print_out_results(self, args):
+        filename = args.output_file
+        # self.rank_level = args.rank_level
+        outfile = open(filename, "w")
+            
+            
+        
     def parse_line(self, line):
         # print header LSUcultures334_taxonomy.txt
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum  1
@@ -119,7 +83,6 @@ class Taxonomy:
                 # current_output_text = ""
                 line = line.strip()
                 if not line: continue #Skip empty
-                # out_header =
                 self.parse_line(line)
                 
                 # print "out_header = %s" % out_header
@@ -137,10 +100,12 @@ if __name__ == '__main__':
     ranks = taxonomy.ranks
     parser = argparse.ArgumentParser()
 
-
     parser.add_argument("-i", "--in",
         required = True, action = "store", dest = "input_file",
         help = """Input file name""")
+    parser.add_argument("-o", "--out",
+        required = True, action = "store", dest = "output_file",
+        help = """Output file name""")
 
     args = parser.parse_args()
     # print "args = "
@@ -151,4 +116,6 @@ if __name__ == '__main__':
     taxonomy.clean_binomial()
     print 'YYY: all_tax_ranks'
     print taxonomy.all_tax_ranks
+    taxonomy.print_out_results(args)
+    # out_header =
     
