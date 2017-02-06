@@ -19,17 +19,17 @@ class Taxonomy:
         return [taxon_split.append("NA") for i in range(8) if (len(taxon_split) < i+1)]
 
     def get_binomial(self, taxon_split):
-        print "taxon_split[4] from get_binomial"
-        print taxon_split[4]
+        print "taxon_split[5] from get_binomial"
+        print taxon_split[5]
         
         try:
             print "from get_binomial"
-            print "superkingdom (%s)\nclass (%s)\norder (%s)\nfamily (%s)\ngenus (%s)\nbinomial (%s)" % (taxon_split[0], taxon_split[1], taxon_split[2], taxon_split[3], taxon_split[4], taxon_split[5])
+            print "superkingdom (%s)\nphylum (%s)\nclass (%s)\norder (%s)\nfamily (%s)\ngenus (%s)\nbinomial (%s)" % (taxon_split[0], taxon_split[1], taxon_split[2], taxon_split[3], taxon_split[4], taxon_split[5], taxon_split[6])
             
             binomial_all = taxon_split[5].split("_")
             genus = binomial_all[0]
-            if taxon_split[4] != genus:
-                print "OHOHOH taxon_split[4] (%s) != genus (%s)" % (taxon_split[4], genus)
+            if taxon_split[5] != genus:
+                print "OHOHOH taxon_split[5] (%s) != genus (%s)" % (taxon_split[5], genus)
                 
             species = binomial_all[1]
             strain = " ".join(binomial_all[2:])
@@ -51,11 +51,12 @@ class Taxonomy:
     
     def format_header(self, line):
         # print header LSUcultures334_taxonomy.txt
-        # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum
+        # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum  1
         # goal:
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;parvum;f._patelliferum
-        
-        ref_id, taxon_string = line.split()
+        print "LLL line from format_header"
+        print line
+        ref_id, taxon_string, num = line.split()
         print "ref_id = %s" % ref_id
         print "taxon_string = %s" % taxon_string
         
