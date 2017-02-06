@@ -24,14 +24,17 @@ class Taxonomy:
                 tax_dict["species"] = tax_dict["species"].replace(tax_dict["genus"] + "_", "")
         # 'JX660799': {'domain': 'Eukaryota', 'family': 'Phaeocystaceae', 'order': 'Phaeocystales', 'phylum': 'Haptophyta', 'species': 'sp._JD-2012', 'genus': 'Phaeocystis', 'class': 'Haptophyceae'}
         
-        
     def print_out_results(self, args):
         filename = args.output_file
         # self.rank_level = args.rank_level
         outfile = open(filename, "w")
+        for ref_id, tax_dict in self.all_tax_ranks.items():
+            out_line =  ref_id + "\t"
+            for rank in self.ranks:
+                 # + binomial + "\t" + genus + "\tNA\t" + reverse_from_family
+                 out_line += tax_dict[rank] + ";"
+            outfile.write(out_line + "\n")
             
-            
-        
     def parse_line(self, line):
         # print header LSUcultures334_taxonomy.txt
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum  1
