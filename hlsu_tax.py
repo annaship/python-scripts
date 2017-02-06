@@ -4,12 +4,14 @@
 import os
 import sys
 import argparse
+import collections
 
 class Taxonomy:
     def __init__(self):
         self.output_text = {}
         self.ranks = ["domain", "phylum", "class", "order", "family", "genus", "species"]
         self.rank_level = ""
+        self.all_tax_ranks = collections.defaultdict()
         
     """
     time head -2 silva.all1.tax_fa | sed 's/^/>/' | sed 's/\t#\t/\n/' | tr "\t" ";" | awk 'BEGIN {FS=";"; OFS="\t"}  {if ($0 ~ /^>/) print $1, $(NF-1)"_" $NF, $(NF-1), "NA", $(NF-2); else print}'
@@ -19,6 +21,7 @@ class Taxonomy:
         return [taxon_split.append("NA") for i in range(8) if (len(taxon_split) < i+1)]
 
     def get_binomial(self, taxon_split):
+        current_tax_dict = {}
         # print "taxon_split[5] from get_binomial"
         # print taxon_split[5]
         
@@ -26,6 +29,12 @@ class Taxonomy:
             print "from get_binomial"
             print "superkingdom (%s)\nphylum (%s)\nclass (%s)\norder (%s)\nfamily (%s)\ngenus (%s)\nbinomial (%s)" % (taxon_split[0], taxon_split[1], taxon_split[2], taxon_split[3], taxon_split[4], taxon_split[5], taxon_split[6])
             
+            for idx, rank in enumerate(self.ranks):
+                current_tax_dict[rank] = taxon_split[idx]
+                
+            print 'YYY: current_tax_dict'
+            print current_tax_dict
+
             binomial_all = taxon_split[6].split("_")
             genus = binomial_all[0]
             if taxon_split[5] != genus:
@@ -35,6 +44,8 @@ class Taxonomy:
             strain = " ".join(binomial_all[2:])
             print "GGG genus = %s, species = %s, strain = %s" % (genus, species, strain)
             return genus, species, strain
+            
+            print 
         except IndexError:
             return "NA"
         except:
@@ -42,7 +53,7 @@ class Taxonomy:
 
     def get_genus(self, taxon_split):
         try:
-            return taxon_split[5]
+            return taxon_split[6]
         except IndexError:
             return "NA"
         except:
@@ -57,15 +68,15 @@ class Taxonomy:
         print "LLL line from format_header"
         print line
         ref_id, taxon_string, num = line.split()
-        print "ref_id = %s" % ref_id
-        print "taxon_string = %s" % taxon_string
+        print "LLL1 ref_id = %s" % ref_id
+        print "LLL2 taxon_string = %s" % taxon_string
         
         taxon_split = taxon_string.split(";")
         print "len(taxon_split)"
         print len(taxon_split)
 
-        # binomial = 
-        self.get_binomial(taxon_split)
+        self.all_tax_ranks[ref_id] = self.get_binomial(taxon_split)
+        # self.get_binomial(taxon_split)
         # print "binomial = %s" % binomial
         #
         # genus = self.get_genus(taxon_split)
