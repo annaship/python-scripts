@@ -22,12 +22,67 @@ class Taxonomy:
                 tax_dict["species"] = tax_dict["species"].replace(tax_dict["genus"] + "_", "")
         # 'JX660799': {'domain': 'Eukaryota', 'family': 'Phaeocystaceae', 'order': 'Phaeocystales', 'phylum': 'Haptophyta', 'species': 'sp._JD-2012', 'genus': 'Phaeocystis', 'class': 'Haptophyceae'}
         
+    def rank_compare(self, rank1, rank2):
+        print self.ranks.index(rank1)
+        return self.ranks.index(rank1) - self.ranks.index(rank2)
+        
+
     def print_out_results(self, args):
         filename = args.output_file
         # self.rank_level = args.rank_level
         outfile = open(filename, "w")
         for ref_id, tax_dict in self.all_tax_ranks.items():
             out_line =  ref_id + "\t"
+            
+            """
+            print tax_dict
+            {'domain': 'Eukaryota', 'family': 'Prymnesiaceae', 'order': 'Prymnesiales', 'phylum': 'Haptophyta', 'species': 'palpebrale', 'genus': 'Prymnesium', 'class': 'Haptophyceae'}
+            
+            >>> students = ['dave', 'john', 'jane']
+            >>> grades = {'john': 'F', 'jane':'A', 'dave': 'C'}
+            >>> sorted(students, key=grades.__getitem__)
+            ['jane', 'dave', 'john']
+            
+            
+            https://docs.python.org/2.7/howto/sorting.html
+            """
+            
+            # print sorted(tax_dict.values())
+            # print sorted(tax_dict.values(), key=attrgetter('rank')
+            # self.ranks.index(tax_dict.keys()))
+            # a = sorted(zip(tax_dict.keys()), self.ranks)
+            # [x for (y,x) in sorted(zip(Y,X))]
+            
+            # for k, v in tax_dict.items():
+            print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
+                
+            #     print sorted(tax_dict.values(), cmp=self.rank_compare())
+            #
+            # a = ";".join(tax_dict.itervalues())
+            #
+            # # ";".join("=".join((str(k),str(v))) for k,v in mydict.items())
+            # s = sorted(tax_dict, key=attrgetter('age'))
+            # # a = [";".join(tax_dict[rank]) for rank in self.ranks]
+            
+            # listTwo = tax_dict.keys()
+            # listOne = self.ranks
+            # print type(a)
+            # print a
+            # print type(b)
+            # print b
+            # print zip(X,Y)
+            # print sorted(zip(X,Y), key=lambda pair: pair[1])
+            # a = [x for (x,y) in sorted(zip(X,Y))]
+            # , key=lambda pair: pair[0])
+
+            # print a.sort(key=lambda (x,y): b.index(x))
+            # print sorted(listTwo, key=lambda x: listOne.index(x))
+            
+            # print "AAA"
+            # print a
+
+            
+
             for rank in self.ranks:
                  # + binomial + "\t" + genus + "\tNA\t" + reverse_from_family
                  out_line += tax_dict[rank] + ";"
