@@ -74,6 +74,14 @@ class My_fasta:
       output.store(input, split = False)
     output.close()
 
+  def seq_concat_id_fa(self, input_file_path, output_file_path):
+    input = fa.SequenceSource(input_file_path)
+    output = fa.FastaOutput(output_file_path)
+
+    while input.next():
+      output.store(input.id + "\t" + input.seq, split = False)
+    output.close()
+
 
 if __name__ == '__main__':
   my_fasta = My_fasta()
@@ -97,6 +105,12 @@ if __name__ == '__main__':
   # parser.add_argument("-hi", "--histogram",
   #   required = False, action = "store_true", dest = "histogram",
   #   help = """Run get_my_fasta_distrib""")
+  parser.add_argument("-u", "--unsplit",
+    required = False, action = "store_true", dest = "unsplit",
+    help = """Run unsplit""")
+  parser.add_argument("-c", "--concat",
+    required = False, action = "store_true", dest = "seq_concat_id_fa",
+    help = """Run seq_concat_id_fa""")
   # parser.add_argument("-s", "--short_s",
   #   required = False, action = "store_true", dest = "short_s",
   #   help = """Run print_short_seq""")
@@ -118,14 +132,23 @@ if __name__ == '__main__':
   if (is_verbatim):
     print "Found %s fa files" % (len(fa_files))
   
+  program_name = ""
+  if args.seq_concat_id_fa:
+      program_name = my_fasta.seq_concat_id_fa
+      out_file_suffix = ".concat.fa"
+  else:
+      program_name = my_fasta.unsplit_fa
+      out_file_suffix = ".unsplit.fa"
+      
   for in_file_name in fa_files:
     if (is_verbatim):
       print in_file_name
-    print os.path.join(fa_files[in_file_name][0], fa_files[in_file_name][1])
+      print program_name
       
-    out_file_name = fa_files[in_file_name][1] + ".unsplit.fa"
     try:
-        my_fasta.unsplit_fa(in_file_name, out_file_name)
+        out_file_name = fa_files[in_file_name][1] + out_file_suffix
+        pr = globals()[program_name]
+        pr(in_file_name, out_file_name)
 
     except RuntimeError:
       if (is_verbatim):
