@@ -76,10 +76,17 @@ class My_fasta:
 
   def seq_concat_id_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
-    output = fa.FastaOutput(output_file_path)
+    output = open(output_file_path, "w")
 
     while input.next():
-      output.store(input.id + "\t" + input.seq, split = False)
+        # print "input.id "
+        # print input.id
+        # print "input.seq"
+        # print input.seq
+        # print 'input.id + "#" + input.seq'
+        # print input.id + "#" + input.seq
+        # output.
+      output.write(input.id + "#" + input.seq + "\n")
     output.close()
 
 
@@ -147,8 +154,9 @@ if __name__ == '__main__':
       
     try:
         out_file_name = fa_files[in_file_name][1] + out_file_suffix
-        pr = globals()[program_name]
-        pr(in_file_name, out_file_name)
+        # pr = globals()[program_name]
+        # pr(in_file_name, out_file_name)
+        my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
 
     except RuntimeError:
       if (is_verbatim):
