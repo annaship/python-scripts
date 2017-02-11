@@ -61,7 +61,6 @@ class My_fasta:
 if __name__ == '__main__':
   
   parser = argparse.ArgumentParser(description = "Exampe: python %(prog)s -c -o 'concat.fa' -e 'unique.nonchimeric.fa'")
-  # parser = argparse.ArgumentParser()
 
   parser.add_argument("-d", "--dir",
     required = False, action = "store", dest = "start_dir", default = '.',
@@ -69,15 +68,9 @@ if __name__ == '__main__':
   parser.add_argument("-ve","--verbatim",
     required = False, action = "store_true", dest = "is_verbatim",
     help = """Print an additional inforamtion""")
-  # parser.add_argument("-l", "--length",
-  #   required = False, action = "store", dest = "min_len", default = '200',
-  #   help = """Seq length threshold, default - 200""")
   parser.add_argument("-e", "--ext",
     required = False, action = "store", dest = "ext", default = '.fa',
     help = """File ending, default - .fa""")
-  # parser.add_argument("-hi", "--histogram",
-  #   required = False, action = "store_true", dest = "histogram",
-  #   help = """Run get_my_fasta_distrib""")
   parser.add_argument("-u", "--unsplit",
     required = False, action = "store_true", dest = "unsplit",
     help = """Concatenate splited sequences to one line per sequence (default)""")
