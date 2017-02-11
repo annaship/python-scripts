@@ -26,17 +26,6 @@ class My_fasta:
               (file_base, file_extension) = os.path.splitext(os.path.join(dirname, file_name))
               self.all_files[full_name] = (dirname, file_base, file_extension)
 
-  def is_verbatim(self):
-    try: 
-      if sys.argv[2] == "-ve":
-        return True
-    except IndexError:
-      return False
-    except: 
-      print "Unexpected error:", sys.exc_info()[0]
-      return False
-    return False
-
   def unsplit_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
     output = fa.FastaOutput(output_file_path)
@@ -114,7 +103,8 @@ if __name__ == '__main__':
       raise
       next
 
-  if is_verbatim: print "out_file_name = %s" % (out_file_name)
+  # if is_verbatim:
+  print "Output file %s was created" % (out_file_name)
 
   if is_verbatim: print "Current directory: %s" % (start_dir)
   
