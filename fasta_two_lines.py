@@ -113,39 +113,59 @@ if __name__ == '__main__':
   if (is_verbatim):
     print "Found %s fa files" % (len(fa_files))
     
-  print "args.output_file_name"
-  print args.output_file_name
-  if args.seq_concat_id_fa:
-      out_file_suffix = ".concat.fa"
-      for in_file_name in fa_files:
-        if (is_verbatim):
-          print in_file_name
-        try:
-            out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
-            my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
-        except RuntimeError:
-          if (is_verbatim):
-            print sys.exc_info()[0]
-        except:
-          print "Unexpected error:", sys.exc_info()[0]
-          raise
-          next
-  else:
-      out_file_suffix = ".unsplit.fa"
-      
-      for in_file_name in fa_files:
-        if (is_verbatim):
-          print in_file_name
-        try:
-            out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
-            my_fasta.unsplit_fa(in_file_name, out_file_name)
-        except RuntimeError:
-          if (is_verbatim):
-            print sys.exc_info()[0]
-        except:
-          print "Unexpected error:", sys.exc_info()[0]
-          raise
-          next
+  # if args.seq_concat_id_fa:
+  #     out_file_suffix = ".concat.fa"
+  #     for in_file_name in fa_files:
+  #       if (is_verbatim):
+  #         print in_file_name
+  #       try:
+  #           out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+  #           my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
+  #       except RuntimeError:
+  #         if (is_verbatim):
+  #           print sys.exc_info()[0]
+  #       except:
+  #         print "Unexpected error:", sys.exc_info()[0]
+  #         raise
+  #         next
+  # else:
+  #     out_file_suffix = ".unsplit.fa"
+  #
+  #     for in_file_name in fa_files:
+  #       if (is_verbatim):
+  #         print in_file_name
+  #       try:
+  #           out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+  #           my_fasta.unsplit_fa(in_file_name, out_file_name)
+  #       except RuntimeError:
+  #         if (is_verbatim):
+  #           print sys.exc_info()[0]
+  #       except:
+  #         print "Unexpected error:", sys.exc_info()[0]
+  #         raise
+  #         next
+
+  for in_file_name in fa_files:
+    if (is_verbatim):
+      print in_file_name
+    try:
+      if args.seq_concat_id_fa:
+        out_file_suffix = ".concat.fa"
+        out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+        my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
+      else:
+        out_file_suffix = ".unsplit.fa"
+        out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+        my_fasta.unsplit_fa(in_file_name, out_file_name)
+    except RuntimeError:
+      if (is_verbatim):
+        print sys.exc_info()[0]
+    except:
+      print "Unexpected error:", sys.exc_info()[0]
+      raise
+      next
+
+
 
   if (is_verbatim):
     print "Current directory:"
