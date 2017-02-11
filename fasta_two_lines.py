@@ -9,8 +9,9 @@ import argparse
 
 
 class My_fasta:
-  def __init__(self):
+  def __init__(self, args):
     self.start_dir = ""
+    self.args = args
     
   def get_files(self, walk_dir_name, ext = ""):
       files = {}
@@ -60,10 +61,13 @@ class My_fasta:
     while input.next():
       output.write(input.id + "#" + input.seq + "\n")
     output.close()
+    
+  def get_out_file_name(self, out_file_suffix, fa_files, in_file_name):
+    return self.args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+   
 
 
 if __name__ == '__main__':
-  my_fasta = My_fasta()
   
   parser = argparse.ArgumentParser(description = "Exampe: python %(prog)s -c -o 'concat.fa' -e 'unique.nonchimeric.fa'")
   # parser = argparse.ArgumentParser()
@@ -98,6 +102,7 @@ if __name__ == '__main__':
     
   
   args = parser.parse_args()
+  my_fasta = My_fasta(args)
   
   is_verbatim = args.is_verbatim
   
@@ -117,12 +122,14 @@ if __name__ == '__main__':
     try:
       if args.seq_concat_id_fa:
         out_file_suffix = ".concat.fa"
-        out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+        # out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+        out_file_name = my_fasta.get_out_file_name(out_file_suffix, fa_files, in_file_name)
         my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running seq_concat_id_fa"
       else:
         out_file_suffix = ".unsplit.fa"
-        out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+        # out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
+        out_file_name = my_fasta.get_out_file_name(out_file_suffix, fa_files, in_file_name)
         my_fasta.unsplit_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running unsplit_fa"
     except:
