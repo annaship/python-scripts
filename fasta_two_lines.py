@@ -71,6 +71,10 @@ if __name__ == '__main__':
     help = """Output file name, default - input file name + '.unsplit.fa' or '.concat.fa' """)
   
   args = parser.parse_args()
+  if not len(sys.argv) > 1:
+      print """Running 'unsplit' with default parameters: input ext='.fa', start_dir='.', """
+
+          
   my_fasta = My_fasta(args)
   
   is_verbatim = args.is_verbatim
@@ -85,18 +89,21 @@ if __name__ == '__main__':
   my_fasta.get_files(start_dir, args.ext)
   if is_verbatim: print "Found %s %s file(s)" % (len(my_fasta.all_files), args.ext)
   
+  out_file_names = []
   out_file_name = ""
   for in_file_name in my_fasta.all_files:
     if is_verbatim: print in_file_name
     try:
       if args.seq_concat_id_fa:
         out_file_suffix = ".concat.fa"
-        out_file_name = my_fasta.get_out_file_name(out_file_suffix, in_file_name)
+        out_file_name = my_fasta.get_out_file_name(out_file_suffix, in_file_name)        
+        out_file_names.append(out_file_name)
         my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running seq_concat_id_fa"
       else:
         out_file_suffix = ".unsplit.fa"
         out_file_name = my_fasta.get_out_file_name(out_file_suffix, in_file_name)
+        out_file_names.append(out_file_name)
         my_fasta.unsplit_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running unsplit_fa"
     except:
@@ -104,7 +111,8 @@ if __name__ == '__main__':
       next
 
   # if is_verbatim:
-  print "Output file %s was created" % (out_file_name)
+  for out_file_name in out_file_names:
+      print "Output file '%s' was created" % (out_file_name)
 
   if is_verbatim: print "Current directory: %s" % (start_dir)
   
