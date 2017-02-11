@@ -10,7 +10,6 @@ import argparse
 
 class My_fasta:
   def __init__(self):
-    self.all_dirs  = set()
     self.start_dir = ""
     
   def get_files(self, walk_dir_name, ext = ""):
@@ -99,76 +98,39 @@ if __name__ == '__main__':
     
   
   args = parser.parse_args()
-  print "args = "
-  print args
   
   is_verbatim = args.is_verbatim
   
+  if is_verbatim: print "args = %s" % (args)
+  
   start_dir = args.start_dir
-  if (is_verbatim):
+  if is_verbatim:
     print "Start from %s" % start_dir
     print "Getting file names"
   
   fa_files = my_fasta.get_files(start_dir, args.ext)
-  if (is_verbatim):
-    print "Found %s fa files" % (len(fa_files))
-    
-  # if args.seq_concat_id_fa:
-  #     out_file_suffix = ".concat.fa"
-  #     for in_file_name in fa_files:
-  #       if (is_verbatim):
-  #         print in_file_name
-  #       try:
-  #           out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
-  #           my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
-  #       except RuntimeError:
-  #         if (is_verbatim):
-  #           print sys.exc_info()[0]
-  #       except:
-  #         print "Unexpected error:", sys.exc_info()[0]
-  #         raise
-  #         next
-  # else:
-  #     out_file_suffix = ".unsplit.fa"
-  #
-  #     for in_file_name in fa_files:
-  #       if (is_verbatim):
-  #         print in_file_name
-  #       try:
-  #           out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
-  #           my_fasta.unsplit_fa(in_file_name, out_file_name)
-  #       except RuntimeError:
-  #         if (is_verbatim):
-  #           print sys.exc_info()[0]
-  #       except:
-  #         print "Unexpected error:", sys.exc_info()[0]
-  #         raise
-  #         next
-
+  if is_verbatim: print "Found %s %s file(s)" % (len(fa_files), args.ext)
+  
+  out_file_name = ""
   for in_file_name in fa_files:
-    if (is_verbatim):
-      print in_file_name
+    if is_verbatim: print in_file_name
     try:
       if args.seq_concat_id_fa:
         out_file_suffix = ".concat.fa"
         out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
         my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
+        if is_verbatim: print "Running seq_concat_id_fa"
       else:
         out_file_suffix = ".unsplit.fa"
         out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
         my_fasta.unsplit_fa(in_file_name, out_file_name)
-    except RuntimeError:
-      if (is_verbatim):
-        print sys.exc_info()[0]
+        if is_verbatim: print "Running unsplit_fa"
     except:
-      print "Unexpected error:", sys.exc_info()[0]
       raise
       next
 
+  if is_verbatim: print "out_file_name = %s" % (out_file_name)
 
-
-  if (is_verbatim):
-    print "Current directory:"
-    print my_fasta.all_dirs
+  if is_verbatim: print "Current directory: %s" % (start_dir)
   
   
