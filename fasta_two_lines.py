@@ -79,13 +79,6 @@ class My_fasta:
     output = open(output_file_path, "w")
 
     while input.next():
-        # print "input.id "
-        # print input.id
-        # print "input.seq"
-        # print input.seq
-        # print 'input.id + "#" + input.seq'
-        # print input.id + "#" + input.seq
-        # output.
       output.write(input.id + "#" + input.seq + "\n")
     output.close()
 
@@ -112,12 +105,16 @@ if __name__ == '__main__':
   # parser.add_argument("-hi", "--histogram",
   #   required = False, action = "store_true", dest = "histogram",
   #   help = """Run get_my_fasta_distrib""")
-  parser.add_argument("-u", "--unsplit",
-    required = False, action = "store_true", dest = "unsplit",
-    help = """Run unsplit""")
-  parser.add_argument("-c", "--concat",
-    required = False, action = "store_true", dest = "seq_concat_id_fa",
-    help = """Run seq_concat_id_fa""")
+  parser.add_argument("-c", "--command",
+    required = False, action = "store_true", dest = "command_name",
+    default = 'unsplit',
+    help = """Run seq_concat_id_fa or unsplit, default = unsplit""")
+  # parser.add_argument("-u", "--unsplit",
+  #   required = False, action = "store_true", dest = "unsplit",
+  #   help = """Run unsplit""")
+  # parser.add_argument("-c", "--concat",
+  #   required = False, action = "store_true", dest = "seq_concat_id_fa",
+  #   help = """Run seq_concat_id_fa""")
   # parser.add_argument("-s", "--short_s",
   #   required = False, action = "store_true", dest = "short_s",
   #   help = """Run print_short_seq""")
@@ -139,14 +136,17 @@ if __name__ == '__main__':
   if (is_verbatim):
     print "Found %s fa files" % (len(fa_files))
   
+  func_arg = {"seq_concat_id_fa": my_fasta.seq_concat_id_fa, "unsplit_fa": my_fasta.unsplit_fa}
+  
   program_name = ""
-  if args.seq_concat_id_fa:
-      program_name = my_fasta.seq_concat_id_fa
-      out_file_suffix = ".concat.fa"
-  else:
-      program_name = my_fasta.unsplit_fa
-      out_file_suffix = ".unsplit.fa"
-      
+  # if args.seq_concat_id_fa:
+  #     program_name = my_fasta.seq_concat_id_fa
+  #     out_file_suffix = ".concat.fa"
+  # else:
+  #     program_name = my_fasta.unsplit_fa
+  #     out_file_suffix = ".unsplit.fa"
+  #
+  out_file_suffix = ".concat.fa"
   for in_file_name in fa_files:
     if (is_verbatim):
       print in_file_name
@@ -156,7 +156,10 @@ if __name__ == '__main__':
         out_file_name = fa_files[in_file_name][1] + out_file_suffix
         # pr = globals()[program_name]
         # pr(in_file_name, out_file_name)
-        my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
+        print args.command_name
+        func_arg[my_fastaargs.command_name](in_file_name, out_file_name)
+        
+        # my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
 
     except RuntimeError:
       if (is_verbatim):
