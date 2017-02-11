@@ -37,13 +37,6 @@ class My_fasta:
       return False
     return False
 
-  def read_fasta(self):
-      pass
-  
-  def write_fasta(self, entry, split = True, store_frequencies = True):
-      f_output = self.out_files["unknown"].store_entry(e)
-      
-
   def print_short_seq(self, f_input, file_name, min_len):
     for idx, seq in enumerate(f_input.sequences):
       my_fasta = len(seq)
@@ -53,19 +46,6 @@ class My_fasta:
         print "WARNING, sequence length in %s = %s. It's less than %s!" % (file_name, my_fasta, min_len)
         self.all_dirs.add(fa_files[file_name][0])
 
-  def get_args(self, argv):
-     try:
-       parser = argparse.ArgumentParser(description = self.usage)
-     except:
-       raise
-       
-     for opt, arg in opts:
-        if opt == '-h':
-           print self.usage
-           sys.exit()
-        elif opt in ("-d", "--dir"):
-           self.start_dir = arg
-  
   def unsplit_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
     output = fa.FastaOutput(output_file_path)
@@ -85,10 +65,9 @@ class My_fasta:
 
 if __name__ == '__main__':
   my_fasta = My_fasta()
-  # my_fasta.get_args(sys.argv[1:])
   
-  # parser = argparse.ArgumentParser(description = my_fasta.usage)
-  parser = argparse.ArgumentParser()
+  parser = argparse.ArgumentParser(description = "Exampe: python %(prog)s -c -o 'concat.fa' -e 'unique.nonchimeric.fa'")
+  # parser = argparse.ArgumentParser()
 
   parser.add_argument("-d", "--dir",
     required = False, action = "store", dest = "start_dir", default = '.',
@@ -107,10 +86,10 @@ if __name__ == '__main__':
   #   help = """Run get_my_fasta_distrib""")
   parser.add_argument("-u", "--unsplit",
     required = False, action = "store_true", dest = "unsplit",
-    help = """Run unsplit""")
+    help = """Concatenate splited sequences to one line per sequence (default)""")
   parser.add_argument("-c", "--concat",
     required = False, action = "store_true", dest = "seq_concat_id_fa",
-    help = """Run seq_concat_id_fa""")
+    help = """Concatenate each def line with its sequence, divided by '#'.""")
   parser.add_argument("-o", "--output",
     required = False, action = "store", dest = "output_file_name",
     help = """Output file name, default - input file name + '.unsplit.fa' or '.concat.fa' """)
@@ -126,7 +105,6 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
   
   start_dir = args.start_dir
-  # start_dir = sys.argv[1]
   if (is_verbatim):
     print "Start from %s" % start_dir
     print "Getting file names"
@@ -134,16 +112,16 @@ if __name__ == '__main__':
   fa_files = my_fasta.get_files(start_dir, args.ext)
   if (is_verbatim):
     print "Found %s fa files" % (len(fa_files))
-  
-  # func_arg = {args.seq_concat_id_fa: my_fasta.seq_concat_id_fa, args.unsplit_fa: my_fasta.unsplit_fa}
-  
+    
+  print "args.output_file_name"
+  print args.output_file_name
   if args.seq_concat_id_fa:
       out_file_suffix = ".concat.fa"
       for in_file_name in fa_files:
         if (is_verbatim):
           print in_file_name
         try:
-            out_file_name = fa_files[in_file_name][1] + out_file_suffix
+            out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
             my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
         except RuntimeError:
           if (is_verbatim):
@@ -159,7 +137,7 @@ if __name__ == '__main__':
         if (is_verbatim):
           print in_file_name
         try:
-            out_file_name = fa_files[in_file_name][1] + out_file_suffix
+            out_file_name = args.output_file_name or fa_files[in_file_name][1] + out_file_suffix
             my_fasta.unsplit_fa(in_file_name, out_file_name)
         except RuntimeError:
           if (is_verbatim):
@@ -168,9 +146,6 @@ if __name__ == '__main__':
           print "Unexpected error:", sys.exc_info()[0]
           raise
           next
-      
-      
-
 
   if (is_verbatim):
     print "Current directory:"
