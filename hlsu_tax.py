@@ -51,6 +51,7 @@ class Taxonomy:
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;Prymnesium_parvum_f._patelliferum  1
         # goal:
         # AF289038	Eukaryota;Haptophyceae;Prymnesiales;Prymnesiaceae;Prymnesium;parvum;f._patelliferum
+        # print line
         ref_id, taxon_string, num = line.split()
         
         taxon_split = taxon_string.split(";")
@@ -69,6 +70,20 @@ class Taxonomy:
                 if not line: continue #Skip empty
                 self.parse_line(line)
         
+    def check_duplicates_in_line(self):
+        for idx, rank in enumerate(reversed(self.ranks)):
+            print "idx = %s, rank = %s" % (idx, rank)
+            for ref_id, tax_dict in self.all_tax_ranks.items():
+                try:
+                    if tax_dict[rank] == tax_dict[self.ranks[idx+1]]:
+                        print "ref_id = %s, rank = %s, tax_dict[rank] = %s, tax_dict[self.ranks[idx+1]] = %s" % (ref_id, rank, tax_dict[rank], tax_dict[self.ranks[idx+1]])
+                        tax_dict[rank] = "empty_" + rank
+                        print tax_dict
+                except KeyError:
+                    print "ERR"
+                    print ref_id, tax_dict
+                except:
+                    raise
         
 
 
@@ -91,5 +106,6 @@ if __name__ == '__main__':
     
     taxonomy.parse_taxonomy(args)
     taxonomy.clean_binomial()
+    taxonomy.check_duplicates_in_line()
     taxonomy.print_out_results(args)
     
