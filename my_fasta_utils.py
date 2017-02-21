@@ -6,6 +6,7 @@ import IlluminaUtils.lib.fastalib as fa
 import os
 import sys
 import argparse
+import re
 
 
 class My_fasta:
@@ -79,7 +80,15 @@ class My_fasta:
       output.write(input.id + "#" + input.seq + "\n")
     output.close()
 
-  def get_region(sequence, f_primer, r_primer):
+  def cut_region(self, input_file_path, output_file_path):
+    input = fa.SequenceSource(input_file_path)
+    output = open(output_file_path, "w")
+
+    while input.next():
+      refhvr_cut = self.get_region(input.seq, self.args.forward_primer, self.args.distal_primer)
+      print refhvr_cut
+
+  def get_region(self, sequence, f_primer, r_primer):
     refhvr_cut_t = ()
     refhvr_cut = ""
   
@@ -95,13 +104,18 @@ class My_fasta:
       if (refhvr_cut_t[1] > 0):
         refhvr_cut = refhvr_cut_t[0]
       else:
-        if (verbose):
+        if is_verbatim:
           print "Can't find reverse primer %s in %s" % (r_primer, sequence)
+          no_d_pr = open("no_distal_primer", "a")
+          no_d_pr.write(sequence + "\n")
         refhvr_cut = ""
     
     else:
-      if (verbose):
+      if is_verbatim:
         print "Can't find forward primer %s in %s" % (f_primer, sequence)
+        no_f_pr = open("no_forward_primer", "a")
+        no_f_pr.write(sequence + "\n")
+        
       refhvr_cut = ""
     
     return refhvr_cut
@@ -144,8 +158,6 @@ if __name__ == '__main__':
     help = """Min refhvr cut length, default - 50""")
 
 
-
-
   args = parser.parse_args()
 
 
@@ -184,6 +196,9 @@ if __name__ == '__main__':
       elif args.unsplit:
         my_fasta.unsplit_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running unsplit_fa"
+      elif args.cut_region:
+        my_fasta.cut_region(in_file_name, out_file_name)
+        if is_verbatim: print "Running cut_region"
       else:
         if is_verbatim: print "everything else"
           
