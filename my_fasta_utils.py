@@ -14,7 +14,9 @@ class My_fasta:
     self.start_dir = ""
     self.args = args
     self.all_files = {}
-
+    self.f_primer_exist = True
+    self.r_primer_exist = True
+    
   def query_yes_no(self, question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
 
@@ -59,10 +61,10 @@ class My_fasta:
               full_name = os.path.join(dirname, file_name)
               (file_base, file_extension) = os.path.splitext(os.path.join(dirname, file_name))
               self.all_files[full_name] = (dirname, file_base, file_extension)
-              
+
   def get_out_file_name(self, in_file_name, out_file_suffix = ".out"):
     return self.args.output_file_name or self.all_files[in_file_name][1] + out_file_suffix
-              
+
 
   def unsplit_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
@@ -88,37 +90,41 @@ class My_fasta:
     while input.next():
       refhvr_cut = self.get_region(input.seq, self.args.forward_primer, self.args.distal_primer)
       if refhvr_cut == "":
+        
+        print "%s: self.f_primer_exist = %s, self.r_primer_exist = %s\n=====\n" % (input.id, self.f_primer_exist, self.r_primer_exist)
+        
         no_primer.write("Can't find primer in %s\n%s\n" % (input.id, input.seq))
       if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
-        output.write(">" + input.id)        
+        output.write(">" + input.id)
         output.write("\n")
         output.write(refhvr_cut)
         output.write("\n")
-        
-      
+
+
 
   def get_region(self, sequence, f_primer, r_primer):
     refhvr_cut_t = ()
     refhvr_cut = ""
-  
-    re_f_primer = '^.+' + f_primer  
+    self.f_primer_exist = True
+    self.r_primer_exist = True
+
+    re_f_primer = '^.+' + f_primer
     re_r_primer = r_primer + '.+'
-  
+
     hvrsequence_119_1_t = re.subn(re_f_primer, '', sequence)
     if (hvrsequence_119_1_t[1] > 0):
       refhvr_cut_t = re.subn(re_r_primer, '', hvrsequence_119_1_t[0])
       if (refhvr_cut_t[1] > 0):
         refhvr_cut = refhvr_cut_t[0]
       else:
+        self.r_primer_exist = False
         if is_verbatim:
           print "Can't find reverse primer %s in %s" % (r_primer, sequence)
-        refhvr_cut = ""
-    
     else:
+      self.f_primer_exist = False
       if is_verbatim:
-        print "Can't find forward primer %s in %s" % (f_primer, sequence)        
-      refhvr_cut = ""
-    
+        print "Can't find forward primer %s in %s" % (f_primer, sequence)
+
     return refhvr_cut
 
 
@@ -202,7 +208,7 @@ if __name__ == '__main__':
         if is_verbatim: print "Running cut_region"
       else:
         if is_verbatim: print "everything else"
-          
+
     except:
       raise
       next
