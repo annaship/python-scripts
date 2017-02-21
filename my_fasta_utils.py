@@ -58,6 +58,10 @@ class My_fasta:
               full_name = os.path.join(dirname, file_name)
               (file_base, file_extension) = os.path.splitext(os.path.join(dirname, file_name))
               self.all_files[full_name] = (dirname, file_base, file_extension)
+              
+  def get_out_file_name(self, in_file_name, out_file_suffix = ".out"):
+    return self.args.output_file_name or self.all_files[in_file_name][1] + out_file_suffix
+              
 
   def unsplit_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
@@ -75,16 +79,39 @@ class My_fasta:
       output.write(input.id + "#" + input.seq + "\n")
     output.close()
 
-  def get_out_file_name(self, in_file_name, out_file_suffix = ".out"):
-    return self.args.output_file_name or self.all_files[in_file_name][1] + out_file_suffix
-
+  def get_region(sequence, f_primer, r_primer):
+    refhvr_cut_t = ()
+    refhvr_cut = ""
+  
+    re_f_primer = '^.+' + f_primer
+  
+    re_r_primer = r_primer + '.+'
+  
+    hvrsequence_119_1_t = re.subn(re_f_primer, '', sequence)
+    # print hvrsequence_119_1_t
+    if (hvrsequence_119_1_t[1] > 0):
+      refhvr_cut_t = re.subn(re_r_primer, '', hvrsequence_119_1_t[0])
+      # print refhvr_cut_t
+      if (refhvr_cut_t[1] > 0):
+        refhvr_cut = refhvr_cut_t[0]
+      else:
+        if (verbose):
+          print "Can't find reverse primer %s in %s" % (r_primer, sequence)
+        refhvr_cut = ""
+    
+    else:
+      if (verbose):
+        print "Can't find forward primer %s in %s" % (f_primer, sequence)
+      refhvr_cut = ""
+    
+    return refhvr_cut
 
 
 if __name__ == '__main__':
 
   parser = argparse.ArgumentParser(description = "Exampe: python %(prog)s -c -o 'concat.fa' -e 'unique.nonchimeric.fa'")
 
-  parser.add_argument("-d", "--dir",
+  parser.add_argument("-p", "--path",
     required = False, action = "store", dest = "start_dir", default = '.',
     help = """Input directory name, default - current""")
   parser.add_argument("-ve","--verbatim",
@@ -99,15 +126,19 @@ if __name__ == '__main__':
   parser.add_argument("-c", "--concat",
     required = False, action = "store_true", dest = "seq_concat_id_fa",
     help = """Concatenate each def line with its sequence, divided by '#'.""")
+  parser.add_argument("-r", "--region",
+    required = False, action = "store_true", dest = "cut_region",
+    help = """Cut refhvr region. ???Add about reverse-complimenting???""")
+
   parser.add_argument("-o", "--output",
     required = False, action = "store", dest = "output_file_name",
     help = """Output file name, default - input file name + '.out' """)
   parser.add_argument("-f", "--f_primer",
     required = False, action = "store", dest = "forward_primer", default = "TTGTACACACCGCCC",
-    help = """Forward_primer, default - 'TTGTACACACCGCCC' v9 1389F """)
-  parser.add_argument("-r", "--r_primer",
-    required = False, action = "store", dest = "reverse_primer", default = "GTAGGTGAACCTGC.GAAG",
-    help = """Reverse_primer, default - 'GTAGGTGAACCTGC.GAAG' v9 1389F """)
+    help = """Forward primer, default - 'TTGTACACACCGCCC' v9 1389F """)
+  parser.add_argument("-d", "--d_primer",
+    required = False, action = "store", dest = "distal_primer", default = "GTAGGTGAACCTGC.GAAG",
+    help = """Distal (reversed) primer, default - 'GTAGGTGAACCTGC.GAAG' v9 1389F """)
   parser.add_argument("-l", "--len",
     required = False, action = "store", dest = "min_refhvr_cut_len", default = "50",
     help = """Min refhvr cut length, default - 50""")
