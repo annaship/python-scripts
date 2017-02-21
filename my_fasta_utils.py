@@ -83,39 +83,40 @@ class My_fasta:
   def cut_region(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
     output = open(output_file_path, "w")
+    no_primer = open('no_primer', "w")
 
     while input.next():
       refhvr_cut = self.get_region(input.seq, self.args.forward_primer, self.args.distal_primer)
-      print refhvr_cut
+      if refhvr_cut == "":
+        no_primer.write("Can't find primer in %s\n%s\n" % (input.id, input.seq))
+      if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
+        output.write(">" + input.id)        
+        output.write("\n")
+        output.write(refhvr_cut)
+        output.write("\n")
+        
+      
 
   def get_region(self, sequence, f_primer, r_primer):
     refhvr_cut_t = ()
     refhvr_cut = ""
   
-    re_f_primer = '^.+' + f_primer
-  
+    re_f_primer = '^.+' + f_primer  
     re_r_primer = r_primer + '.+'
   
     hvrsequence_119_1_t = re.subn(re_f_primer, '', sequence)
-    # print hvrsequence_119_1_t
     if (hvrsequence_119_1_t[1] > 0):
       refhvr_cut_t = re.subn(re_r_primer, '', hvrsequence_119_1_t[0])
-      # print refhvr_cut_t
       if (refhvr_cut_t[1] > 0):
         refhvr_cut = refhvr_cut_t[0]
       else:
         if is_verbatim:
           print "Can't find reverse primer %s in %s" % (r_primer, sequence)
-          no_d_pr = open("no_distal_primer", "a")
-          no_d_pr.write(sequence + "\n")
         refhvr_cut = ""
     
     else:
       if is_verbatim:
-        print "Can't find forward primer %s in %s" % (f_primer, sequence)
-        no_f_pr = open("no_forward_primer", "a")
-        no_f_pr.write(sequence + "\n")
-        
+        print "Can't find forward primer %s in %s" % (f_primer, sequence)        
       refhvr_cut = ""
     
     return refhvr_cut
