@@ -102,6 +102,18 @@ if __name__ == '__main__':
   parser.add_argument("-o", "--output",
     required = False, action = "store", dest = "output_file_name",
     help = """Output file name, default - input file name + '.out' """)
+  parser.add_argument("-f", "--f_primer",
+    required = False, action = "store", dest = "forward_primer", default = "TTGTACACACCGCCC",
+    help = """Forward_primer, default - 'TTGTACACACCGCCC' v9 1389F """)
+  parser.add_argument("-r", "--r_primer",
+    required = False, action = "store", dest = "reverse_primer", default = "GTAGGTGAACCTGC.GAAG",
+    help = """Reverse_primer, default - 'GTAGGTGAACCTGC.GAAG' v9 1389F """)
+  parser.add_argument("-l", "--len",
+    required = False, action = "store", dest = "min_refhvr_cut_len", default = "50",
+    help = """Min refhvr cut length, default - 50""")
+
+
+
 
   args = parser.parse_args()
 
@@ -136,11 +148,9 @@ if __name__ == '__main__':
       out_file_name = my_fasta.get_out_file_name(in_file_name)
       out_file_names.append(out_file_name)
       if args.seq_concat_id_fa:
-        # out_file_suffix = ".concat.fa"
         my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running seq_concat_id_fa"
       elif args.unsplit:
-        # out_file_suffix = ".unsplit.fa"
         my_fasta.unsplit_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running unsplit_fa"
       else:
