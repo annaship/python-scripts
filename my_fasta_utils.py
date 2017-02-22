@@ -16,6 +16,7 @@ class My_fasta:
     self.all_files = {}
     self.f_primer_exist = True
     self.r_primer_exist = True
+    self.too_short_hvr = {}
     
   def query_yes_no(self, question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -83,30 +84,32 @@ class My_fasta:
     output.close()
 
   def cut_region(self, input_file_path, output_file_path):
-    input = fa.SequenceSource(input_file_path)
-    output = open(output_file_path, "w")
-    no_primer = open('no_primer', "w")
+    input      = fa.SequenceSource(input_file_path)
+    output     = open(output_file_path, "w")
+    no_primers = open('no_primers', "w")
 
     while input.next():
       refhvr_cut = self.get_region(input.seq, self.args.forward_primer, self.args.distal_primer)
-      if refhvr_cut == "":
-        
-        print "%s: self.f_primer_exist = %s, self.r_primer_exist = %s\n=====\n" % (input.id, self.f_primer_exist, self.r_primer_exist)
-        
-        no_primer.write("Can't find primer in %s\n%s\n" % (input.id, input.seq))
+      if refhvr_cut == "":        
+        if is_verbatim:
+          print "%s: self.f_primer_exist = %s, self.r_primer_exist = %s\n=====\n" % (input.id, self.f_primer_exist, self.r_primer_exist)
+        no_primers.write("Can't find primers (forward primer = %s, distal primer = %s) in %s\n%s\n" % (self.f_primer_exist, self.r_primer_exist, input.id, input.seq))
       if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
         output.write(">" + input.id)
         output.write("\n")
         output.write(refhvr_cut)
         output.write("\n")
-
-
+      else:
+        self.too_short_hvr[input.id] = refhvr_cut
+        
+  def check_primers(self):
+    pass
 
   def get_region(self, sequence, f_primer, r_primer):
     refhvr_cut_t = ()
     refhvr_cut = ""
     self.f_primer_exist = True
-    self.r_primer_exist = True
+    self.r_primer_exist = False
 
     re_f_primer = '^.+' + f_primer
     re_r_primer = r_primer + '.+'
@@ -114,8 +117,10 @@ class My_fasta:
     hvrsequence_119_1_t = re.subn(re_f_primer, '', sequence)
     if (hvrsequence_119_1_t[1] > 0):
       refhvr_cut_t = re.subn(re_r_primer, '', hvrsequence_119_1_t[0])
+      self.f_primer_exist = True
       if (refhvr_cut_t[1] > 0):
         refhvr_cut = refhvr_cut_t[0]
+        self.r_primer_exist = True
       else:
         self.r_primer_exist = False
         if is_verbatim:
@@ -205,6 +210,7 @@ if __name__ == '__main__':
         if is_verbatim: print "Running unsplit_fa"
       elif args.cut_region:
         my_fasta.cut_region(in_file_name, out_file_name)
+        # print my_fasta.too_short_hvr
         if is_verbatim: print "Running cut_region"
       else:
         if is_verbatim: print "everything else"
