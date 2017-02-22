@@ -20,6 +20,9 @@ class My_fasta:
     self.has_no_f_pr = {}
     self.has_no_r_pr = {}
     self.total_seq   = 0
+    self.good_ones   = ()
+    self.refhvr_cuts = {}
+    
     
   def query_yes_no(self, question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -91,10 +94,22 @@ class My_fasta:
     output     = open(output_file_path, "w")
     # no_primers = open('no_primers', "w")
     self.total_seq  = 0
+    out1 = open("out1", "w")
     
     while input.next():
       self.total_seq += 1
       refhvr_cut = self.get_region(input, self.args.forward_primer, self.args.distal_primer)
+      
+      self.good_ones = set(self.has_both_pr.keys()) - set(self.too_short_hvr.keys())
+      print input.id
+      print "self.good_ones"
+      print self.good_ones
+      if input.id in self.good_ones:
+        out1.write(">" + input.id)
+        out1.write("\n")
+        out1.write(self.refhvr_cuts[input.id])
+        out1.write("\n")
+      
       if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
         output.write(">" + input.id)
         output.write("\n")
@@ -121,10 +136,9 @@ class My_fasta:
       stats.write("\nHave both primers, but region between primers is too short (%s):\n" % len(too_short))
       stats.write(", ".join(sorted(list(too_short))))
 
-    good_ones = set(self.has_both_pr.keys()) - set(self.too_short_hvr.keys())
-    if (len(set(good_ones) - set(self.has_both_pr.keys()))) > 0:
-      stats.write("\nHave both primers and region between primers is not too short (%s):\n" % len(good_ones))
-      stats.write(", ".join(sorted(list(good_ones))))
+    if (len(set(self.good_ones) - set(self.has_both_pr.keys()))) > 0:
+      stats.write("\nHave both primers and region between primers is not too short (%s):\n" % len(self.good_ones))
+      stats.write(", ".join(sorted(list(self.good_ones))))
     stats.write("\n")
 
   def get_region(self, input, f_primer, r_primer):
@@ -141,6 +155,7 @@ class My_fasta:
       if (refhvr_cut_t[1] > 0):
         refhvr_cut = refhvr_cut_t[0]
         self.has_both_pr[input.id] = input.seq
+        self.refhvr_cuts[input.id] = refhvr_cut
       else:
         self.has_no_r_pr[input.id] = input.seq
     else:
