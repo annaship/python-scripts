@@ -89,33 +89,26 @@ class My_fasta:
       output.write(input.id + "#" + input.seq + "\n")
     output.close()
 
-  def cut_region(self, input_file_path, output_file_path):
-    input      = fa.SequenceSource(input_file_path)
-    output     = open(output_file_path, "w")
-    # no_primers = open('no_primers', "w")
-    self.total_seq  = 0
+  def cut_region(self, input_file_path):
+    input          = fa.SequenceSource(input_file_path)
+    self.total_seq = 0
     
     while input.next():
       self.total_seq += 1
-      refhvr_cut = self.get_region(input, self.args.forward_primer, self.args.distal_primer)    
-      if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
-        output.write(">" + input.id)
-        output.write("\n")
-        output.write(refhvr_cut)
-        output.write("\n")
-      else:
-        self.too_short_hvr[input.id] = refhvr_cut
-
+      self.get_region(input, self.args.forward_primer, self.args.distal_primer)    
       
-      
-  def write_cuts(self):
+  def write_cuts(self, output_file_path):
+    output = open(output_file_path, "w")
+    print "self.args.min_refhvr_cut_len = "
+    print self.args.min_refhvr_cut_len
     for input_id, seq in self.refhvr_cuts.items():
-      out1 = open("out1", "w")
       if (len(self.refhvr_cuts[input_id]) > int(self.args.min_refhvr_cut_len)):
-        out1.write(">" + input_id)
-        out1.write("\n")
-        out1.write(self.refhvr_cuts[input_id])
-        out1.write("\n")
+        print "len(self.refhvr_cuts[input_id]) = "
+        print len(self.refhvr_cuts[input_id])
+        output.write(">" + input_id)
+        output.write("\n")
+        output.write(self.refhvr_cuts[input_id])
+        output.write("\n")
     
   def get_cut_stats(self):
     stats = open('hvr_cut.stats', "w")
@@ -159,9 +152,6 @@ class My_fasta:
         self.has_no_r_pr[input.id] = input.seq
     else:
       self.has_no_f_pr[input.id] = input.seq
-
-    return refhvr_cut
-
 
 if __name__ == '__main__':
 
@@ -236,7 +226,8 @@ if __name__ == '__main__':
         my_fasta.unsplit_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running unsplit_fa"
       elif args.cut_region:
-        my_fasta.cut_region(in_file_name, out_file_name)
+        my_fasta.cut_region(in_file_name)
+        my_fasta.write_cuts(out_file_name)
         my_fasta.get_cut_stats()
         if is_verbatim: print "Running cut_region"
       else:
