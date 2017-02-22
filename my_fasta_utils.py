@@ -94,22 +94,10 @@ class My_fasta:
     output     = open(output_file_path, "w")
     # no_primers = open('no_primers', "w")
     self.total_seq  = 0
-    out1 = open("out1", "w")
     
     while input.next():
       self.total_seq += 1
-      refhvr_cut = self.get_region(input, self.args.forward_primer, self.args.distal_primer)
-      
-      self.good_ones = set(self.has_both_pr.keys()) - set(self.too_short_hvr.keys())
-      print input.id
-      print "self.good_ones"
-      print self.good_ones
-      if (input.id in self.good_ones) and (len(self.refhvr_cuts[input.id]) > int(self.args.min_refhvr_cut_len)):
-        out1.write(">" + input.id)
-        out1.write("\n")
-        out1.write(self.refhvr_cuts[input.id])
-        out1.write("\n")
-      
+      refhvr_cut = self.get_region(input, self.args.forward_primer, self.args.distal_primer)    
       if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
         output.write(">" + input.id)
         output.write("\n")
@@ -117,7 +105,18 @@ class My_fasta:
         output.write("\n")
       else:
         self.too_short_hvr[input.id] = refhvr_cut
-        
+
+      
+      
+  def write_cuts(self):
+    for input_id, seq in self.refhvr_cuts.items():
+      out1 = open("out1", "w")
+      if (len(self.refhvr_cuts[input_id]) > int(self.args.min_refhvr_cut_len)):
+        out1.write(">" + input_id)
+        out1.write("\n")
+        out1.write(self.refhvr_cuts[input_id])
+        out1.write("\n")
+    
   def get_cut_stats(self):
     stats = open('hvr_cut.stats', "w")
     stats.write("total sequences: %s\n" % self.total_seq)
