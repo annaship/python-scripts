@@ -14,9 +14,11 @@ class My_fasta:
     self.start_dir = ""
     self.args = args
     self.all_files = {}
-    self.f_primer_exist = True
-    self.r_primer_exist = True
-    self.too_short_hvr = {}
+    self.too_short_hvr  = {}
+    self.has_f_pr    = {}
+    self.has_both_pr = {}
+    self.has_no_f_pr = {}
+    self.has_no_r_pr = {}
     
   def query_yes_no(self, question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -89,11 +91,11 @@ class My_fasta:
     no_primers = open('no_primers', "w")
 
     while input.next():
-      refhvr_cut = self.get_region(input.seq, self.args.forward_primer, self.args.distal_primer)
-      if refhvr_cut == "":        
-        if is_verbatim:
-          print "%s: self.f_primer_exist = %s, self.r_primer_exist = %s\n=====\n" % (input.id, self.f_primer_exist, self.r_primer_exist)
-        no_primers.write("Can't find primers (forward primer = %s, distal primer = %s) in %s\n%s\n" % (self.f_primer_exist, self.r_primer_exist, input.id, input.seq))
+      refhvr_cut = self.get_region(input, self.args.forward_primer, self.args.distal_primer)
+      # if refhvr_cut == "":        
+        # if is_verbatim:
+        #   print "%s: self.f_primer_exist = %s, self.r_primer_exist = %s\n=====\n" % (input.id, self.f_primer_exist, self.r_primer_exist)
+        # no_primers.write("Can't find primers (forward primer = %s, distal primer = %s) in %s\n%s\n" % (self.f_primer_exist, self.r_primer_exist, input.id, input.seq))
       if (len(refhvr_cut) > int(self.args.min_refhvr_cut_len)):
         output.write(">" + input.id)
         output.write("\n")
@@ -105,30 +107,28 @@ class My_fasta:
   def check_primers(self):
     pass
 
-  def get_region(self, sequence, f_primer, r_primer):
+  def get_region(self, input, f_primer, r_primer):
     refhvr_cut_t = ()
     refhvr_cut = ""
-    self.f_primer_exist = True
-    self.r_primer_exist = False
 
     re_f_primer = '^.+' + f_primer
     re_r_primer = r_primer + '.+'
 
-    hvrsequence_119_1_t = re.subn(re_f_primer, '', sequence)
+    hvrsequence_119_1_t = re.subn(re_f_primer, '', input.seq)
     if (hvrsequence_119_1_t[1] > 0):
+      self.has_f_pr[input.id] = input.seq
       refhvr_cut_t = re.subn(re_r_primer, '', hvrsequence_119_1_t[0])
-      self.f_primer_exist = True
       if (refhvr_cut_t[1] > 0):
         refhvr_cut = refhvr_cut_t[0]
-        self.r_primer_exist = True
+        self.has_both_pr[input.id] = input.seq
       else:
-        self.r_primer_exist = False
+        self.has_no_r_pr[input.id] = input.seq
         if is_verbatim:
-          print "Can't find reverse primer %s in %s" % (r_primer, sequence)
+          print "Can't find reverse primer %s in %s" % (r_primer, input.id)
     else:
-      self.f_primer_exist = False
+      self.has_no_f_pr[input.id] = input.seq
       if is_verbatim:
-        print "Can't find forward primer %s in %s" % (f_primer, sequence)
+        print "Can't find forward primer %s in %s" % (f_primer, input.id)
 
     return refhvr_cut
 
@@ -169,10 +169,7 @@ if __name__ == '__main__':
     required = False, action = "store", dest = "min_refhvr_cut_len", default = "50",
     help = """Min refhvr cut length, default - 50""")
 
-
   args = parser.parse_args()
-
-
 
   my_fasta = My_fasta(args)
   if not len(sys.argv) > 1:
@@ -211,6 +208,22 @@ if __name__ == '__main__':
       elif args.cut_region:
         my_fasta.cut_region(in_file_name, out_file_name)
         # print my_fasta.too_short_hvr
+        print "my_fasta.has_f_pr"
+        print my_fasta.has_f_pr.keys()
+        print "my_fasta.has_both_pr"
+        print my_fasta.has_both_pr.keys()
+        print "my_fasta.has_no_f_pr"
+        print my_fasta.has_no_f_pr.keys()
+        print "my_fasta.has_no_r_pr"
+        print my_fasta.has_no_r_pr.keys()
+        print "my_fasta.has_no_f_pr.keys() & my_fasta.has_no_r_pr.keys()"
+        print set(my_fasta.has_no_f_pr.keys()) & set(my_fasta.has_no_r_pr.keys())
+
+
+        print "set(my_fasta.has_f_pr.keys()) & set(my_fasta.has_no_r_pr.keys())"
+        print set(my_fasta.has_f_pr.keys()) & set(my_fasta.has_no_r_pr.keys())
+
+        
         if is_verbatim: print "Running cut_region"
       else:
         if is_verbatim: print "everything else"
