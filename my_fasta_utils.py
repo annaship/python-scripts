@@ -104,7 +104,7 @@ class My_fasta:
       print input.id
       print "self.good_ones"
       print self.good_ones
-      if input.id in self.good_ones:
+      if (input.id in self.good_ones) and (len(self.refhvr_cuts[input.id]) > int(self.args.min_refhvr_cut_len)):
         out1.write(">" + input.id)
         out1.write("\n")
         out1.write(self.refhvr_cuts[input.id])
