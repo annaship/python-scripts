@@ -128,6 +128,7 @@ class My_fasta:
       stats.write("\nHave both primers, but region between primers is too short (%s):\n" % len(too_short))
       stats.write(", ".join(sorted(list(too_short))))
 
+    self.good_ones = set(self.has_both_pr.keys()) - set(self.too_short_hvr.keys())
     if (len(set(self.good_ones) - set(self.has_both_pr.keys()))) > 0:
       stats.write("\nHave both primers and region between primers is not too short (%s):\n" % len(self.good_ones))
       stats.write(", ".join(sorted(list(self.good_ones))))
@@ -148,6 +149,8 @@ class My_fasta:
         refhvr_cut = refhvr_cut_t[0]
         self.has_both_pr[input.id] = input.seq
         self.refhvr_cuts[input.id] = refhvr_cut
+      if len(refhvr_cut) < int(self.args.min_refhvr_cut_len):
+        self.too_short_hvr[input.id] = refhvr_cut
       else:
         self.has_no_r_pr[input.id] = input.seq
     else:
