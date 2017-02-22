@@ -113,10 +113,6 @@ class My_fasta:
     stats.write("\nHave both primers (%s):\n" % len(self.has_both_pr.keys()))
     stats.write(", ".join(self.has_both_pr.keys()))
     
-    # f_only = set(self.has_f_pr.keys()) & set(self.has_no_r_pr.keys())
-    # stats.write("\nHave only forward primer and no reverse (%s):\n" % len(f_only))
-    # stats.write("\n".join(f_only))
-    # 
     stats.write("\nForward primer only (no reverse) (%s):\n" % len(self.has_no_r_pr.keys()))
     stats.write(", ".join(self.has_no_r_pr.keys()))
 
@@ -126,27 +122,6 @@ class My_fasta:
     too_short = set(self.has_both_pr.keys()) & set(self.too_short_hvr.keys())
     stats.write("\nHave both primers, but region between primers is too short (%s):\n" % len(too_short))
     stats.write(", ".join(too_short))
-
-    
-    
-    # 
-    # has_no_r_pr == f only
-    # # print self.too_short_hvr
-    # print "self.has_f_pr"
-    # print self.has_f_pr.keys()
-    # print "self.has_both_pr"
-    # print self.has_both_pr.keys()
-    # print "self.has_no_f_pr"
-    # print self.has_no_f_pr.keys()
-    # print "self.has_no_r_pr"
-    # print self.has_no_r_pr.keys()
-    # print "self.has_no_f_pr.keys() & self.has_no_r_pr.keys()"
-    # print set(self.has_no_f_pr.keys()) & set(self.has_no_r_pr.keys())
-    # 
-    # 
-    # print "set(self.has_f_pr.keys()) & set(self.has_no_r_pr.keys())"
-    # print set(self.has_f_pr.keys()) & set(self.has_no_r_pr.keys())
-    
 
   def get_region(self, input, f_primer, r_primer):
     refhvr_cut_t = ()
@@ -164,12 +139,8 @@ class My_fasta:
         self.has_both_pr[input.id] = input.seq
       else:
         self.has_no_r_pr[input.id] = input.seq
-        # if is_verbatim:
-          # print "Can't find reverse primer %s in %s" % (r_primer, input.id)
     else:
       self.has_no_f_pr[input.id] = input.seq
-      # if is_verbatim:
-        # print "Can't find forward primer %s in %s" % (f_primer, input.id)
 
     return refhvr_cut
 
