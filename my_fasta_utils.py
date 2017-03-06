@@ -72,7 +72,6 @@ class My_fasta:
   def get_out_file_name(self, in_file_name, out_file_suffix = ".out"):
     return self.args.output_file_name or self.all_files[in_file_name][1] + out_file_suffix
 
-
   def unsplit_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
     output = fa.FastaOutput(output_file_path)
