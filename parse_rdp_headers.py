@@ -52,23 +52,25 @@ class Parse_RDP():
       self.sequences[locus] = input.seq
     print self.classification
     print self.sequences
-    # rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
-    query = "show tables"
-    a = mysql_utils.execute_fetch_select(query)
-    print a
+    # self.insert_seq()
+    rowcount, lastrowid = self.insert_seq()
+    print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    # query = "show tables"
+    # a = mysql_utils.execute_fetch_select(query)
+    # print a
     # ((('spingo_rdp',), ('spingo_rdp_sequence',)), ['Tables_in_spingo_rdp'])
     
     
-    
-    
-  def insert_refids_per_dataset_temp(self):    
-    # use for testing with short vamps_sequences_transfer_temp
-    query = """INSERT IGNORE INTO refids_per_dataset_temp (frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count)    
-      SELECT frequency, project, dataset, refhvr_ids, seq_count, distance, rep_id, dataset_count
-        FROM vamps_sequences_transfer_temp
+  def insert_seq(self):  
+    query_a = []
+    query = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)    
+      VALUES 
     """
-    # real  57m45.418s
 
+    for k, v in self.sequences.items():
+      query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
+
+    query += ", ".join(query_a)
     print query
     return mysql_utils.execute_no_fetch(query)
 
@@ -203,6 +205,5 @@ if __name__ == '__main__':
     # todo: ARGS
   in_fa_gz_file_name = "/Users/ashipunova/Dropbox/mix/today_ch/spingo_assign/small_current_bact.fa"
   parser.read_file(in_fa_gz_file_name)
-    
     
     
