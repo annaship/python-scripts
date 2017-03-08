@@ -45,6 +45,7 @@ class Parse_RDP():
     
       
   def read_file(self, in_fa_gz_file_name):
+    print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
 
     while input.next():
@@ -83,8 +84,15 @@ class Parse_RDP():
     # print lineage
     locus = first_part.split()[0]
     definition = " ".join(first_part.split()[1:])
-    organism, clone = definition.split(";")
     self.classification[locus] = definition
+    try:
+      organism, clone = definition.split(";")
+    except ValueError:
+      organism = definition
+      clone = "empty_clone"
+    except:
+      raise
+    
     return locus
   
 
