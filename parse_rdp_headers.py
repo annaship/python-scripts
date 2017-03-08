@@ -194,7 +194,7 @@ if __name__ == '__main__':
     mysql_utils = util.Mysql_util(host = "localhost", db = "spingo_rdp", read_default_group = "clienthome")
   else:
     pass
-    # mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
+    mysql_utils = util.Mysql_util(host = "vampsdev", db = "test", read_default_group = "client")
 
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
@@ -203,7 +203,10 @@ if __name__ == '__main__':
 
   parser = Parse_RDP()
     # todo: ARGS
-  in_fa_gz_file_name = "/Users/ashipunova/Dropbox/mix/today_ch/spingo_assign/small_current_bact.fa"
+  if (utils.is_local() == True):
+    in_fa_gz_file_name = "/Users/ashipunova/Dropbox/mix/today_ch/spingo_assign/small_current_bact.fa"
+  else:
+    in_fa_gz_file_name = "/workspace/ashipunova/taxonomy/spingo_assign/current_Bacteria_unaligned.fa"
   parser.read_file(in_fa_gz_file_name)
     
     
