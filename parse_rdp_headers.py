@@ -64,7 +64,7 @@ class Parse_RDP():
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
       VALUES 
     """
-    self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, spingo_rdp_sequence_comp)
+    self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, taxonomy)
       VALUES 
     """
     self.insert_one_taxon_first_lines = {}
@@ -88,9 +88,14 @@ class Parse_RDP():
       utils.benchmark_w_return_2(t0, "parse_id")
       
       self.sequences[locus] = input.seq
+
     t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
     utils.benchmark_w_return_2(t0, "insert_seq")
+
+    t0 = utils.benchmark_w_return_1("insert_tax")
+    self.insert_tax()
+    utils.benchmark_w_return_2(t0, "insert_tax")
 
   def run_insert_chunk(self, first_line, query_chunk):
       query = first_line + query_chunk
@@ -112,22 +117,48 @@ class Parse_RDP():
         rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
         
+  # todo: insert taxonomy all? or separate?
   def insert_tax(self):  
     query_a = []
+    
+    """    taxonomy
+        {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+    """    
     for k, v in self.taxonomy.items():
-      query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
+      # query_a.append("('%s', '%s')" % (k, v))
+      # del v["rootrank"]
+      # d3 = {}
+      
+      d3 = {key: v[key] for key in v if (key in self.tax_ranks or key == "class")}
+      
+      print "VVV"
+      print d3
+      print "DDD"
+      print v
+      
+      print sorted(v.items(), key=lambda (k,v): self.tax_ranks.index(k))
+      
+    """
+    print tax_dict
+    {'domain': 'Eukaryota', 'family': 'Prymnesiaceae', 'order': 'Prymnesiales', 'phylum': 'Haptophyta', 'species': 'palpebrale', 'genus': 'Prymnesium', 'class': 'Haptophyceae'}
+    
+    """
+    """
+    print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
+    [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
+    """
 
     if (utils.is_local() == True):
       max_lines = 3
     else:
       max_lines = 7000
       
-    for chunk in self.my_utils.chunks(query_a, max_lines):
-        query_chunk = ", ".join(chunk)
-        
-        rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
-        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-        
+    # for chunk in self.my_utils.chunks(query_a, max_lines):
+    #     query_chunk = ", ".join(chunk)
+    #
+    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)
+    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    #
   def make_taxonomy_dict(self, lineage):
     # print lineage
     taxonomy1 = {}
