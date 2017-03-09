@@ -57,7 +57,6 @@ class Util():
 class Parse_RDP():
   def __init__(self):
     self.taxonomy = {}
-    self.taxonomy_7_ranks = {}
     self.taxonomy_sorted  = {}
     self.sequences = {}
     self.organisms = {}
@@ -82,13 +81,11 @@ class Parse_RDP():
         {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
     """    
     for k, v in self.taxonomy.items():
-      print "KKK"
-      print k
       v["klass"] = v.pop("class")
       
-      taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks or key == "class")}
-      print "VVV"
-      print taxonomy_7_ranks
+      taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks)}
+      # print "VVV"
+      # print taxonomy_7_ranks
       
       self.taxonomy_sorted[k] = sorted(taxonomy_7_ranks.items(), key=lambda (k, taxonomy_7_ranks): self.tax_ranks.index(k))
 
@@ -116,7 +113,9 @@ class Parse_RDP():
       
       self.sequences[locus] = input.seq
 
+    t0 = utils.benchmark_w_return_1("clean_taxonomy")
     self.clean_taxonomy()
+    utils.benchmark_w_return_2(t0, "clean_taxonomy")
     
     t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
@@ -149,7 +148,24 @@ class Parse_RDP():
   # todo: insert taxonomy all? or separate?
   def insert_tax(self):  
     query_a = []
+    for locus, tax_dict in self.taxonomy_sorted.items():
+        # out_line = self.insert_tax_first_line
+        # print tax_dict
+        #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
+        taxon_string = ";".join([x[1].strip('"') for x in tax_dict])
+        # out_line += "\n"
+        # print out_line
+        query_a.append("('%s', '%s')" % (locus, taxon_string))
+        print "query_a"
+        print query_a
+        # out_line += ";".join([v for (k,v) in sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))])
+        # out_line += "\t1\n"
     
+    
+    # for k, v in self.taxonomy_sorted.items():
+    #   out_line += ";".join([v for (k,v) in sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))])
+    #
+    #   query_a.append("('%s', COMPRESS('%s'))" % (k, v))
 
 
     if (utils.is_local() == True):
@@ -157,12 +173,12 @@ class Parse_RDP():
     else:
       max_lines = 7000
       
-    # for chunk in self.my_utils.chunks(query_a, max_lines):
-    #     query_chunk = ", ".join(chunk)
-    #
-    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)
-    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-    #
+    for chunk in self.my_utils.chunks(query_a, max_lines):
+        query_chunk = ", ".join(chunk)
+
+        rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)
+        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+
   def make_taxonomy_dict(self, lineage):
     # print lineage
     taxonomy1 = {}
