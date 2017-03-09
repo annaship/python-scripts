@@ -60,11 +60,20 @@ class Parse_RDP():
     self.sequences = {}
     self.organisms = {}
     self.my_utils = Util()
+    self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
       VALUES 
     """
-    self.tax_ranks = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+    self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, spingo_rdp_sequence_comp)
+      VALUES 
+    """
+    self.insert_one_taxon_first_lines = {}
+    self.make_one_taxon_first_lines()
     
+  def make_one_taxon_first_lines(self):
+    for rank in self.tax_ranks:
+      line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
+      self.insert_one_taxon_first_lines[rank] = (line)
       
   def read_file(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
@@ -94,6 +103,22 @@ class Parse_RDP():
   def insert_seq(self):  
     query_a = []
     for k, v in self.sequences.items():
+      query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
+
+    if (utils.is_local() == True):
+      max_lines = 3
+    else:
+      max_lines = 7000
+      
+    for chunk in self.my_utils.chunks(query_a, max_lines):
+        query_chunk = ", ".join(chunk)
+        
+        rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
+        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+        
+  def insert_tax(self):  
+    query_a = []
+    for k, v in self.taxonomy.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
     if (utils.is_local() == True):
@@ -157,5 +182,5 @@ if __name__ == '__main__':
   
   # print "parser.taxonomy"
   # print parser.taxonomy
-  # print "parser.organisms"
-  # print parser.organisms
+  print "parser.insert_one_taxon_first_lines"
+  print parser.insert_one_taxon_first_lines
