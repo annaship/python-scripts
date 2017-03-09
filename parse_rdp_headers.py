@@ -87,15 +87,11 @@ class Parse_RDP():
       locus = self.parse_id(input.id)
       utils.benchmark_w_return_2(t0, "parse_id")
       
-      # locus = self.parse_id(input.id)
       self.sequences[locus] = input.seq
     t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
     utils.benchmark_w_return_2(t0, "insert_seq")
 
-  # def run_insert_seq(self, query_chunk):
-  #     query = self.insert_seq_first_line + query_chunk
-  #     return mysql_utils.execute_no_fetch(query)
   def run_insert_chunk(self, first_line, query_chunk):
       query = first_line + query_chunk
       return mysql_utils.execute_no_fetch(query)
