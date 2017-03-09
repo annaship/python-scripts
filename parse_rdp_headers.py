@@ -57,6 +57,8 @@ class Util():
 class Parse_RDP():
   def __init__(self):
     self.taxonomy = {}
+    self.taxonomy_7_ranks = {}
+    self.taxonomy_sorted  = {}
     self.sequences = {}
     self.organisms = {}
     self.my_utils = Util()
@@ -74,7 +76,32 @@ class Parse_RDP():
     for rank in self.tax_ranks:
       line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
       self.insert_one_taxon_first_lines[rank] = (line)
+  
+  def clean_taxonomy(self):
+    """    taxonomy
+        {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+    """    
+    for k, v in self.taxonomy.items():
+      print "KKK"
+      print k
+      v["klass"] = v.pop("class")
       
+      taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks or key == "class")}
+      print "VVV"
+      print taxonomy_7_ranks
+      
+      self.taxonomy_sorted[k] = sorted(taxonomy_7_ranks.items(), key=lambda (k, taxonomy_7_ranks): self.tax_ranks.index(k))
+
+    """
+    print tax_dict
+    {'domain': 'Eukaryota', 'family': 'Prymnesiaceae', 'order': 'Prymnesiales', 'phylum': 'Haptophyta', 'species': 'palpebrale', 'genus': 'Prymnesium', 'class': 'Haptophyceae'}
+    
+    """
+    """
+    print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
+    [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
+    """
+          
   def read_file(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
@@ -89,6 +116,8 @@ class Parse_RDP():
       
       self.sequences[locus] = input.seq
 
+    self.clean_taxonomy()
+    
     t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
     utils.benchmark_w_return_2(t0, "insert_seq")
@@ -121,32 +150,7 @@ class Parse_RDP():
   def insert_tax(self):  
     query_a = []
     
-    """    taxonomy
-        {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
-    """    
-    for k, v in self.taxonomy.items():
-      # query_a.append("('%s', '%s')" % (k, v))
-      # del v["rootrank"]
-      # d3 = {}
-      v["klass"] = v.pop("class")
-      
-      taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks or key == "class")}
-      print "VVV"
-      print taxonomy_7_ranks
-      print "DDD"
-      print v
-      
-      print sorted(taxonomy_7_ranks.items(), key=lambda (k, taxonomy_7_ranks): self.tax_ranks.index(k))
-      print "SSS"
-    """
-    print tax_dict
-    {'domain': 'Eukaryota', 'family': 'Prymnesiaceae', 'order': 'Prymnesiales', 'phylum': 'Haptophyta', 'species': 'palpebrale', 'genus': 'Prymnesium', 'class': 'Haptophyceae'}
-    
-    """
-    """
-    print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
-    [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
-    """
+
 
     if (utils.is_local() == True):
       max_lines = 3
@@ -209,5 +213,9 @@ if __name__ == '__main__':
   
   # print "parser.taxonomy"
   # print parser.taxonomy
-  print "parser.insert_one_taxon_first_lines"
-  print parser.insert_one_taxon_first_lines
+  # print "parser.insert_one_taxon_first_lines"
+  # print parser.insert_one_taxon_first_lines
+  #
+  print "parser.taxonomy_sorted"
+  print parser.taxonomy_sorted
+  
