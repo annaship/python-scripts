@@ -59,6 +59,7 @@ class Parse_RDP():
     self.classification = {}
     self.taxonomy = {}
     self.sequences = {}
+    self.organisms = {}
     self.my_utils = Util()
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
       VALUES 
@@ -105,23 +106,14 @@ class Parse_RDP():
   def make_taxonomy_dict(self, lineage):
     print lineage
     taxonomy1 = {}
-    taxonomy1_arr = []
     taxonomy1_arr = lineage.split(";")
-    print "taxonomy1_arr = "
-    print taxonomy1_arr
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
-    print "taxonomy1 = "
-    print taxonomy1
     return taxonomy1
     
-  def parse_id(self, header):
-    first_part, lineage = header.split("\t")
-    # print first_part.split()
-    locus = first_part.split()[0]
-    definition = " ".join(first_part.split()[1:])
-    self.classification[locus] = definition
-    self.taxonomy[locus] = self.make_taxonomy_dict(lineage)
-    
+  def make_classification(self, first_part):
+    return " ".join(first_part.split()[1:])
+
+  def make_organism(self, definition):
     try:
       organism, clone = definition.split(";")
     except ValueError:
@@ -129,108 +121,15 @@ class Parse_RDP():
       clone = "empty_clone"
     except:
       raise
+    return (organism, clone)
     
+  def parse_id(self, header):
+    first_part, lineage = header.split("\t")
+    locus = first_part.split()[0]
+    self.taxonomy[locus] = self.make_taxonomy_dict(lineage)
+    self.classification[locus] = self.make_classification(first_part)
+    self.organisms[locus] = self.make_organism(self.classification[locus])
     return locus
-  
-
-class Spingo_Taxonomy():
-    def __init__(self):
-        # self.arc_filename = "/users/ashipunova/spingo/database/release11_2_Archaea_unaligned.fa.gz"
-        # self.bact_filename = "/users/ashipunova/spingo/database/release11_2_Bacteria_unaligned.fa.gz"
-        """
-        cut -f1 taxonomy.map > mapped_ind.txt
-        gzip -dc release11_2_Archaea_unaligned.fa.gz | grep -F -f mapped_ind.txt >mapped_arc_headers.txt
-        time gzip -dc release11_2_Bacteria_unaligned.fa.gz | grep -F -f mapped_ind.txt >mapped_bact_headers.txt
-
-        """
-        self.tax_map_filename = "/users/ashipunova/spingo/database/taxonomy.map_orig"
-        self.arc_filename = "/users/ashipunova/spingo/database/mapped_arc_headers.txt"
-        self.bact_filename = "/users/ashipunova/spingo/database/mapped_bact_headers.txt"
-
-        self.tax_map_file_content = []
-        self.arc_file_content = []
-        self.bact_file_content = []
-        self.taxmap_dict = {}
-        self.new_map_arr = []
-                
-        # self.my_dict = defaultdict()
-
-        
-
-    def get_file_content(self, in_filename):
-        with open(in_filename, 'rb') as f:
-            return f.readlines()
-
-    def get_taxmap_dict(self):
-        for line in self.tax_map_file_content:
-            self.taxmap_dict[line.split("\t")[0]] = line.split("\t")[1:]
-
-
-    def pairwise(self, iterable):
-        tax_array = iterable[0].strip().split(";")
-        "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-        # print "tax_array = %s" % (tax_array)
-        a = iter(tax_array)
-        return izip(a, a)
-        
-    def make_taxonomy_by_rank(self, i_dict):
-        tax_w_rank_dict = defaultdict()
-        for k, v in i_dict.items():
-            # print "=" * 10            
-            # print k
-            tax_w_rank_dict[k] = {}
-            for x, y in spingo_tax.pairwise(v[1]):
-               # print "%s: %s" % (y, x)
-               if not y.startswith("rootrank"):
-                   try:
-                       tax_w_rank_dict[k][y] = x
-                   except KeyError:
-                       pass
-                   except:
-                       raise
-        
-        return tax_w_rank_dict
-
-    def get_mapped_dict(self, arr):
-        m_d = {}
-        for line in arr:
-            # print "line = %s" % line
-            
-            # S003805392 Ferrimicrobium acidiphilum; PS130, ['Lineage=Root;rootrank;Bacteria;domain;"Actinobacteria";phylum;Actinobacteria;class;Acidimicrobidae;subclass;Acidimicrobiales;order;"Acidimicrobineae";suborder;Acidimicrobiaceae;family;Ferrimicrobium;genus\n']
-            l     = line.split("\t")
-            # print "l = %s" % l
-            
-            first_part = l[0].split(" ")
-            ind   = first_part[0].strip(">")
-            binom = first_part[1:]
-            tax   = l[1:]
-            
-            # print "ind = %s; binom = %s; tax = %s" % (ind, binom, tax)
-            m_d[ind] = (binom, tax)
-        return m_d
-
-    def make_current_string(self, key, tax_val, orig_tax_map_val):
-        orig_string = "\t".join(orig_tax_map_val).strip()
-        try:
-            return "%s\t%s\t%s" % (key, orig_string, tax_val["family"])
-        except KeyError:
-            return "%s\t%s\t%s" % (key, orig_string, "")
-        except:
-            raise
-            
-    def combine_two_dicts(self, d1, d2):            
-      ds = [d1, d2]
-      d = {}
-      for k in d1:
-          d[k] = tuple(d[k] for d in ds)
-      return d
-
-    def make_new_tax_map(self, tax_w_rank_dict):
-      self.new_map_arr = []
-      comb_dict = self.combine_two_dicts(tax_w_rank_dict, self.taxmap_dict)
-      print "CCC comb_dict = "
-      for key, v2 in comb_dict.items():
-        self.new_map_arr.append(self.make_current_string(key, v2[0], v2[1]))
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -256,6 +155,9 @@ if __name__ == '__main__':
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
   
+  print "parser.classification"
   print parser.classification
+  print "parser.taxonomy"
   print parser.taxonomy
-  
+  print "parser.organisms"
+  print parser.organisms
