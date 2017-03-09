@@ -128,16 +128,16 @@ class Parse_RDP():
       # query_a.append("('%s', '%s')" % (k, v))
       # del v["rootrank"]
       # d3 = {}
+      v["klass"] = v.pop("class")
       
-      d3 = {key: v[key] for key in v if (key in self.tax_ranks or key == "class")}
-      
+      taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks or key == "class")}
       print "VVV"
-      print d3
+      print taxonomy_7_ranks
       print "DDD"
       print v
       
-      print sorted(v.items(), key=lambda (k,v): self.tax_ranks.index(k))
-      
+      print sorted(taxonomy_7_ranks.items(), key=lambda (k, taxonomy_7_ranks): self.tax_ranks.index(k))
+      print "SSS"
     """
     print tax_dict
     {'domain': 'Eukaryota', 'family': 'Prymnesiaceae', 'order': 'Prymnesiales', 'phylum': 'Haptophyta', 'species': 'palpebrale', 'genus': 'Prymnesium', 'class': 'Haptophyceae'}
