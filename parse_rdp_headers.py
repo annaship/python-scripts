@@ -37,20 +37,19 @@ class Util():
       f = open(file_name, 'w')
       f.write(text)
       f.close
-      
-  def combine_insert_term_query(self, all_term_dict_l):
-      # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-
-      insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
-      max_lines = 7000
-      for chunk in chunks(insert_term_query, max_lines):
-          print_out_term_query(", ".join(chunk))
-      return insert_term_query
-
-  def chunks(self, l, n):
+  # def combine_insert_term_query(self, all_term_dict_l):
+  #     # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
+  #
+  #     insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
+  #     max_lines = 7000
+  #     for chunk in chunks(insert_term_query, max_lines):
+  #         print_out_term_query(", ".join(chunk))
+  #     return insert_term_query
+  #
+  def chunks(self, arr, max_lines):
       """Yield successive n-sized chunks from l."""
-      for i in range(0, len(l), n):
-          yield l[i:i + n]
+      for i in range(0, len(arr), max_lines):
+          yield arr[i:i + max_lines]
     
   def print_out_term_query(self, to_print):
       first_line = """
@@ -69,6 +68,7 @@ class Parse_RDP():
   def __init__(self):
     self.classification = {}
     self.sequences = {}
+    self.my_utils = Util()
     
       
   def read_file(self, in_fa_gz_file_name):
@@ -92,10 +92,10 @@ class Parse_RDP():
     # print a
     # ((('spingo_rdp',), ('spingo_rdp_sequence',)), ['Tables_in_spingo_rdp'])
     
-  def chunks(self, l, n):
-      """Yield successive n-sized chunks from l."""
-      for i in range(0, len(l), n):
-          yield l[i:i + n]    
+  # def chunks(self, l, n):
+  #     """Yield successive n-sized chunks from l."""
+  #     for i in range(0, len(l), n):
+  #         yield l[i:i + n]
     
   def insert_seq(self):  
     query_a = []
@@ -107,7 +107,7 @@ class Parse_RDP():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
     max_lines = 3
-    for chunk in self.chunks(query_a, max_lines):
+    for chunk in self.my_utils.chunks(query_a, max_lines):
         print "HHHHHHHH"
         print ", ".join(chunk)
         print "MMMMMMMM"
