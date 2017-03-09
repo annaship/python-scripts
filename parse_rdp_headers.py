@@ -57,6 +57,7 @@ class Util():
 class Parse_RDP():
   def __init__(self):
     self.classification = {}
+    self.taxonomy = {}
     self.sequences = {}
     self.my_utils = Util()
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
@@ -108,18 +109,18 @@ class Parse_RDP():
     taxonomy1_arr = lineage.split(";")
     print "taxonomy1_arr = "
     print taxonomy1_arr
-    # dict(item.split(";") for item in s.split(";"))
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
     print "taxonomy1 = "
     print taxonomy1
+    return taxonomy1
     
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
     # print first_part.split()
-    self.make_taxonomy_dict(lineage)
     locus = first_part.split()[0]
     definition = " ".join(first_part.split()[1:])
     self.classification[locus] = definition
+    self.taxonomy[locus] = self.make_taxonomy_dict(lineage)
     
     try:
       organism, clone = definition.split(";")
@@ -255,4 +256,6 @@ if __name__ == '__main__':
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
   
+  print parser.classification
+  print parser.taxonomy
   
