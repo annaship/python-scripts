@@ -37,6 +37,33 @@ class Util():
       f = open(file_name, 'w')
       f.write(text)
       f.close
+      
+  def combine_insert_term_query(all_term_dict_l):
+      # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
+
+      insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
+      max_lines = 7000
+      for chunk in chunks(insert_term_query, max_lines):
+          print_out_term_query(", ".join(chunk))
+      return insert_term_query
+
+  def chunks(l, n):
+      """Yield successive n-sized chunks from l."""
+      for i in range(0, len(l), n):
+          yield l[i:i + n]
+    
+  def print_out_term_query(to_print):
+      first_line = """
+      INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
+        VALUES
+      """
+
+      i = 0
+      while os.path.exists("out%s.sql" % i):
+          i += 1
+      target = open("out%s.sql" % i, "w")
+
+      write_file(first_line, to_print, target)      
                    
 class Parse_RDP():
   def __init__(self):
@@ -202,8 +229,7 @@ if __name__ == '__main__':
   if (utils.is_local() == True):
     mysql_utils = util.Mysql_util(host = "localhost", db = "spingo_rdp", read_default_group = "clienthome")
   else:
-    pass
-    mysql_utils = util.Mysql_util(host = "vampsdev", db = "test", read_default_group = "client")
+    mysql_utils = util.Mysql_util(host = "bpcweb7.bpcservers.private", db = "test", read_default_group = "client")
 
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
