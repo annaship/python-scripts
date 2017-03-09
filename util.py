@@ -211,8 +211,8 @@ class Utils:
       print message
       return time.time()
     
-    def benchmark_w_return_2(self, t0):
+    def benchmark_w_return_2(self, t0, message = ""):
       t1 = time.time()
       total = float(t1-t0) / 60
-      print 'time: %.2f m' % total
+      print '%s time: %.2f m' % (message, total)
     

@@ -76,30 +76,16 @@ class Parse_RDP():
       self.sequences[locus] = input.seq
     # print self.classification
     # print self.sequences
+    t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
-    # rowcount, lastrowid = self.insert_seq()
-    # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-    # query = "show tables"
-    # a = mysql_utils.execute_fetch_select(query)
-    # print a
-    # ((('spingo_rdp',), ('spingo_rdp_sequence',)), ['Tables_in_spingo_rdp'])
-    
+    utils.benchmark_w_return_2(t0, "insert_seq")
 
-  # def make_insert_seq(self):
   def run_insert_seq(self, query_chunk):
       query = self.insert_seq_first_line + query_chunk
-      # print "HHHHHHHH"
-      # print query
-      # print "MMMMMMMM"
-      
       return mysql_utils.execute_no_fetch(query)
         
   def insert_seq(self):  
     query_a = []
-    # query = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
-    #   VALUES
-    # """
-
     for k, v in self.sequences.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
@@ -109,18 +95,11 @@ class Parse_RDP():
       max_lines = 7000
       
     for chunk in self.my_utils.chunks(query_a, max_lines):
-        # print "HHHHHHHH"
-        # print ", ".join(chunk)
-        # print "MMMMMMMM"
-
         query_chunk = ", ".join(chunk)
         
         rowcount, lastrowid = self.run_insert_seq(query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
         
-    # print query
-    # return mysql_utils.execute_no_fetch(query)
-
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
     # print first_part.split()
@@ -260,8 +239,6 @@ if __name__ == '__main__':
 
   t0 = utils.benchmark_w_return_1("read_file")
   parser.read_file(in_fa_gz_file_name)
-  # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
-  utils.benchmark_w_return_2(t0)
+  utils.benchmark_w_return_2(t0, "read_file")
   
-    
-    
+  
