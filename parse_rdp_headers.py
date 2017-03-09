@@ -56,7 +56,6 @@ class Util():
                    
 class Parse_RDP():
   def __init__(self):
-    # self.classification = {}
     self.taxonomy = {}
     self.sequences = {}
     self.organisms = {}
@@ -75,16 +74,21 @@ class Parse_RDP():
     # print len(input1.ids)    
     
     while input.next():
+      t0 = utils.benchmark_w_return_1("parse_id")
       locus = self.parse_id(input.id)
+      utils.benchmark_w_return_2(t0, "parse_id")
+      
+      # locus = self.parse_id(input.id)
       self.sequences[locus] = input.seq
-    # print self.classification
-    # print self.sequences
     t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
     utils.benchmark_w_return_2(t0, "insert_seq")
 
-  def run_insert_seq(self, query_chunk):
-      query = self.insert_seq_first_line + query_chunk
+  # def run_insert_seq(self, query_chunk):
+  #     query = self.insert_seq_first_line + query_chunk
+  #     return mysql_utils.execute_no_fetch(query)
+  def run_insert_chunk(self, first_line, query_chunk):
+      query = first_line + query_chunk
       return mysql_utils.execute_no_fetch(query)
         
   def insert_seq(self):  
@@ -100,19 +104,16 @@ class Parse_RDP():
     for chunk in self.my_utils.chunks(query_a, max_lines):
         query_chunk = ", ".join(chunk)
         
-        rowcount, lastrowid = self.run_insert_seq(query_chunk)
+        rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
         
   def make_taxonomy_dict(self, lineage):
-    print lineage
+    # print lineage
     taxonomy1 = {}
     taxonomy1_arr = lineage.split(";")
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
     return taxonomy1
     
-  # def make_classification(self, first_part):
-  #   return " ".join(first_part.split()[1:])
-
   def make_organism(self, definition):
     try:
       organism, clone = definition.split(";")
@@ -126,8 +127,7 @@ class Parse_RDP():
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
     locus = first_part.split()[0]
-    self.taxonomy[locus] = self.make_taxonomy_dict(lineage)
-    # self.classification[locus] = self.make_classification(first_part)
+    self.taxonomy[locus]  = self.make_taxonomy_dict(lineage)
     self.organisms[locus] = self.make_organism(" ".join(first_part.split()[1:]))
     return locus
 
@@ -155,9 +155,7 @@ if __name__ == '__main__':
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
   
-  # print "parser.classification"
-  # print parser.classification
-  print "parser.taxonomy"
-  print parser.taxonomy
-  print "parser.organisms"
-  print parser.organisms
+  # print "parser.taxonomy"
+  # print parser.taxonomy
+  # print "parser.organisms"
+  # print parser.organisms
