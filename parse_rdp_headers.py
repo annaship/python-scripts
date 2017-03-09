@@ -56,7 +56,7 @@ class Util():
                    
 class Parse_RDP():
   def __init__(self):
-    self.classification = {}
+    # self.classification = {}
     self.taxonomy = {}
     self.sequences = {}
     self.organisms = {}
@@ -110,8 +110,8 @@ class Parse_RDP():
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
     return taxonomy1
     
-  def make_classification(self, first_part):
-    return " ".join(first_part.split()[1:])
+  # def make_classification(self, first_part):
+  #   return " ".join(first_part.split()[1:])
 
   def make_organism(self, definition):
     try:
@@ -127,8 +127,8 @@ class Parse_RDP():
     first_part, lineage = header.split("\t")
     locus = first_part.split()[0]
     self.taxonomy[locus] = self.make_taxonomy_dict(lineage)
-    self.classification[locus] = self.make_classification(first_part)
-    self.organisms[locus] = self.make_organism(self.classification[locus])
+    # self.classification[locus] = self.make_classification(first_part)
+    self.organisms[locus] = self.make_organism(" ".join(first_part.split()[1:]))
     return locus
 
 if __name__ == '__main__':
@@ -155,8 +155,8 @@ if __name__ == '__main__':
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
   
-  print "parser.classification"
-  print parser.classification
+  # print "parser.classification"
+  # print parser.classification
   print "parser.taxonomy"
   print parser.taxonomy
   print "parser.organisms"
