@@ -69,6 +69,9 @@ class Parse_RDP():
     self.classification = {}
     self.sequences = {}
     self.my_utils = Util()
+    self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
+      VALUES 
+    """
     
       
   def read_file(self, in_fa_gz_file_name):
@@ -84,47 +87,46 @@ class Parse_RDP():
       self.sequences[locus] = input.seq
     print self.classification
     print self.sequences
-    # self.insert_seq()
-    rowcount, lastrowid = self.insert_seq()
-    print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    self.insert_seq()
+    # rowcount, lastrowid = self.insert_seq()
+    # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
     # query = "show tables"
     # a = mysql_utils.execute_fetch_select(query)
     # print a
     # ((('spingo_rdp',), ('spingo_rdp_sequence',)), ['Tables_in_spingo_rdp'])
     
-  # def chunks(self, l, n):
-  #     """Yield successive n-sized chunks from l."""
-  #     for i in range(0, len(l), n):
-  #         yield l[i:i + n]
-    
+
+  # def make_insert_seq(self):
+  def run_insert_seq(self, query_chunk):
+      query = self.insert_seq_first_line + query_chunk
+      print "HHHHHHHH"
+      print query
+      print "MMMMMMMM"
+      
+      return mysql_utils.execute_no_fetch(query)
+        
   def insert_seq(self):  
     query_a = []
-    query = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)    
-      VALUES 
-    """
+    # query = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
+    #   VALUES
+    # """
 
     for k, v in self.sequences.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
     max_lines = 3
     for chunk in self.my_utils.chunks(query_a, max_lines):
-        print "HHHHHHHH"
-        print ", ".join(chunk)
-        print "MMMMMMMM"
+        # print "HHHHHHHH"
+        # print ", ".join(chunk)
+        # print "MMMMMMMM"
 
-    query += ", ".join(query_a)
+        query_chunk = ", ".join(chunk)
+        
+        rowcount, lastrowid = self.run_insert_seq(query_chunk)
+        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+        
     # print query
-    return mysql_utils.execute_no_fetch(query)
-    
-  # def combine_insert_term_query(self, all_term_dict_l):
-  #     # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-  #
-  #     insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
-  #     max_lines = 7000
-  #     for chunk in chunks(insert_term_query, max_lines):
-  #         print_out_term_query(", ".join(chunk))
-  #     return insert_term_query
-    
+    # return mysql_utils.execute_no_fetch(query)
 
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
