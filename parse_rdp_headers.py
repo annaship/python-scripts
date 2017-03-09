@@ -17,17 +17,7 @@ import time
 import util
 
 class Util():
-  def benchmark_w_return_1(self, message):
-    print  "\n"
-    print "-" * 10
-    print message
-    return time.time()
-    
-  def benchmark_w_return_2(self, t0):
-    t1 = time.time()
-    total = float(t1-t0) / 60
-    print 'time: %.2f m' % total
-    
+
   def print_out_dict(self, dict_name):
     print dict_name
     for k, v in dict_name.items():
@@ -51,18 +41,18 @@ class Util():
       for i in range(0, len(arr), max_lines):
           yield arr[i:i + max_lines]
     
-  def print_out_term_query(self, to_print):
-      first_line = """
-      INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-        VALUES
-      """
-
-      i = 0
-      while os.path.exists("out%s.sql" % i):
-          i += 1
-      target = open("out%s.sql" % i, "w")
-
-      write_file(first_line, to_print, target)      
+  # def print_out_term_query(self, to_print):
+  #     first_line = """
+  #     INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
+  #       VALUES
+  #     """
+  #
+  #     i = 0
+  #     while os.path.exists("out%s.sql" % i):
+  #         i += 1
+  #     target = open("out%s.sql" % i, "w")
+  #
+  #     write_file(first_line, to_print, target) 
                    
 class Parse_RDP():
   def __init__(self):
@@ -267,6 +257,11 @@ if __name__ == '__main__':
     in_fa_gz_file_name = "/Users/ashipunova/Dropbox/mix/today_ch/spingo_assign/small_current_bact.fa"
   else:
     in_fa_gz_file_name = "/workspace/ashipunova/taxonomy/spingo_assign/current_Bacteria_unaligned.fa"
+
+  t0 = utils.benchmark_w_return_1("read_file")
   parser.read_file(in_fa_gz_file_name)
+  # update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
+  utils.benchmark_w_return_2(t0)
+  
     
     

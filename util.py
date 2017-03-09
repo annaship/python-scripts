@@ -2,6 +2,7 @@ import os
 import MySQLdb
 import logging
 import timeit
+import time
 
 class Mysql_util:
     """
@@ -204,3 +205,14 @@ class Utils:
     def slicedict(self, my_dict, key_list):
       return {k: v for k, v in my_dict.items() if k in key_list}
       
+    def benchmark_w_return_1(self, message):
+      print  "\n"
+      print "-" * 10
+      print message
+      return time.time()
+    
+    def benchmark_w_return_2(self, t0):
+      t1 = time.time()
+      total = float(t1-t0) / 60
+      print 'time: %.2f m' % total
+    
