@@ -62,6 +62,7 @@ class Parse_RDP():
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
       VALUES 
     """
+    self.tax_ranks = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
     
       
   def read_file(self, in_fa_gz_file_name):
@@ -100,13 +101,26 @@ class Parse_RDP():
         rowcount, lastrowid = self.run_insert_seq(query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
         
+  def make_taxonomy_dict(self, lineage):
+    print lineage
+    taxonomy1 = {}
+    taxonomy1_arr = []
+    taxonomy1_arr = lineage.split(";")
+    print "taxonomy1_arr = "
+    print taxonomy1_arr
+    # dict(item.split(";") for item in s.split(";"))
+    taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
+    print "taxonomy1 = "
+    print taxonomy1
+    
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
     # print first_part.split()
-    # print lineage
+    self.make_taxonomy_dict(lineage)
     locus = first_part.split()[0]
     definition = " ".join(first_part.split()[1:])
     self.classification[locus] = definition
+    
     try:
       organism, clone = definition.split(";")
     except ValueError:
