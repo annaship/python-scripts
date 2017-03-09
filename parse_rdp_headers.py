@@ -38,7 +38,7 @@ class Util():
       f.write(text)
       f.close
       
-  def combine_insert_term_query(all_term_dict_l):
+  def combine_insert_term_query(self, all_term_dict_l):
       # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
 
       insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
@@ -47,12 +47,12 @@ class Util():
           print_out_term_query(", ".join(chunk))
       return insert_term_query
 
-  def chunks(l, n):
+  def chunks(self, l, n):
       """Yield successive n-sized chunks from l."""
       for i in range(0, len(l), n):
           yield l[i:i + n]
     
-  def print_out_term_query(to_print):
+  def print_out_term_query(self, to_print):
       first_line = """
       INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
         VALUES
@@ -92,6 +92,10 @@ class Parse_RDP():
     # print a
     # ((('spingo_rdp',), ('spingo_rdp_sequence',)), ['Tables_in_spingo_rdp'])
     
+  def chunks(self, l, n):
+      """Yield successive n-sized chunks from l."""
+      for i in range(0, len(l), n):
+          yield l[i:i + n]    
     
   def insert_seq(self):  
     query_a = []
@@ -102,9 +106,25 @@ class Parse_RDP():
     for k, v in self.sequences.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
+    max_lines = 3
+    for chunk in self.chunks(query_a, max_lines):
+        print "HHHHHHHH"
+        print ", ".join(chunk)
+        print "MMMMMMMM"
+
     query += ", ".join(query_a)
-    print query
+    # print query
     return mysql_utils.execute_no_fetch(query)
+    
+  # def combine_insert_term_query(self, all_term_dict_l):
+  #     # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
+  #
+  #     insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
+  #     max_lines = 7000
+  #     for chunk in chunks(insert_term_query, max_lines):
+  #         print_out_term_query(", ".join(chunk))
+  #     return insert_term_query
+    
 
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
