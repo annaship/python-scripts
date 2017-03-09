@@ -77,16 +77,15 @@ class Parse_RDP():
   def read_file(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
-    input1 = fa.ReadFasta(in_fa_gz_file_name)
-    print "len(input1.ids)"
-    print len(input1.ids)
-    
+    # input1 = fa.ReadFasta(in_fa_gz_file_name)
+    # print "len(input1.ids)"
+    # print len(input1.ids)    
     
     while input.next():
       locus = self.parse_id(input.id)
       self.sequences[locus] = input.seq
-    print self.classification
-    print self.sequences
+    # print self.classification
+    # print self.sequences
     self.insert_seq()
     # rowcount, lastrowid = self.insert_seq()
     # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
