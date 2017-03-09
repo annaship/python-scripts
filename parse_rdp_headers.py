@@ -99,9 +99,9 @@ class Parse_RDP():
   # def make_insert_seq(self):
   def run_insert_seq(self, query_chunk):
       query = self.insert_seq_first_line + query_chunk
-      print "HHHHHHHH"
-      print query
-      print "MMMMMMMM"
+      # print "HHHHHHHH"
+      # print query
+      # print "MMMMMMMM"
       
       return mysql_utils.execute_no_fetch(query)
         
@@ -114,7 +114,11 @@ class Parse_RDP():
     for k, v in self.sequences.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
-    max_lines = 3
+    if (utils.is_local() == True):
+      max_lines = 3
+    else:
+      max_lines = 7000
+      
     for chunk in self.my_utils.chunks(query_a, max_lines):
         # print "HHHHHHHH"
         # print ", ".join(chunk)
