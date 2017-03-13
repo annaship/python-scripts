@@ -17,13 +17,13 @@ import time
 import util
 
 # class Util():
-#   
+#
 #   def write_to_file(self, file_name, text):
 #       f = open(file_name, 'w')
 #       f.write(text)
 #       f.close
 
-                   
+
 class Parse_RDP():
   def __init__(self):
     self.taxonomy = {}
@@ -32,68 +32,68 @@ class Parse_RDP():
     self.organisms = {}
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
-      VALUES 
+      VALUES
     """
     self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, taxonomy)
-      VALUES 
+      VALUES
     """
     self.insert_spingo_rdp_first_line = """INSERT IGNORE INTO spingo_rdp (locus, organism, clone)
-      VALUES 
+      VALUES
     """
     if (utils.is_local() == True):
       self.max_lines = 3
     else:
       self.max_lines = 7000
-    
+
     self.insert_one_taxon_first_lines = {}
     self.make_one_taxon_first_lines()
-    
+
   def make_one_taxon_first_lines(self):
     for rank in self.tax_ranks:
       line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
       self.insert_one_taxon_first_lines[rank] = (line)
-  
+
   def clean_taxonomy(self):
     """    taxonomy
         {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
-    """    
+    """
     for k, v in self.taxonomy.items():
       v["klass"] = v.pop("class")
-      
+
       taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks)}
       # print "VVV"
       # print taxonomy_7_ranks
-      
+
       self.taxonomy_sorted[k] = sorted(taxonomy_7_ranks.items(), key=lambda (k, taxonomy_7_ranks): self.tax_ranks.index(k))
 
     """
     print tax_dict
     {'domain': 'Eukaryota', 'family': 'Prymnesiaceae', 'order': 'Prymnesiales', 'phylum': 'Haptophyta', 'species': 'palpebrale', 'genus': 'Prymnesium', 'class': 'Haptophyceae'}
-    
+
     """
     """
     print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
     [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
     """
-          
+
   def read_file(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
     # input1 = fa.ReadFasta(in_fa_gz_file_name)
     # print "len(input1.ids)"
-    # print len(input1.ids)    
-    
+    # print len(input1.ids)
+
     while input.next():
       t0 = utils.benchmark_w_return_1("parse_id")
       locus = self.parse_id(input.id)
       utils.benchmark_w_return_2(t0, "parse_id")
-      
+
       self.sequences[locus] = input.seq
 
     t0 = utils.benchmark_w_return_1("clean_taxonomy")
     self.clean_taxonomy()
     utils.benchmark_w_return_2(t0, "clean_taxonomy")
-    
+
     t0 = utils.benchmark_w_return_1("insert_seq")
     self.insert_seq()
     utils.benchmark_w_return_2(t0, "insert_seq")
@@ -101,65 +101,49 @@ class Parse_RDP():
     t0 = utils.benchmark_w_return_1("insert_tax")
     self.insert_tax()
     utils.benchmark_w_return_2(t0, "insert_tax")
-    
+
     t0 = utils.benchmark_w_return_1("insert_sping_rdp_info")
     self.insert_sping_rdp_info()
     utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
-      
-  def insert_seq(self):  
+
+  def insert_seq(self):
     query_a = []
     for k, v in self.sequences.items():
-      query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
+      query_a.append("('%s', COMPRESS('%s'))" % (k, v))
 
     self.run_query_by_chunks(query_a, self.insert_seq_first_line)
-    
-    # for chunk in utils.chunks(query_a, self.max_lines):
-    #     query_chunk = ", ".join(chunk)
-    #     
-    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
-    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-        
+
   def insert_sping_rdp_info(self):
     print self.insert_spingo_rdp_first_line
     print "self.organisms"
     print self.organisms
     """
     INSERT IGNORE INTO spingo_rdp (locus, organism, clone)
-    
+
     {'S000632094': ('uncultured Acidimicrobium sp.', ' SK269'), 'S000632122': ('uncultured Acidimicrobium sp.', ' SK297'), 'S000632121': ('uncultured Acidimicrobium sp.', ' SK296'), 'S000494604': ('uncultured bacterium', ' YRM60L1H09060904'), 'S000494589': ('uncultured bacterium', ' YRM60L1D06060904'), 'S000367885': ('Acidimicrobium sp. Y0018', 'empty_clone'), 'S000541758': ('bacterium TH3', 'empty_clone')}
     """
     query_a = []
     for locus, v in self.organisms.items():
-      query_a.append("('%s', '%s', '%s')" % (locus, v[0], v[1])) 
-    
+      query_a.append("('%s', '%s', '%s')" % (locus.strip(), v[0].strip(), v[1].strip()))
+
     print "query_a"
     print query_a
-    
-    # for chunk in utils.chunks(query_a, self.max_lines):
-    #     query_chunk = ", ".join(chunk)
-    #     
-    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_spingo_rdp_first_line, query_chunk)
-    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-    # 
-    
-    
+    self.run_query_by_chunks(query_a, self.insert_spingo_rdp_first_line)
+
+
   def run_insert_chunk(self, first_line, query_chunk):
       query = first_line + query_chunk
       return mysql_utils.execute_no_fetch(query)
-    
+
   def run_query_by_chunks(self, query_array, first_line):
     for chunk in utils.chunks(query_array, self.max_lines):
         query_chunk = ", ".join(chunk)
-        
+
         rowcount, lastrowid = self.run_insert_chunk(first_line, query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-    
-    
-    
-    
-    
+
   # todo: insert taxonomy all? or separate?
-  def insert_tax(self):  
+  def insert_tax(self):
     query_a = []
     for locus, tax_dict in self.taxonomy_sorted.items():
         # out_line = self.insert_tax_first_line
@@ -170,19 +154,13 @@ class Parse_RDP():
 
     self.run_query_by_chunks(query_a, self.insert_tax_first_line)
 
-    # for chunk in utils.chunks(query_a, self.max_lines):
-    #     query_chunk = ", ".join(chunk)
-    # 
-    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)
-    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-
   def make_taxonomy_dict(self, lineage):
     # print lineage
     taxonomy1 = {}
     taxonomy1_arr = lineage.split(";")
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
     return taxonomy1
-    
+
   def make_organism(self, definition):
     try:
       organism, clone = definition.split(";")
@@ -192,7 +170,7 @@ class Parse_RDP():
     except:
       raise
     return (organism, clone)
-    
+
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
     locus = first_part.split()[0]
@@ -223,7 +201,7 @@ if __name__ == '__main__':
   t0 = utils.benchmark_w_return_1("read_file")
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
-  
+
   # print "parser.taxonomy"
   # print parser.taxonomy
   # print "parser.insert_one_taxon_first_lines"
@@ -231,4 +209,3 @@ if __name__ == '__main__':
   #
   print "parser.taxonomy_sorted"
   print parser.taxonomy_sorted
-  
