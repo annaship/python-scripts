@@ -17,7 +17,7 @@ import time
 import util
 
 class Util():
-
+  
   def print_out_dict(self, dict_name):
     print dict_name
     for k, v in dict_name.items():
@@ -27,32 +27,8 @@ class Util():
       f = open(file_name, 'w')
       f.write(text)
       f.close
-  # def combine_insert_term_query(self, all_term_dict_l):
-  #     # insert_term_query_1 = """(2, "%s", "%s", "%s", "%s", "%s", "%s")\n""" % (term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-  #
-  #     insert_term_query = [create_insert_term_query(goTerm) for goTerm in all_term_dict_l]
-  #     max_lines = 7000
-  #     for chunk in chunks(insert_term_query, max_lines):
-  #         print_out_term_query(", ".join(chunk))
-  #     return insert_term_query
-  #
-  def chunks(self, arr, max_lines):
-      """Yield successive n-sized chunks from l."""
-      for i in range(0, len(arr), max_lines):
-          yield arr[i:i + max_lines]
-    
-  # def print_out_term_query(self, to_print):
-  #     first_line = """
-  #     INSERT IGNORE INTO term (ontology_id, term_name, identifier, definition, is_obsolete, is_root_term, is_leaf)
-  #       VALUES
-  #     """
-  #
-  #     i = 0
-  #     while os.path.exists("out%s.sql" % i):
-  #         i += 1
-  #     target = open("out%s.sql" % i, "w")
-  #
-  #     write_file(first_line, to_print, target) 
+
+          
                    
 class Parse_RDP():
   def __init__(self):
@@ -68,6 +44,14 @@ class Parse_RDP():
     self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, taxonomy)
       VALUES 
     """
+    self.insert_spingo_rdp_first_line = """INSERT IGNORE INTO spingo_rdp (locus, organism, clone)
+      VALUES 
+    """
+    if (utils.is_local() == True):
+      self.max_lines = 3
+    else:
+      self.max_lines = 7000
+    
     self.insert_one_taxon_first_lines = {}
     self.make_one_taxon_first_lines()
     
@@ -134,17 +118,15 @@ class Parse_RDP():
     for k, v in self.sequences.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
-    if (utils.is_local() == True):
-      max_lines = 3
-    else:
-      max_lines = 7000
-      
-    for chunk in self.my_utils.chunks(query_a, max_lines):
+    for chunk in utils.chunks(query_a, self.max_lines):
         query_chunk = ", ".join(chunk)
         
         rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
         
+  def insert_sping_rdp_info(self):
+    self.insert_spingo_rdp_first_line
+  
   # todo: insert taxonomy all? or separate?
   def insert_tax(self):  
     query_a = []
@@ -153,27 +135,9 @@ class Parse_RDP():
         # print tax_dict
         #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
         taxon_string = ";".join([x[1].strip('"') for x in tax_dict])
-        # out_line += "\n"
-        # print out_line
         query_a.append("('%s', '%s')" % (locus, taxon_string))
-        print "query_a"
-        print query_a
-        # out_line += ";".join([v for (k,v) in sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))])
-        # out_line += "\t1\n"
-    
-    
-    # for k, v in self.taxonomy_sorted.items():
-    #   out_line += ";".join([v for (k,v) in sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))])
-    #
-    #   query_a.append("('%s', COMPRESS('%s'))" % (k, v))
 
-
-    if (utils.is_local() == True):
-      max_lines = 3
-    else:
-      max_lines = 7000
-      
-    for chunk in self.my_utils.chunks(query_a, max_lines):
+    for chunk in utils.chunks(query_a, self.max_lines):
         query_chunk = ", ".join(chunk)
 
         rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)

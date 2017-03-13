@@ -216,3 +216,10 @@ class Utils:
       total = float(t1-t0) / 60
       print '%s time: %.2f m' % (message, total)
     
+    
+    def chunks(self, arr, max_lines):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(arr), max_lines):
+            yield arr[i:i + max_lines]
+
+  
