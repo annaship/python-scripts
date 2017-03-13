@@ -90,21 +90,6 @@ class Parse_RDP():
 
       self.sequences[locus.strip()] = input.seq
 
-    t0 = utils.benchmark_w_return_1("clean_taxonomy")
-    self.clean_taxonomy()
-    utils.benchmark_w_return_2(t0, "clean_taxonomy")
-
-    t0 = utils.benchmark_w_return_1("insert_seq")
-    self.insert_seq()
-    utils.benchmark_w_return_2(t0, "insert_seq")
-
-    t0 = utils.benchmark_w_return_1("insert_tax")
-    self.insert_tax()
-    utils.benchmark_w_return_2(t0, "insert_tax")
-
-    t0 = utils.benchmark_w_return_1("insert_sping_rdp_info")
-    self.insert_sping_rdp_info()
-    utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
 
   def insert_seq(self):
     query_a = []
@@ -202,10 +187,33 @@ if __name__ == '__main__':
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
 
+  t0 = utils.benchmark_w_return_1("clean_taxonomy")
+  parser.clean_taxonomy()
+  utils.benchmark_w_return_2(t0, "clean_taxonomy")
+
+  t0 = utils.benchmark_w_return_1("insert_seq")
+  parser.insert_seq()
+  utils.benchmark_w_return_2(t0, "insert_seq")
+
+  t0 = utils.benchmark_w_return_1("insert_tax")
+  parser.insert_tax()
+  utils.benchmark_w_return_2(t0, "insert_tax")
+
+  t0 = utils.benchmark_w_return_1("insert_sping_rdp_info")
+  parser.insert_sping_rdp_info()
+  utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
+
+ """
+ TODO:
+ insert each rank separately 
+ insert combined taxa ids
+ 
+ """
+
   # print "parser.taxonomy"
   # print parser.taxonomy
   # print "parser.insert_one_taxon_first_lines"
   # print parser.insert_one_taxon_first_lines
   #
-  print "parser.taxonomy_sorted"
-  print parser.taxonomy_sorted
+  # print "parser.taxonomy_sorted"
+  # print parser.taxonomy_sorted
