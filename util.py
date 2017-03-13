@@ -224,7 +224,7 @@ class Utils:
 
             rowcount, lastrowid = self.run_insert_chunk(insert_seq_first_line, query_chunk)
         """
-        for i in range(0, len(arr), g):
+        for i in range(0, len(arr), max_lines):
             yield arr[i:i + max_lines]
 
     def print_out_dict(self, dict_name):

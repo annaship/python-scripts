@@ -30,7 +30,6 @@ class Parse_RDP():
     self.taxonomy_sorted  = {}
     self.sequences = {}
     self.organisms = {}
-    self.my_utils = Util()
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
       VALUES 
@@ -102,25 +101,63 @@ class Parse_RDP():
     t0 = utils.benchmark_w_return_1("insert_tax")
     self.insert_tax()
     utils.benchmark_w_return_2(t0, "insert_tax")
-
-  def run_insert_chunk(self, first_line, query_chunk):
-      query = first_line + query_chunk
-      return mysql_utils.execute_no_fetch(query)
-        
+    
+    t0 = utils.benchmark_w_return_1("insert_sping_rdp_info")
+    self.insert_sping_rdp_info()
+    utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
+      
   def insert_seq(self):  
     query_a = []
     for k, v in self.sequences.items():
       query_a.append("('%s', COMPRESS('%s'))" % (k, v)) 
 
-    for chunk in utils.chunks(query_a, self.max_lines):
-        query_chunk = ", ".join(chunk)
-        
-        rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
-        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    self.run_query_by_chunks(query_a, self.insert_seq_first_line)
+    
+    # for chunk in utils.chunks(query_a, self.max_lines):
+    #     query_chunk = ", ".join(chunk)
+    #     
+    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_seq_first_line, query_chunk)
+    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
         
   def insert_sping_rdp_info(self):
-    self.insert_spingo_rdp_first_line
-  
+    print self.insert_spingo_rdp_first_line
+    print "self.organisms"
+    print self.organisms
+    """
+    INSERT IGNORE INTO spingo_rdp (locus, organism, clone)
+    
+    {'S000632094': ('uncultured Acidimicrobium sp.', ' SK269'), 'S000632122': ('uncultured Acidimicrobium sp.', ' SK297'), 'S000632121': ('uncultured Acidimicrobium sp.', ' SK296'), 'S000494604': ('uncultured bacterium', ' YRM60L1H09060904'), 'S000494589': ('uncultured bacterium', ' YRM60L1D06060904'), 'S000367885': ('Acidimicrobium sp. Y0018', 'empty_clone'), 'S000541758': ('bacterium TH3', 'empty_clone')}
+    """
+    query_a = []
+    for locus, v in self.organisms.items():
+      query_a.append("('%s', '%s', '%s')" % (locus, v[0], v[1])) 
+    
+    print "query_a"
+    print query_a
+    
+    # for chunk in utils.chunks(query_a, self.max_lines):
+    #     query_chunk = ", ".join(chunk)
+    #     
+    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_spingo_rdp_first_line, query_chunk)
+    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    # 
+    
+    
+  def run_insert_chunk(self, first_line, query_chunk):
+      query = first_line + query_chunk
+      return mysql_utils.execute_no_fetch(query)
+    
+  def run_query_by_chunks(self, query_array, first_line):
+    for chunk in utils.chunks(query_array, self.max_lines):
+        query_chunk = ", ".join(chunk)
+        
+        rowcount, lastrowid = self.run_insert_chunk(first_line, query_chunk)
+        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    
+    
+    
+    
+    
   # todo: insert taxonomy all? or separate?
   def insert_tax(self):  
     query_a = []
@@ -131,11 +168,13 @@ class Parse_RDP():
         taxon_string = ";".join([x[1].strip('"') for x in tax_dict])
         query_a.append("('%s', '%s')" % (locus, taxon_string))
 
-    for chunk in utils.chunks(query_a, self.max_lines):
-        query_chunk = ", ".join(chunk)
+    self.run_query_by_chunks(query_a, self.insert_tax_first_line)
 
-        rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)
-        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    # for chunk in utils.chunks(query_a, self.max_lines):
+    #     query_chunk = ", ".join(chunk)
+    # 
+    #     rowcount, lastrowid = self.run_insert_chunk(self.insert_tax_first_line, query_chunk)
+    #     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
 
   def make_taxonomy_dict(self, lineage):
     # print lineage
