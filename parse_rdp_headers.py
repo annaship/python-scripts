@@ -88,7 +88,7 @@ class Parse_RDP():
       locus = self.parse_id(input.id)
       utils.benchmark_w_return_2(t0, "parse_id")
 
-      self.sequences[locus] = input.seq
+      self.sequences[locus.strip()] = input.seq
 
     t0 = utils.benchmark_w_return_1("clean_taxonomy")
     self.clean_taxonomy()
@@ -109,7 +109,7 @@ class Parse_RDP():
   def insert_seq(self):
     query_a = []
     for k, v in self.sequences.items():
-      query_a.append("('%s', COMPRESS('%s'))" % (k, v))
+      query_a.append("('%s', COMPRESS('%s'))" % (k, v.strip()))
 
     self.run_query_by_chunks(query_a, self.insert_seq_first_line)
 
@@ -149,7 +149,7 @@ class Parse_RDP():
         # out_line = self.insert_tax_first_line
         # print tax_dict
         #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
-        taxon_string = ";".join([x[1].strip('"') for x in tax_dict])
+        taxon_string = ";".join([x[1].strip('"').strip() for x in tax_dict])
         query_a.append("('%s', '%s')" % (locus, taxon_string))
 
     self.run_query_by_chunks(query_a, self.insert_tax_first_line)
@@ -173,7 +173,7 @@ class Parse_RDP():
 
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
-    locus = first_part.split()[0]
+    locus = first_part.split()[0].strip()
     self.taxonomy[locus]  = self.make_taxonomy_dict(lineage)
     self.organisms[locus] = self.make_organism(" ".join(first_part.split()[1:]))
     return locus
