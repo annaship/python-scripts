@@ -218,8 +218,16 @@ class Utils:
     
     
     def chunks(self, arr, max_lines):
-        """Yield successive n-sized chunks from l."""
-        for i in range(0, len(arr), max_lines):
+        """Yield successive n-sized chunks from l.
+        Ex. for chunk in utils.chunks(query_a, self.max_lines):
+            query_chunk = ", ".join(chunk)
+
+            rowcount, lastrowid = self.run_insert_chunk(insert_seq_first_line, query_chunk)
+        """
+        for i in range(0, len(arr), g):
             yield arr[i:i + max_lines]
 
-  
+    def print_out_dict(self, dict_name):
+      print dict_name
+      for k, v in dict_name.items():
+          print "%s: %s" % (k, v)

@@ -16,19 +16,13 @@ from collections import defaultdict
 import time
 import util
 
-class Util():
-  
-  def print_out_dict(self, dict_name):
-    print dict_name
-    for k, v in dict_name.items():
-        print "%s: %s" % (k, v)
+# class Util():
+#   
+#   def write_to_file(self, file_name, text):
+#       f = open(file_name, 'w')
+#       f.write(text)
+#       f.close
 
-  def write_to_file(self, file_name, text):
-      f = open(file_name, 'w')
-      f.write(text)
-      f.close
-
-          
                    
 class Parse_RDP():
   def __init__(self):
