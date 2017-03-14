@@ -31,27 +31,7 @@ class Parse_RDP():
     self.sequences = {}
     self.organisms = {}
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
-    self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
-      VALUES
-    """
-    self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, taxonomy)
-      VALUES
-    """
-    self.insert_spingo_rdp_first_line = """INSERT IGNORE INTO spingo_rdp (locus, organism, clone)
-      VALUES
-    """
-    if (utils.is_local() == True):
-      self.max_lines = 3
-    else:
-      self.max_lines = 7000
 
-    self.insert_one_taxon_first_lines = {}
-    self.make_one_taxon_first_lines()
-
-  def make_one_taxon_first_lines(self):
-    for rank in self.tax_ranks:
-      line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
-      self.insert_one_taxon_first_lines[rank] = (line)
 
   def clean_taxonomy(self):
     """    taxonomy
@@ -76,12 +56,9 @@ class Parse_RDP():
     [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
     """
 
-  def read_file(self, in_fa_gz_file_name):
+  def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
-    # input1 = fa.ReadFasta(in_fa_gz_file_name)
-    # print "len(input1.ids)"
-    # print len(input1.ids)
 
     while input.next():
       t0 = utils.benchmark_w_return_1("parse_id")
@@ -90,6 +67,85 @@ class Parse_RDP():
 
       self.sequences[locus.strip()] = input.seq
 
+  def make_taxonomy_dict(self, lineage):
+    # print lineage
+    taxonomy1 = {}
+    taxonomy1_arr = lineage.split(";")
+    taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
+    return taxonomy1
+
+  def make_organism(self, definition):
+    try:
+      organism, clone = definition.split(";")
+    except ValueError:
+      organism = definition
+      clone = "empty_clone"
+    except:
+      raise
+    return (organism, clone)
+
+  def parse_id(self, header):
+    first_part, lineage = header.split("\t")
+    locus = first_part.split()[0].strip()
+    self.taxonomy[locus]  = self.make_taxonomy_dict(lineage)
+    self.organisms[locus] = self.make_organism(" ".join(first_part.split()[1:]))
+    return locus
+
+class DB_operations(Parse_RDP):
+  def __init__(self, parse_rdp):
+    for k,v in parse_rdp.taxonomy.items():
+      print "LLLL"
+      print k,v
+      
+    self.sequences = parse_rdp.sequences
+    self.taxonomy_sorted = parse_rdp.taxonomy_sorted
+    self.organisms = parse_rdp.organisms
+    
+    self.tax_ranks = parse_rdp.tax_ranks
+    self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
+      VALUES
+    """
+    self.insert_tax_first_line = """INSERT IGNORE INTO spingo_rdp_taxonomy (locus, taxonomy)
+      VALUES
+    """
+    self.insert_spingo_rdp_first_line = """INSERT IGNORE INTO spingo_rdp (locus, organism, clone)
+      VALUES
+    """
+    if (utils.is_local() == True):
+      self.max_lines = 3
+    else:
+      self.max_lines = 7000
+
+    self.insert_one_taxon_first_lines = {}
+    self.make_one_taxon_first_lines()
+    
+  def make_one_taxon_first_lines(self):
+    for rank in self.tax_ranks:
+      line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
+      self.insert_one_taxon_first_lines[rank] = (line)
+    
+  def run_insert_chunk(self, first_line, query_chunk):
+      query = first_line + query_chunk
+      return mysql_utils.execute_no_fetch(query)
+
+  def run_query_by_chunks(self, query_array, first_line):
+    for chunk in utils.chunks(query_array, self.max_lines):
+        query_chunk = ", ".join(chunk)
+
+        rowcount, lastrowid = self.run_insert_chunk(first_line, query_chunk)
+        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+
+  # todo: insert taxonomy all? or separate?
+  def insert_tax(self):
+    query_a = []
+    for locus, tax_dict in self.taxonomy_sorted.items():
+        # out_line = self.insert_tax_first_line
+        # print tax_dict
+        #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
+        taxon_string = ";".join([x[1].strip('"').strip() for x in tax_dict])
+        query_a.append("('%s', '%s')" % (locus, taxon_string))
+
+    self.run_query_by_chunks(query_a, self.insert_tax_first_line)
 
   def insert_seq(self):
     query_a = []
@@ -116,52 +172,6 @@ class Parse_RDP():
     self.run_query_by_chunks(query_a, self.insert_spingo_rdp_first_line)
 
 
-  def run_insert_chunk(self, first_line, query_chunk):
-      query = first_line + query_chunk
-      return mysql_utils.execute_no_fetch(query)
-
-  def run_query_by_chunks(self, query_array, first_line):
-    for chunk in utils.chunks(query_array, self.max_lines):
-        query_chunk = ", ".join(chunk)
-
-        rowcount, lastrowid = self.run_insert_chunk(first_line, query_chunk)
-        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-
-  # todo: insert taxonomy all? or separate?
-  def insert_tax(self):
-    query_a = []
-    for locus, tax_dict in self.taxonomy_sorted.items():
-        # out_line = self.insert_tax_first_line
-        # print tax_dict
-        #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
-        taxon_string = ";".join([x[1].strip('"').strip() for x in tax_dict])
-        query_a.append("('%s', '%s')" % (locus, taxon_string))
-
-    self.run_query_by_chunks(query_a, self.insert_tax_first_line)
-
-  def make_taxonomy_dict(self, lineage):
-    # print lineage
-    taxonomy1 = {}
-    taxonomy1_arr = lineage.split(";")
-    taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
-    return taxonomy1
-
-  def make_organism(self, definition):
-    try:
-      organism, clone = definition.split(";")
-    except ValueError:
-      organism = definition
-      clone = "empty_clone"
-    except:
-      raise
-    return (organism, clone)
-
-  def parse_id(self, header):
-    first_part, lineage = header.split("\t")
-    locus = first_part.split()[0].strip()
-    self.taxonomy[locus]  = self.make_taxonomy_dict(lineage)
-    self.organisms[locus] = self.make_organism(" ".join(first_part.split()[1:]))
-    return locus
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -183,6 +193,9 @@ if __name__ == '__main__':
   else:
     in_fa_gz_file_name = "/workspace/ashipunova/taxonomy/spingo_assign/current_Bacteria_unaligned.fa"
 
+  db_operations = DB_operations(parser)
+
+
   """
   read file  
     parse it - get
@@ -197,24 +210,24 @@ if __name__ == '__main__':
   read NCBI data file
     add accession_ids
   """
-  t0 = utils.benchmark_w_return_1("read_file")
-  parser.read_file(in_fa_gz_file_name)
-  utils.benchmark_w_return_2(t0, "read_file")
+  t0 = utils.benchmark_w_return_1("read_file_and_collect_info")
+  parser.read_file_and_collect_info(in_fa_gz_file_name)
+  utils.benchmark_w_return_2(t0, "read_file_and_collect_info")
 
   t0 = utils.benchmark_w_return_1("clean_taxonomy")
   parser.clean_taxonomy()
   utils.benchmark_w_return_2(t0, "clean_taxonomy")
 
   t0 = utils.benchmark_w_return_1("insert_seq")
-  parser.insert_seq()
+  db_operations.insert_seq()
   utils.benchmark_w_return_2(t0, "insert_seq")
 
   t0 = utils.benchmark_w_return_1("insert_tax")
-  parser.insert_tax()
+  db_operations.insert_tax()
   utils.benchmark_w_return_2(t0, "insert_tax")
 
   t0 = utils.benchmark_w_return_1("insert_sping_rdp_info")
-  parser.insert_sping_rdp_info()
+  db_operations.insert_sping_rdp_info()
   utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
 
   """
