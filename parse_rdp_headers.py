@@ -183,6 +183,20 @@ if __name__ == '__main__':
   else:
     in_fa_gz_file_name = "/workspace/ashipunova/taxonomy/spingo_assign/current_Bacteria_unaligned.fa"
 
+  """
+  read file  
+    parse it - get
+      id
+      seq
+      taxonomy
+        separate binomial
+        all taxa ranks
+  upload separate values to db
+    get ids
+  upload combined ids
+  read NCBI data file
+    add accession_ids
+  """
   t0 = utils.benchmark_w_return_1("read_file")
   parser.read_file(in_fa_gz_file_name)
   utils.benchmark_w_return_2(t0, "read_file")
@@ -203,12 +217,14 @@ if __name__ == '__main__':
   parser.insert_sping_rdp_info()
   utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
 
- """
- TODO:
- insert each rank separately 
- insert combined taxa ids
- 
- """
+  """
+  TODO:
+  insert each rank separately 
+  insert combined taxa ids
+  mysql_utils.get_all_name_id(table_name, id_name = "", field_name = "", where_part = "")
+  
+
+  """
 
   # print "parser.taxonomy"
   # print parser.taxonomy
