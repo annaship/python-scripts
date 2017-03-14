@@ -28,23 +28,24 @@ class Parse_RDP():
   def __init__(self):
     self.taxonomy = {}
     self.taxonomy_sorted  = {}
+    self.taxonomy_unsorted_dict = {}
     self.sequences = {}
     self.organisms = {}
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
-
-
+    
   def clean_taxonomy(self):
     """    taxonomy
         {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
     """
-    for k, v in self.taxonomy.items():
+    for locus, v in self.taxonomy.items():
       v["klass"] = v.pop("class")
 
-      taxonomy_7_ranks = {key: v[key] for key in v if (key in self.tax_ranks)}
-      # print "VVV"
-      # print taxonomy_7_ranks
-
-      self.taxonomy_sorted[k] = sorted(taxonomy_7_ranks.items(), key=lambda (k, taxonomy_7_ranks): self.tax_ranks.index(k))
+      taxonomy_7_ranks = {key: v[key].strip('"').strip() for key in v if (key in self.tax_ranks)}
+#       print "VVV"
+#       print taxonomy_7_ranks
+# {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+      self.taxonomy_unsorted_dict[locus] = taxonomy_7_ranks
+      self.taxonomy_sorted[locus] = sorted(taxonomy_7_ranks.items(), key=lambda (locus, taxonomy_7_ranks): self.tax_ranks.index(locus))
 
     """
     print tax_dict
@@ -55,6 +56,16 @@ class Parse_RDP():
     print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
     [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
     """
+      
+    self.separate_taxa_by_rank()
+  
+  def separate_taxa_by_rank(self):
+    print "self.taxonomy_unsorted_dict:"
+    for locus, v in self.taxonomy_unsorted_dict.items():
+        for rank_name, taxon in v.items():
+          print "rank_name = %s, taxon = %s" % (rank_name, taxon)
+        # print "locus = %s, v = %s" % (locus, v)
+    
 
   def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
@@ -68,10 +79,14 @@ class Parse_RDP():
       self.sequences[locus.strip()] = input.seq
 
   def make_taxonomy_dict(self, lineage):
-    # print lineage
     taxonomy1 = {}
     taxonomy1_arr = lineage.split(";")
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
+    """    
+      print "taxonomy1"
+      print taxonomy1
+      {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+    """    
     return taxonomy1
 
   def make_organism(self, definition):
@@ -93,10 +108,6 @@ class Parse_RDP():
 
 class DB_operations(Parse_RDP):
   def __init__(self, parse_rdp):
-    for k,v in parse_rdp.taxonomy.items():
-      print "LLLL"
-      print k,v
-      
     self.sequences = parse_rdp.sequences
     self.taxonomy_sorted = parse_rdp.taxonomy_sorted
     self.organisms = parse_rdp.organisms
@@ -142,10 +153,22 @@ class DB_operations(Parse_RDP):
         # out_line = self.insert_tax_first_line
         # print tax_dict
         #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
-        taxon_string = ";".join([x[1].strip('"').strip() for x in tax_dict])
+        taxon_string = ";".join([x[1] for x in tax_dict])
         query_a.append("('%s', '%s')" % (locus, taxon_string))
 
     self.run_query_by_chunks(query_a, self.insert_tax_first_line)
+
+  # def insert_separate_taxa(self):
+  #   query_a = []
+  #   for locus, tax_dict in self.taxonomy_sorted.items():
+  #       # out_line = self.insert_tax_first_line
+  #       # print tax_dict
+  #       #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
+  #       taxon_string = ";".join([x[1].strip('"').strip() for x in tax_dict])
+  #       query_a.append("('%s', '%s')" % (locus, taxon_string))
+  #
+  #   self.run_query_by_chunks(query_a, self.insert_tax_first_line)
+
 
   def insert_seq(self):
     query_a = []
@@ -171,7 +194,7 @@ class DB_operations(Parse_RDP):
     print query_a
     self.run_query_by_chunks(query_a, self.insert_spingo_rdp_first_line)
 
-
+  
 
 if __name__ == '__main__':
   utils = util.Utils()
