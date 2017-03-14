@@ -61,12 +61,23 @@ class Parse_RDP():
   
   def separate_taxa_by_rank(self):
     print "self.taxonomy_unsorted_dict:"
-    for locus, v in self.taxonomy_unsorted_dict.items():
-        for rank_name, taxon in v.items():
-          print "rank_name = %s, taxon = %s" % (rank_name, taxon)
+    # for locus, v in self.taxonomy_unsorted_dict.items():
+    #     for rank_name, taxon in v.items():
+    #       print "rank_name = %s, taxon = %s" % (rank_name, taxon)
         # print "locus = %s, v = %s" % (locus, v)
+        # [dd['domain'] for dd in d]
+    print "DDD"
+    taxa_by_rank = {}
+    for rank_name in self.tax_ranks:
+      print "rank_name = %s" % rank_name
+      try:
+        taxa_by_rank[rank_name] = [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
+      except KeyError:
+        pass
+      except:
+        raise
+    print taxa_by_rank
     
-
   def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
