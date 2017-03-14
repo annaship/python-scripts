@@ -40,7 +40,7 @@ class Parse_RDP():
     for locus, v in self.taxonomy.items():
       v["klass"] = v.pop("class")
 
-      taxonomy_7_ranks = {key: v[key].strip('"').strip() for key in v if (key in self.tax_ranks)}
+      taxonomy_7_ranks = {key.strip(): v[key].strip('"').strip() for key in v if (key.strip() in self.tax_ranks)}
 #       print "VVV"
 #       print taxonomy_7_ranks
 # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
