@@ -76,7 +76,7 @@ class Parse_RDP():
       locus = self.parse_id(input.id)
       utils.benchmark_w_return_2(t0, "parse_id")
 
-      self.sequences[locus.strip()] = input.seq
+      self.sequences[locus.strip()] = input.seq.strip()
 
   def make_taxonomy_dict(self, lineage):
     taxonomy1 = {}
@@ -97,7 +97,7 @@ class Parse_RDP():
       clone = "empty_clone"
     except:
       raise
-    return (organism, clone)
+    return (organism.strip(), clone.strip())
 
   def parse_id(self, header):
     first_part, lineage = header.split("\t")
@@ -173,7 +173,7 @@ class DB_operations(Parse_RDP):
   def insert_seq(self):
     query_a = []
     for k, v in self.sequences.items():
-      query_a.append("('%s', COMPRESS('%s'))" % (k, v.strip()))
+      query_a.append("('%s', COMPRESS('%s'))" % (k, v))
 
     self.run_query_by_chunks(query_a, self.insert_seq_first_line)
 
@@ -188,7 +188,8 @@ class DB_operations(Parse_RDP):
     """
     query_a = []
     for locus, v in self.organisms.items():
-      query_a.append("('%s', '%s', '%s')" % (locus.strip(), v[0].strip(), v[1].strip()))
+      # query_a.append("('%s', '%s', '%s')" % (locus.strip(), v[0].strip(), v[1].strip()))
+      query_a.append("('%s', '%s', '%s')" % (locus, v[0], v[1]))
 
     print "query_a"
     print query_a
