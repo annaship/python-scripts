@@ -73,16 +73,33 @@ class Parse_RDP():
     #       print "rank_name = %s, taxon = %s" % (rank_name, taxon)
         # print "locus = %s, v = %s" % (locus, v)
         # [dd['domain'] for dd in d]
-    # print "DDD"
-    for rank_name in self.tax_ranks:
-      # print "rank_name = %s" % rank_name
-      try:
-        self.taxa_by_rank[rank_name] = [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
-      except KeyError:
-        pass
-      except:
-        raise
-    # print self.taxa_by_rank
+    print "DDD"
+    inner_taxa_by_rank = defaultdict(list)
+    for locus, dd in self.taxonomy_unsorted_dict.items():
+      print "dd"
+      print dd
+      """
+      {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': 'Actinobacteria', 'klass': 'Actinobacteria', 'genus': 'Ilumatobacter', 'order': 'Acidimicrobiales'}
+      {'domain': 'Bacteria'}
+      ...
+      """
+      for k, v in dd.items():
+        inner_taxa_by_rank[k].append(v)
+    
+    # for rank_name in self.tax_ranks:
+    #   print "rank_name = %s" % rank_name
+    #   try:
+    #     for dd in self.taxonomy_unsorted_dict.values():
+    #       print "dd[rank_name] = %s" % (dd[rank_name])
+    #       print "UUU [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]"
+    #       print [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
+    #     # self.taxa_by_rank[rank_name].append([dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()])
+    #   except KeyError:
+    #     pass
+    #   except:
+    #     raise
+    print "inner_taxa_by_rank"
+    print inner_taxa_by_rank
 
   def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
