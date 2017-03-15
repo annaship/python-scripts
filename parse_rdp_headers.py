@@ -29,6 +29,7 @@ class Parse_RDP():
     self.taxonomy = {}
     self.taxonomy_sorted  = {}
     self.taxonomy_unsorted_dict = {}
+    self.taxa_by_rank = {}
     self.sequences = {}
     self.organisms = {}
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
@@ -67,16 +68,15 @@ class Parse_RDP():
         # print "locus = %s, v = %s" % (locus, v)
         # [dd['domain'] for dd in d]
     print "DDD"
-    taxa_by_rank = {}
     for rank_name in self.tax_ranks:
       print "rank_name = %s" % rank_name
       try:
-        taxa_by_rank[rank_name] = [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
+        self.taxa_by_rank[rank_name] = [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
       except KeyError:
         pass
       except:
         raise
-    print taxa_by_rank
+    print self.taxa_by_rank
     
   def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
