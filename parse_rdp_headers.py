@@ -33,13 +33,19 @@ class Parse_RDP():
     self.sequences = {}
     self.organisms = {}
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
-    
+
   def clean_taxonomy(self):
     """    taxonomy
         {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
     """
     for locus, v in self.taxonomy.items():
-      v["klass"] = v.pop("class")
+      try:
+        v["klass"] = v.pop("class")
+      except KeyError:
+        pass
+        # todo: add empty_... to all missing rank lavels?
+      except:
+        raise
 
       taxonomy_7_ranks = {key.strip(): v[key].strip('"').strip() for key in v if (key.strip() in self.tax_ranks)}
 #       print "VVV"
@@ -57,27 +63,27 @@ class Parse_RDP():
     print sorted(tax_dict.items(), key=lambda (k,v): self.ranks.index(k))
     [('domain', 'Eukaryota'), ('phylum', 'Haptophyta'), ('class', 'Haptophyceae'), ('order', 'Phaeocystales'), ('family', 'Phaeocystaceae'), ('genus', 'Phaeocystis'), ('species', 'sp._JD-2012')]
     """
-      
+
     self.separate_taxa_by_rank()
-  
+
   def separate_taxa_by_rank(self):
-    print "self.taxonomy_unsorted_dict:"
+    # print "self.taxonomy_unsorted_dict:"
     # for locus, v in self.taxonomy_unsorted_dict.items():
     #     for rank_name, taxon in v.items():
     #       print "rank_name = %s, taxon = %s" % (rank_name, taxon)
         # print "locus = %s, v = %s" % (locus, v)
         # [dd['domain'] for dd in d]
-    print "DDD"
+    # print "DDD"
     for rank_name in self.tax_ranks:
-      print "rank_name = %s" % rank_name
+      # print "rank_name = %s" % rank_name
       try:
         self.taxa_by_rank[rank_name] = [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
       except KeyError:
         pass
       except:
         raise
-    print self.taxa_by_rank
-    
+    # print self.taxa_by_rank
+
   def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
     input = fa.SequenceSource(in_fa_gz_file_name)
@@ -93,11 +99,11 @@ class Parse_RDP():
     taxonomy1 = {}
     taxonomy1_arr = lineage.split(";")
     taxonomy1 = dict(zip(taxonomy1_arr[1::2], taxonomy1_arr[0::2]))
-    """    
+    """
       print "taxonomy1"
       print taxonomy1
       {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
-    """    
+    """
     return taxonomy1
 
   def make_organism(self, definition):
@@ -122,7 +128,8 @@ class DB_operations(Parse_RDP):
     self.sequences = parse_rdp.sequences
     self.taxonomy_sorted = parse_rdp.taxonomy_sorted
     self.organisms = parse_rdp.organisms
-    
+    self.taxa_by_rank = parse_rdp.taxa_by_rank
+
     self.tax_ranks = parse_rdp.tax_ranks
     self.insert_seq_first_line = """INSERT IGNORE INTO spingo_rdp_sequence (locus, spingo_rdp_sequence_comp)
       VALUES
@@ -140,12 +147,12 @@ class DB_operations(Parse_RDP):
 
     self.insert_one_taxon_first_lines = {}
     self.make_one_taxon_first_lines()
-    
+
   def make_one_taxon_first_lines(self):
     for rank in self.tax_ranks:
       line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
       self.insert_one_taxon_first_lines[rank] = (line)
-    
+
   def run_insert_chunk(self, first_line, query_chunk):
       query = first_line + query_chunk
       return mysql_utils.execute_no_fetch(query)
@@ -169,7 +176,19 @@ class DB_operations(Parse_RDP):
 
     self.run_query_by_chunks(query_a, self.insert_tax_first_line)
 
-  # def insert_separate_taxa(self):
+  def insert_separate_taxa(self):
+    print "TTT"
+    for k, v in self.taxa_by_rank.items():
+      print k, set(v)
+      """
+      domain set(['Bacteria'])
+      family set(['Acidimicrobiaceae'])
+      phylum set(['Actinobacteria'])
+      klass set(['Actinobacteria'])
+      genus set(['Acidimicrobium'])
+      order set(['Acidimicrobiales'])
+      """
+
   #   query_a = []
   #   for locus, tax_dict in self.taxonomy_sorted.items():
   #       # out_line = self.insert_tax_first_line
@@ -206,7 +225,7 @@ class DB_operations(Parse_RDP):
     print query_a
     self.run_query_by_chunks(query_a, self.insert_spingo_rdp_first_line)
 
-  
+
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -232,7 +251,7 @@ if __name__ == '__main__':
 
 
   """
-  read file  
+  read file
     parse it - get
       id
       seq
@@ -265,12 +284,18 @@ if __name__ == '__main__':
   db_operations.insert_sping_rdp_info()
   utils.benchmark_w_return_2(t0, "insert_sping_rdp_info")
 
+  t0 = utils.benchmark_w_return_1("insert_separate_taxa")
+  db_operations.insert_separate_taxa()
+  utils.benchmark_w_return_2(t0, "insert_separate_taxa")
+
+
+
   """
   TODO:
-  insert each rank separately 
+  insert each rank separately
   insert combined taxa ids
   mysql_utils.get_all_name_id(table_name, id_name = "", field_name = "", where_part = "")
-  
+
 
   """
 
