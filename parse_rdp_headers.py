@@ -47,26 +47,12 @@ class Parse_RDP():
       raise
     return taxa_string_dict
     
-  def have_all_valid_rank_taxa(self, taxa_string_dict):
-    # print "AAA"
-    # print taxa_string_dict
-    # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
-    print "AAA"
+  def add_all_valid_rank_taxa(self, taxa_string_dict):
+    """    print taxa_string_dict
+    {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'suborder':'"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}"""
     missing_ranks = list(set(self.tax_ranks) - set(taxa_string_dict.keys()))
     for rank in missing_ranks:
       taxa_string_dict[rank] = "empty_" + rank
-    
-    # taxa_string_dict = {rank: "empty_" + rank for rank in missing_ranks}
-    # ['species']
-    #
-    # for rank in self.tax_ranks:
-    #   try:
-    #     taxa_string_dict[rank] =
-    #   except KeyError:
-    #     inner_taxa_by_rank[rank].append('empty_' + rank)
-    #   except:
-    #     raise
-    print taxa_string_dict
     return taxa_string_dict
     
 
@@ -77,14 +63,13 @@ class Parse_RDP():
     """
     for locus, v in self.taxonomy.items():
       v = self.get_only_valid_rank_taxa(v)
-      v = self.have_all_valid_rank_taxa(v)
+      v = self.add_all_valid_rank_taxa(v)
       
       taxonomy_7_ranks = {key.strip(): v[key].strip('"').strip() for key in v if (key.strip() in self.tax_ranks)}
-      print "VVV"
-      print taxonomy_7_ranks
-      
-      
-# {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+      """      print "VVV"
+            print taxonomy_7_ranks
+            {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'order': 'Acidimicrobiales', 'phylum': 'Actinobacteria', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'species': 'empty_species'}
+      """      
       self.taxonomy_unsorted_dict[locus] = taxonomy_7_ranks
       self.taxonomy_sorted[locus] = sorted(taxonomy_7_ranks.items(), key=lambda (locus, taxonomy_7_ranks): self.tax_ranks.index(locus))
 
@@ -132,12 +117,14 @@ class Parse_RDP():
     
     for d in self.taxonomy_unsorted_dict.values():
       for rank in self.tax_ranks:
-        try:
-          inner_taxa_by_rank[rank].append(d[rank])
-        except KeyError:
-          inner_taxa_by_rank[rank].append('empty_' + rank)
-        except:
-          raise
+        inner_taxa_by_rank[rank].append(d[rank])
+        #
+        # try:
+        #   inner_taxa_by_rank[rank].append(d[rank])
+        # except KeyError:
+        #   inner_taxa_by_rank[rank].append('empty_' + rank)
+        # except:
+        #   raise
         
     print "DDD"
     print "inner_taxa_by_rank"
