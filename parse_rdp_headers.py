@@ -174,9 +174,6 @@ class DB_operations(Parse_RDP):
 
   def insert_separate_taxa(self):
     for rank, taxa_list in self.taxa_by_rank.items():
-      query_a = []
-      # for taxon in set(taxa_list):
-      #   query_a.append("('%s')" % taxon)
       query_a = ["('%s')" % taxon for taxon in set(taxa_list)]
       self.run_query_by_chunks(query_a, self.insert_one_taxon_first_lines[rank])
       
@@ -189,17 +186,6 @@ class DB_operations(Parse_RDP):
         genus set(['empty_genus', 'Acidimicrobium', 'Ilumatobacter'])
         order set(['Acidimicrobiales', 'empty_order'])
       """
-
-  #   query_a = []
-  #   for locus, tax_dict in self.taxonomy_sorted.items():
-  #       # out_line = self.insert_tax_first_line
-  #       # print tax_dict
-  #       #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
-  #       taxon_string = ";".join([x[1].strip('"').strip() for x in tax_dict])
-  #       query_a.append("('%s', '%s')" % (locus, taxon_string))
-  #
-  #   self.run_query_by_chunks(query_a, self.insert_tax_first_line)
-
 
   def insert_seq(self):
     query_a = []
@@ -229,14 +215,35 @@ class DB_operations(Parse_RDP):
   def truncate_all(self):
     sql = "show tables"
     res, field_names = mysql_utils.execute_fetch_select(sql)
-    print "RRR"
+    # print "RRR"
     for table_name in res:
-      print table_name[0]
+      # print table_name[0]
       truncate_query = "TRUNCATE TABLE `%s`;" % (table_name[0])
-      print mysql_utils.execute_no_fetch(truncate_query)
+      mysql_utils.execute_no_fetch(truncate_query)
       
 
     # print mysql_utils.execute_no_fetch(query)
+
+  def get_all_taxa_ids(self):
+    """
+    print "SSS self.taxonomy_sorted = "
+    print self.taxonomy_sorted
+    {'S000632094': [('domain', 'Bacteria'), ('phylum', 'Actinobacteria'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium'), ('species', 'empty_species')], 'S000632122': [(
+    """
+    for locus, taxa_list in self.taxonomy_sorted.items():
+      for rank_taxon_tpl in taxa_list:
+        print rank_taxon_tpl
+        rank, taxon = rank_taxon_tpl
+      # mysql_utils.get_id(field_name, table_name, where_part, rows_affected = [0,0]):
+  
+  def get_all_taxa_ids_in_bulk(self):
+    for rank, taxa_list in self.taxa_by_rank.items():
+      # query_a = ["('%s')" % taxon for taxon in set(taxa_list)]
+      for taxon in set(taxa_list):
+        print "select * from `%s` where `%s` = %s" % (rank, rank, taxon)
+        # res, field_names = mysql_utils.execute_fetch_select(sql)
+      
+      # self.run_query_by_chunks(query_a, self.insert_one_taxon_first_lines[rank])
     
 
 if __name__ == '__main__':
@@ -301,7 +308,7 @@ if __name__ == '__main__':
   db_operations.insert_separate_taxa()
   utils.benchmark_w_return_2(t0, "insert_separate_taxa")
 
-  
+  db_operations.get_all_taxa_ids_in_bulk()
 
   """
   TODO:
