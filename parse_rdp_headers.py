@@ -47,8 +47,27 @@ class Parse_RDP():
       raise
     return taxa_string_dict
     
-  def have_all_valid_rank_taxa(self):
-    pass
+  def have_all_valid_rank_taxa(self, taxa_string_dict):
+    # print "AAA"
+    # print taxa_string_dict
+    # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+    print "AAA"
+    missing_ranks = list(set(self.tax_ranks) - set(taxa_string_dict.keys()))
+    for rank in missing_ranks:
+      taxa_string_dict[rank] = "empty_" + rank
+    # ['species']
+    #
+    # for rank in self.tax_ranks:
+    #   try:
+    #     taxa_string_dict[rank] =
+    #   except KeyError:
+    #     inner_taxa_by_rank[rank].append('empty_' + rank)
+    #   except:
+    #     raise
+    print taxa_string_dict
+    return taxa_string_dict
+    
+
     
   def clean_taxonomy(self):
     """    taxonomy
@@ -62,10 +81,10 @@ class Parse_RDP():
       print "VVV"
       print taxonomy_7_ranks
       
-      taxonomy_7_ranks = { key.strip():(v[key].strip('"').strip() if (key.strip() in self.tax_ranks) 
-                else "empty") for key in v }
-      print "VVV2"
-      print taxonomy_7_ranks
+      # taxonomy_7_ranks = { key.strip():(v[key].strip('"').strip() if (key.strip() in self.tax_ranks)
+      #           else "empty") for key in v }
+      # print "VVV2"
+      # print taxonomy_7_ranks
 
       
 # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
