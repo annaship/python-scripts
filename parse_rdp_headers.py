@@ -55,6 +55,8 @@ class Parse_RDP():
     missing_ranks = list(set(self.tax_ranks) - set(taxa_string_dict.keys()))
     for rank in missing_ranks:
       taxa_string_dict[rank] = "empty_" + rank
+    
+    # taxa_string_dict = {rank: "empty_" + rank for rank in missing_ranks}
     # ['species']
     #
     # for rank in self.tax_ranks:
@@ -81,11 +83,6 @@ class Parse_RDP():
       print "VVV"
       print taxonomy_7_ranks
       
-      # taxonomy_7_ranks = { key.strip():(v[key].strip('"').strip() if (key.strip() in self.tax_ranks)
-      #           else "empty") for key in v }
-      # print "VVV2"
-      # print taxonomy_7_ranks
-
       
 # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
       self.taxonomy_unsorted_dict[locus] = taxonomy_7_ranks
