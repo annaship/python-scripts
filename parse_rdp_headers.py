@@ -34,22 +34,40 @@ class Parse_RDP():
     self.organisms = {}
     self.tax_ranks = ['domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species']
 
+  def get_only_valid_rank_taxa(self, taxa_string_dict):
+    # print taxa_string_dict
+    # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
+    
+    try:
+      taxa_string_dict["klass"] = taxa_string_dict.pop("class")
+    except KeyError:
+      pass
+      # todo: add empty_... to all missing rank lavels?
+    except:
+      raise
+    return taxa_string_dict
+    
+  def have_all_valid_rank_taxa(self):
+    pass
+    
   def clean_taxonomy(self):
     """    taxonomy
         {'S000632094': {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'rootrank': 'Lineage=Root', 'subclass': 'Acidimicrobidae', 'class': 'Actinobacteria', 'phylum': '"Actinobacteria"', 'suborder': '"Acidimicrobineae"', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
     """
     for locus, v in self.taxonomy.items():
-      try:
-        v["klass"] = v.pop("class")
-      except KeyError:
-        pass
-        # todo: add empty_... to all missing rank lavels?
-      except:
-        raise
-
+      v = self.get_only_valid_rank_taxa(v)
+      v = self.have_all_valid_rank_taxa(v)
+      
       taxonomy_7_ranks = {key.strip(): v[key].strip('"').strip() for key in v if (key.strip() in self.tax_ranks)}
-#       print "VVV"
-#       print taxonomy_7_ranks
+      print "VVV"
+      print taxonomy_7_ranks
+      
+      taxonomy_7_ranks = { key.strip():(v[key].strip('"').strip() if (key.strip() in self.tax_ranks) 
+                else "empty") for key in v }
+      print "VVV2"
+      print taxonomy_7_ranks
+
+      
 # {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': '"Actinobacteria"', 'klass': 'Actinobacteria', 'genus': 'Acidimicrobium', 'order': 'Acidimicrobiales'}
       self.taxonomy_unsorted_dict[locus] = taxonomy_7_ranks
       self.taxonomy_sorted[locus] = sorted(taxonomy_7_ranks.items(), key=lambda (locus, taxonomy_7_ranks): self.tax_ranks.index(locus))
