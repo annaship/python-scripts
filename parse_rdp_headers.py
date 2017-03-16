@@ -144,11 +144,6 @@ class DB_operations(Parse_RDP):
     self.insert_one_taxon_first_lines = {}
     self.make_one_taxon_first_lines()
 
-  def make_one_taxon_first_lines(self):
-    for rank in self.tax_ranks:
-      line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
-      self.insert_one_taxon_first_lines[rank] = (line)
-
   def run_insert_chunk(self, first_line, query_chunk):
       query = first_line + query_chunk
       return mysql_utils.execute_no_fetch(query)
@@ -172,18 +167,35 @@ class DB_operations(Parse_RDP):
 
     self.run_query_by_chunks(query_a, self.insert_tax_first_line)
 
+  def make_one_taxon_first_lines(self):
+    for rank in self.tax_ranks:
+      line = "INSERT IGNORE INTO `%s` (`%s`) VALUES" % (rank, rank)
+      self.insert_one_taxon_first_lines[rank] = (line)
+
   def insert_separate_taxa(self):
-    print "TTT"
-    print self.taxa_by_rank
-    for k, v in self.taxa_by_rank.items():
-      print k, set(v)
+    # print "TTT"
+    # print self.taxa_by_rank
+    for rank, taxa_list in self.taxa_by_rank.items():
+      # print self.insert_one_taxon_first_lines[rank]
+      # print rank, set(taxa_list)
+      query_a = []
+      for taxon in set(taxa_list):
+        query_a.append("('%s')" % taxon)
+      # query_a = []
+      # for k, v in self.sequences.items():
+      #   query_a.append("('%s', COMPRESS('%s'))" % (k, v))
+      #
+      # print query_a
+      self.run_query_by_chunks(query_a, self.insert_one_taxon_first_lines[rank])
+      
       """
-      domain set(['Bacteria'])
-      family set(['Acidimicrobiaceae'])
-      phylum set(['Actinobacteria'])
-      klass set(['Actinobacteria'])
-      genus set(['Acidimicrobium'])
-      order set(['Acidimicrobiales'])
+        domain set(['Bacteria'])
+        family set(['empty_family', 'Acidimicrobiaceae'])
+        species set(['empty_species'])
+        phylum set(['empty_phylum', 'Actinobacteria'])
+        klass set(['empty_klass', 'Actinobacteria'])
+        genus set(['empty_genus', 'Acidimicrobium', 'Ilumatobacter'])
+        order set(['Acidimicrobiales', 'empty_order'])
       """
 
   #   query_a = []
