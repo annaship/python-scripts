@@ -70,11 +70,8 @@ class Parse_RDP():
     """
     self.separate_taxa_by_rank()
     
-  def initialize_dict_of_lists(self, list_of_keys):
-    return {key: [] for key in list_of_keys}
-
   def separate_taxa_by_rank(self):
-    self.taxa_by_rank = self.initialize_dict_of_lists(self.tax_ranks)      
+    self.taxa_by_rank = utils.initialize_dict_of_lists(self.tax_ranks)      
     
     for taxa_dict in self.taxonomy_unsorted_dict.values():
       for rank in self.tax_ranks:
@@ -237,12 +234,39 @@ class DB_operations(Parse_RDP):
       # mysql_utils.get_id(field_name, table_name, where_part, rows_affected = [0,0]):
   
   def get_all_taxa_ids_in_bulk(self):
+    all_results = []
     for rank, taxa_list in self.taxa_by_rank.items():
       # query_a = ["('%s')" % taxon for taxon in set(taxa_list)]
       for taxon in set(taxa_list):
-        print "select * from `%s` where `%s` = %s" % (rank, rank, taxon)
-        # res, field_names = mysql_utils.execute_fetch_select(sql)
-      
+        query = "select * from `%s` where `%s` = '%s'" % (rank, rank, taxon)
+        res, field_names = mysql_utils.execute_fetch_select(query)
+        all_results.append(mysql_utils.execute_fetch_select(query))
+    return all_results
+
+  def make_dict_taxa_id(self):
+    res = self.get_all_taxa_ids_in_bulk()
+    id_taxon_dict_by_rank = {}
+    """print res
+    [(((1L, 'Bacteria'),), ['domain_id', 'domain']), (((1L, 'empty_family'),), ['family_id', 'family']), (((2L, 'Acidimicrobiaceae'),), ['family_id', 'family']), (((1L, 'empty_species'),), ['species_id', 'species']), (((1L, 'empty_phylum'),), ['phylum_id', 'phylum']), (((2L, 'Actinobacteria'),), ['phylum_id', 'phylum']), (((1L, 'empty_klass'),), ['klass_id', 'klass']), (((2L, 'Actinobacteria'),), ['klass_id', 'klass']), (((1L, 'empty_genus'),), ['genus_id', 'genus']), (((2L, 'Acidimicrobium'),), ['genus_id', 'genus']), (((3L, 'Ilumatobacter'),), ['genus_id', 'genus']), (((1L, 'Acidimicrobiales'),), ['order_id', 'order']), (((2L, 'empty_order'),), ['order_id', 'order'])]
+    
+    """
+    id_taxon_dict_by_rank = utils.initialize_dict_of_lists(self.tax_ranks)
+      # return {key: [] for key in list_of_keys}
+    
+    for tpl_res in res:
+      """print t
+      (((2L, 'Acidimicrobiaceae'),), ['family_id', 'family'])
+      """
+      print "tpl_res[1][1] = "
+      print tpl_res[1][1]
+      print "tpl_res[0][0] = "
+      print tpl_res[0][0]
+      id_taxon_dict_by_rank[tpl_res[1][1]].append(tpl_res[0][0])
+    print id_taxon_dict_by_rank
+    """
+    {'domain': [(1L, 'Bacteria')], 'family': [(1L, 'empty_family'), (2L, 'Acidimicrobiaceae')], 'species': [(1L, 'empty_species')], 'phylum': [(1L, 'empty_phylum'), (2L, 'Actinobacteria')], 'klass': [(1L, 'empty_klass'), (2L, 'Actinobacteria')], 'genus': [(1L, 'empty_genus'), (2L, 'Acidimicrobium'), (3L, 'Ilumatobacter')], 'order': [(1L, 'Acidimicrobiales'), (2L, 'empty_order')]}
+    
+    """
       # self.run_query_by_chunks(query_a, self.insert_one_taxon_first_lines[rank])
     
 
@@ -308,7 +332,7 @@ if __name__ == '__main__':
   db_operations.insert_separate_taxa()
   utils.benchmark_w_return_2(t0, "insert_separate_taxa")
 
-  db_operations.get_all_taxa_ids_in_bulk()
+  db_operations.make_dict_taxa_id()
 
   """
   TODO:

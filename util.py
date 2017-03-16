@@ -231,3 +231,7 @@ class Utils:
       print dict_name
       for k, v in dict_name.items():
           print "%s: %s" % (k, v)
+
+    def initialize_dict_of_lists(self, list_of_keys):
+      return {key: [] for key in list_of_keys}
+    
