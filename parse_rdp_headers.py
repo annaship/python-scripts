@@ -68,8 +68,9 @@ class Parse_RDP():
     
   def initialize_dict_of_lists(self, list_of_keys):
     new_dict = {}
-    for key in list_of_keys:
-      new_dict[key] = []
+    new_dict = {key: [] for key in list_of_keys}
+    # for key in list_of_keys:
+    #   new_dict[key] = []
     return new_dict
       
     
@@ -99,10 +100,7 @@ class Parse_RDP():
     #
     inner_taxa_by_rank = {}
     
-    inner_taxa_by_rank = self.initialize_dict_of_lists(self.tax_ranks)
-    # for rank in self.tax_ranks:
-    #   inner_taxa_by_rank[rank] = []
-      
+    inner_taxa_by_rank = self.initialize_dict_of_lists(self.tax_ranks)      
     
     for d in self.taxonomy_unsorted_dict.values():
       try:
