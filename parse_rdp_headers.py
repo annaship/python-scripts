@@ -140,6 +140,7 @@ class DB_operations(Parse_RDP):
 
     self.insert_one_taxon_first_lines = {}
     self.make_one_taxon_first_lines()
+    self.id_taxon_dict_by_rank = {}
 
   def run_insert_chunk(self, first_line, query_chunk):
       query = first_line + query_chunk
@@ -252,17 +253,11 @@ class DB_operations(Parse_RDP):
     [(((1L, 'Bacteria'),), ['domain_id', 'domain']), (((1L, 'empty_family'),), ['family_id', 'family']), (((2L, 'Acidimicrobiaceae'),), ['family_id', 'family']), (((1L, 'empty_species'),), ['species_id', 'species']), (((1L, 'empty_phylum'),), ['phylum_id', 'phylum']), (((2L, 'Actinobacteria'),), ['phylum_id', 'phylum']), (((1L, 'empty_klass'),), ['klass_id', 'klass']), (((2L, 'Actinobacteria'),), ['klass_id', 'klass']), (((1L, 'empty_genus'),), ['genus_id', 'genus']), (((2L, 'Acidimicrobium'),), ['genus_id', 'genus']), (((3L, 'Ilumatobacter'),), ['genus_id', 'genus']), (((1L, 'Acidimicrobiales'),), ['order_id', 'order']), (((2L, 'empty_order'),), ['order_id', 'order'])]
     
     """
-    id_taxon_dict_by_rank = {}
-    id_taxon_dict_by_rank = utils.initialize_dict_of_lists(self.tax_ranks)
+    self.id_taxon_dict_by_rank = utils.initialize_dict_of_lists(self.tax_ranks)
     
     for tpl_res in res:
-      id_taxon_dict_by_rank[tpl_res[1][1]].append(tpl_res[0][0])
-      
-    print id_taxon_dict_by_rank
-    """
-    {'domain': [(1L, 'Bacteria')], 'family': [(1L, 'empty_family'), (2L, 'Acidimicrobiaceae')], 'species': [(1L, 'empty_species')], 'phylum': [(1L, 'empty_phylum'), (2L, 'Actinobacteria')], 'klass': [(1L, 'empty_klass'), (2L, 'Actinobacteria')], 'genus': [(1L, 'empty_genus'), (2L, 'Acidimicrobium'), (3L, 'Ilumatobacter')], 'order': [(1L, 'Acidimicrobiales'), (2L, 'empty_order')]}
-    
-    """
+      self.id_taxon_dict_by_rank[tpl_res[1][1]].append(tpl_res[0][0])
+
     
 
 if __name__ == '__main__':
@@ -328,12 +323,17 @@ if __name__ == '__main__':
   utils.benchmark_w_return_2(t0, "insert_separate_taxa")
 
   db_operations.make_dict_taxa_id()
+  print db_operations.id_taxon_dict_by_rank
+  """  print db_operations.id_taxon_dict_by_rank
+      self.id_taxon_dict_by_rank
+    {'domain': [(1L, 'Bacteria')], 'family': [(1L, 'empty_family'), (2L, 'Acidimicrobiaceae')], 'species': [(1L, 'empty_species')], 'phylum': [(1L, 'empty_phylum'), (2L, 'Actinobacteria')], 'klass': [(1L, 'empty_klass'), (2L, 'Actinobacteria')], 'genus': [(1L, 'empty_genus'), (2L, 'Acidimicrobium'), (3L, 'Ilumatobacter')], 'order': [(1L, 'Acidimicrobiales'), (2L, 'empty_order')]}
 
   """
+  """
   TODO:
-  insert each rank separately
+  done) insert each rank separately
+  done) mysql_utils.get_all_name_id(table_name, id_name = "", field_name = "", where_part = "")
   insert combined taxa ids
-  mysql_utils.get_all_name_id(table_name, id_name = "", field_name = "", where_part = "")
 
 
   """
