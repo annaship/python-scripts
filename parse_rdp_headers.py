@@ -67,13 +67,8 @@ class Parse_RDP():
     self.separate_taxa_by_rank()
     
   def initialize_dict_of_lists(self, list_of_keys):
-    new_dict = {}
-    new_dict = {key: [] for key in list_of_keys}
-    # for key in list_of_keys:
-    #   new_dict[key] = []
-    return new_dict
-      
-    
+    # new_dict = {}
+    return {key: [] for key in list_of_keys}
 
   def separate_taxa_by_rank(self):
     # print "self.taxonomy_unsorted_dict:"
