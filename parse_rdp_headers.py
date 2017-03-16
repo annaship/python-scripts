@@ -34,7 +34,7 @@ class Parse_RDP():
       taxa_string_dict["klass"] = taxa_string_dict.pop("class")
     except KeyError:
       pass
-      # todo: add empty_... to all missing rank lavels?
+      # done: add empty_... to all missing rank lavels?
     except:
       raise
     return taxa_string_dict
@@ -153,14 +153,13 @@ class DB_operations(Parse_RDP):
         rowcount, lastrowid = self.run_insert_chunk(first_line, query_chunk)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
 
-  # todo: insert taxonomy all? or separate?
+  # done: insert taxonomy all? or separate?
   def insert_tax(self):
     query_a = []
-    for locus, tax_dict in self.taxonomy_sorted.items():
-        # out_line = self.insert_tax_first_line
-        # print tax_dict
-        #[('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
-        taxon_string = ";".join([x[1] for x in tax_dict])
+    for locus, tax_arr in self.taxonomy_sorted.items():
+        """print tax_arr
+        [('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]"""
+        taxon_string = ";".join([x[1] for x in tax_arr])
         query_a.append("('%s', '%s')" % (locus, taxon_string))
 
     self.run_query_by_chunks(query_a, self.insert_tax_first_line)
@@ -334,8 +333,15 @@ if __name__ == '__main__':
   done) insert each rank separately
   done) mysql_utils.get_all_name_id(table_name, id_name = "", field_name = "", where_part = "")
   insert combined taxa ids
-
-
+  
+  INSERT INTO spingo_rdp_taxonomy (domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id, updated_at)
+  VALUES
+  (), 
+  see insert_tax(self)
+  ...
+    for locus, tax_arr in self.taxonomy_sorted.items():
+    tax_arr: [('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
+  
   """
 
   # print "parser.taxonomy"
