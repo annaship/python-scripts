@@ -67,7 +67,6 @@ class Parse_RDP():
     self.separate_taxa_by_rank()
     
   def initialize_dict_of_lists(self, list_of_keys):
-    # new_dict = {}
     return {key: [] for key in list_of_keys}
 
   def separate_taxa_by_rank(self):
@@ -98,12 +97,13 @@ class Parse_RDP():
     inner_taxa_by_rank = self.initialize_dict_of_lists(self.tax_ranks)      
     
     for d in self.taxonomy_unsorted_dict.values():
-      try:
-        inner_taxa_by_rank['family'].append(d['family'])
-      except KeyError:
-        inner_taxa_by_rank['family'].append('empty_family')
-      except:
-        raise
+      for rank in self.tax_ranks:
+        try:
+          inner_taxa_by_rank[rank].append(d[rank])
+        except KeyError:
+          inner_taxa_by_rank[rank].append('empty_' + rank)
+        except:
+          raise
         
     print "DDD"
     print "inner_taxa_by_rank"
