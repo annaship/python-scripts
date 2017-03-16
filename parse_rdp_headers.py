@@ -173,19 +173,11 @@ class DB_operations(Parse_RDP):
       self.insert_one_taxon_first_lines[rank] = (line)
 
   def insert_separate_taxa(self):
-    # print "TTT"
-    # print self.taxa_by_rank
     for rank, taxa_list in self.taxa_by_rank.items():
-      # print self.insert_one_taxon_first_lines[rank]
-      # print rank, set(taxa_list)
       query_a = []
-      for taxon in set(taxa_list):
-        query_a.append("('%s')" % taxon)
-      # query_a = []
-      # for k, v in self.sequences.items():
-      #   query_a.append("('%s', COMPRESS('%s'))" % (k, v))
-      #
-      # print query_a
+      # for taxon in set(taxa_list):
+      #   query_a.append("('%s')" % taxon)
+      query_a = ["('%s')" % taxon for taxon in set(taxa_list)]
       self.run_query_by_chunks(query_a, self.insert_one_taxon_first_lines[rank])
       
       """
@@ -234,7 +226,18 @@ class DB_operations(Parse_RDP):
     print query_a
     self.run_query_by_chunks(query_a, self.insert_spingo_rdp_first_line)
 
+  def truncate_all(self):
+    sql = "show tables"
+    res, field_names = mysql_utils.execute_fetch_select(sql)
+    print "RRR"
+    for table_name in res:
+      print table_name[0]
+      truncate_query = "TRUNCATE TABLE `%s`;" % (table_name[0])
+      print mysql_utils.execute_no_fetch(truncate_query)
+      
 
+    # print mysql_utils.execute_no_fetch(query)
+    
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -279,6 +282,8 @@ if __name__ == '__main__':
   utils.benchmark_w_return_2(t0, "clean_taxonomy")
 
   db_operations = DB_operations(parser)
+  """TODO: FOR tests only!!!"""
+  db_operations.truncate_all()
 
   t0 = utils.benchmark_w_return_1("insert_seq")
   db_operations.insert_seq()
@@ -296,7 +301,7 @@ if __name__ == '__main__':
   db_operations.insert_separate_taxa()
   utils.benchmark_w_return_2(t0, "insert_separate_taxa")
 
-
+  
 
   """
   TODO:
