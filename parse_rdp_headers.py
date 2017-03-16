@@ -71,35 +71,63 @@ class Parse_RDP():
     # for locus, v in self.taxonomy_unsorted_dict.items():
     #     for rank_name, taxon in v.items():
     #       print "rank_name = %s, taxon = %s" % (rank_name, taxon)
-        # print "locus = %s, v = %s" % (locus, v)
-        # [dd['domain'] for dd in d]
+    # print "locus = %s, v = %s" % (locus, v)
+    # try:
+    #      taxa_by_rank[rank_name] = [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
+    #      taxa_by_rank[rank_name] = set([dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()])
+    #    except KeyError:
+    #      pass
+    # [dd['domain'] for dd in d]
+    # taxa_list_w_empty_ranks_dict = defaultdict(list)
+    #
+    # # taxa_list_w_empty_ranks_dict = {taxonomy: tax_list + [""] * (len(self.tax_ranks) - len(tax_list)) for locus, tax_list in self.taxonomy_unsorted_dict.items()}
+    # for locus, tax_list in self.taxonomy_unsorted_dict.items():
+    #   print "tax_list = "
+    #   print tax_list
+    #   print "len(self.tax_ranks) = "
+    #   print len(self.tax_ranks)
+    #   print "len(tax_list) = "
+    #   print len(tax_list)
+    #
+    inner_taxa_by_rank = {}
+    for d in self.taxonomy_unsorted_dict.values():
+      try:
+        inner_taxa_by_rank['family'].append(d['family'])
+      except KeyError:
+        inner_taxa_by_rank['family'] = []
+        inner_taxa_by_rank['family'].append('empty_family')
+      except:
+        raise
+        
     print "DDD"
-    inner_taxa_by_rank = defaultdict(list)
-    for locus, dd in self.taxonomy_unsorted_dict.items():
-      print "dd"
-      print dd
-      """
-      {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': 'Actinobacteria', 'klass': 'Actinobacteria', 'genus': 'Ilumatobacter', 'order': 'Acidimicrobiales'}
-      {'domain': 'Bacteria'}
-      ...
-      """
-      for k, v in dd.items():
-        inner_taxa_by_rank[k].append(v)
-    
-    # for rank_name in self.tax_ranks:
-    #   print "rank_name = %s" % rank_name
-    #   try:
-    #     for dd in self.taxonomy_unsorted_dict.values():
-    #       print "dd[rank_name] = %s" % (dd[rank_name])
-    #       print "UUU [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]"
-    #       print [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
-    #     # self.taxa_by_rank[rank_name].append([dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()])
-    #   except KeyError:
-    #     pass
-    #   except:
-    #     raise
     print "inner_taxa_by_rank"
     print inner_taxa_by_rank
+    
+    # print taxa_list_w_empty_ranks_dict
+    # inner_taxa_by_rank = defaultdict(list)
+    # for locus, dd in self.taxonomy_unsorted_dict.items():
+    #   print "dd"
+    #   print dd
+    #   """
+    #   {'domain': 'Bacteria', 'family': 'Acidimicrobiaceae', 'phylum': 'Actinobacteria', 'klass': 'Actinobacteria', 'genus': 'Ilumatobacter', 'order': 'Acidimicrobiales'}
+    #   {'domain': 'Bacteria'}
+    #   ...
+    #   """
+    #   for k, v in dd.items():
+    #     inner_taxa_by_rank[k].append(v)
+    #
+    # # for rank_name in self.tax_ranks:
+    # #   print "rank_name = %s" % rank_name
+    # #   try:
+    # #     for dd in self.taxonomy_unsorted_dict.values():
+    # #       print "dd[rank_name] = %s" % (dd[rank_name])
+    # #       print "UUU [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]"
+    # #       print [dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()]
+    # #     # self.taxa_by_rank[rank_name].append([dd[rank_name] for dd in self.taxonomy_unsorted_dict.values()])
+    # #   except KeyError:
+    # #     pass
+    # #   except:
+    # #     raise
 
   def read_file_and_collect_info(self, in_fa_gz_file_name):
     print in_fa_gz_file_name
