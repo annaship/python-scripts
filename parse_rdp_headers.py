@@ -174,6 +174,7 @@ class DB_operations(Parse_RDP):
 
   def insert_separate_taxa(self):
     print "TTT"
+    print self.taxa_by_rank
     for k, v in self.taxa_by_rank.items():
       print k, set(v)
       """
@@ -243,9 +244,6 @@ if __name__ == '__main__':
   else:
     in_fa_gz_file_name = "/workspace/ashipunova/taxonomy/spingo_assign/current_Bacteria_unaligned.fa"
 
-  db_operations = DB_operations(parser)
-
-
   """
   read file
     parse it - get
@@ -267,6 +265,8 @@ if __name__ == '__main__':
   t0 = utils.benchmark_w_return_1("clean_taxonomy")
   parser.clean_taxonomy()
   utils.benchmark_w_return_2(t0, "clean_taxonomy")
+
+  db_operations = DB_operations(parser)
 
   t0 = utils.benchmark_w_return_1("insert_seq")
   db_operations.insert_seq()
