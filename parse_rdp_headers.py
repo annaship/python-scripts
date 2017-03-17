@@ -257,6 +257,54 @@ class DB_operations(Parse_RDP):
     for tpl_res in res:
       self.id_taxon_dict_by_rank[tpl_res[1][1]].append(tpl_res[0][0])
 
+  def insert_combined_taxa_ids(self):
+    combined_taxa_ids_first_line = """INSERT INTO spingo_rdp_taxonomy (domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id, updated_at)
+    VALUES"""
+    
+    print "CCC"
+    for locus, tax_arr in self.taxonomy_sorted.items():
+      # print "locus = %s, tax_arr = %s" % (locus, tax_arr)
+      #   tax_arr: [('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
+      for rank_taxa_list in tax_arr:
+        print "DDDDD"
+        print "rank_taxa_list"
+        print rank_taxa_list
+        id_taxa_list = self.id_taxon_dict_by_rank[rank_taxa_list[0]]
+        
+        print "self.id_taxon_dict_by_rank[rank_taxa_list[0]] = id_taxa_list"
+        print id_taxa_list
+        # print [i for i, v in enumerate(tax_arr) if v[1] == rank_taxa_list[1]]
+        # print [v[0] for v in rank_taxa_list if v[1] == rank_taxa_list[1]]
+        for v in id_taxa_list:
+          print "rank_taxa_list[1] = %s, v = %s" % (rank_taxa_list[1], v)
+          # if rank_taxa_list[1] == v:
+          #   print id_taxa_list[]
+          """
+          self.id_taxon_dict_by_rank[rank_taxa_list[0]] = id_taxa_list
+          [(1L, 'empty_genus'), (2L, 'Acidimicrobium'), (3L, 'Ilumatobacter')]
+          rank_taxa_list[1] = Acidimicrobium, v = (1L, 'empty_genus')
+          rank_taxa_list[1] = Acidimicrobium, v = (2L, 'Acidimicrobium')
+          rank_taxa_list[1] = Acidimicrobium, v = (3L, 'Ilumatobacter')
+          DDDDD
+          rank_taxa_list
+          ('species', 'empty_species')
+          self.id_taxon_dict_by_rank[rank_taxa_list[0]] = id_taxa_list
+          [(1L, 'empty_species')]
+          rank_taxa_list[1] = empty_species, v = (1L, 'empty_species')
+          insert_combined_taxa_ids time: 0.00 m
+          
+          """
+      
+      # for rank, id_taxon_list in self.id_taxon_dict_by_rank.items():
+      #   print "rank = %s, id_taxon_list = " % (rank)
+      #   print id_taxon_list 
+        # {'domain': [(1L, 'Bacteria')], 'family': [(1L, 'empty_family'), (2L, 'Acidimicrobiaceae')], 'species': [(1L, 'empty_species')], 'phylum': [(1L, 'empty_phylum'), (2L, 'Actinobacteria')], 'klass': [(1L, 'empty_klass'), (2L, 'Actinobacteria')], 'genus': [(1L, 'empty_genus'), (2L, 'Acidimicrobium'), (3L, 'Ilumatobacter')], 'order': [(1L, 'Acidimicrobiales'), (2L, 'empty_order')]}
+        
+    # (), 
+    # see insert_tax(self)
+    # ...
+    #   for locus, tax_arr in self.taxonomy_sorted.items():
+    #   tax_arr: [('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
     
 
 if __name__ == '__main__':
@@ -321,7 +369,11 @@ if __name__ == '__main__':
   db_operations.insert_separate_taxa()
   utils.benchmark_w_return_2(t0, "insert_separate_taxa")
 
+  t0 = utils.benchmark_w_return_1("make_dict_taxa_id")
   db_operations.make_dict_taxa_id()
+  utils.benchmark_w_return_2(t0, "make_dict_taxa_id")
+
+  # db_operations.make_dict_taxa_id()
   print db_operations.id_taxon_dict_by_rank
   """  print db_operations.id_taxon_dict_by_rank
       self.id_taxon_dict_by_rank
@@ -343,6 +395,12 @@ if __name__ == '__main__':
     tax_arr: [('domain', 'Bacteria'), ('phylum', '"Actinobacteria"'), ('klass', 'Actinobacteria'), ('order', 'Acidimicrobiales'), ('family', 'Acidimicrobiaceae'), ('genus', 'Acidimicrobium')]
   
   """
+  
+  t0 = utils.benchmark_w_return_1("insert_combined_taxa_ids")
+  db_operations.insert_combined_taxa_ids()
+  utils.benchmark_w_return_2(t0, "insert_combined_taxa_ids")
+  
+  
 
   # print "parser.taxonomy"
   # print parser.taxonomy
