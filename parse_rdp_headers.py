@@ -276,7 +276,13 @@ class DB_operations(Parse_RDP):
         # print [i for i, v in enumerate(tax_arr) if v[1] == rank_taxa_list[1]]
         # print [v[0] for v in rank_taxa_list if v[1] == rank_taxa_list[1]]
         for v in id_taxa_list:
+          # print "rank_taxa_list[1] = %s, v = %s" % (rank_taxa_list[1], v)
           print "rank_taxa_list[1] = %s, v = %s" % (rank_taxa_list[1], v)
+          if rank_taxa_list[1] == v[1]:
+            print "URA"
+          print "III"
+          print [item[1] for item in id_taxa_list]
+           # if item[1] == rank_taxa_list[1]]
           # if rank_taxa_list[1] == v:
           #   print id_taxa_list[]
           """
