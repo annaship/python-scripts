@@ -21,6 +21,8 @@ class Metadata():
     query_project_ids = """select project_id, project from project where project like "DCO%" """
     return mysql_utils.execute_fetch_select(query_project_ids)
     
+  def get_all_custom_metadata_tabel_names(self, all_dco_project_ids):
+    return [str(int(x[0])) for x in all_dco_project_ids[0]]
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -49,8 +51,8 @@ if __name__ == '__main__':
   print all_dco_project_ids
   dco_cutom_tables = ['custom_metadata_' + str(int(x[0])) for x in all_dco_project_ids[0]]
   
-  all_project_ids = [str(int(x[0])) for x in all_dco_project_ids[0]]
-  # print dco_cutom_tables
+  all_project_ids = metadata.get_all_custom_metadata_tabel_names(all_dco_project_ids)
+  print dco_cutom_tables
   # print len(dco_cutom_tables)
   # 64
   
