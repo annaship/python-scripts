@@ -72,6 +72,9 @@ class Metadata():
     my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
     return my_dict
     
+  def get_project_name(self, all_dco_project_ids, str_project_id):
+    return [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
+    
       
 if __name__ == '__main__':
   utils = util.Utils()
@@ -173,12 +176,12 @@ if __name__ == '__main__':
         # ===
   my_dict2 = {}
   for str_project_id, d1 in my_dict.items():  
-    project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
+    project_name = metadata.get_project_name(all_dco_project_ids, str_project_id)
+      
+    # project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
     for field_name__descr, custom_metadata_distinct_list in d1.items():
       for custom_metadatum in custom_metadata_distinct_list:
         my_dict2 = metadata.populate_dict_of_lists(my_dict2, field_name__descr)
-        # if field_name__descr not in my_dict2:
-        #     my_dict2[field_name__descr] = []
         
         my_dict2[field_name__descr].append(custom_metadatum)
   
