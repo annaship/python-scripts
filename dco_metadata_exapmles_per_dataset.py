@@ -45,20 +45,33 @@ class Metadata():
   def make_custom_metadata_distinct_list(self, custom_metadata):
     return [y[0] for y in set([x for x in custom_metadata[0]])]
   
-  def populate_dict(self, my_dict, key):
+  def populate_dict_of_dicts(self, my_dict, key, key_to_use = ""):
+    if key_to_use == "":
+      key_to_use = key
+    # print "9" * 9
+    # print my_dict
+    # print "key = %s" % key
     if key not in my_dict:
-        my_dict[key] = {}
+        my_dict[key_to_use] = {}
     return my_dict
-    
+
+  # def populate_dict_of_lists(self, my_dict, key, key_to_use = ""):
+  #   if key_to_use == "":
+  #     key_to_use = key
+  #   # print "9" * 9
+  #   # print my_dict
+  #   # print "key = %s" % key
+  #   if key not in my_dict:
+  #       my_dict[key_to_use] = []
+  #   return my_dict
+  # 
   
   def make_my_dict(self, my_dict, str_project_id, field_name, field_name__descr):
     # if str_project_id not in my_dict:
     #     my_dict[str_project_id] = {}
-    my_dict = self.populate_dict(my_dict, str_project_id)
-  
+    my_dict = self.populate_dict_of_dicts(my_dict, str_project_id)
     if field_name not in my_dict[str_project_id]:
         my_dict[str_project_id][field_name__descr] = []
-  
     my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
     return my_dict
     
