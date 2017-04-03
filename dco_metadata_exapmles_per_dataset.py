@@ -55,16 +55,13 @@ class Metadata():
         my_dict[key_to_use] = {}
     return my_dict
 
-  # def populate_dict_of_lists(self, my_dict, key, key_to_use = ""):
-  #   if key_to_use == "":
-  #     key_to_use = key
-  #   # print "9" * 9
-  #   # print my_dict
-  #   # print "key = %s" % key
-  #   if key not in my_dict:
-  #       my_dict[key_to_use] = []
-  #   return my_dict
-  # 
+  def populate_dict_of_lists(self, my_dict, key, key_to_use = ""):
+    if key_to_use == "":
+      key_to_use = key
+    if key not in my_dict:
+        my_dict[key_to_use] = []
+    return my_dict
+  
   
   def make_my_dict(self, my_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list):
     my_dict = self.populate_dict_of_dicts(my_dict, str_project_id)
@@ -146,49 +143,42 @@ if __name__ == '__main__':
     field_name__descr = field_name + "__" + dco_custom_field_info[2]
     all_field_names.append(field_name)
     all_field_name__descr.append(field_name__descr)
-    # if str_project_id not in my_dict:
-    #     my_dict[str_project_id] = {}
-    #   
-    # if field_name not in my_dict[str_project_id]:
-    #     my_dict[str_project_id][field_name__descr] = []
-    #   
-    # my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
+
     my_dict = metadata.make_my_dict(my_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
     
-  
-  
-    for x in custom_metadata_distinct_list:
-      if dco_custom_field_info[3] != x:
-        # print "dco_custom_field_info[3] = %s, x = %s" % (dco_custom_field_info[3], x)
-        pass
+    # for x in custom_metadata_distinct_list:
+    #   if dco_custom_field_info[3] != x:
+    #     # print "dco_custom_field_info[3] = %s, x = %s" % (dco_custom_field_info[3], x)
+    #     pass
     
   # print "my_dict"
   # print my_dict
   # lat_lon': [['', '28.596 S, 173.381 W', '28.596 S, 173.280 W']], 'samp_store_temp': [['-80']]}}
   
-  print "555"
-  for str_project_id, d1 in my_dict.items():
-    """
-    all_dco_project_ids
-    (((300L, 'DCO_BKR_Av4v5'), (110L, 'DCO_BKR_Bv4v5'), (301L, 'DCO_BOM_Av6'), (101L, 'DCO_BOM_Bv6'), (302L, 'DCO_BPC_Bv6'), (103L, 'DCO_BRA_Av6'), (303L, 'DCO_BRA_Bv6'),
-    """
-    
-    project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
-    for field_name__descr, custom_metadata_distinct_list in d1.items():
-      for custom_metadatum in custom_metadata_distinct_list:
-        pass
-        # print project_name[0], field_name__descr, custom_metadatum
-        
-        "/workspace/ashipunova/metadata/dco$ python dco_metadata_exapmles_per_dataset.py >all_dco_metadata.csv"
-        
+  # print "555"
+  # for str_project_id, d1 in my_dict.items():
+  #   """
+  #   all_dco_project_ids
+  #   (((300L, 'DCO_BKR_Av4v5'), (110L, 'DCO_BKR_Bv4v5'), (301L, 'DCO_BOM_Av6'), (101L, 'DCO_BOM_Bv6'), (302L, 'DCO_BPC_Bv6'), (103L, 'DCO_BRA_Av6'), (303L, 'DCO_BRA_Bv6'),
+  #   """
+  #   
+  #   project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
+  #   for field_name__descr, custom_metadata_distinct_list in d1.items():
+  #     for custom_metadatum in custom_metadata_distinct_list:
+  #       pass
+  #       # print project_name[0], field_name__descr, custom_metadatum
+  #       
+  #       "/workspace/ashipunova/metadata/dco$ python dco_metadata_exapmles_per_dataset.py >all_dco_metadata.csv"
+  #       
         # ===
   my_dict2 = {}
   for str_project_id, d1 in my_dict.items():  
     project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
     for field_name__descr, custom_metadata_distinct_list in d1.items():
       for custom_metadatum in custom_metadata_distinct_list:
-        if field_name__descr not in my_dict2:
-            my_dict2[field_name__descr] = []
+        my_dict2 = metadata.populate_dict_of_lists(my_dict2, field_name__descr)
+        # if field_name__descr not in my_dict2:
+        #     my_dict2[field_name__descr] = []
         
         my_dict2[field_name__descr].append(custom_metadatum)
   
