@@ -24,6 +24,20 @@ class Metadata():
   def get_all_custom_metadata_tabel_names(self, all_dco_project_ids):
     return [str(int(x[0])) for x in all_dco_project_ids[0]]
 
+  def get_dco_custom_fields(self, dco_cutom_tables):
+    for table_name in dco_cutom_tables:
+      get_metadata_query = """ select 
+
+      """
+
+    dco_custom_fields_query = """select distinct project_id, field_name, field_units, example from custom_metadata_fields where project_id in (%s)""" % (", ".join(all_project_ids))
+    # print dco_custom_fields_query
+    dco_custom_fields = mysql_utils.execute_fetch_select(dco_custom_fields_query)
+    print dco_custom_fields
+    """((...(860L, 'trace element geochemistry', '', 'yes')), ['project_id', 'field_name', 'field_units', 'example'])"""
+    return dco_custom_fields
+    
+
 if __name__ == '__main__':
   utils = util.Utils()
 
@@ -47,8 +61,8 @@ if __name__ == '__main__':
   query_project_ids = """select project_id, project from project where project like "DCO%" """
   all_dco_project_ids = metadata.get_all_dco_project_ids()
   
-  print "all_dco_project_ids"
-  print all_dco_project_ids
+  # print "all_dco_project_ids"
+  # print all_dco_project_ids
   dco_cutom_tables = ['custom_metadata_' + str(int(x[0])) for x in all_dco_project_ids[0]]
   
   all_project_ids = metadata.get_all_custom_metadata_tabel_names(all_dco_project_ids)
@@ -56,16 +70,22 @@ if __name__ == '__main__':
   # print len(dco_cutom_tables)
   # 64
   
-  for table_name in dco_cutom_tables:
-    get_metadata_query = """ select 
-    
-    """
+  dco_custom_fields = metadata.get_dco_custom_fields(dco_cutom_tables)
   
-  dco_custom_fields_query = """select distinct project_id, field_name, field_units, example from custom_metadata_fields where project_id in (%s)""" % (", ".join(all_project_ids))
-  # print dco_custom_fields_query
-  dco_custom_fields = mysql_utils.execute_fetch_select(dco_custom_fields_query)
-  # print dco_custom_fields
-  """((...(860L, 'trace element geochemistry', '', 'yes')), ['project_id', 'field_name', 'field_units', 'example'])"""
+  # for table_name in dco_cutom_tables:
+  #   get_metadata_query = """ select 
+  #   
+  #   """
+  # 
+  # dco_custom_fields_query = """select distinct project_id, field_name, field_units, example from custom_metadata_fields where project_id in (%s)""" % (", ".join(all_project_ids))
+  # # print dco_custom_fields_query
+  # dco_custom_fields = mysql_utils.execute_fetch_select(dco_custom_fields_query)
+  # # print dco_custom_fields
+  # """((...(860L, 'trace element geochemistry', '', 'yes')), ['project_id', 'field_name', 'field_units', 'example'])"""
+  
+  dco_custom_fields = metadata.get_dco_custom_fields(dco_cutom_tables)
+  print "=" * 5
+  print dco_custom_fields
   
   my_dict = {}
   # defaultdict(dict)
