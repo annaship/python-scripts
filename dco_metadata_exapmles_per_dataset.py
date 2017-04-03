@@ -44,7 +44,17 @@ class Metadata():
     
   def make_custom_metadata_distinct_list(self, custom_metadata):
     return [y[0] for y in set([x for x in custom_metadata[0]])]
-      
+  
+  def make_my_dict(self, my_dict, str_project_id, field_name, field_name__descr):
+    if str_project_id not in my_dict:
+        my_dict[str_project_id] = {}
+  
+    if field_name not in my_dict[str_project_id]:
+        my_dict[str_project_id][field_name__descr] = []
+  
+    my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
+    return my_dict
+    
       
 if __name__ == '__main__':
   utils = util.Utils()
@@ -116,20 +126,24 @@ if __name__ == '__main__':
     field_name__descr = field_name + "__" + dco_custom_field_info[2]
     all_field_names.append(field_name)
     all_field_name__descr.append(field_name__descr)
-    if str_project_id not in my_dict:
-        my_dict[str_project_id] = {}
+    # if str_project_id not in my_dict:
+    #     my_dict[str_project_id] = {}
+    #   
+    # if field_name not in my_dict[str_project_id]:
+    #     my_dict[str_project_id][field_name__descr] = []
+    #   
+    # my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
+    my_dict = metadata.make_my_dict(my_dict, str_project_id, field_name, field_name__descr)
+    
   
-    if field_name not in my_dict[str_project_id]:
-        my_dict[str_project_id][field_name__descr] = []
-  
-    my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
   
     for x in custom_metadata_distinct_list:
       if dco_custom_field_info[3] != x:
         # print "dco_custom_field_info[3] = %s, x = %s" % (dco_custom_field_info[3], x)
         pass
     
-  # print my_dict
+  print "my_dict"
+  print my_dict
   # lat_lon': [['', '28.596 S, 173.381 W', '28.596 S, 173.280 W']], 'samp_store_temp': [['-80']]}}
   
   print "555"
