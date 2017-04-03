@@ -191,8 +191,3 @@ if __name__ == '__main__':
       custom_metadata_per_field_dict = metadata.make_custom_metadata_per_field_dict(custom_metadata_per_field_dict, custom_metadata_distinct_list, field_name__descr)
   
   metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)
-  # for k, v in custom_metadata_per_field_dict.items():
-  #   print k, set([item for sublist in v for item in sublist])
-  #   
-  # print len(set(all_field_name__descr))
-  
