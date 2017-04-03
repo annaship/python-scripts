@@ -96,13 +96,13 @@ if __name__ == '__main__':
     # my_dict[project_id]field_name].append
     # query = """select `%s` from custom_metadata_%s""" % (field_name, str(project_id))
     # print query
-    custom_metadata = metadata.get_custom_metadata_per_project(project_id, field_name)
+    # custom_metadata = metadata.get_custom_metadata_per_project(project_id, field_name)
     # mysql_utils.execute_fetch_select(query)
     # print "custom_metadata HHHH"
     # print custom_metadata
     # ((('',), ('',), ('',), ('',), ('',), ('',), ('',), ('',), ('3363',), ('2796',), ('',), ('',), ('',), ('',), ('',), ('',), ('4500',), ('4286',)), ['methane'])
     
-    custom_metadata_distinct_list = metadata.make_custom_metadata_distinct_list(custom_metadata)
+    custom_metadata_distinct_list = metadata.make_custom_metadata_distinct_list(metadata.get_custom_metadata_per_project(project_id, field_name))
     # [y[0] for y in set([x for x in custom_metadata[0]])]
     # print "YYY"
     # print custom_metadata_distinct_list
