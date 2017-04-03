@@ -117,7 +117,7 @@ if __name__ == '__main__':
   # print "=" * 5
   # print dco_custom_fields
   
-  my_dict = {}
+  custom_metadata_distinct_list_per_field_per_project_dict = {}
   
   all_field_names = []
   all_field_name__descr = []
@@ -152,8 +152,7 @@ if __name__ == '__main__':
     all_field_names.append(field_name)
     all_field_name__descr.append(field_name__descr)
 
-    my_dict = metadata.make_my_dict(my_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
-    
+    custom_metadata_distinct_list_per_field_per_project_dict = metadata.make_my_dict(custom_metadata_distinct_list_per_field_per_project_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
     # for x in custom_metadata_distinct_list:
     #   if dco_custom_field_info[3] != x:
     #     # print "dco_custom_field_info[3] = %s, x = %s" % (dco_custom_field_info[3], x)
@@ -180,14 +179,10 @@ if __name__ == '__main__':
   #       
         # ===
   custom_metadata_per_field_dict = {}
-  for str_project_id, d1 in my_dict.items():  
+  for str_project_id, d1 in custom_metadata_distinct_list_per_field_per_project_dict.items():  
     project_name = metadata.get_project_name(all_dco_project_ids, str_project_id)      
     for field_name__descr, custom_metadata_distinct_list in d1.items():
       custom_metadata_per_field_dict = metadata.make_custom_metadata_per_field_dict(custom_metadata_per_field_dict, custom_metadata_distinct_list, field_name__descr)
-      # for custom_metadatum in custom_metadata_distinct_list:
-      #   custom_metadata_per_field_dict = metadata.populate_dict_of_lists(custom_metadata_per_field_dict, field_name__descr)
-      #   
-      #   custom_metadata_per_field_dict[field_name__descr].append(custom_metadatum)
   
   for k, v in custom_metadata_per_field_dict.items():
     print k, set([item for sublist in v for item in sublist])
