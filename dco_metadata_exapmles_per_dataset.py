@@ -37,53 +37,13 @@ class Metadata():
     """((...(860L, 'trace element geochemistry', '', 'yes')), ['project_id', 'field_name', 'field_units', 'example'])"""
     return dco_custom_fields
     
-  def a(self):
-    my_dict = {}
-
-    all_field_names = []
-    all_field_name__descr = []
-    for dco_custom_field_info in dco_custom_fields[0]:
-      # print "dco_custom_field_info"
-      # print dco_custom_field_info
-      # (860L, 'resistivity', 'ohm-meters', 'n.d.')
-      # (860L, 'trace element geochemistry', '', 'yes')
-      project_id = dco_custom_field_info[0]
-      field_name = dco_custom_field_info[1]
-      # my_dict[project_id]field_name].append
-      query = """select `%s` from custom_metadata_%s""" % (field_name, str(project_id))
-      # print query
-      custom_metadata = mysql_utils.execute_fetch_select(query)
-      custom_metadata_list = [y[0] for y in set([x for x in custom_metadata[0]])]
-      # print custom_metadata_list
-      # print "field_name = %s" % field_name
-      # print dco_custom_field_info[3] == custom_metadata_list[0]
-      # 
-      # if not (dco_custom_field_info[3] == custom_metadata_list[0]):
-      #   print "dco_custom_field_info[3] = %s, custom_metadata_list[0] = %s" % (dco_custom_field_info[3], custom_metadata_list[0])
-
-      str_project_id = str(project_id)
-      field_name__descr = field_name + "__" + dco_custom_field_info[2]
-      all_field_names.append(field_name)
-      all_field_name__descr.append(field_name__descr)
-      if str_project_id not in my_dict:
-          my_dict[str_project_id] = {}
-
-      if field_name not in my_dict[str_project_id]:
-          my_dict[str_project_id][field_name__descr] = []
-
-      my_dict[str_project_id][field_name__descr].append(custom_metadata_list)
-
-      for x in custom_metadata_list:
-        if dco_custom_field_info[3] != x:
-          # print "dco_custom_field_info[3] = %s, x = %s" % (dco_custom_field_info[3], x)
-          pass
-
-    
-  
   def get_custom_metadata_per_project(self, project_id, field_name):
     query = """select `%s` from custom_metadata_%s""" % (field_name, str(project_id))
     # print query
     return mysql_utils.execute_fetch_select(query)
+    
+  def make_custom_metadata_distinct_list(self, custom_metadata):
+    return [y[0] for y in set([x for x in custom_metadata[0]])]
       
       
 if __name__ == '__main__':
@@ -138,17 +98,19 @@ if __name__ == '__main__':
     # print query
     custom_metadata = metadata.get_custom_metadata_per_project(project_id, field_name)
     # mysql_utils.execute_fetch_select(query)
-    print "custom_metadata HHHH"
-    print custom_metadata
+    # print "custom_metadata HHHH"
+    # print custom_metadata
     # ((('',), ('',), ('',), ('',), ('',), ('',), ('',), ('',), ('3363',), ('2796',), ('',), ('',), ('',), ('',), ('',), ('',), ('4500',), ('4286',)), ['methane'])
     
-    custom_metadata_list = [y[0] for y in set([x for x in custom_metadata[0]])]
-    # print custom_metadata_list
+    custom_metadata_distinct_list = metadata.make_custom_metadata_distinct_list(custom_metadata)
+    # [y[0] for y in set([x for x in custom_metadata[0]])]
+    # print "YYY"
+    # print custom_metadata_distinct_list
     # print "field_name = %s" % field_name
-    # print dco_custom_field_info[3] == custom_metadata_list[0]
+    # print dco_custom_field_info[3] == custom_metadata_distinct_list[0]
     # 
-    # if not (dco_custom_field_info[3] == custom_metadata_list[0]):
-    #   print "dco_custom_field_info[3] = %s, custom_metadata_list[0] = %s" % (dco_custom_field_info[3], custom_metadata_list[0])
+    # if not (dco_custom_field_info[3] == custom_metadata_distinct_list[0]):
+    #   print "dco_custom_field_info[3] = %s, custom_metadata_distinct_list[0] = %s" % (dco_custom_field_info[3], custom_metadata_distinct_list[0])
     
     str_project_id = str(project_id)
     field_name__descr = field_name + "__" + dco_custom_field_info[2]
@@ -160,9 +122,9 @@ if __name__ == '__main__':
     if field_name not in my_dict[str_project_id]:
         my_dict[str_project_id][field_name__descr] = []
   
-    my_dict[str_project_id][field_name__descr].append(custom_metadata_list)
+    my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
   
-    for x in custom_metadata_list:
+    for x in custom_metadata_distinct_list:
       if dco_custom_field_info[3] != x:
         # print "dco_custom_field_info[3] = %s, x = %s" % (dco_custom_field_info[3], x)
         pass
@@ -178,8 +140,8 @@ if __name__ == '__main__':
     """
     
     project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
-    for field_name__descr, custom_metadata_list in d1.items():
-      for custom_metadatum in custom_metadata_list:
+    for field_name__descr, custom_metadata_distinct_list in d1.items():
+      for custom_metadatum in custom_metadata_distinct_list:
         pass
         # print project_name[0], field_name__descr, custom_metadatum
         
@@ -189,8 +151,8 @@ if __name__ == '__main__':
   my_dict2 = {}
   for str_project_id, d1 in my_dict.items():  
     project_name = [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
-    for field_name__descr, custom_metadata_list in d1.items():
-      for custom_metadatum in custom_metadata_list:
+    for field_name__descr, custom_metadata_distinct_list in d1.items():
+      for custom_metadatum in custom_metadata_distinct_list:
         if field_name__descr not in my_dict2:
             my_dict2[field_name__descr] = []
         
