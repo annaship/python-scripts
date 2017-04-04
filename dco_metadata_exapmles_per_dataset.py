@@ -116,7 +116,7 @@ class Metadata():
   def make_headers(self, one_table_res):
     print "XXX"
     print one_table_res
-    pr_d_headers = []
+    pr_d_headers = [""]
     for s in one_table_res[0]:
       project_dataset = "%s--%s" % (s[1], s[2])
       pr_d_headers.append(project_dataset)
