@@ -194,18 +194,31 @@ if __name__ == '__main__':
   metadata_per_project_dataset_dict = {}
   # print custom_metadata_values_per_project_dataset
   for x in custom_metadata_values_per_project_dataset:
+    metadata_per_project_dataset_matix = []
+    
+    headers = []
+    
     project_id = x[0][0][0]
-    custom_field_names = x[1][3:]
-    print "PPP"
-    print field_names
+    custom_m_field_names = x[1][3:]
+    # print "PPP"
+    # print custom_field_names
+    # ['custom_metadata_300_id', 'dataset_id', 'methane', 'dna_extraction_meth', 'tot_depth_water_col', 'alkalinity', 'pH', 'geo_loc_name', 'quality_method', 'sulfate', 'samp_store_temp', 'target_gene', 'microbial_biomass_microscopic', 'lithology', 'salinity', 'sample_id', 'depth']
+    
     for s in x[0]:
       # print "PPP"
       # print s
       # (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
-      
       project_dataset = "%s--%s" % (s[1], s[2])
+      headers.append(project_dataset)
       # print project_dataset
-      metadata_per_project_dataset_dict[project_dataset] = s[3:]
+      # metadata_per_project_dataset_matix.append(s)
+    print "zzz metadata_per_project_dataset_matix"
+    print zip(*x[0])
+    """
+    [(432L, 432L, 432L, 432L, 432L, 432L, 432L, 432L), ('DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4', 'DCO_WAL_Bv6v4'), ('Bering_2_Bv6v4', 'Bering_7_Bv6v4', 'Bering_6_Bv6v4', 'Bering_8_Bv6v4', 'Bering_3_Bv6v4', 'Bering_1_Bv6v4', 'Bering_5_Bv6v4', 'Bering_4_Bv6v4'), (1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L), (336380L, 336385L, 336384L, 336386L, 336381L, 336379L, 336383L, 336382L), ('10900', '41100', '65800', '21400', '23500', '5100', '35000', '33000'), ('sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment'), ('Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea'), ('558186.2', '511987.9', '588246', '520077.9', '753698.1', '551636.8', '548302.6', '522290.7'), ('7.67', '7.94', '7.76', '8.15', '7.78', '7.38', '7.65', '7.72'), ('8718.8', '3592.5', '3614.5', '4464', '5166.6', '9726.9', '2601.1', '2654.1'), ('-80', '-80', '-80', '-80', '-80', '-80', '-80', '-80'), ('anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic'), ('P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y'), ('70.48', '37.01', '268.05', '6.99', '113.5', '19.83', '146.57', '121.17'), ('piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core'), ('BS-2 (B)', 'BS-7 (B)', 'BS-6 (B)', 'BS-8 (B)', 'BS-3 (B)', 'BS-1 (B)', 'BS-5 (B)', 'BS-4 (B)'), ('Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil'), ('1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9'), (1.65, 214.17, 89.32, 404.61, 5.65, 0.15, 11.65, 8.65)]
+    
+    """
+      # metadata_per_project_dataset_dict[project_dataset] = s[3:]
       
       
     file_name = "custom_metadata_per_project_%s.csv" % (project_id)
@@ -217,8 +230,7 @@ if __name__ == '__main__':
     #   csv_writer.writerow(field_names) # write headers
     #   csv_writer.writerows(data_from_db)
     # #
-    #
-  print "metadata_per_project_dataset_dict"
-  print metadata_per_project_dataset_dict
+    #[(300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
+  
   
   # metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)
