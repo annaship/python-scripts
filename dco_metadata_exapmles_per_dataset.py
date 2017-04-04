@@ -27,8 +27,8 @@ class Metadata():
   def make_dco_cutom_table_name_list(self, all_project_ids_str):
     return ['custom_metadata_' + x for x in all_project_ids_str]
 
-  def get_dco_custom_fields(self, dco_cutom_tables):
-    for table_name in dco_cutom_tables:
+  def get_dco_custom_fields(self, dco_custom_tables):
+    for table_name in dco_custom_tables:
       get_metadata_query = """ select 
 
       """
@@ -111,14 +111,14 @@ if __name__ == '__main__':
   all_dco_project_ids = metadata.get_all_dco_project_ids()
   
   all_project_ids_str = metadata.all_dco_project_ids_to_str(all_dco_project_ids)
-  # print dco_cutom_tables
-  # print len(dco_cutom_tables)
+  # print dco_custom_tables
+  # print len(dco_custom_tables)
   # 64
 
-  dco_cutom_tables = metadata.make_dco_cutom_table_name_list(all_project_ids_str)
-  dco_custom_fields = metadata.get_dco_custom_fields(dco_cutom_tables)
-  print "=" * 5
-  print dco_custom_fields
+  dco_custom_tables = metadata.make_dco_cutom_table_name_list(all_project_ids_str)
+  dco_custom_fields = metadata.get_dco_custom_fields(dco_custom_tables)
+  # print "=" * 5
+  # print dco_custom_fields
   
   custom_metadata_distinct_list_per_field_per_project_dict = {}
   
@@ -148,5 +148,15 @@ if __name__ == '__main__':
     project_name = metadata.get_project_name(all_dco_project_ids, str_project_id)      
     for field_name__descr, custom_metadata_distinct_list in d1.items():
       custom_metadata_per_field_dict = metadata.make_custom_metadata_per_field_dict(custom_metadata_per_field_dict, custom_metadata_distinct_list, field_name__descr)
+  
+  # === make project_dataset x all_fields table ===
+  custom_metadata_values_per_project_dataset = [] #list of dicts
+  dco_poject_dataset_query = """SELECT DISTINCT project, dataset FROM %s JOIN dataset_id where project_id in (%s)""" % (", ".join(all_project_ids_str))
+  
+  
+  # for dco_custom_table in dco_custom_tables:
+  #   dco_dataset_query = """SELECT DISTINCT project, dataset FROM %s JOIN dataset_id WHERE project_id in (%s)""" % (dco_custom_table))
+  # ===
+  
   
   metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)
