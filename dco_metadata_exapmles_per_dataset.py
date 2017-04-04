@@ -97,7 +97,7 @@ class Metadata():
     custom_metadata_values_per_project_dataset = []
     
     for dco_custom_table in dco_custom_tables:
-      
+      # TODO: combine with get_custom_metadata_per_project
       dco_poject_dataset_query = """SELECT DISTINCT project_id, project, dataset.dataset as sample, %s.* FROM %s JOIN dataset USING(dataset_id) JOIN project USING(project_id)""" % (dco_custom_table, dco_custom_table)
       try:
         res = mysql_utils.execute_fetch_select(dco_poject_dataset_query)
@@ -191,5 +191,8 @@ if __name__ == '__main__':
   
   print "PPP"
   print custom_metadata_values_per_project_dataset
+  for x in custom_metadata_values_per_project_dataset:
+    utils.write_to_csv_file("file_name.csv", x, file_mode = "wb")
+  
   
   metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)

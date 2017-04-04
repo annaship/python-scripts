@@ -3,6 +3,7 @@ import MySQLdb
 import logging
 import timeit
 import time
+import csv
 
 class Mysql_util:
     """
