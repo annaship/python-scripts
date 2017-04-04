@@ -33,13 +33,14 @@ class Metadata():
 
       """
 
-    dco_custom_fields_query = """select distinct project_id, field_name, field_units, example from custom_metadata_fields where project_id in (%s)""" % (", ".join(all_project_ids_str))
+    dco_custom_fields_query = """SELECT DISTINCT project_id, field_name, field_units, example FROM custom_metadata_fields WHERE project_id in (%s)""" % (", ".join(all_project_ids_str))
     # print dco_custom_fields_query
     dco_custom_fields = mysql_utils.execute_fetch_select(dco_custom_fields_query)
     # print dco_custom_fields
     """((...(860L, 'trace element geochemistry', '', 'yes')), ['project_id', 'field_name', 'field_units', 'example'])"""
     return dco_custom_fields
     
+  # TODO: get all join project and dataset?
   def get_custom_metadata_per_project(self, project_id, field_name):
     query = """select `%s` from custom_metadata_%s""" % (field_name, str(project_id))
     # print query
@@ -151,10 +152,16 @@ if __name__ == '__main__':
   
   # === make project_dataset x all_fields table ===
   custom_metadata_values_per_project_dataset = [] #list of dicts
-  dco_poject_dataset_query = """SELECT DISTINCT project, dataset FROM %s JOIN dataset_id where project_id in (%s)""" % (", ".join(all_project_ids_str))
   
   
-  # for dco_custom_table in dco_custom_tables:
+  for dco_custom_table in dco_custom_tables:
+    dco_poject_dataset_query = """SELECT DISTINCT project_id, project, dataset FROM %s JOIN dataset USING(dataset_id) JOIN project USING(project_id)""" % (dco_custom_table)
+    try:
+      print mysql_utils.execute_fetch_select(dco_poject_dataset_query)
+      # (((300L, 'DCO_BKR_Av4v5', 'Aar_59E_25H2'), (300L, 'DCO_BKR_Av4v5', 'Aar_DrillFluid_59E_NC'), (300L, 'DCO_BKR_Av4v5', 'Knox_60B_10H2'), (300L, 'DCO_BKR_Av4v5', 'Knox_65C_7H2'), (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2')), ['project_id', 'project', 'dataset'])
+    except:
+      pass
+    
   #   dco_dataset_query = """SELECT DISTINCT project, dataset FROM %s JOIN dataset_id WHERE project_id in (%s)""" % (dco_custom_table))
   # ===
   
