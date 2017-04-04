@@ -92,6 +92,20 @@ class Metadata():
     print len(set(all_field_name__descr))
     # print set(all_field_name__descr)
     
+  def get_project_datasets(self, dco_custom_tables):
+    dco_poject_datasets = {}
+    
+    for dco_custom_table in dco_custom_tables:
+      dco_poject_dataset_temp = {}
+      
+      dco_poject_dataset_query = """SELECT DISTINCT project_id, project, dataset FROM %s JOIN dataset USING(dataset_id) JOIN project USING(project_id)""" % (dco_custom_table)
+      try:
+         res = mysql_utils.execute_fetch_select(dco_poject_dataset_query)
+
+        # (((300L, 'DCO_BKR_Av4v5', 'Aar_59E_25H2'), (300L, 'DCO_BKR_Av4v5', 'Aar_DrillFluid_59E_NC'), (300L, 'DCO_BKR_Av4v5', 'Knox_60B_10H2'), (300L, 'DCO_BKR_Av4v5', 'Knox_65C_7H2'), (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2')), ['project_id', 'project', 'dataset'])
+      except:
+        pass
+    
       
 if __name__ == '__main__':
   utils = util.Utils()
