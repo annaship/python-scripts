@@ -114,10 +114,11 @@ class Metadata():
     return custom_metadata_values_per_project_dataset
     
   def make_headers(self, one_table_res):
-    pr_d_headers = [""]
+    pr_d_headers = []
     for s in one_table_res[0]:
       project_dataset = "%s--%s" % (s[1], s[2])
       pr_d_headers.append(project_dataset)
+    pr_d_headers.insert(0, "Field--Unit for all DCO projects")      
     return pr_d_headers
   
 if __name__ == '__main__':
@@ -208,7 +209,6 @@ if __name__ == '__main__':
     
     """
     custom_m_field_names = one_table_res[1][5:]
-    # custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
     """    
     print "PPP"
     print custom_m_field_names
@@ -225,24 +225,19 @@ if __name__ == '__main__':
     transposed_matrix = zip(*custom_metadata_matrix)
     print "CCC transposed_matrix"
     print transposed_matrix
+    """
+    [('diss_inorg_carb', '10900', '41100', '65800', '21400', '23500', '5100', '35000', '33000'), ('rock_type', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment'), ('geo_loc_name', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea'), ('chloride', '558186.2', '511987.9', '588246', '520077.9', '753698.1', '551636.8', '548302.6', '522290.7'), ('pH', '7.67', '7.94', '7.76', '8.15', '7.78', '7.38', '7.65', '7.72'), ('calcium', '8718.8', '3592.5', '3614.5', '4464', '5166.6', '9726.9', '2601.1', '2654.1'), ('samp_store_temp', '-80', '-80', '-80', '-80', '-80', '-80', '-80', '-80'), ('redox_state', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic'), ('samp_store_dur', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y'), ('phosphate', '70.48', '37.01', '268.05', '6.99', '113.5', '19.83', '146.57', '121.17'), ('access_point_type', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core'), ('sample_id', 'BS-2 (B)', 'BS-7 (B)', 'BS-6 (B)', 'BS-8 (B)', 'BS-3 (B)', 'BS-1 (B)', 'BS-5 (B)', 'BS-4 (B)'), ('dna_extraction_meth', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil'), ('tot_depth_water_col', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9'), ('depth', 1.65, 214.17, 89.32, 404.61, 5.65, 0.15, 11.65, 8.65)]
     
+    """
     project_id = one_table_res[0][0][0]
-    
-
-    # print "zzz metadata_per_project_dataset_matix"
-    # print zip(*x[0])
-
-      # metadata_per_project_dataset_dict[project_dataset] = s[3:]
-      
-      
     file_name = "custom_metadata_per_project_%s.csv" % (project_id)
     # utils.write_to_csv_file(file_name, x, file_mode = "wb")
     # data_from_db, field_names = x
     
-    # with open(file_name, "wb") as csv_file:
-    #   csv_writer = csv.writer(csv_file)
-    #   csv_writer.writerow(field_names) # write headers
-    #   csv_writer.writerows(data_from_db)
+    with open(file_name, "wb") as csv_file:
+      csv_writer = csv.writer(csv_file)
+      csv_writer.writerow(headers) # write headers
+      csv_writer.writerows(transposed_matrix)
     # #
     #[(300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
   
