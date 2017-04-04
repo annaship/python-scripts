@@ -190,27 +190,35 @@ if __name__ == '__main__':
   
   custom_metadata_values_per_project_dataset = metadata.get_project_datasets_custom_metadata(dco_custom_tables)
   
+  # metadata_per_project_dataset_dict
+  metadata_per_project_dataset_dict = {}
   # print custom_metadata_values_per_project_dataset
   for x in custom_metadata_values_per_project_dataset:
     project_id = x[0][0][0]
+    custom_field_names = x[1][3:]
+    print "PPP"
+    print field_names
     for s in x[0]:
-      print "PPP"
-      print s
+      # print "PPP"
+      # print s
       # (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
       
       project_dataset = "%s--%s" % (s[1], s[2])
-      print project_dataset
+      # print project_dataset
+      metadata_per_project_dataset_dict[project_dataset] = s[3:]
+      
       
     file_name = "custom_metadata_per_project_%s.csv" % (project_id)
-    utils.write_to_csv_file(file_name, x, file_mode = "wb")
+    # utils.write_to_csv_file(file_name, x, file_mode = "wb")
     # data_from_db, field_names = x
     
-    # with open(file_name, file_mode) as csv_file:
+    # with open(file_name, "wb") as csv_file:
     #   csv_writer = csv.writer(csv_file)
-    #   if file_mode == "wb":
-    #     csv_writer.writerow(field_names) # write headers
+    #   csv_writer.writerow(field_names) # write headers
     #   csv_writer.writerows(data_from_db)
+    # #
     #
-    #
+  print "metadata_per_project_dataset_dict"
+  print metadata_per_project_dataset_dict
   
-  metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)
+  # metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)
