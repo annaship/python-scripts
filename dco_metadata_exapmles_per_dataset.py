@@ -23,6 +23,9 @@ class Metadata():
     
   def get_all_custom_metadata_tabel_names(self, all_dco_project_ids):
     return [str(int(x[0])) for x in all_dco_project_ids[0]]
+    
+  def make_dco_cutom_table_name_list(self, all_dco_project_ids):
+    return ['custom_metadata_' + str(int(x[0])) for x in all_dco_project_ids[0]]
 
   def get_dco_custom_fields(self, dco_cutom_tables):
     for table_name in dco_cutom_tables:
@@ -86,6 +89,8 @@ class Metadata():
       print k, set([item for sublist in v for item in sublist])
 
     print len(set(all_field_name__descr))
+    # print set(all_field_name__descr)
+    
       
 if __name__ == '__main__':
   utils = util.Utils()
@@ -100,19 +105,13 @@ if __name__ == '__main__':
   # a = mysql_utils.execute_fetch_select(query)
   # print a
   
-  # print all_custom_tables
-  
-  # for t in all_custom_tables[0]:
-  #   print t[0]
-
   all_custom_tables = metadata.get_all_all_custom_tables()
   
   query_project_ids = """select project_id, project from project where project like "DCO%" """
   all_dco_project_ids = metadata.get_all_dco_project_ids()
   
-  # print "all_dco_project_ids"
-  # print all_dco_project_ids
-  dco_cutom_tables = ['custom_metadata_' + str(int(x[0])) for x in all_dco_project_ids[0]]
+  dco_cutom_tables = metadata.make_dco_cutom_table_name_list(all_dco_project_ids)
+  # ['custom_metadata_' + str(int(x[0])) for x in all_dco_project_ids[0]]
   
   all_project_ids = metadata.get_all_custom_metadata_tabel_names(all_dco_project_ids)
   # print dco_cutom_tables
