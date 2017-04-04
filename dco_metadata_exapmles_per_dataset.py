@@ -190,9 +190,12 @@ if __name__ == '__main__':
   custom_metadata_values_per_project_dataset = metadata.get_project_datasets_custom_metadata(dco_custom_tables)
   
   print "PPP"
-  print custom_metadata_values_per_project_dataset
+  # print custom_metadata_values_per_project_dataset
   for x in custom_metadata_values_per_project_dataset:
-    utils.write_to_csv_file("file_name.csv", x, file_mode = "wb")
+    project_id = x[0][0][0]
+    file_name = "custom_metadata_per_project_%s.csv" % (project_id)
+    utils.write_to_csv_file(file_name, x, file_mode = "wb")
+    # data_from_db, field_names = x
   
   
   metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict)
