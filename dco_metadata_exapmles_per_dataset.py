@@ -114,8 +114,6 @@ class Metadata():
     return custom_metadata_values_per_project_dataset
     
   def make_headers(self, one_table_res):
-    print "XXX"
-    print one_table_res
     pr_d_headers = [""]
     for s in one_table_res[0]:
       project_dataset = "%s--%s" % (s[1], s[2])
@@ -199,31 +197,36 @@ if __name__ == '__main__':
   
   custom_metadata_values_per_project_dataset = metadata.get_project_datasets_custom_metadata(dco_custom_tables)
   
-  # metadata_per_project_dataset_dict
   metadata_per_project_dataset_dict = {}
   # print custom_metadata_values_per_project_dataset
   for one_table_res in custom_metadata_values_per_project_dataset:
     headers = metadata.make_headers(one_table_res)
-    metadata_per_project_dataset_matix = []
+    # print "XXX"
+    # print one_table_res
+    """
+    (((300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5), (300L, 'DCO_BKR_Av4v5', 'Aar_DrillFluid_59E_NC', 2L, 238915L, '', 'MP Biomedical FAST DNA', '', '', '', 'Baltic Sea Basin', '', '', '-80', '16S DNA', '', 'drill fluid', '', 'AarDrillFluid59ENC', 0.0), (300L, 'DCO_BKR_Av4v5', 'Aar_59E_25H2', 3L, 238914L, '810', 'MP Biomedical FAST DNA', '35', '6.1', '7.01', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '7.93', 'Vared Clay/Silty Clay', '9.05', 'Aar59E25H2', 81.5), (300L, 'DCO_BKR_Av4v5', 'Knox_65C_7H2', 4L, 238917L, '5400', 'MP Biomedical FAST DNA', '87', '7.17', '7.41', 'Baltic Sea Basin', 'perfluorocarbon tracer', '170', '-80', '16S DNA', '', 'Vared Clay/Silty Clay', '6.8', 'Knox65C7H2', 20.35), (300L, 'DCO_BKR_Av4v5', 'Knox_60B_10H2', 5L, 238916L, '0', 'MP Biomedical FAST DNA', '34', '9.05', '7.89', 'Baltic Sea Basin', 'perfluorocarbon tracer', '8300', '-80', '16S DNA', '8.36', 'Vared Clay/Silty Clay', '26.7', 'Knox60B10H2', 27.4)), ['project_id', 'project', 'sample', 'custom_metadata_300_id', 'dataset_id', 'methane', 'dna_extraction_meth', 'tot_depth_water_col', 'alkalinity', 'pH', 'geo_loc_name', 'quality_method', 'sulfate', 'samp_store_temp', 'target_gene', 'microbial_biomass_microscopic', 'lithology', 'salinity', 'sample_id', 'depth'])
     
-    # headers = []
-    print "HHH"
-    print headers
+    """
+    custom_m_field_names = one_table_res[1][5:]
+    custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
+    """    
+    print "PPP"
+    print custom_m_field_names
+    ['Field--Name for all DCO projects', 'diss_inorg_carb', 'rock_type', 'geo_loc_name', 'chloride', 'pH', 'calcium', 'samp_store_temp', 'redox_state', 'samp_store_dur', 'phosphate', 'access_point_type', 'sample_id', 'dna_extraction_meth', 'tot_depth_water_col', 'depth']
+    """    
+    custom_metadata_matrix = []
+    custom_metadata_matrix.append(custom_m_field_names)
+    
+    for one_dataset in one_table_res[0]:
+      custom_metadata_matrix.append(one_dataset[5:])
+      
+    # first_column = zip(*custom_m_field_names)
+    print "zzz custom_metadata_matrix"
+    print custom_metadata_matrix
     
     project_id = one_table_res[0][0][0]
-    custom_m_field_names = one_table_res[1][3:]
-    # print "PPP"
-    # print custom_field_names
-    # ['custom_metadata_300_id', 'dataset_id', 'methane', 'dna_extraction_meth', 'tot_depth_water_col', 'alkalinity', 'pH', 'geo_loc_name', 'quality_method', 'sulfate', 'samp_store_temp', 'target_gene', 'microbial_biomass_microscopic', 'lithology', 'salinity', 'sample_id', 'depth']
     
-    # for s in x[0]:
-      # print "PPP"
-      # print s
-      # (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
-      # project_dataset = "%s--%s" % (s[1], s[2])
-      # headers.append(project_dataset)
-      # print project_dataset
-      # metadata_per_project_dataset_matix.append(s)
+
     # print "zzz metadata_per_project_dataset_matix"
     # print zip(*x[0])
 
