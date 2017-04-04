@@ -208,7 +208,7 @@ if __name__ == '__main__':
     
     """
     custom_m_field_names = one_table_res[1][5:]
-    custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
+    # custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
     """    
     print "PPP"
     print custom_m_field_names
@@ -220,9 +220,11 @@ if __name__ == '__main__':
     for one_dataset in one_table_res[0]:
       custom_metadata_matrix.append(one_dataset[5:])
       
-    # first_column = zip(*custom_m_field_names)
     print "zzz custom_metadata_matrix"
     print custom_metadata_matrix
+    transposed_matrix = zip(*custom_metadata_matrix)
+    print "CCC transposed_matrix"
+    print transposed_matrix
     
     project_id = one_table_res[0][0][0]
     
