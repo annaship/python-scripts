@@ -159,6 +159,16 @@ class Utils:
 
     def flatten_2d_list(self, list):
       return [item for sublist in list for item in sublist]
+      
+    def sort_case_insesitive(self, unsorted_list):
+      try:
+        sorted_list = sorted(unsorted_list, key=lambda s: s.lower())
+      except AttributeError:
+        sorted_list = sorted(unsorted_list)
+      except:
+        raise
+      return sorted_list
+      
 
     def wrapper(self, func, *args, **kwargs):
         def wrapped():
