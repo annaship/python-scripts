@@ -113,13 +113,14 @@ class Metadata():
       # MySQLdb.OperationalError, e
     return custom_metadata_values_per_project_dataset
     
-  def make_headers(self, one_table_res):
-    pr_d_headers = []
-    for s in one_table_res[0]:
-      project_dataset = "%s--%s" % (s[1], s[2])
-      pr_d_headers.append(project_dataset)
-    pr_d_headers.insert(0, "Field--Unit for all DCO projects")      
-    return pr_d_headers
+  # def make_headers(self, one_table_res):
+  #   pr_d_headers = []
+  #   for s in one_table_res[0]:
+  #     project_dataset = "%s--%s" % (s[1], s[2])
+  #     pr_d_headers.append(project_dataset)
+  #   s_pr_d_headers = sorted(pr_d_headers)
+  #   s_pr_d_headers.insert(0, "Field--Unit for all DCO projects")
+  #   return s_pr_d_headers
   
 if __name__ == '__main__':
   utils = util.Utils()
@@ -201,7 +202,7 @@ if __name__ == '__main__':
   metadata_per_project_dataset_dict = {}
   # print custom_metadata_values_per_project_dataset
   for one_table_res in custom_metadata_values_per_project_dataset:
-    headers = metadata.make_headers(one_table_res)
+    # headers = metadata.make_headers(one_table_res)
     # print "XXX"
     # print one_table_res
     """
@@ -209,16 +210,25 @@ if __name__ == '__main__':
     
     """
     custom_m_field_names = one_table_res[1][5:]
+    custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
+    
+    # print "PPP"
+    # print custom_m_field_names
+    
     """    
-    print "PPP"
-    print custom_m_field_names
     ['Field--Name for all DCO projects', 'diss_inorg_carb', 'rock_type', 'geo_loc_name', 'chloride', 'pH', 'calcium', 'samp_store_temp', 'redox_state', 'samp_store_dur', 'phosphate', 'access_point_type', 'sample_id', 'dna_extraction_meth', 'tot_depth_water_col', 'depth']
     """    
     custom_metadata_matrix = []
     custom_metadata_matrix.append(custom_m_field_names)
     
     for one_dataset in one_table_res[0]:
-      custom_metadata_matrix.append(one_dataset[5:])
+      """
+      (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
+      """
+      project_dataset = "%s--%s" % (one_dataset[1], one_dataset[2])
+      one_line = list(one_dataset[5:])
+      one_line.insert(0, project_dataset)
+      custom_metadata_matrix.append(one_line)
       
     print "zzz custom_metadata_matrix"
     print custom_metadata_matrix
@@ -234,10 +244,10 @@ if __name__ == '__main__':
     # utils.write_to_csv_file(file_name, x, file_mode = "wb")
     # data_from_db, field_names = x
     
-    with open(file_name, "wb") as csv_file:
-      csv_writer = csv.writer(csv_file)
-      csv_writer.writerow(headers) # write headers
-      csv_writer.writerows(transposed_matrix)
+    # with open(file_name, "wb") as csv_file:
+    #   csv_writer = csv.writer(csv_file)
+    #   csv_writer.writerow(headers) # write headers
+    #   csv_writer.writerows(transposed_matrix)
     # #
     #[(300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
   
