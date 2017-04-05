@@ -141,13 +141,21 @@ class Metadata():
     # print one_table_res
     
     print "YYY"
-    print all_field_name__descr_per_project[project_id]
+    # print all_field_name__descr_per_project[project_id]
+    custom_m_field_names = []
     
-    custom_m_field_names = one_table_res[1][5:]
+    for a in one_table_res[1][5:]:
+      for b in all_field_name__descr_per_project[project_id]:
+        if b.startswith(a):
+          # print a, b
+          custom_m_field_names.append(b)
+          
+      
+    # custom_m_field_names = one_table_res[1][5:]
     custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
   
     # print "PPP"
-    # print custom_m_field_names
+    return custom_m_field_names
   
 if __name__ == '__main__':
   utils = util.Utils()
@@ -225,9 +233,9 @@ if __name__ == '__main__':
     """
     project_id = one_table_res[0][0][0]
     
-    custom_m_field_names1 = metadata.make_custom_m_field_names_unis(project_id, one_table_res, all_field_name__descr_per_project)
-    custom_m_field_names = one_table_res[1][5:]
-    custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
+    custom_m_field_names = metadata.make_custom_m_field_names_unis(project_id, one_table_res, all_field_name__descr_per_project)
+    # custom_m_field_names = one_table_res[1][5:]
+    # custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
     #
     # print "GGG"
     # print all_field_name__descr
