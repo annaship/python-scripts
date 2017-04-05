@@ -76,6 +76,15 @@ class Metadata():
 
     my_dict[str_project_id][field_name__descr].append(custom_metadata_distinct_list)
     return my_dict
+
+  def make_dict_field_values(self, dict_field_values, str_project_id, field_name, custom_metadata_distinct_list):
+    dict_field_values = self.populate_dict_of_lists(dict_field_values, field_name)
+    # print "UUU"
+    # print dict_field_values
+    # dict_field_values[field_name] = []
+    dict_field_values[field_name].append(custom_metadata_distinct_list)
+    return dict_field_values
+
     
   def get_project_name(self, all_dco_project_ids, str_project_id):
     return [x[1] for x in all_dco_project_ids[0] if int(x[0]) == int(str_project_id)]
@@ -193,6 +202,7 @@ if __name__ == '__main__':
   # print dco_custom_fields
   
   custom_metadata_distinct_list_per_field_per_project_dict = {}
+  field_values_dict = defaultdict(list)
   
   all_field_names = []
   all_field_name__descr = []
@@ -218,8 +228,10 @@ if __name__ == '__main__':
     
     custom_metadata_distinct_list_per_field_per_project_dict = metadata.make_my_dict(custom_metadata_distinct_list_per_field_per_project_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
 
-    print "LLL"
-    print custom_metadata_distinct_list_per_field_per_project_dict
+    field_values_dict = metadata.make_dict_field_values(field_values_dict, str_project_id, field_name, custom_metadata_distinct_list)
+
+  print "LLL"
+  print field_values_dict
     
   # print "LLL"
   # print all_field_name__descr_per_project
