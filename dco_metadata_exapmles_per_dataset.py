@@ -209,8 +209,11 @@ if __name__ == '__main__':
     (((300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5), (300L, 'DCO_BKR_Av4v5', 'Aar_DrillFluid_59E_NC', 2L, 238915L, '', 'MP Biomedical FAST DNA', '', '', '', 'Baltic Sea Basin', '', '', '-80', '16S DNA', '', 'drill fluid', '', 'AarDrillFluid59ENC', 0.0), (300L, 'DCO_BKR_Av4v5', 'Aar_59E_25H2', 3L, 238914L, '810', 'MP Biomedical FAST DNA', '35', '6.1', '7.01', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '7.93', 'Vared Clay/Silty Clay', '9.05', 'Aar59E25H2', 81.5), (300L, 'DCO_BKR_Av4v5', 'Knox_65C_7H2', 4L, 238917L, '5400', 'MP Biomedical FAST DNA', '87', '7.17', '7.41', 'Baltic Sea Basin', 'perfluorocarbon tracer', '170', '-80', '16S DNA', '', 'Vared Clay/Silty Clay', '6.8', 'Knox65C7H2', 20.35), (300L, 'DCO_BKR_Av4v5', 'Knox_60B_10H2', 5L, 238916L, '0', 'MP Biomedical FAST DNA', '34', '9.05', '7.89', 'Baltic Sea Basin', 'perfluorocarbon tracer', '8300', '-80', '16S DNA', '8.36', 'Vared Clay/Silty Clay', '26.7', 'Knox60B10H2', 27.4)), ['project_id', 'project', 'sample', 'custom_metadata_300_id', 'dataset_id', 'methane', 'dna_extraction_meth', 'tot_depth_water_col', 'alkalinity', 'pH', 'geo_loc_name', 'quality_method', 'sulfate', 'samp_store_temp', 'target_gene', 'microbial_biomass_microscopic', 'lithology', 'salinity', 'sample_id', 'depth'])
     
     """
-    custom_m_field_names = one_table_res[1][5:]
-    custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
+    # a = ["Field--Unit for all DCO projects", "All fields are empty?"]
+    a = ["Field--Unit for all DCO projects"]
+    b = one_table_res[1][5:]
+    custom_m_field_names = a + b
+    # custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
     
     # print "PPP"
     # print custom_m_field_names
@@ -221,13 +224,25 @@ if __name__ == '__main__':
     custom_metadata_matrix = []
     custom_metadata_matrix.append(custom_m_field_names)
     
+    dataset_len = len(one_table_res[0][0]) - 5
+    empty_marker = [1] * dataset_len
+    empty_marker.insert(0, "All fields are empty?")
+    
+    print "empty_marker"
+    print empty_marker
+    custom_metadata_matrix.append(empty_marker)
+    
     for one_dataset in one_table_res[0]:
       """
       (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
       """
+
       project_dataset = "%s--%s" % (one_dataset[1], one_dataset[2])
-      one_line = list(one_dataset[5:])
-      one_line.insert(0, project_dataset)
+      a = [project_dataset]
+      b = list(one_dataset[5:])
+      one_line = a + b
+      # one_line.insert(0, '1')
+      # one_line.insert(0, project_dataset)
       custom_metadata_matrix.append(one_line)
       
     print "zzz custom_metadata_matrix"
