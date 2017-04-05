@@ -113,11 +113,17 @@ class Metadata():
       # MySQLdb.OperationalError, e
     return custom_metadata_values_per_project_dataset
     
-  def make_empty_marker_line(self, one_line):
-    dataset_len = len(one_line) - 5
+  def make_empty_marker_line(self, dataset_len):
     empty_marker = [1] * dataset_len
     empty_marker.insert(0, "All fields are empty?")
     return empty_marker
+  
+  def make_rows_for_all_fields(self, dataset_len):
+    pass
+    # print "GGG"
+    # print all_field_name__descr
+    # print "PPP"
+    # print custom_m_field_names
     
   def make_custom_metadata_matrix(self, custom_metadata_matrix, one_table_res_data):
     for one_dataset in one_table_res_data:
@@ -234,9 +240,7 @@ if __name__ == '__main__':
     project_id = one_table_res[0][0][0]
     
     custom_m_field_names = metadata.make_custom_m_field_names_unis(project_id, one_table_res, all_field_name__descr_per_project)
-    # custom_m_field_names = one_table_res[1][5:]
-    # custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
-    #
+
     # print "GGG"
     # print all_field_name__descr
     # print "PPP"
@@ -247,7 +251,9 @@ if __name__ == '__main__':
     custom_metadata_matrix = []
     custom_metadata_matrix.append(custom_m_field_names)
     
-    empty_marker = metadata.make_empty_marker_line(one_table_res[0][0])
+    dataset_len = len(one_table_res[0][0]) - 5
+    
+    empty_marker = metadata.make_empty_marker_line(dataset_len)
     custom_metadata_matrix.append(empty_marker)
     
     custom_metadata_matrix = metadata.make_custom_metadata_matrix(custom_metadata_matrix, one_table_res[0])
