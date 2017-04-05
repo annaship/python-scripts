@@ -289,12 +289,23 @@ if __name__ == '__main__':
     # all_fields = metadata.make_rows_for_all_fields(custom_md_field_names_for_1_pr, len(one_table_res[0]))
     print "AAA"
     print project_id
-    print custom_md_field_names_for_1_pr
-    # print all_fields
-    # custom_md_field_names_for_1_pr = custom_md_field_names_for_1_pr + list(all_fields)
-    # print "AAA"
     # print custom_md_field_names_for_1_pr
     # print all_fields
+  
+    empty_fields = set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
+    # print "AAA"
+    # print custom_md_field_names_for_1_pr
+    all_zeros = [0]*len(empty_fields)
+    add_lines = [empty_fields, all_zeros]
+    transposed_add_lines = zip(*add_lines)
+    
+    # TODO:
+    # method
+    print transposed_add_lines
+    # TODO:
+    # remove used fields!
+    # DIC__mg/L 1 16S
+    # DIC__mg/L 0 
     
     
 
@@ -332,6 +343,8 @@ if __name__ == '__main__':
     with open(file_name, "wb") as csv_file:
       csv_writer = csv.writer(csv_file)
       csv_writer.writerows(transposed_matrix)
+      csv_writer.writerows(transposed_add_lines)
+      
       
   # print "DDD"
   # metadata.print_all_values_per_field_name(field_values_dict_flat)
