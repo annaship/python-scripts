@@ -127,8 +127,8 @@ class Metadata():
     empty_marker.insert(0, "All fields are empty?")
     return empty_marker
   
-  def make_rows_for_all_fields(self, custom_m_field_names, dataset_cnt):
-    return set(all_field_name__descr) - set(custom_m_field_names)
+  def make_rows_for_all_fields(self, custom_md_field_names_for_1_pr, dataset_cnt):
+    return set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
     
   def make_custom_metadata_matrix(self, custom_metadata_matrix, one_table_res_data):
     for one_dataset in one_table_res_data:
@@ -142,7 +142,7 @@ class Metadata():
       custom_metadata_matrix.append(one_line)
     return custom_metadata_matrix
   
-  def make_custom_m_field_names_unis(self, project_id, one_table_res, all_field_name__descr_per_project):
+  def make_custom_md_field_names_for_1_pr_unis(self, project_id, one_table_res, all_field_name__descr_per_project):
     # all_field_name__descr_per_project
     # 88L: ['methane__microMolar', 'sulfate__micromole_per_kilogram', 'sulfide__micromole_per_kilogram', 'conductivity__milliseimenPerCentimeter', 'sample_id__Alphanumeric', 'pH__logH+', 'sodium__micromole_per_kilogram', 'iron_II__micromole_per_kilogram', 'calcium__micromole_per_kilogram', 'chloride__micromole_per_kilogram', 'temp__celsius', 'pressure__decibar', 'potassium__micromole_per_kilogram', 'geo_loc_name__Alphanumeric', 'isol_growth_cond__Alphanumeric', 'dna_extraction_meth__Alphanumeric', 'nitrite__micromole_per_kilogram', 'env_feature__Alphanumeric', 'redox_state__Alphanumeric', 'sample_volume__liter', 'sequencing_meth__Alphanumeric', 'env_material__Alphanumeric', 'samp_store_temp__celsius', 'quality_method__Alphanumeric', 'target_gene__Alphanumeric', 'depth__meter']
     
@@ -153,20 +153,20 @@ class Metadata():
     
     # print "YYY"
     # print all_field_name__descr_per_project[project_id]
-    custom_m_field_names = []
+    custom_md_field_names_for_1_pr = []
     
     for a in one_table_res[1][5:]:
       for b in all_field_name__descr_per_project[project_id]:
         if b.startswith(a):
           # print a, b
-          custom_m_field_names.append(b)
+          custom_md_field_names_for_1_pr.append(b)
           
       
-    # custom_m_field_names = one_table_res[1][5:]
-    custom_m_field_names.insert(0, "Field--Unit for all DCO projects")
+    # custom_md_field_names_for_1_pr = one_table_res[1][5:]
+    custom_md_field_names_for_1_pr.insert(0, "Field--Unit for all DCO projects")
   
     # print "PPP"
-    return custom_m_field_names
+    return custom_md_field_names_for_1_pr
   
   # TODO: make a "flatten dict value" method
   def make_field_values_dict_flat(self, field_values_dict):
@@ -284,15 +284,16 @@ if __name__ == '__main__':
     """
     project_id = one_table_res[0][0][0]
     
-    custom_m_field_names = metadata.make_custom_m_field_names_unis(project_id, one_table_res, all_field_name__descr_per_project)
+    custom_md_field_names_for_1_pr = metadata.make_custom_md_field_names_for_1_pr_unis(project_id, one_table_res, all_field_name__descr_per_project)
 
-    all_fields = metadata.make_rows_for_all_fields(custom_m_field_names, len(one_table_res[0]))
-    # print "AAA"
-    # print custom_m_field_names
+    # all_fields = metadata.make_rows_for_all_fields(custom_md_field_names_for_1_pr, len(one_table_res[0]))
+    print "AAA"
+    print project_id
+    print custom_md_field_names_for_1_pr
     # print all_fields
-    custom_m_field_names = custom_m_field_names + list(all_fields)
+    # custom_md_field_names_for_1_pr = custom_md_field_names_for_1_pr + list(all_fields)
     # print "AAA"
-    # print custom_m_field_names
+    # print custom_md_field_names_for_1_pr
     # print all_fields
     
     
@@ -300,12 +301,12 @@ if __name__ == '__main__':
     # print "GGG"
     # print all_field_name__descr
     # print "PPP"
-    # print custom_m_field_names
+    # print custom_md_field_names_for_1_pr
     """    
     ['Field--Name for all DCO projects', 'diss_inorg_carb', 'rock_type', 'geo_loc_name', 'chloride', 'pH', 'calcium', 'samp_store_temp', 'redox_state', 'samp_store_dur', 'phosphate', 'access_point_type', 'sample_id', 'dna_extraction_meth', 'tot_depth_water_col', 'depth']
     """    
     custom_metadata_matrix = []
-    custom_metadata_matrix.append(custom_m_field_names)
+    custom_metadata_matrix.append(custom_md_field_names_for_1_pr)
     
     dataset_len = len(one_table_res[0][0]) - 5
     
@@ -324,15 +325,17 @@ if __name__ == '__main__':
     [('diss_inorg_carb', '10900', '41100', '65800', '21400', '23500', '5100', '35000', '33000'), ('rock_type', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment'), ('geo_loc_name', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea'), ('chloride', '558186.2', '511987.9', '588246', '520077.9', '753698.1', '551636.8', '548302.6', '522290.7'), ('pH', '7.67', '7.94', '7.76', '8.15', '7.78', '7.38', '7.65', '7.72'), ('calcium', '8718.8', '3592.5', '3614.5', '4464', '5166.6', '9726.9', '2601.1', '2654.1'), ('samp_store_temp', '-80', '-80', '-80', '-80', '-80', '-80', '-80', '-80'), ('redox_state', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic'), ('samp_store_dur', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y'), ('phosphate', '70.48', '37.01', '268.05', '6.99', '113.5', '19.83', '146.57', '121.17'), ('access_point_type', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core'), ('sample_id', 'BS-2 (B)', 'BS-7 (B)', 'BS-6 (B)', 'BS-8 (B)', 'BS-3 (B)', 'BS-1 (B)', 'BS-5 (B)', 'BS-4 (B)'), ('dna_extraction_meth', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil'), ('tot_depth_water_col', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9'), ('depth', 1.65, 214.17, 89.32, 404.61, 5.65, 0.15, 11.65, 8.65)]
     
     """
+    # empty_fields = list(all_fields) - custom_md_field_names_for_1_pr
+    
     file_name = "custom_metadata_per_project_%s.csv" % (project_id)
     
     with open(file_name, "wb") as csv_file:
       csv_writer = csv.writer(csv_file)
       csv_writer.writerows(transposed_matrix)
       
-  print "DDD"
-  metadata.print_all_values_per_field_name(field_values_dict_flat)
-  print "FFF"
+  # print "DDD"
+  # metadata.print_all_values_per_field_name(field_values_dict_flat)
+  # print "FFF"
 
   # metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict) 
   # TODO: add required
