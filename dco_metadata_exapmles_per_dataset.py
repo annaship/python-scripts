@@ -113,14 +113,11 @@ class Metadata():
       # MySQLdb.OperationalError, e
     return custom_metadata_values_per_project_dataset
     
-  # def make_headers(self, one_table_res):
-  #   pr_d_headers = []
-  #   for s in one_table_res[0]:
-  #     project_dataset = "%s--%s" % (s[1], s[2])
-  #     pr_d_headers.append(project_dataset)
-  #   s_pr_d_headers = sorted(pr_d_headers)
-  #   s_pr_d_headers.insert(0, "Field--Unit for all DCO projects")
-  #   return s_pr_d_headers
+  def make_empty_marker_line(self, one_line):
+    dataset_len = len(one_line) - 5
+    empty_marker = [1] * dataset_len
+    empty_marker.insert(0, "All fields are empty?")
+    return empty_marker
   
 if __name__ == '__main__':
   utils = util.Utils()
@@ -224,12 +221,13 @@ if __name__ == '__main__':
     custom_metadata_matrix = []
     custom_metadata_matrix.append(custom_m_field_names)
     
-    dataset_len = len(one_table_res[0][0]) - 5
-    empty_marker = [1] * dataset_len
-    empty_marker.insert(0, "All fields are empty?")
-    
-    print "empty_marker"
-    print empty_marker
+    empty_marker = metadata.make_empty_marker_line(one_table_res[0][0])
+    # dataset_len = len(one_table_res[0][0]) - 5
+    # empty_marker = [1] * dataset_len
+    # empty_marker.insert(0, "All fields are empty?")
+    #
+    # print "empty_marker"
+    # print empty_marker
     custom_metadata_matrix.append(empty_marker)
     
     for one_dataset in one_table_res[0]:
