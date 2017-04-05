@@ -168,17 +168,21 @@ class Metadata():
     # print "PPP"
     return custom_m_field_names
   
-  def print_all_values_per_field_name(self, custom_metadata_per_field_dict):
-    for k, v in custom_metadata_per_field_dict.items():
-      print k.split("__")[0], sorted(list(set([item for sublist in v for item in sublist])))
-    
+  # TODO: make a "flatten dict value" method
   def make_field_values_dict_flat(self, field_values_dict):
     field_values_dict_flat = defaultdict(list)
     for k, v in field_values_dict.items():
-      field_values_dict_flat[k] = utils.flatten_2d_list(v)
+      field_values_dict_flat[k] = list(utils.flatten_2d_list(v))
     return field_values_dict_flat
-  
-  
+
+  def print_all_values_per_field_name(self, field_values_dict_flat):
+    for k, v in field_values_dict_flat.items():
+      distinct_list = list(set(v))
+      print k, utils.sort_case_insesitive(distinct_list)
+      # sorted(list(set([item for sublist in v for item in sublist])))
+
+
+
 if __name__ == '__main__':
   utils = util.Utils()
 
@@ -241,8 +245,8 @@ if __name__ == '__main__':
   # for k, v in field_values_dict.items():
   #   field_values_dict_flat[k] = utils.flatten_2d_list(v)
   field_values_dict_flat = metadata.make_field_values_dict_flat(field_values_dict)
-  print "LLL"
-  print field_values_dict_flat
+  # print "LLL"
+  # print field_values_dict_flat
 
 
 
@@ -326,9 +330,9 @@ if __name__ == '__main__':
       csv_writer = csv.writer(csv_file)
       csv_writer.writerows(transposed_matrix)
       
-  # print "DDD"
-  # metadata.print_all_values_per_field_name(custom_metadata_per_field_dict)
-  # print "FFF"
+  print "DDD"
+  metadata.print_all_values_per_field_name(field_values_dict_flat)
+  print "FFF"
 
   # metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict) 
   # TODO: add required
