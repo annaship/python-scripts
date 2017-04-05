@@ -172,6 +172,12 @@ class Metadata():
     for k, v in custom_metadata_per_field_dict.items():
       print k.split("__")[0], sorted(list(set([item for sublist in v for item in sublist])))
     
+  def make_field_values_dict_flat(self, field_values_dict):
+    field_values_dict_flat = defaultdict(list)
+    for k, v in field_values_dict.items():
+      field_values_dict_flat[k] = utils.flatten_2d_list(v)
+    return field_values_dict_flat
+  
   
 if __name__ == '__main__':
   utils = util.Utils()
@@ -230,12 +236,27 @@ if __name__ == '__main__':
 
     field_values_dict = metadata.make_dict_field_values(field_values_dict, str_project_id, field_name, custom_metadata_distinct_list)
 
+
+  # field_values_dict_flat = defaultdict(list)
+  # for k, v in field_values_dict.items():
+  #   field_values_dict_flat[k] = utils.flatten_2d_list(v)
+  field_values_dict_flat = metadata.make_field_values_dict_flat(field_values_dict)
+  print "LLL"
+  print field_values_dict_flat
+
+
+
+  """
   print "LLL"
   print field_values_dict
+  'geo_loc_name': [['sweden', 'finland', 'Finland'], ['Olkiluoto'], ['Pacific Ocean'], ['Baltic Sea Basin'], ['Baltic Sea Basin'], ['Olkiluoto'], ['Pacific Ocean'], ['Andaman Sea'], ['Andaman Sea'], ['Canada', 'USA', 'Italy'], ['USA', 'Federated States of Micronesia'], ['USA', 'Federated States of Micronesia'], ['USA (Minnesota)'], ['USA'], ['USA'], ['Sweden', 'Finland'], ['Sweden', 'Finland'], ['South Africa'], ['South Africa'], ['Pacific Ocean'], ['Pacific Ocean'], ['Arctic deep sea'], ['Arctic deep sea'], ['Pacific Ocean', 'Los Angeles'], ['Bering Sea'], ['Atlantic Ocean', 'Rehoboth Bay, DE, USA'], ['Iceland'], ['Iceland'], ['Gulf of Caifornia', 'Gulf of California'], ['Gulf of Caifornia', 'Gulf of California'], ['Mediterranean Sea, Discovery Basin', 'Mediterranean Sea', 'Black Sea'], ['Mediterranean Sea, Discovery Basin', 'Mediterranean Sea', 'Black Sea'], ['Pacific Ocean'], ['Pacific Ocean'], ['Southwestern Taiwan'], ['South Africa'], ['South Africa'], ['Pacific Ocean'], ['Pacific Ocean', 'Atlantic Ocean'], ['Rehoboth Bay, DE, USA'], ['Pacific Ocean, USA'], ['Pacific Ocean', 'Atlantic Ocean'], ['Atlantic Ocean'], ['', 'Nevares Spring'], ['Bering Sea'], ['Pacific Ocean, USA'], ['N/A', 'Ionian Sea'], ['N/A', 'Ionian Sea'], ['Greece']]
+  """
     
-  # print "LLL"
-  # print all_field_name__descr_per_project
-  # 88L: ['methane__microMolar', 'sulfate__micromole_per_kilogram', 'sulfide__micromole_per_kilogram', 'conductivity__milliseimenPerCentimeter', 'sample_id__Alphanumeric', 'pH__logH+', 'sodium__micromole_per_kilogram', 'iron_II__micromole_per_kilogram', 'calcium__micromole_per_kilogram', 'chloride__micromole_per_kilogram', 'temp__celsius', 'pressure__decibar', 'potassium__micromole_per_kilogram', 'geo_loc_name__Alphanumeric', 'isol_growth_cond__Alphanumeric', 'dna_extraction_meth__Alphanumeric', 'nitrite__micromole_per_kilogram', 'env_feature__Alphanumeric', 'redox_state__Alphanumeric', 'sample_volume__liter', 'sequencing_meth__Alphanumeric', 'env_material__Alphanumeric', 'samp_store_temp__celsius', 'quality_method__Alphanumeric', 'target_gene__Alphanumeric', 'depth__meter']
+  """
+  print "LLL"
+  print all_field_name__descr_per_project
+  88L: ['methane__microMolar', 'sulfate__micromole_per_kilogram', 'sulfide__micromole_per_kilogram', 'conductivity__milliseimenPerCentimeter', 'sample_id__Alphanumeric', 'pH__logH+', 'sodium__micromole_per_kilogram', 'iron_II__micromole_per_kilogram', 'calcium__micromole_per_kilogram', 'chloride__micromole_per_kilogram', 'temp__celsius', 'pressure__decibar', 'potassium__micromole_per_kilogram', 'geo_loc_name__Alphanumeric', 'isol_growth_cond__Alphanumeric', 'dna_extraction_meth__Alphanumeric', 'nitrite__micromole_per_kilogram', 'env_feature__Alphanumeric', 'redox_state__Alphanumeric', 'sample_volume__liter', 'sequencing_meth__Alphanumeric', 'env_material__Alphanumeric', 'samp_store_temp__celsius', 'quality_method__Alphanumeric', 'target_gene__Alphanumeric', 'depth__meter']
+  """
   
   custom_metadata_per_field_dict = {}
   for str_project_id, d1 in custom_metadata_distinct_list_per_field_per_project_dict.items():  
