@@ -246,8 +246,8 @@ if __name__ == '__main__':
     # print custom_m_field_names
     # print all_fields
     custom_m_field_names = custom_m_field_names + list(all_fields)
-    print "AAA"
-    print custom_m_field_names
+    # print "AAA"
+    # print custom_m_field_names
     # print all_fields
     
     
@@ -270,11 +270,11 @@ if __name__ == '__main__':
     custom_metadata_matrix = metadata.make_custom_metadata_matrix(custom_metadata_matrix, one_table_res[0])
 
     # custom_metadata_matrix.append(list(all_fields))
-    print "zzz custom_metadata_matrix"
-    print custom_metadata_matrix
+    # print "zzz custom_metadata_matrix"
+    # print custom_metadata_matrix
     transposed_matrix = zip(*custom_metadata_matrix)
-    print "CCC transposed_matrix"
-    print transposed_matrix
+    # print "CCC transposed_matrix"
+    # print transposed_matrix
     """
     [('diss_inorg_carb', '10900', '41100', '65800', '21400', '23500', '5100', '35000', '33000'), ('rock_type', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment'), ('geo_loc_name', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea'), ('chloride', '558186.2', '511987.9', '588246', '520077.9', '753698.1', '551636.8', '548302.6', '522290.7'), ('pH', '7.67', '7.94', '7.76', '8.15', '7.78', '7.38', '7.65', '7.72'), ('calcium', '8718.8', '3592.5', '3614.5', '4464', '5166.6', '9726.9', '2601.1', '2654.1'), ('samp_store_temp', '-80', '-80', '-80', '-80', '-80', '-80', '-80', '-80'), ('redox_state', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic'), ('samp_store_dur', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y'), ('phosphate', '70.48', '37.01', '268.05', '6.99', '113.5', '19.83', '146.57', '121.17'), ('access_point_type', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core'), ('sample_id', 'BS-2 (B)', 'BS-7 (B)', 'BS-6 (B)', 'BS-8 (B)', 'BS-3 (B)', 'BS-1 (B)', 'BS-5 (B)', 'BS-4 (B)'), ('dna_extraction_meth', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil'), ('tot_depth_water_col', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9'), ('depth', 1.65, 214.17, 89.32, 404.61, 5.65, 0.15, 11.65, 8.65)]
     
@@ -284,12 +284,15 @@ if __name__ == '__main__':
     with open(file_name, "wb") as csv_file:
       csv_writer = csv.writer(csv_file)
       csv_writer.writerows(transposed_matrix)
-  
-  
-  
+      
+  print "DDD"
+  for k, v in custom_metadata_per_field_dict.items():
+    print k.split("__")[0], set([item for sublist in v for item in sublist])
+  print "FFF"
+
   # metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict) 
   # TODO: add required
   # add units
   # add all feilds
   # restructure: all operations with custom_field table, all operations with custom_metadata tables, all operations with req. table
-  
+  # get_project_datasets interm. TODO: make a dict
