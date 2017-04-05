@@ -159,6 +159,11 @@ class Metadata():
     # print "PPP"
     return custom_m_field_names
   
+  def print_all_values_per_field_name(self, custom_metadata_per_field_dict):
+    for k, v in custom_metadata_per_field_dict.items():
+      print k.split("__")[0], sorted(list(set([item for sublist in v for item in sublist])))
+    
+  
 if __name__ == '__main__':
   utils = util.Utils()
 
@@ -213,6 +218,9 @@ if __name__ == '__main__':
     
     custom_metadata_distinct_list_per_field_per_project_dict = metadata.make_my_dict(custom_metadata_distinct_list_per_field_per_project_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
 
+    print "LLL"
+    print custom_metadata_distinct_list_per_field_per_project_dict
+    
   # print "LLL"
   # print all_field_name__descr_per_project
   # 88L: ['methane__microMolar', 'sulfate__micromole_per_kilogram', 'sulfide__micromole_per_kilogram', 'conductivity__milliseimenPerCentimeter', 'sample_id__Alphanumeric', 'pH__logH+', 'sodium__micromole_per_kilogram', 'iron_II__micromole_per_kilogram', 'calcium__micromole_per_kilogram', 'chloride__micromole_per_kilogram', 'temp__celsius', 'pressure__decibar', 'potassium__micromole_per_kilogram', 'geo_loc_name__Alphanumeric', 'isol_growth_cond__Alphanumeric', 'dna_extraction_meth__Alphanumeric', 'nitrite__micromole_per_kilogram', 'env_feature__Alphanumeric', 'redox_state__Alphanumeric', 'sample_volume__liter', 'sequencing_meth__Alphanumeric', 'env_material__Alphanumeric', 'samp_store_temp__celsius', 'quality_method__Alphanumeric', 'target_gene__Alphanumeric', 'depth__meter']
@@ -285,10 +293,9 @@ if __name__ == '__main__':
       csv_writer = csv.writer(csv_file)
       csv_writer.writerows(transposed_matrix)
       
-  print "DDD"
-  for k, v in custom_metadata_per_field_dict.items():
-    print k.split("__")[0], set([item for sublist in v for item in sublist])
-  print "FFF"
+  # print "DDD"
+  # metadata.print_all_values_per_field_name(custom_metadata_per_field_dict)
+  # print "FFF"
 
   # metadata.print_all_from_dict_of_lists(custom_metadata_per_field_dict) 
   # TODO: add required
