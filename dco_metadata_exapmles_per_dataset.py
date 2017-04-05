@@ -265,3 +265,5 @@ if __name__ == '__main__':
   # TODO: add required
   # add units
   # add all feilds
+  # restructure: all operations with custom_field table, all operations with custom_metadata tables, all operations with req. table
+  
