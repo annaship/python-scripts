@@ -244,10 +244,10 @@ if __name__ == '__main__':
     # utils.write_to_csv_file(file_name, x, file_mode = "wb")
     # data_from_db, field_names = x
     
-    # with open(file_name, "wb") as csv_file:
-    #   csv_writer = csv.writer(csv_file)
+    with open(file_name, "wb") as csv_file:
+      csv_writer = csv.writer(csv_file)
     #   csv_writer.writerow(headers) # write headers
-    #   csv_writer.writerows(transposed_matrix)
+      csv_writer.writerows(transposed_matrix)
     # #
     #[(300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
   
