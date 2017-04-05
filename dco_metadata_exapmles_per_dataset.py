@@ -118,6 +118,21 @@ class Metadata():
     empty_marker = [1] * dataset_len
     empty_marker.insert(0, "All fields are empty?")
     return empty_marker
+    
+  def make_custom_metadata_matrix(self, custom_metadata_matrix, one_table_res_data):
+    for one_dataset in one_table_res_data:
+      """
+      (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
+      """
+
+      project_dataset = "%s--%s" % (one_dataset[1], one_dataset[2])
+      a = [project_dataset]
+      b = list(one_dataset[5:])
+      one_line = a + b
+      # one_line.insert(0, '1')
+      # one_line.insert(0, project_dataset)
+      custom_metadata_matrix.append(one_line)
+    return custom_metadata_matrix
   
 if __name__ == '__main__':
   utils = util.Utils()
@@ -222,26 +237,21 @@ if __name__ == '__main__':
     custom_metadata_matrix.append(custom_m_field_names)
     
     empty_marker = metadata.make_empty_marker_line(one_table_res[0][0])
-    # dataset_len = len(one_table_res[0][0]) - 5
-    # empty_marker = [1] * dataset_len
-    # empty_marker.insert(0, "All fields are empty?")
-    #
-    # print "empty_marker"
-    # print empty_marker
     custom_metadata_matrix.append(empty_marker)
     
-    for one_dataset in one_table_res[0]:
-      """
-      (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
-      """
-
-      project_dataset = "%s--%s" % (one_dataset[1], one_dataset[2])
-      a = [project_dataset]
-      b = list(one_dataset[5:])
-      one_line = a + b
-      # one_line.insert(0, '1')
-      # one_line.insert(0, project_dataset)
-      custom_metadata_matrix.append(one_line)
+    custom_metadata_matrix = metadata.make_custom_metadata_matrix(custom_metadata_matrix, one_table_res[0])
+    # for one_dataset in one_table_res[0]:
+    #   """
+    #   (300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5)
+    #   """
+    #
+    #   project_dataset = "%s--%s" % (one_dataset[1], one_dataset[2])
+    #   a = [project_dataset]
+    #   b = list(one_dataset[5:])
+    #   one_line = a + b
+    #   # one_line.insert(0, '1')
+    #   # one_line.insert(0, project_dataset)
+    #   custom_metadata_matrix.append(one_line)
       
     print "zzz custom_metadata_matrix"
     print custom_metadata_matrix
