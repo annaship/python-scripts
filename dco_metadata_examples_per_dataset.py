@@ -242,6 +242,14 @@ JOIN `primer_suite` USING(primer_suite_id)
 JOIN ref_primer_suite_primer USING(primer_suite_id)
     """
     return mysql_utils.execute_fetch_select(query_required_metadata)
+  
+  def get_primer_info(self):
+    query_primer_info = """
+    SELECT * FROM ref_primer_suite_primer
+    JOIN primer USING(primer_id)
+    JOIN primer_suite USING(primer_suite_id)
+    """
+    return mysql_utils.execute_fetch_select(query_primer_info)
     
     
 if __name__ == '__main__':
@@ -411,8 +419,59 @@ if __name__ == '__main__':
   # get_project_datasets interm. TODO: make a dict
   
   # === required metadata ===
+  required_metadata =  metadata.get_required_metadata()
+  """
+  ...(25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')), ['required_metadata_id', 'project_id', 'project', 'dataset_id', 'dataset', 'collection_date', 'env_biome_id', 'env_biome', 'latitude', 'longitude', 'target_gene_id', 'target_gene', 'dna_region_id', 'dna_region', 'sequencing_platform_id', 'sequencing_platform', 'domain_id', 'domain', 'geo_loc_name_id', 'geo_loc_name', 'env_feature_id', 'env_feature', 'env_matter_id', 'env_matter', 'env_package_id', 'env_package', 'adapter_sequence_id', 'adapter_sequence', 'index_sequence_id', 'index_sequence', 'primer_suite_id', 'primer_suite'])
+  """
+  
+  primer_info = metadata.get_primer_info()
   """
   print "MMM"
-  print metadata.get_required_metadata()
-  ...(25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')), ['required_metadata_id', 'project_id', 'project', 'dataset_id', 'dataset', 'collection_date', 'env_biome_id', 'env_biome', 'latitude', 'longitude', 'target_gene_id', 'target_gene', 'dna_region_id', 'dna_region', 'sequencing_platform_id', 'sequencing_platform', 'domain_id', 'domain', 'geo_loc_name_id', 'geo_loc_name', 'env_feature_id', 'env_feature', 'env_matter_id', 'env_matter', 'env_package_id', 'env_package', 'adapter_sequence_id', 'adapter_sequence', 'index_sequence_id', 'index_sequence', 'primer_suite_id', 'primer_suite'])
+  print primer_info
+  , (15, 75, '680R-Vib', 'R', 'CTGTAGAGGGGG+TAGAA', 'v4', 'GAAATTCTACCCCCCTCTACAG', 'bacteria', 'Used for Bv4 (Oct 2015)', 'Vibrio V4')), ['primer_suite_id', 'primer_id', 'primer', 'direction', 'sequence', 'region', 'original_seq', 'domain', 'notes', 'primer_suite'])
+  """
+  
+  """
+  TODO:
+  add fields:
+  forward_primer
+  latitude--Decimal Degrees bounded +-90C
+  longitude--Decimal Degrees bounded +-180C
+  reverse_primer
+  Anchor for trimming (454 sequencing only)
+  custom:
+  depth continental subsurface--meter
+  depth subseafloor--meters
+  depth Water Column--meter
+  depth within a core -- cm
+  
+  """
+  
+  
+  req_fields_good_list = ["project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences"]
+  
+  # Required_metadata = collections.namedtuple("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences")
+  
+  req_entries, field_names = required_metadata
+
+  # (25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')
+  
+  # required_metadata_dict = {}
+  # for entry in req_entries:
+  #   a = Required_metadata()
+    
+  # print dict(zip(required_metadata[1:], taxonomy1_arr[0]))
+  print "GGG"
+  print required_metadata.__dict__
+  """
+  def row2dict(row):
+      d = {}
+      for column in row.__table__.columns:
+          d[column.name] = str(getattr(row, column.name))
+
+      return d
+  Edit: if above function is too long and not suited for some tastes here is a one liner (python 2.7+)
+
+  row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
+  
   """
