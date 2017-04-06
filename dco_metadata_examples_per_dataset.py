@@ -394,7 +394,28 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
     """
     return mysql_utils.execute_fetch_select_to_dict(query_primer_info)
     
-    
+  def make_required_metadata_dict_slice(self, required_metadata_dict, required_metadata_fields_ok_list):
+  # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
+  
+    required_metadata_dict_slice = defaultdict(dict)
+    for row in required_metadata_dict:
+      current_project_id = (row['project_id'])
+      required_metadata_dict_slice[current_project_id] = {}
+      temp_dict = {}
+      for field in required_metadata_fields_ok_list:
+        try:
+          # print field
+          # print row[field]
+          temp_dict[field] = row[field]
+        except KeyError:
+          # print field
+          temp_dict[field] = ""
+        except:
+          raise
+      required_metadata_dict_slice[current_project_id] = temp_dict
+    return required_metadata_dict_slice
+
+
 if __name__ == '__main__':
   utils = util.Utils()
 
@@ -457,47 +478,36 @@ if __name__ == '__main__':
   req_fields_all_list = ("Anchor for trimming (454 sequencing only)", "adapter_sequence", "collection_date", "dataset", "direction", "dna_region", "domain", "env_biome", "env_feature", "env_matter", "env_package", "forward_primer", "geo_loc_name", "illumina_index", "latitude--Decimal Degrees bounded +-90C", "longitude--Decimal Degrees bounded +-180C", "project", "reverse_primer", "sequencing_platform", "target_gene")
 
   required_metadata_fields_ok_list = ("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences")
-  
+
+  required_metadata_dict_slice = metadata.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list)
   # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
-  
-  required_metadata_dict_1 = defaultdict(dict)
-  for row in required_metadata_dict:
-    current_project_id = (row['project_id'])
-    required_metadata_dict_1[current_project_id] = {}
-    temp_dict = {}
-    for field in required_metadata_fields_ok_list:
-      try:
-        # print field
-        # print row[field]
-        temp_dict[field] = row[field]
-      except KeyError:
-        # print field
-        temp_dict[field] = ""
-      except:
-        raise
-    required_metadata_dict_1[current_project_id] = temp_dict
-    """  print "GGG required_metadata_dict_1"
-      print required_metadata_dict_1
-      88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
-    """
-  # (25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')
-  
-  # required_metadata_dict = {}
-  # for entry in req_entries:
-  #   a = Required_metadata()
-    
-  # print dict(zip(required_metadata[1:], taxonomy1_arr[0]))
-  # print "GGG"
-  # print required_metadata.__dict__
-  """
-  def row2dict(row):
-      d = {}
-      for column in row.__table__.columns:
-          d[column.name] = str(getattr(row, column.name))
+    #
+  # required_metadata_dict_slice = defaultdict(dict)
+  # for row in required_metadata_dict:
+  #   current_project_id = (row['project_id'])
+  #   required_metadata_dict_slice[current_project_id] = {}
+  #   temp_dict = {}
+  #   for field in required_metadata_fields_ok_list:
+  #     try:
+  #       # print field
+  #       # print row[field]
+  #       temp_dict[field] = row[field]
+  #     except KeyError:
+  #       # print field
+  #       temp_dict[field] = ""
+  #     except:
+  #       raise
+  #   required_metadata_dict_slice[current_project_id] = temp_dict
+  #   """  print "GGG required_metadata_dict_slice"
+  #     print required_metadata_dict_slice
+  #     88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
+  #   """
+  #
 
-      return d
-  Edit: if above function is too long and not suited for some tastes here is a one liner (python 2.7+)
-
-  row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
-  
+  print "GGG required_metadata_dict_slice"
+  print required_metadata_dict_slice
+  """  print "GGG required_metadata_dict_slice"
+    print required_metadata_dict_slice
+    88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
   """
+  
