@@ -14,13 +14,14 @@ class Mysql_util:
     """
     # def __init__(self, host = "bpcweb7", db = "vamps", read_default_file = os.path.expanduser("~/.my.cnf"), port = 3306):
     def __init__(self, host = "vampsdev", db = "test", read_default_group = "client", read_default_file = os.path.expanduser("~/.my.cnf")):
-        self.utils     = Utils()
-        self.conn      = None
-        self.cursor    = None
-        self.rows      = 0
-        self.new_id    = None
-        self.lastrowid = None
-        self.rowcount  = None
+        self.utils       = Utils()
+        self.conn        = None
+        self.cursor      = None
+        self.rows        = 0
+        self.new_id      = None
+        self.lastrowid   = None
+        self.rowcount    = None
+        self.dict_cursor = None
         
         if read_default_file == "":
           if self.utils.is_local():
@@ -37,6 +38,7 @@ class Mysql_util:
             # print "host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file)
             
             self.cursor = self.conn.cursor()
+            self.dict_cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
 
         except MySQLdb.Error, e:
             self.utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
@@ -65,6 +67,9 @@ class Mysql_util:
           self.conn.commit()
           # return self.cursor.lastrowid
           return (self.cursor.rowcount, self.cursor.lastrowid)
+          
+    # def
+    # self.dict_cursor
 
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE"):
       try:
