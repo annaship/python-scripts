@@ -189,7 +189,7 @@ class Metadata():
     add_lines = [empty_fields, all_zeros]
     return zip(*add_lines)
     
-  def get_required_metadata(self):
+  def get_required_metadata_dict(self):
     query_required_metadata = """
 SELECT
   `required_metadata_info`.`required_metadata_id` AS `required_metadata_id`,
@@ -241,7 +241,7 @@ JOIN `illumina_index` ON(`illumina_index`.`illumina_index_id` = `required_metada
 JOIN `primer_suite` USING(primer_suite_id) 
 JOIN ref_primer_suite_primer USING(primer_suite_id)
     """
-    return mysql_utils.execute_fetch_select(query_required_metadata)
+    return mysql_utils.execute_fetch_select_to_dict(query_required_metadata)
   
   def get_primer_info(self):
     query_primer_info = """
@@ -419,9 +419,12 @@ if __name__ == '__main__':
   # get_project_datasets interm. TODO: make a dict
   
   # === required metadata ===
-  required_metadata =  metadata.get_required_metadata()
+  required_metadata =  metadata.get_required_metadata_dict()
+  print "MMM"
+  print required_metadata
+  
   """
-  ...(25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')), ['required_metadata_id', 'project_id', 'project', 'dataset_id', 'dataset', 'collection_date', 'env_biome_id', 'env_biome', 'latitude', 'longitude', 'target_gene_id', 'target_gene', 'dna_region_id', 'dna_region', 'sequencing_platform_id', 'sequencing_platform', 'domain_id', 'domain', 'geo_loc_name_id', 'geo_loc_name', 'env_feature_id', 'env_feature', 'env_matter_id', 'env_matter', 'env_package_id', 'env_package', 'adapter_sequence_id', 'adapter_sequence', 'index_sequence_id', 'index_sequence', 'primer_suite_id', 'primer_suite'])
+...{'domain': 'Bacteria', 'required_metadata_id': 25490L, 'dna_region': 'v6', 'geo_loc_name_id': 8583L, 'adapter_sequence': 'NNNNTCAGC', 'dna_region_id': 12, 'adapter_sequence_id': 1535, 'dataset': '0_2_i_1', 'env_package_id': 19, 'dataset_id': 338482L, 'domain_id': 3L, 'target_gene': '16s', 'env_feature': 'unknown', 'collection_date': 'unknown', 'env_biome': 'unknown', 'index_sequence_id': 43, 'target_gene_id': 1, 'env_feature_id': 6191L, 'geo_loc_name': 'United States of America', 'latitude': None, 'sequencing_platform_id': 2, 'project_id': 516L, 'env_matter_id': 6191L, 'sequencing_platform': 'illumina', 'index_sequence': 'GTAGTA', 'primer_suite_id': 23, 'primer_suite': 'Bacterial V6 Suite', 'env_package': 'unknown', 'longitude': None, 'project': 'VTS_MIC_Bv6', 'env_biome_id': 6191L, 'env_matter': 'unknown'})
   """
   
   primer_info = metadata.get_primer_info()
@@ -452,7 +455,7 @@ if __name__ == '__main__':
   
   # Required_metadata = collections.namedtuple("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences")
   
-  req_entries, field_names = required_metadata
+
 
   # (25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')
   
@@ -475,7 +478,3 @@ if __name__ == '__main__':
   row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
   
   """
-  q1 = "SELECT * from run_key"
-  res = mysql_utils.execute_fetch_select_to_dict(q1)
-  print "5" *55
-  print res
