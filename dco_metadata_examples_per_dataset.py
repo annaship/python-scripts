@@ -505,6 +505,25 @@ if __name__ == '__main__':
   print required_metadata_dict_slice
   """  print "GGG required_metadata_dict_slice"
     print required_metadata_dict_slice
-    88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
+  860L: {'env_feature': 'hydrothermal vent', 'domain': 'Bacteria', 'dna_region': 'v4v5', 'adapter_sequence': 'NNNNATGCT', 'collection_date': '2016-05-18', 'env_package': 'extreme habitat', 'index_sequence': 'ACTTGA', 'longitude': None, 'env_biome': 'unknown', 'project': 'DCO_DAL_Bv4v5', 'geo_loc_name': 'Greece', 'latitude': None, 'forward_primer': 'CCAGCAGCCGCGGTAAN, CCAGCAGCTGCGGTAAN', 'reverse_primer': 'ACT[CT]AAANGAATTGACGG, ACTCAAAAGAATTGACGG, ACTCAAAGAAATTGACGG', 'dataset': 'NeoErasmio', 'env_matter': 'water', 'target_gene': '16s', 'sequencing_platform': 'illumina'}
+  
   """
+  
+  for project_id, required_metadata_dict in required_metadata_dict_slice.items():
+    file_name = "custom_metadata_per_project_%s.csv" % (project_id)
+    print file_name
+    # TODO: 
+    # get dataset_len = len(one_table_res[0])
+    # write to csv 
+    # key, val in required_metadata_dict.items()
+    # key, 1, (val * dataset_len times)
+    # TODO:
+    # add Mithc's fields
+    # add ankor for v4v5 and v3v5
+    
+    # with open(file_name, "wb") as csv_file:
+    #   csv_writer = csv.writer(csv_file)
+    #   csv_writer.writerows(transposed_matrix)
+    #   csv_writer.writerows(transposed_add_lines_empty_fields)
+
   
