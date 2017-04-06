@@ -29,7 +29,7 @@ class Metadata():
   def make_dco_cutom_table_name_list(self, all_project_ids_str):
     return ['custom_metadata_' + x for x in all_project_ids_str]
 
-  def get_dco_custom_fields(self, dco_custom_tables):
+  def get_dco_custom_fields(self, dco_custom_tables, all_project_ids_str):
     for table_name in dco_custom_tables:
       get_metadata_query = """ select 
 
@@ -189,6 +189,149 @@ class Metadata():
     add_lines = [empty_fields, all_zeros]
     return zip(*add_lines)
     
+  def custom_metadata(self):
+    all_custom_tables = self.get_all_all_custom_tables()
+
+    query_project_ids = """select project_id, project from project where project like "DCO%" """
+    all_dco_project_ids = self.get_all_dco_project_ids()
+
+    all_project_ids_str = self.all_dco_project_ids_to_str(all_dco_project_ids)
+    # print dco_custom_tables
+    # print len(dco_custom_tables)
+    # 64
+
+    dco_custom_tables = self.make_dco_cutom_table_name_list(all_project_ids_str)
+    dco_custom_fields = self.get_dco_custom_fields(dco_custom_tables, all_project_ids_str)
+    # print "=" * 5
+    # print dco_custom_fields
+
+    custom_metadata_distinct_list_per_field_per_project_dict = {}
+    field_values_dict = defaultdict(list)
+
+    all_field_names = []
+    all_field_name__descr = []
+    all_field_name__descr_per_project = defaultdict(list)
+    for dco_custom_field_info in dco_custom_fields[0]:
+      # print "dco_custom_field_info"
+      # print dco_custom_field_info
+      # (860L, 'resistivity', 'ohm-meters', 'n.d.')
+      # (860L, 'trace element geochemistry', '', 'yes')
+      project_id = dco_custom_field_info[0]
+      field_name = dco_custom_field_info[1]
+      # ((('',), ('',), ('',), ('',), ('',), ('',), ('',), ('',), ('3363',), ('2796',), ('',), ('',), ('',), ('',), ('',), ('',), ('4500',), ('4286',)), ['methane'])
+  
+      custom_metadata_distinct_list = self.make_custom_metadata_distinct_list(self.get_custom_metadata_per_project(project_id, field_name))
+      # ['3363', '4500', '', '4286', '2796']
+  
+      str_project_id = str(project_id)
+      field_name__descr = field_name + "__" + dco_custom_field_info[2]
+      all_field_names.append(field_name)
+      all_field_name__descr.append(field_name__descr)
+
+      all_field_name__descr_per_project[project_id].append(field_name__descr)
+  
+      custom_metadata_distinct_list_per_field_per_project_dict = self.make_my_dict(custom_metadata_distinct_list_per_field_per_project_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
+
+      field_values_dict = self.make_dict_field_values(field_values_dict, str_project_id, field_name, custom_metadata_distinct_list)
+
+
+    # field_values_dict_flat = defaultdict(list)
+    # for k, v in field_values_dict.items():
+    #   field_values_dict_flat[k] = utils.flatten_2d_list(v)
+    field_values_dict_flat = self.make_field_values_dict_flat(field_values_dict)
+    # print "LLL"
+    # print field_values_dict_flat
+
+
+
+    """
+    print "LLL"
+    print field_values_dict
+    'geo_loc_name': [['sweden', 'finland', 'Finland'], ['Olkiluoto'], ['Pacific Ocean'], ['Baltic Sea Basin'], ['Baltic Sea Basin'], ['Olkiluoto'], ['Pacific Ocean'], ['Andaman Sea'], ['Andaman Sea'], ['Canada', 'USA', 'Italy'], ['USA', 'Federated States of Micronesia'], ['USA', 'Federated States of Micronesia'], ['USA (Minnesota)'], ['USA'], ['USA'], ['Sweden', 'Finland'], ['Sweden', 'Finland'], ['South Africa'], ['South Africa'], ['Pacific Ocean'], ['Pacific Ocean'], ['Arctic deep sea'], ['Arctic deep sea'], ['Pacific Ocean', 'Los Angeles'], ['Bering Sea'], ['Atlantic Ocean', 'Rehoboth Bay, DE, USA'], ['Iceland'], ['Iceland'], ['Gulf of Caifornia', 'Gulf of California'], ['Gulf of Caifornia', 'Gulf of California'], ['Mediterranean Sea, Discovery Basin', 'Mediterranean Sea', 'Black Sea'], ['Mediterranean Sea, Discovery Basin', 'Mediterranean Sea', 'Black Sea'], ['Pacific Ocean'], ['Pacific Ocean'], ['Southwestern Taiwan'], ['South Africa'], ['South Africa'], ['Pacific Ocean'], ['Pacific Ocean', 'Atlantic Ocean'], ['Rehoboth Bay, DE, USA'], ['Pacific Ocean, USA'], ['Pacific Ocean', 'Atlantic Ocean'], ['Atlantic Ocean'], ['', 'Nevares Spring'], ['Bering Sea'], ['Pacific Ocean, USA'], ['N/A', 'Ionian Sea'], ['N/A', 'Ionian Sea'], ['Greece']]
+    """
+  
+    """
+    print "LLL"
+    print all_field_name__descr_per_project
+    88L: ['methane__microMolar', 'sulfate__micromole_per_kilogram', 'sulfide__micromole_per_kilogram', 'conductivity__milliseimenPerCentimeter', 'sample_id__Alphanumeric', 'pH__logH+', 'sodium__micromole_per_kilogram', 'iron_II__micromole_per_kilogram', 'calcium__micromole_per_kilogram', 'chloride__micromole_per_kilogram', 'temp__celsius', 'pressure__decibar', 'potassium__micromole_per_kilogram', 'geo_loc_name__Alphanumeric', 'isol_growth_cond__Alphanumeric', 'dna_extraction_meth__Alphanumeric', 'nitrite__micromole_per_kilogram', 'env_feature__Alphanumeric', 'redox_state__Alphanumeric', 'sample_volume__liter', 'sequencing_meth__Alphanumeric', 'env_material__Alphanumeric', 'samp_store_temp__celsius', 'quality_method__Alphanumeric', 'target_gene__Alphanumeric', 'depth__meter']
+    """
+
+    custom_metadata_per_field_dict = {}
+    for str_project_id, d1 in custom_metadata_distinct_list_per_field_per_project_dict.items():  
+      project_name = self.get_project_name(all_dco_project_ids, str_project_id)      
+      for field_name__descr, custom_metadata_distinct_list in d1.items():
+        custom_metadata_per_field_dict = self.make_custom_metadata_per_field_dict(custom_metadata_per_field_dict, custom_metadata_distinct_list, field_name__descr)
+
+    custom_metadata_values_per_project_dataset = self.get_project_datasets_custom_metadata(dco_custom_tables)
+
+    metadata_per_project_dataset_dict = {}
+    # print custom_metadata_values_per_project_dataset
+    for one_table_res in custom_metadata_values_per_project_dataset:
+      # print one_table_res
+      """
+  (((300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5
+  300L, 'DCO_BKR_Av4v5', 'Aar_DrillFluid_59E_NC', 2L, 238915L, '', 'MP Biomedical FAST DNA', '', '', '', 'Baltic Sea Basin', '', '', '-80', '16S DNA', '', 'drill fluid', '', 'AarDrillFluid59ENC', 0.0
+  300L, 'DCO_BKR_Av4v5', 'Aar_59E_25H2', 3L, 238914L, '810', 'MP Biomedical FAST DNA', '35', '6.1', '7.01', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '7.93', 'Vared Clay/Silty Clay', '9.05', 'Aar59E25H2', 81.5
+  300L, 'DCO_BKR_Av4v5', 'Knox_65C_7H2', 4L, 238917L, '5400', 'MP Biomedical FAST DNA', '87', '7.17', '7.41', 'Baltic Sea Basin', 'perfluorocarbon tracer', '170', '-80', '16S DNA', '', 'Vared Clay/Silty Clay', '6.8', 'Knox65C7H2', 20.35
+  300L, 'DCO_BKR_Av4v5', 'Knox_60B_10H2', 5L, 238916L, '0', 'MP Biomedical FAST DNA', '34', '9.05', '7.89', 'Baltic Sea Basin', 'perfluorocarbon tracer', '8300', '-80', '16S DNA', '8.36', 'Vared Clay/Silty Clay', '26.7', 'Knox60B10H2', 27.4)), ['project_id', 'project', 'sample', 'custom_metadata_300_id', 'dataset_id', 'methane', 'dna_extraction_meth', 'tot_depth_water_col', 'alkalinity', 'pH', 'geo_loc_name', 'quality_method', 'sulfate', 'samp_store_temp', 'target_gene', 'microbial_biomass_microscopic', 'lithology', 'salinity', 'sample_id', 'depth'])
+  
+      """
+      project_id = one_table_res[0][0][0]
+  
+      custom_md_field_names_for_1_pr = self.make_custom_md_field_names_for_1_pr_unis(project_id, one_table_res, all_field_name__descr_per_project)
+
+      # all_fields = self.make_rows_for_all_fields(custom_md_field_names_for_1_pr, len(one_table_res[0]))
+      # print "AAA"
+      # print project_id
+      # print custom_md_field_names_for_1_pr
+      # print all_fields
+
+      empty_fields = self.make_empty_fields(all_field_name__descr, custom_md_field_names_for_1_pr)
+      transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(empty_fields)
+      # # print "AAA"
+      # # print custom_md_field_names_for_1_pr
+      # # if project_id == 465:
+      # #   print "AAA"
+      # #   print empty_fields
+      
+      # print "GGG"
+      # print all_field_name__descr
+  
+      # print "PPP"
+      # print custom_md_field_names_for_1_pr
+      """    
+      ['Field--Name for all DCO projects', 'diss_inorg_carb', 'rock_type', 'geo_loc_name', 'chloride', 'pH', 'calcium', 'samp_store_temp', 'redox_state', 'samp_store_dur', 'phosphate', 'access_point_type', 'sample_id', 'dna_extraction_meth', 'tot_depth_water_col', 'depth']
+      """    
+      custom_metadata_matrix = []
+      custom_metadata_matrix.append(custom_md_field_names_for_1_pr)
+  
+      dataset_len = len(one_table_res[0][0]) - 5
+  
+      empty_marker = self.make_empty_marker_line(dataset_len)
+      custom_metadata_matrix.append(empty_marker)
+  
+      custom_metadata_matrix = self.make_custom_metadata_matrix(custom_metadata_matrix, one_table_res[0])
+
+      # custom_metadata_matrix.append(list(all_fields))
+      # print "zzz custom_metadata_matrix"
+      # print custom_metadata_matrix
+      transposed_matrix = zip(*custom_metadata_matrix)
+      # print "CCC transposed_matrix"
+      # print transposed_matrix
+      """
+      [('diss_inorg_carb', '10900', '41100', '65800', '21400', '23500', '5100', '35000', '33000'), ('rock_type', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment'), ('geo_loc_name', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea'), ('chloride', '558186.2', '511987.9', '588246', '520077.9', '753698.1', '551636.8', '548302.6', '522290.7'), ('pH', '7.67', '7.94', '7.76', '8.15', '7.78', '7.38', '7.65', '7.72'), ('calcium', '8718.8', '3592.5', '3614.5', '4464', '5166.6', '9726.9', '2601.1', '2654.1'), ('samp_store_temp', '-80', '-80', '-80', '-80', '-80', '-80', '-80', '-80'), ('redox_state', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic'), ('samp_store_dur', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y'), ('phosphate', '70.48', '37.01', '268.05', '6.99', '113.5', '19.83', '146.57', '121.17'), ('access_point_type', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core'), ('sample_id', 'BS-2 (B)', 'BS-7 (B)', 'BS-6 (B)', 'BS-8 (B)', 'BS-3 (B)', 'BS-1 (B)', 'BS-5 (B)', 'BS-4 (B)'), ('dna_extraction_meth', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil'), ('tot_depth_water_col', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9'), ('depth', 1.65, 214.17, 89.32, 404.61, 5.65, 0.15, 11.65, 8.65)]
+  
+      """
+      # empty_fields = list(all_fields) - custom_md_field_names_for_1_pr
+  
+      file_name = "custom_metadata_per_project_%s.csv" % (project_id)
+  
+      with open(file_name, "wb") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerows(transposed_matrix)
+        csv_writer.writerows(transposed_add_lines_empty_fields)
+  
+    
   def get_required_metadata_dict(self):
     query_required_metadata = """
 SELECT
@@ -265,147 +408,8 @@ if __name__ == '__main__':
   # a = mysql_utils.execute_fetch_select(query)
   # print a
   
-  all_custom_tables = metadata.get_all_all_custom_tables()
-  
-  query_project_ids = """select project_id, project from project where project like "DCO%" """
-  all_dco_project_ids = metadata.get_all_dco_project_ids()
-  
-  all_project_ids_str = metadata.all_dco_project_ids_to_str(all_dco_project_ids)
-  # print dco_custom_tables
-  # print len(dco_custom_tables)
-  # 64
-
-  dco_custom_tables = metadata.make_dco_cutom_table_name_list(all_project_ids_str)
-  dco_custom_fields = metadata.get_dco_custom_fields(dco_custom_tables)
-  # print "=" * 5
-  # print dco_custom_fields
-  
-  custom_metadata_distinct_list_per_field_per_project_dict = {}
-  field_values_dict = defaultdict(list)
-  
-  all_field_names = []
-  all_field_name__descr = []
-  all_field_name__descr_per_project = defaultdict(list)
-  for dco_custom_field_info in dco_custom_fields[0]:
-    # print "dco_custom_field_info"
-    # print dco_custom_field_info
-    # (860L, 'resistivity', 'ohm-meters', 'n.d.')
-    # (860L, 'trace element geochemistry', '', 'yes')
-    project_id = dco_custom_field_info[0]
-    field_name = dco_custom_field_info[1]
-    # ((('',), ('',), ('',), ('',), ('',), ('',), ('',), ('',), ('3363',), ('2796',), ('',), ('',), ('',), ('',), ('',), ('',), ('4500',), ('4286',)), ['methane'])
-    
-    custom_metadata_distinct_list = metadata.make_custom_metadata_distinct_list(metadata.get_custom_metadata_per_project(project_id, field_name))
-    # ['3363', '4500', '', '4286', '2796']
-    
-    str_project_id = str(project_id)
-    field_name__descr = field_name + "__" + dco_custom_field_info[2]
-    all_field_names.append(field_name)
-    all_field_name__descr.append(field_name__descr)
-
-    all_field_name__descr_per_project[project_id].append(field_name__descr)
-    
-    custom_metadata_distinct_list_per_field_per_project_dict = metadata.make_my_dict(custom_metadata_distinct_list_per_field_per_project_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
-
-    field_values_dict = metadata.make_dict_field_values(field_values_dict, str_project_id, field_name, custom_metadata_distinct_list)
-
-
-  # field_values_dict_flat = defaultdict(list)
-  # for k, v in field_values_dict.items():
-  #   field_values_dict_flat[k] = utils.flatten_2d_list(v)
-  field_values_dict_flat = metadata.make_field_values_dict_flat(field_values_dict)
-  # print "LLL"
-  # print field_values_dict_flat
-
-
-
-  """
-  print "LLL"
-  print field_values_dict
-  'geo_loc_name': [['sweden', 'finland', 'Finland'], ['Olkiluoto'], ['Pacific Ocean'], ['Baltic Sea Basin'], ['Baltic Sea Basin'], ['Olkiluoto'], ['Pacific Ocean'], ['Andaman Sea'], ['Andaman Sea'], ['Canada', 'USA', 'Italy'], ['USA', 'Federated States of Micronesia'], ['USA', 'Federated States of Micronesia'], ['USA (Minnesota)'], ['USA'], ['USA'], ['Sweden', 'Finland'], ['Sweden', 'Finland'], ['South Africa'], ['South Africa'], ['Pacific Ocean'], ['Pacific Ocean'], ['Arctic deep sea'], ['Arctic deep sea'], ['Pacific Ocean', 'Los Angeles'], ['Bering Sea'], ['Atlantic Ocean', 'Rehoboth Bay, DE, USA'], ['Iceland'], ['Iceland'], ['Gulf of Caifornia', 'Gulf of California'], ['Gulf of Caifornia', 'Gulf of California'], ['Mediterranean Sea, Discovery Basin', 'Mediterranean Sea', 'Black Sea'], ['Mediterranean Sea, Discovery Basin', 'Mediterranean Sea', 'Black Sea'], ['Pacific Ocean'], ['Pacific Ocean'], ['Southwestern Taiwan'], ['South Africa'], ['South Africa'], ['Pacific Ocean'], ['Pacific Ocean', 'Atlantic Ocean'], ['Rehoboth Bay, DE, USA'], ['Pacific Ocean, USA'], ['Pacific Ocean', 'Atlantic Ocean'], ['Atlantic Ocean'], ['', 'Nevares Spring'], ['Bering Sea'], ['Pacific Ocean, USA'], ['N/A', 'Ionian Sea'], ['N/A', 'Ionian Sea'], ['Greece']]
-  """
-    
-  """
-  print "LLL"
-  print all_field_name__descr_per_project
-  88L: ['methane__microMolar', 'sulfate__micromole_per_kilogram', 'sulfide__micromole_per_kilogram', 'conductivity__milliseimenPerCentimeter', 'sample_id__Alphanumeric', 'pH__logH+', 'sodium__micromole_per_kilogram', 'iron_II__micromole_per_kilogram', 'calcium__micromole_per_kilogram', 'chloride__micromole_per_kilogram', 'temp__celsius', 'pressure__decibar', 'potassium__micromole_per_kilogram', 'geo_loc_name__Alphanumeric', 'isol_growth_cond__Alphanumeric', 'dna_extraction_meth__Alphanumeric', 'nitrite__micromole_per_kilogram', 'env_feature__Alphanumeric', 'redox_state__Alphanumeric', 'sample_volume__liter', 'sequencing_meth__Alphanumeric', 'env_material__Alphanumeric', 'samp_store_temp__celsius', 'quality_method__Alphanumeric', 'target_gene__Alphanumeric', 'depth__meter']
-  """
-  
-  custom_metadata_per_field_dict = {}
-  for str_project_id, d1 in custom_metadata_distinct_list_per_field_per_project_dict.items():  
-    project_name = metadata.get_project_name(all_dco_project_ids, str_project_id)      
-    for field_name__descr, custom_metadata_distinct_list in d1.items():
-      custom_metadata_per_field_dict = metadata.make_custom_metadata_per_field_dict(custom_metadata_per_field_dict, custom_metadata_distinct_list, field_name__descr)
-  
-  custom_metadata_values_per_project_dataset = metadata.get_project_datasets_custom_metadata(dco_custom_tables)
-  
-  metadata_per_project_dataset_dict = {}
-  # print custom_metadata_values_per_project_dataset
-  for one_table_res in custom_metadata_values_per_project_dataset:
-    # print one_table_res
-    """
-(((300L, 'DCO_BKR_Av4v5', 'Knox_63E_6H2', 1L, 238918L, '2330', 'MP Biomedical FAST DNA', '451', '58.2', '8.02', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '8.82', 'Vared Clay/Silty Clay', '14.8', 'Knox63E6H2', 11.5
-300L, 'DCO_BKR_Av4v5', 'Aar_DrillFluid_59E_NC', 2L, 238915L, '', 'MP Biomedical FAST DNA', '', '', '', 'Baltic Sea Basin', '', '', '-80', '16S DNA', '', 'drill fluid', '', 'AarDrillFluid59ENC', 0.0
-300L, 'DCO_BKR_Av4v5', 'Aar_59E_25H2', 3L, 238914L, '810', 'MP Biomedical FAST DNA', '35', '6.1', '7.01', 'Baltic Sea Basin', 'perfluorocarbon tracer', '70', '-80', '16S DNA', '7.93', 'Vared Clay/Silty Clay', '9.05', 'Aar59E25H2', 81.5
-300L, 'DCO_BKR_Av4v5', 'Knox_65C_7H2', 4L, 238917L, '5400', 'MP Biomedical FAST DNA', '87', '7.17', '7.41', 'Baltic Sea Basin', 'perfluorocarbon tracer', '170', '-80', '16S DNA', '', 'Vared Clay/Silty Clay', '6.8', 'Knox65C7H2', 20.35
-300L, 'DCO_BKR_Av4v5', 'Knox_60B_10H2', 5L, 238916L, '0', 'MP Biomedical FAST DNA', '34', '9.05', '7.89', 'Baltic Sea Basin', 'perfluorocarbon tracer', '8300', '-80', '16S DNA', '8.36', 'Vared Clay/Silty Clay', '26.7', 'Knox60B10H2', 27.4)), ['project_id', 'project', 'sample', 'custom_metadata_300_id', 'dataset_id', 'methane', 'dna_extraction_meth', 'tot_depth_water_col', 'alkalinity', 'pH', 'geo_loc_name', 'quality_method', 'sulfate', 'samp_store_temp', 'target_gene', 'microbial_biomass_microscopic', 'lithology', 'salinity', 'sample_id', 'depth'])
-    
-    """
-    project_id = one_table_res[0][0][0]
-    
-    custom_md_field_names_for_1_pr = metadata.make_custom_md_field_names_for_1_pr_unis(project_id, one_table_res, all_field_name__descr_per_project)
-
-    # all_fields = metadata.make_rows_for_all_fields(custom_md_field_names_for_1_pr, len(one_table_res[0]))
-    # print "AAA"
-    # print project_id
-    # print custom_md_field_names_for_1_pr
-    # print all_fields
-  
-    empty_fields = metadata.make_empty_fields(all_field_name__descr, custom_md_field_names_for_1_pr)
-    transposed_add_lines_empty_fields = metadata.make_transposed_empty_fields_lines(empty_fields)
-    # # print "AAA"
-    # # print custom_md_field_names_for_1_pr
-    # # if project_id == 465:
-    # #   print "AAA"
-    # #   print empty_fields
-        
-    # print "GGG"
-    # print all_field_name__descr
-    
-    # print "PPP"
-    # print custom_md_field_names_for_1_pr
-    """    
-    ['Field--Name for all DCO projects', 'diss_inorg_carb', 'rock_type', 'geo_loc_name', 'chloride', 'pH', 'calcium', 'samp_store_temp', 'redox_state', 'samp_store_dur', 'phosphate', 'access_point_type', 'sample_id', 'dna_extraction_meth', 'tot_depth_water_col', 'depth']
-    """    
-    custom_metadata_matrix = []
-    custom_metadata_matrix.append(custom_md_field_names_for_1_pr)
-    
-    dataset_len = len(one_table_res[0][0]) - 5
-    
-    empty_marker = metadata.make_empty_marker_line(dataset_len)
-    custom_metadata_matrix.append(empty_marker)
-    
-    custom_metadata_matrix = metadata.make_custom_metadata_matrix(custom_metadata_matrix, one_table_res[0])
-
-    # custom_metadata_matrix.append(list(all_fields))
-    # print "zzz custom_metadata_matrix"
-    # print custom_metadata_matrix
-    transposed_matrix = zip(*custom_metadata_matrix)
-    # print "CCC transposed_matrix"
-    # print transposed_matrix
-    """
-    [('diss_inorg_carb', '10900', '41100', '65800', '21400', '23500', '5100', '35000', '33000'), ('rock_type', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment', 'sediment'), ('geo_loc_name', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea', 'Bering Sea'), ('chloride', '558186.2', '511987.9', '588246', '520077.9', '753698.1', '551636.8', '548302.6', '522290.7'), ('pH', '7.67', '7.94', '7.76', '8.15', '7.78', '7.38', '7.65', '7.72'), ('calcium', '8718.8', '3592.5', '3614.5', '4464', '5166.6', '9726.9', '2601.1', '2654.1'), ('samp_store_temp', '-80', '-80', '-80', '-80', '-80', '-80', '-80', '-80'), ('redox_state', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic', 'anoxic'), ('samp_store_dur', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y', 'P2Y'), ('phosphate', '70.48', '37.01', '268.05', '6.99', '113.5', '19.83', '146.57', '121.17'), ('access_point_type', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core', 'piston core'), ('sample_id', 'BS-2 (B)', 'BS-7 (B)', 'BS-6 (B)', 'BS-8 (B)', 'BS-3 (B)', 'BS-1 (B)', 'BS-5 (B)', 'BS-4 (B)'), ('dna_extraction_meth', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil', 'Mo Bio Power Soil'), ('tot_depth_water_col', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9', '1950.9'), ('depth', 1.65, 214.17, 89.32, 404.61, 5.65, 0.15, 11.65, 8.65)]
-    
-    """
-    # empty_fields = list(all_fields) - custom_md_field_names_for_1_pr
-    
-    file_name = "custom_metadata_per_project_%s.csv" % (project_id)
-    
-    with open(file_name, "wb") as csv_file:
-      csv_writer = csv.writer(csv_file)
-      csv_writer.writerows(transposed_matrix)
-      csv_writer.writerows(transposed_add_lines_empty_fields)
-      
+  # Uncomment !
+  # metadata.custom_metadata()
       
   # print "DDD"
   # metadata.print_all_values_per_field_name(field_values_dict_flat)
@@ -457,21 +461,25 @@ if __name__ == '__main__':
   # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
   
   required_metadata_dict_1 = defaultdict(dict)
-  print "GGG required_metadata_dict"
   for row in required_metadata_dict:
+    current_project_id = (row['project_id'])
+    required_metadata_dict_1[current_project_id] = {}
+    temp_dict = {}
     for field in required_metadata_fields_ok_list:
       try:
-        print "project_id = %s" % (required_metadata_dict['project_id'])
-        print field
-        print row[field]
-        # required_metadata_dict_1[]
+        # print field
+        # print row[field]
+        temp_dict[field] = row[field]
       except KeyError:
-        pass
+        # print field
+        temp_dict[field] = ""
       except:
         raise
-  # print required_metadata_dict
-  
-
+    required_metadata_dict_1[current_project_id] = temp_dict
+    """  print "GGG required_metadata_dict_1"
+      print required_metadata_dict_1
+      88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
+    """
   # (25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')
   
   # required_metadata_dict = {}
