@@ -304,14 +304,8 @@ if __name__ == '__main__':
     
     # TODO:
     # method
-    print transposed_add_lines
-    # TODO:
-    # remove used fields!
-    # DIC__mg/L 1 16S
-    # DIC__mg/L 0 
+    # print transposed_add_lines
     
-    
-
     # print "GGG"
     # print all_field_name__descr
     
