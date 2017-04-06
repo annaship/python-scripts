@@ -407,12 +407,12 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
       current_project_id = row['project_id']
       current_primer_suite = row['primer_suite']
       # print "row"
-      # print row
-      forward_primer = ", ".join(primer_suite_primers_dict[current_primer_suite]['F'])
-      reverse_primer = ", ".join(primer_suite_primers_dict[current_primer_suite]['R'])
-      
+      # print row      
       required_metadata_dict_slice[current_project_id] = {}
       temp_dict = {}
+      
+      temp_dict['forward_primer'] = ", ".join(primer_suite_primers_dict[current_primer_suite]['F'])
+      temp_dict['reverse_primer'] = ", ".join(primer_suite_primers_dict[current_primer_suite]['R'])
       for field in required_metadata_fields_ok_list:
         try:
           # print field
@@ -421,8 +421,8 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
         except KeyError:
           #TODO: get primer_values
           # ...'Archaeal V6 Suite': defaultdict(<type 'list'>, {'R': ['GWGGTRCATGGCY?GY?CG'], 'F': ['AATTGGA.?TCAACGCC.G']})
-          
-          temp_dict[field] = ""
+          print field
+          # temp_dict[field] = ""
         except:
           raise
       required_metadata_dict_slice[current_project_id] = temp_dict
@@ -506,8 +506,8 @@ if __name__ == '__main__':
   required_metadata_dict_slice = metadata.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list, primer_suite_primers_dict)
 
   #
-  # print "GGG required_metadata_dict_slice"
-  # print required_metadata_dict_slice
+  print "GGG required_metadata_dict_slice"
+  print required_metadata_dict_slice
   """  print "GGG required_metadata_dict_slice"
     print required_metadata_dict_slice
     88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
