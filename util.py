@@ -65,7 +65,7 @@ class Mysql_util:
       if self.cursor:
           self.cursor.execute(sql)
           self.conn.commit()
-          # return self.cursor.lastrowid
+          # print self.cursor.lastrowid
           return (self.cursor.rowcount, self.cursor.lastrowid)
           
     # TODO: DRY with execute_fetch_select
@@ -76,18 +76,11 @@ class Mysql_util:
       if self.dict_cursor:
         try:
           self.dict_cursor.execute(sql)
-          # print "E" * 20
           return self.dict_cursor.fetchall ()
-          # print res
-          # print "W" * 20
           # print self.dict_cursor.description
-          # print "R" * 20
-          # res         = self.dict_cursor.fetchall ()
-          # field_names = [i[0] for i in self.dict_cursor.description]
         except:
           self.utils.print_both(("ERROR: query = %s") % sql)
           raise
-        # return (res, field_names)
     
 
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE"):
