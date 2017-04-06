@@ -181,8 +181,14 @@ class Metadata():
       print k, utils.sort_case_insesitive(distinct_list)
       # sorted(list(set([item for sublist in v for item in sublist])))
 
-
-
+  def make_empty_fields(self, all_field_name__descr, custom_md_field_names_for_1_pr):
+    return set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
+    
+  def make_transposed_empty_fields_lines(self, empty_fields):
+    all_zeros = [0]*len(empty_fields)
+    add_lines = [empty_fields, all_zeros]
+    return zip(*add_lines)
+    
 if __name__ == '__main__':
   utils = util.Utils()
 
@@ -292,19 +298,21 @@ if __name__ == '__main__':
     # print custom_md_field_names_for_1_pr
     # print all_fields
   
-    empty_fields = set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
-    # print "AAA"
-    # print custom_md_field_names_for_1_pr
-    # if project_id == 465:
-    #   print "AAA"
-    #   print empty_fields
-    all_zeros = [0]*len(empty_fields)
-    add_lines = [empty_fields, all_zeros]
-    transposed_add_lines = zip(*add_lines)
+    empty_fields = metadata.make_empty_fields(all_field_name__descr, custom_md_field_names_for_1_pr)
+    transposed_add_lines_empty_fields = metadata.make_transposed_empty_fields_lines(empty_fields)
+    # empty_fields = set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
+    # # print "AAA"
+    # # print custom_md_field_names_for_1_pr
+    # # if project_id == 465:
+    # #   print "AAA"
+    # #   print empty_fields
+    # all_zeros = [0]*len(empty_fields)
+    # add_lines = [empty_fields, all_zeros]
+    # transposed_add_lines_empty_fields = zip(*add_lines)
     
     # TODO:
     # method
-    # print transposed_add_lines
+    # print transposed_add_lines_empty_fields
     
     # print "GGG"
     # print all_field_name__descr
@@ -341,7 +349,7 @@ if __name__ == '__main__':
     with open(file_name, "wb") as csv_file:
       csv_writer = csv.writer(csv_file)
       csv_writer.writerows(transposed_matrix)
-      csv_writer.writerows(transposed_add_lines)
+      csv_writer.writerows(transposed_add_lines_empty_fields)
       
       
   # print "DDD"
