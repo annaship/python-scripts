@@ -44,7 +44,7 @@ class Metadata():
     
   # TODO: get all join project and dataset?
   def get_custom_metadata_per_project(self, project_id, field_name):
-    query = """select `%s` from custom_metadata_%s""" % (field_name, str(project_id))
+    query = """SELECT `%s` FROM custom_metadata_%s""" % (field_name, str(project_id))
     # print query
     return mysql_utils.execute_fetch_select(query)
     
@@ -189,6 +189,61 @@ class Metadata():
     add_lines = [empty_fields, all_zeros]
     return zip(*add_lines)
     
+  def get_required_metadata(self):
+    query_required_metadata = """
+SELECT
+  `required_metadata_info`.`required_metadata_id` AS `required_metadata_id`,
+  project_id,
+  project,
+  dataset_id,
+  dataset,
+  collection_date,
+  env_biome_id,
+  `env_biome`.`term_name` AS `env_biome`,
+  latitude,
+  longitude,
+  target_gene_id,
+  target_gene,
+  dna_region_id,
+  dna_region,
+  sequencing_platform_id,
+  sequencing_platform,
+  domain_id,
+  domain,
+  geo_loc_name_id,
+  `geo_loc_name`.`term_name` AS `geo_loc_name`,
+  env_feature_id,
+  `env_feature`.`term_name` AS `env_feature`,
+  env_matter_id,
+  `env_matter`.`term_name` AS `env_matter`,
+  env_package_id,
+  env_package,
+  adapter_sequence_id,
+  `run_key`.`run_key` AS `adapter_sequence`,
+  index_sequence_id,
+  `illumina_index`.`illumina_index` AS `index_sequence`,
+  primer_suite_id,
+  primer_suite
+FROM `required_metadata_info` 
+JOIN `dataset` USING(dataset_id)
+JOIN `project` USING(project_id)
+JOIN `dna_region` USING(dna_region_id) 
+JOIN `sequencing_platform` USING(sequencing_platform_id) 
+JOIN `target_gene` USING(target_gene_id)
+JOIN `domain` USING(domain_id)
+JOIN `term` `env_feature` ON(`env_feature`.`term_id` = `required_metadata_info`.`env_feature_id`) 
+JOIN `term` `env_matter` ON(`env_matter`.`term_id` = `required_metadata_info`.`env_matter_id`) 
+JOIN `term` `env_biome` ON(`env_biome`.`term_id` = `required_metadata_info`.`env_biome_id`) 
+JOIN `term` `geo_loc_name` ON(`geo_loc_name`.`term_id` = `required_metadata_info`.`geo_loc_name_id`) 
+JOIN `env_package` USING(env_package_id) 
+JOIN `run_key` ON(`run_key`.`run_key_id` = `required_metadata_info`.`adapter_sequence_id`)
+JOIN `illumina_index` ON(`illumina_index`.`illumina_index_id` = `required_metadata_info`.`index_sequence_id`) 
+JOIN `primer_suite` USING(primer_suite_id) 
+JOIN ref_primer_suite_primer USING(primer_suite_id)
+    """
+    return mysql_utils.execute_fetch_select(query_required_metadata)
+    
+    
 if __name__ == '__main__':
   utils = util.Utils()
 
@@ -293,27 +348,19 @@ if __name__ == '__main__':
     custom_md_field_names_for_1_pr = metadata.make_custom_md_field_names_for_1_pr_unis(project_id, one_table_res, all_field_name__descr_per_project)
 
     # all_fields = metadata.make_rows_for_all_fields(custom_md_field_names_for_1_pr, len(one_table_res[0]))
-    print "AAA"
-    print project_id
+    # print "AAA"
+    # print project_id
     # print custom_md_field_names_for_1_pr
     # print all_fields
   
     empty_fields = metadata.make_empty_fields(all_field_name__descr, custom_md_field_names_for_1_pr)
     transposed_add_lines_empty_fields = metadata.make_transposed_empty_fields_lines(empty_fields)
-    # empty_fields = set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
     # # print "AAA"
     # # print custom_md_field_names_for_1_pr
     # # if project_id == 465:
     # #   print "AAA"
     # #   print empty_fields
-    # all_zeros = [0]*len(empty_fields)
-    # add_lines = [empty_fields, all_zeros]
-    # transposed_add_lines_empty_fields = zip(*add_lines)
-    
-    # TODO:
-    # method
-    # print transposed_add_lines_empty_fields
-    
+        
     # print "GGG"
     # print all_field_name__descr
     
@@ -362,3 +409,10 @@ if __name__ == '__main__':
   # add all feilds
   # restructure: all operations with custom_field table, all operations with custom_metadata tables, all operations with req. table
   # get_project_datasets interm. TODO: make a dict
+  
+  # === required metadata ===
+  """
+  print "MMM"
+  print metadata.get_required_metadata()
+  ...(25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')), ['required_metadata_id', 'project_id', 'project', 'dataset_id', 'dataset', 'collection_date', 'env_biome_id', 'env_biome', 'latitude', 'longitude', 'target_gene_id', 'target_gene', 'dna_region_id', 'dna_region', 'sequencing_platform_id', 'sequencing_platform', 'domain_id', 'domain', 'geo_loc_name_id', 'geo_loc_name', 'env_feature_id', 'env_feature', 'env_matter_id', 'env_matter', 'env_package_id', 'env_package', 'adapter_sequence_id', 'adapter_sequence', 'index_sequence_id', 'index_sequence', 'primer_suite_id', 'primer_suite'])
+  """
