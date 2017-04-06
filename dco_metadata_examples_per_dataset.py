@@ -295,6 +295,9 @@ if __name__ == '__main__':
     empty_fields = set(all_field_name__descr) - set(custom_md_field_names_for_1_pr)
     # print "AAA"
     # print custom_md_field_names_for_1_pr
+    # if project_id == 465:
+    #   print "AAA"
+    #   print empty_fields
     all_zeros = [0]*len(empty_fields)
     add_lines = [empty_fields, all_zeros]
     transposed_add_lines = zip(*add_lines)
@@ -311,6 +314,7 @@ if __name__ == '__main__':
 
     # print "GGG"
     # print all_field_name__descr
+    
     # print "PPP"
     # print custom_md_field_names_for_1_pr
     """    
