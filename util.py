@@ -68,11 +68,7 @@ class Mysql_util:
           # print self.cursor.lastrowid
           return (self.cursor.rowcount, self.cursor.lastrowid)
           
-    # TODO: DRY with execute_fetch_select
-    # self.dict_cursor
     def execute_fetch_select_to_dict(self, sql):
-      # print "+" * 20
-      # print sql
       if self.dict_cursor:
         try:
           self.dict_cursor.execute(sql)
