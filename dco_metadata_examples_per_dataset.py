@@ -421,6 +421,12 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
       required_metadata_dict_slice[current_project_id] = temp_dict
     return required_metadata_dict_slice
 
+  def make_primer_suite_primers_dict(self, primer_info_dict):
+    primer_suite_primers_dict =  defaultdict(lambda : defaultdict(list))
+    for row in primer_info_dict:
+      # current_primer_suite = row['primer_suite']
+      primer_suite_primers_dict[row['primer_suite']][row['direction']].append(row['sequence'])
+    return primer_suite_primers_dict
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -465,12 +471,12 @@ if __name__ == '__main__':
   """
   ...{'direction': 'R', 'sequence': 'CTGTAGAGGGGG+TAGAA', 'primer_suite': 'Vibrio V4', 'region': 'v4', 'domain': 'bacteria', 'primer': '680R-Vib'})
   """
+  primer_suite_primers_dict = metadata.make_primer_suite_primers_dict(primer_info_dict)
   
-  primer_suite_primers_dict =  defaultdict(lambda : defaultdict(list))
-  # primer_suite_primers_dict = metadata.make_primer_suite_primers_dict(primer_info_dict)
-  for row in primer_info_dict:
-    current_primer_suite = (row['primer_suite'])
-    primer_suite_primers_dict[current_primer_suite][row['direction']].append(row['sequence'])
+  # primer_suite_primers_dict =  defaultdict(lambda : defaultdict(list))
+  # for row in primer_info_dict:
+  #   current_primer_suite = (row['primer_suite'])
+  #   primer_suite_primers_dict[current_primer_suite][row['direction']].append(row['sequence'])
   
   print primer_suite_primers_dict
   """
