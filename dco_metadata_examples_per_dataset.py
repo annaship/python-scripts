@@ -399,6 +399,7 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
     """
     return mysql_utils.execute_fetch_select_to_dict(query_primer_info)
     
+  #TODO: split - refactore
   def make_required_metadata_dict_slice(self, required_metadata_dict, required_metadata_fields_ok_list, primer_suite_primers_dict):
   # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
   
@@ -413,16 +414,10 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
       
       temp_dict['forward_primer'] = ", ".join(primer_suite_primers_dict[current_primer_suite]['F'])
       temp_dict['reverse_primer'] = ", ".join(primer_suite_primers_dict[current_primer_suite]['R'])
-      for field in required_metadata_fields_ok_list:
+      
+      for field in set(required_metadata_fields_ok_list) - set(['forward_primer', 'reverse_primer']):
         try:
-          # print field
-          # print row[field]
           temp_dict[field] = row[field]
-        except KeyError:
-          #TODO: get primer_values
-          # ...'Archaeal V6 Suite': defaultdict(<type 'list'>, {'R': ['GWGGTRCATGGCY?GY?CG'], 'F': ['AATTGGA.?TCAACGCC.G']})
-          print field
-          # temp_dict[field] = ""
         except:
           raise
       required_metadata_dict_slice[current_project_id] = temp_dict
