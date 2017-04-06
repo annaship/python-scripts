@@ -387,10 +387,15 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
     return mysql_utils.execute_fetch_select_to_dict(query_required_metadata)
   
   def get_primer_info_dict(self):
+    # SELECT * FROM ref_primer_suite_primer
+    # JOIN primer USING(primer_id)
+    # JOIN primer_suite USING(primer_suite_id)
+    #
     query_primer_info = """
-    SELECT * FROM ref_primer_suite_primer
+    SELECT distinct primer_suite, primer, direction, region, sequence, domain FROM ref_primer_suite_primer
     JOIN primer USING(primer_id)
     JOIN primer_suite USING(primer_suite_id)
+    order by primer_suite    
     """
     return mysql_utils.execute_fetch_select_to_dict(query_primer_info)
     
@@ -408,6 +413,7 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
           # print row[field]
           temp_dict[field] = row[field]
         except KeyError:
+          #TODO: get primer_values
           # print field
           temp_dict[field] = ""
         except:
@@ -453,12 +459,20 @@ if __name__ == '__main__':
   """
   
   primer_info_dict = metadata.get_primer_info_dict()
-  """
   print "MMM"
-  print primer_info
-  , (15, 75, '680R-Vib', 'R', 'CTGTAGAGGGGG+TAGAA', 'v4', 'GAAATTCTACCCCCCTCTACAG', 'bacteria', 'Used for Bv4 (Oct 2015)', 'Vibrio V4')), ['primer_suite_id', 'primer_id', 'primer', 'direction', 'sequence', 'region', 'original_seq', 'domain', 'notes', 'primer_suite'])
+  # print primer_info_dict
+  # next((item for item in dicts if item["name"] == "Pam"), None)
+  """
+  ...{'direction': 'R', 'sequence': 'CTGTAGAGGGGG+TAGAA', 'primer_suite': 'Vibrio V4', 'region': 'v4', 'domain': 'bacteria', 'primer': '680R-Vib'})
   """
   
+  primer_suite_primers_dict =  defaultdict(lambda : defaultdict(list))
+  # primer_suite_primers_dict = metadata.make_primer_suite_primers_dict(primer_info_dict)
+  for row in primer_info_dict:
+    current_primer_suite = (row['primer_suite'])
+    primer_suite_primers_dict[current_primer_suite][row['direction']].append(row['sequence'])
+  
+  print primer_suite_primers_dict
   """
   TODO:
   add fields:
@@ -480,32 +494,10 @@ if __name__ == '__main__':
   required_metadata_fields_ok_list = ("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences")
 
   required_metadata_dict_slice = metadata.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list)
-  # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
-    #
-  # required_metadata_dict_slice = defaultdict(dict)
-  # for row in required_metadata_dict:
-  #   current_project_id = (row['project_id'])
-  #   required_metadata_dict_slice[current_project_id] = {}
-  #   temp_dict = {}
-  #   for field in required_metadata_fields_ok_list:
-  #     try:
-  #       # print field
-  #       # print row[field]
-  #       temp_dict[field] = row[field]
-  #     except KeyError:
-  #       # print field
-  #       temp_dict[field] = ""
-  #     except:
-  #       raise
-  #   required_metadata_dict_slice[current_project_id] = temp_dict
-  #   """  print "GGG required_metadata_dict_slice"
-  #     print required_metadata_dict_slice
-  #     88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
-  #   """
-  #
 
-  print "GGG required_metadata_dict_slice"
-  print required_metadata_dict_slice
+  #
+  # print "GGG required_metadata_dict_slice"
+  # print required_metadata_dict_slice
   """  print "GGG required_metadata_dict_slice"
     print required_metadata_dict_slice
     88L: {'primer_sequences': '', 'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'index_sequence': 'unknown', 'adapter_sequence': 'ACGAC', 'collection_date': '2008-08-06', 'env_package': 'extreme habitat', 'direction': '', 'env_biome': 'terrestrial biome', 'longitude': 21.4408, 'dataset': 'SURE2_P7_S3', 'project': 'DCO_PED_Bv6v4', 'geo_loc_name': 'Finland', 'latitude': 61.2369, 'env_matter': 'ground water', 'target_gene': '16s', 'sequencing_platform': '454'}
