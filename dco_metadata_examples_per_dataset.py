@@ -454,9 +454,22 @@ if __name__ == '__main__':
 
   required_metadata_fields_ok_list = ("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences")
   
-  required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
+  # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
+  
+  required_metadata_dict_1 = defaultdict(dict)
   print "GGG required_metadata_dict"
-  print required_metadata_dict
+  for row in required_metadata_dict:
+    for field in required_metadata_fields_ok_list:
+      try:
+        print "project_id = %s" % (required_metadata_dict['project_id'])
+        print field
+        print row[field]
+        # required_metadata_dict_1[]
+      except KeyError:
+        pass
+      except:
+        raise
+  # print required_metadata_dict
   
 
   # (25490L, 516L, 'VTS_MIC_Bv6', 338482L, '0_2_i_1', 'unknown', 6191L, 'unknown', None, None, 1, '16s', 12, 'v6', 2, 'illumina', 3L, 'Bacteria', 8583L, 'United States of America', 6191L, 'unknown', 6191L, 'unknown', 19, 'unknown', 1535, 'NNNNTCAGC', 43, 'GTAGTA', 23, 'Bacterial V6 Suite')
