@@ -399,12 +399,18 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
     """
     return mysql_utils.execute_fetch_select_to_dict(query_primer_info)
     
-  def make_required_metadata_dict_slice(self, required_metadata_dict, required_metadata_fields_ok_list):
+  def make_required_metadata_dict_slice(self, required_metadata_dict, required_metadata_fields_ok_list, primer_suite_primers_dict):
   # required_metadata_dict = {k: required_metadata_dict[k] for k in required_metadata_fields_ok_list}
   
     required_metadata_dict_slice = defaultdict(dict)
     for row in required_metadata_dict:
-      current_project_id = (row['project_id'])
+      current_project_id = row['project_id']
+      current_primer_suite = row['primer_suite']
+      # print "row"
+      # print row
+      forward_primer = ", ".join(primer_suite_primers_dict[current_primer_suite]['F'])
+      reverse_primer = ", ".join(primer_suite_primers_dict[current_primer_suite]['R'])
+      
       required_metadata_dict_slice[current_project_id] = {}
       temp_dict = {}
       for field in required_metadata_fields_ok_list:
@@ -414,7 +420,8 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
           temp_dict[field] = row[field]
         except KeyError:
           #TODO: get primer_values
-          # print field
+          # ...'Archaeal V6 Suite': defaultdict(<type 'list'>, {'R': ['GWGGTRCATGGCY?GY?CG'], 'F': ['AATTGGA.?TCAACGCC.G']})
+          
           temp_dict[field] = ""
         except:
           raise
@@ -424,8 +431,7 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
   def make_primer_suite_primers_dict(self, primer_info_dict):
     primer_suite_primers_dict =  defaultdict(lambda : defaultdict(list))
     for row in primer_info_dict:
-      # current_primer_suite = row['primer_suite']
-      primer_suite_primers_dict[row['primer_suite']][row['direction']].append(row['sequence'])
+      primer_suite_primers_dict[row['primer_suite']][row['direction']].append(row['sequence'].replace(".", "N"))
     return primer_suite_primers_dict
 
 if __name__ == '__main__':
@@ -472,13 +478,11 @@ if __name__ == '__main__':
   ...{'direction': 'R', 'sequence': 'CTGTAGAGGGGG+TAGAA', 'primer_suite': 'Vibrio V4', 'region': 'v4', 'domain': 'bacteria', 'primer': '680R-Vib'})
   """
   primer_suite_primers_dict = metadata.make_primer_suite_primers_dict(primer_info_dict)
-  
-  # primer_suite_primers_dict =  defaultdict(lambda : defaultdict(list))
-  # for row in primer_info_dict:
-  #   current_primer_suite = (row['primer_suite'])
-  #   primer_suite_primers_dict[current_primer_suite][row['direction']].append(row['sequence'])
-  
+    
+  """
   print primer_suite_primers_dict
+  ...'Archaeal V6 Suite': defaultdict(<type 'list'>, {'R': ['GWGGTRCATGGCY?GY?CG'], 'F': ['AATTGGA.?TCAACGCC.G']})
+  """
   """
   TODO:
   add fields:
@@ -497,9 +501,9 @@ if __name__ == '__main__':
 
   req_fields_all_list = ("Anchor for trimming (454 sequencing only)", "adapter_sequence", "collection_date", "dataset", "direction", "dna_region", "domain", "env_biome", "env_feature", "env_matter", "env_package", "forward_primer", "geo_loc_name", "illumina_index", "latitude--Decimal Degrees bounded +-90C", "longitude--Decimal Degrees bounded +-180C", "project", "reverse_primer", "sequencing_platform", "target_gene")
 
-  required_metadata_fields_ok_list = ("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "direction", "primer_sequences")
+  required_metadata_fields_ok_list = ("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "forward_primer", "reverse_primer")
 
-  required_metadata_dict_slice = metadata.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list)
+  required_metadata_dict_slice = metadata.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list, primer_suite_primers_dict)
 
   #
   # print "GGG required_metadata_dict_slice"
