@@ -461,8 +461,8 @@ if __name__ == '__main__':
   #   a = Required_metadata()
     
   # print dict(zip(required_metadata[1:], taxonomy1_arr[0]))
-  print "GGG"
-  print required_metadata.__dict__
+  # print "GGG"
+  # print required_metadata.__dict__
   """
   def row2dict(row):
       d = {}
@@ -475,3 +475,5 @@ if __name__ == '__main__':
   row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
   
   """
+  q1 = "SELECT * from run_key"
+  mysql_utils.execute_fetch_select_to_dict(q1)
