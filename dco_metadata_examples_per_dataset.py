@@ -476,4 +476,6 @@ if __name__ == '__main__':
   
   """
   q1 = "SELECT * from run_key"
-  mysql_utils.execute_fetch_select_to_dict(q1)
+  res = mysql_utils.execute_fetch_select_to_dict(q1)
+  print "5" *55
+  print res

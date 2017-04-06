@@ -77,7 +77,8 @@ class Mysql_util:
         try:
           self.dict_cursor.execute(sql)
           # print "E" * 20
-          # print self.dict_cursor.fetchall ()
+          return self.dict_cursor.fetchall ()
+          # print res
           # print "W" * 20
           # print self.dict_cursor.description
           # print "R" * 20
