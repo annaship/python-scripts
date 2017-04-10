@@ -17,6 +17,17 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_project_ids")
     project_ids = self.get_project_ids()
     utils.benchmark_w_return_2(t, "get_project_ids")
+
+    t = utils.benchmark_w_return_1("all_project_ids_to_str")
+    all_project_ids_str = self.all_project_ids_to_str(project_ids)
+    utils.benchmark_w_return_2(t, "all_project_ids_to_str")
+    
+    t = utils.benchmark_w_return_1("get_custom_fields")
+    custom_fields = self.get_custom_fields(all_project_ids_str)
+    print "PPP"
+    print custom_fields
+    utils.benchmark_w_return_2(t, "get_custom_fields")
+    # self.make_custom_table_name_list(all_project_ids_str)
     
     
   def get_custom_info(self):
@@ -42,6 +53,26 @@ class Metadata():
   def get_project_ids(self):
     query_project_ids = """select project_id, project from project where project like '%s%%' """ % (self.project_name_startswith)
     return mysql_utils.execute_fetch_select(query_project_ids)
+
+  def get_custom_fields(self, all_project_ids_str):
+    for table_name in self.make_custom_table_name_list(all_project_ids_str):
+      get_metadata_query = """ select 
+
+      """
+
+    custom_fields_query = """SELECT DISTINCT project_id, field_name, field_units, example FROM custom_metadata_fields WHERE project_id in (%s)""" % (", ".join(all_project_ids_str))
+    # print custom_fields_query
+    custom_fields = mysql_utils.execute_fetch_select(custom_fields_query)
+    print custom_fields
+    """((...(860L, 'trace element geochemistry', '', 'yes')), ['project_id', 'field_name', 'field_units', 'example'])"""
+    return custom_fields
+   
+  def all_project_ids_to_str(self, all_project_ids):
+    return [str(int(x[0])) for x in all_project_ids[0]]
+
+  def make_custom_table_name_list(self, all_project_ids_str):
+    return ['custom_metadata_' + x for x in all_project_ids_str]
+  
 
 
 if __name__ == '__main__':
