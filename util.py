@@ -60,6 +60,22 @@ class Mysql_util:
           self.utils.print_both(("ERROR: query = %s") % sql)
           raise
         return (res, field_names)
+        
+        
+    def execute_fetch_select_where(self, sql, values):
+      # print "+" * 20
+      # print sql
+      # print values
+      if self.cursor:
+        try:
+          self.cursor.execute(sql, values)
+          res         = self.cursor.fetchall ()
+          field_names = [i[0] for i in self.cursor.description]
+        except:
+          self.utils.print_both(("ERROR: query = %s") % sql)
+          raise
+        return (res, field_names)
+    
 
     def execute_no_fetch(self, sql):
       if self.cursor:
