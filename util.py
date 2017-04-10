@@ -68,11 +68,11 @@ class Mysql_util:
       # print values
       if self.cursor:
         try:
-          self.cursor.execute(sql, values)
+          self.cursor.execute(sql, (values))
           res         = self.cursor.fetchall ()
           field_names = [i[0] for i in self.cursor.description]
         except:
-          self.utils.print_both(("ERROR: query = %s") % sql)
+          self.utils.print_both(("ERROR: query = %s, values = %s") % sql, values)
           raise
         return (res, field_names)
     
