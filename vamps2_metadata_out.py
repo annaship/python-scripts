@@ -10,8 +10,10 @@ class Metadata():
     self.project_name_startswith = project_name_startswith
   
   def get_required_info(self):
-    pass
-
+    all_custom_table_names = self.get_all_custom_tables()
+    project_ids = self.get_project_ids()
+    print project_ids
+    
   def get_custom_info(self):
     pass
 
@@ -32,7 +34,11 @@ class Metadata():
     """
     return mysql_utils.execute_fetch_select(query_custom_tables)
     
-  
+  def get_project_ids(self):
+    query_project_ids = """select project_id, project from project where project like '%s%%' """ % (self.project_name_startswith)
+    print query_project_ids
+    return mysql_utils.execute_fetch_select(query_project_ids)
+
 
 if __name__ == '__main__':
   utils = util.Utils()
