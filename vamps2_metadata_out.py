@@ -10,7 +10,7 @@ class Metadata():
   def __init__(self, project_name_startswith):
     self.project_name_startswith = project_name_startswith
   
-  def get_required_info(self):
+  def get_metadata_info(self):
     t = utils.benchmark_w_return_1("get_all_custom_tables")
     all_custom_table_names = self.get_all_custom_tables()
     utils.benchmark_w_return_2(t, "get_all_custom_tables")
@@ -24,13 +24,16 @@ class Metadata():
     utils.benchmark_w_return_2(t, "all_project_ids_to_str")
     
     t = utils.benchmark_w_return_1("get_custom_fields")
-    custom_fields = self.get_custom_fields(all_project_ids_str)
+    raw_custom_fields_units = self.get_custom_fields(all_project_ids_str)
     utils.benchmark_w_return_2(t, "get_custom_fields")
 
     t = utils.benchmark_w_return_1("get_raw_metadata")
     raw_metadata = self.get_raw_metadata(all_project_ids_str)
-    # print "RRR"
-    # print raw_metadata
+    """
+    print "RRR"
+    print raw_metadata
+    ...}, {'domain': 'Bacteria', 'required_metadata_id': 16766L, 'dna_region': 'v6v4', 'geo_loc_name_id': 6542L, 'adapter_sequence': 'GACGT', 'dna_region_id': 13, 'adapter_sequence_id': 129, 'dataset': '1374_20R_Bac', 'env_package_id': 3, 'sample_id': '1374-20R', 'sample_volume': '0.005', 'dataset_id': 336354L, 'domain_id': 3L, 'target_gene': '16s', 'rock_type': 'igneous', 'env_feature': 'endolithic habitat', 'samp_store_temp': '-80', 'collection_date': 'unknown', 'formation_name': 'Louisville Seamounts, Rigil Guyot', 'env_biome': 'marine biome', 'custom_metadata_430.geo_loc_name': 'Pacific Ocean', 'target_gene_id': 1, 'tot_depth_water_col': '1545', 'env_feature_id': 1256L, 'lat_lon': '28.596 S, 173.381 W', 'geo_loc_name': 'Pacific Ocean', 'latitude': -28.596, 'sequencing_platform_id': 1, 'project_id': 430L, 'env_matter_id': 1269L, 'custom_metadata_430.dataset_id': 336354L, 'illumina_index': 'unknown', 'run': '20130405', 'dna_extraction_meth': 'CTAB phenol/chloroform extraction', 'lithology': 'aphyric basalt breccia', 'updated_at': datetime.datetime(2017, 3, 13, 12, 54, 33), 'illumina_index_id': 83, 'sequencing_platform': '454', 'primer_suite_id': 9, 'primer_suite': 'Bacterial V6-V4 Suite', 'created_at': datetime.datetime(2016, 6, 17, 13, 38, 34), 'env_package': 'extreme habitat', 'longitude': -173.381, 'project': 'DCO_SYL_Bv6v4', 'depth': 102.9, 'custom_metadata_430_id': 7L, 'env_biome_id': 1116L, 'env_matter': 'rock', 'custom_metadata_430.target_gene': '16S rDNA'})})    
+    """
     utils.benchmark_w_return_2(t, "get_raw_metadata")
         
   def get_raw_metadata(self, all_project_ids_str):
@@ -103,9 +106,12 @@ class Metadata():
       
     return raw_metadata
     
-  def combine_req_n_custome(self):
+  def make_filed_units_pairs_per_project(self):
     pass
     
+  def make_project_dataset_pairs_per_project(self):
+    pass
+
   def add_all_empty_fields(self):
     pass
     
@@ -139,6 +145,32 @@ class Metadata():
   def make_custom_table_names_list(self, all_project_ids_str):
     return ['custom_metadata_' + x for x in all_project_ids_str]
     
+  """
+  TODO:
+  for dco_custom_field_info in dco_custom_fields[0]:
+    # print "dco_custom_field_info"
+    # print dco_custom_field_info
+    # (860L, 'resistivity', 'ohm-meters', 'n.d.')
+    # (860L, 'trace element geochemistry', '', 'yes')
+    project_id = dco_custom_field_info[0]
+    field_name = dco_custom_field_info[1]
+    # ((('',), ('',), ('',), ('',), ('',), ('',), ('',), ('',), ('3363',), ('2796',), ('',), ('',), ('',), ('',), ('',), ('',), ('4500',), ('4286',)), ['methane'])
+
+    custom_metadata_distinct_list = self.make_custom_metadata_distinct_list(self.get_custom_metadata_per_project(project_id, field_name))
+    # ['3363', '4500', '', '4286', '2796']
+
+    str_project_id = str(project_id)
+    field_name__descr = field_name + "__" + dco_custom_field_info[2]
+    all_field_names.append(field_name)
+    all_field_name__descr.append(field_name__descr)
+
+    all_field_name__descr_per_project[project_id].append(field_name__descr)
+
+    custom_metadata_distinct_list_per_field_per_project_dict = self.make_my_dict(custom_metadata_distinct_list_per_field_per_project_dict, str_project_id, field_name, field_name__descr, custom_metadata_distinct_list)
+
+    field_values_dict = self.make_dict_field_values(field_values_dict, str_project_id, field_name, custom_metadata_distinct_list)
+  
+  """
 
 if __name__ == '__main__':
   utils = util.Utils()
@@ -151,11 +183,7 @@ if __name__ == '__main__':
   project_name_startswith = sys.argv[1] if len(sys.argv) == 2 else 'DCO'
   metadata = Metadata(project_name_startswith)
   
-  t = utils.benchmark_w_return_1("get_required_info")
-  metadata.get_required_info()
-  utils.benchmark_w_return_2(t, "get_required_info")
-  
-  t = utils.benchmark_w_return_1("get_custom_info")
-  metadata.get_custom_info()
-  utils.benchmark_w_return_2(t, "get_custom_info")
-  
+  t = utils.benchmark_w_return_1("get_metadata_info")
+  metadata.get_metadata_info()
+  utils.benchmark_w_return_2(t, "get_metadata_info")
+    
