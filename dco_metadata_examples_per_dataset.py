@@ -513,57 +513,6 @@ if __name__ == '__main__':
   # === required metadata ===
   
   required_metadata_dict_slice = metadata.make_required_metadata()
-#   required_metadata_dict =  metadata.get_required_metadata_dict()
-#   # print "MMM"
-#   # print required_metadata_dict
-#   
-#   """
-# ...{'domain': 'Bacteria', 'required_metadata_id': 25490L, 'dna_region': 'v6', 'geo_loc_name_id': 8583L, 'adapter_sequence': 'NNNNTCAGC', 'dna_region_id': 12, 'adapter_sequence_id': 1535, 'dataset': '0_2_i_1', 'env_package_id': 19, 'dataset_id': 338482L, 'domain_id': 3L, 'target_gene': '16s', 'env_feature': 'unknown', 'collection_date': 'unknown', 'env_biome': 'unknown', 'index_sequence_id': 43, 'target_gene_id': 1, 'env_feature_id': 6191L, 'geo_loc_name': 'United States of America', 'latitude': None, 'sequencing_platform_id': 2, 'project_id': 516L, 'env_matter_id': 6191L, 'sequencing_platform': 'illumina', 'index_sequence': 'GTAGTA', 'primer_suite_id': 23, 'primer_suite': 'Bacterial V6 Suite', 'env_package': 'unknown', 'longitude': None, 'project': 'VTS_MIC_Bv6', 'env_biome_id': 6191L, 'env_matter': 'unknown'})
-#   """
-#   
-#   primer_info_dict = metadata.get_primer_info_dict()
-#   print "MMM"
-#   # print primer_info_dict
-#   # next((item for item in dicts if item["name"] == "Pam"), None)
-#   """
-#   ...{'direction': 'R', 'sequence': 'CTGTAGAGGGGG+TAGAA', 'primer_suite': 'Vibrio V4', 'region': 'v4', 'domain': 'bacteria', 'primer': '680R-Vib'})
-#   """
-#   primer_suite_primers_dict = metadata.make_primer_suite_primers_dict(primer_info_dict)
-#     
-#   """
-#   print primer_suite_primers_dict
-#   ...'Archaeal V6 Suite': defaultdict(<type 'list'>, {'R': ['GWGGTRCATGGCY?GY?CG'], 'F': ['AATTGGA.?TCAACGCC.G']})
-#   """
-#   """
-#   TODO:
-#   add fields:
-#   forward_primer
-#   latitude--Decimal Degrees bounded +-90C
-#   longitude--Decimal Degrees bounded +-180C
-#   reverse_primer
-#   Anchor for trimming (454 sequencing only)
-#   custom:
-#   depth continental subsurface--meter
-#   depth subseafloor--meters
-#   depth Water Column--meter
-#   depth within a core -- cm
-#   
-#   """
-# 
-#   req_fields_all_list = ("Anchor for trimming (454 sequencing only)", "adapter_sequence", "collection_date", "dataset", "direction", "dna_region", "domain", "env_biome", "env_feature", "env_matter", "env_package", "forward_primer", "geo_loc_name", "illumina_index", "latitude--Decimal Degrees bounded +-90C", "longitude--Decimal Degrees bounded +-180C", "project", "reverse_primer", "sequencing_platform", "target_gene")
-# 
-#   required_metadata_fields_ok_list = ("project", "dataset", "collection_date", "env_biome", "latitude", "longitude", "target_gene", "dna_region", "sequencing_platform", "domain", "geo_loc_name", "env_feature", "env_matter", "env_package", "adapter_sequence", "index_sequence", "forward_primer", "reverse_primer")
-# 
-#   required_metadata_dict_slice = metadata.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list, primer_suite_primers_dict)
-# 
-#   #
-#   print "GGG required_metadata_dict_slice"
-#   print required_metadata_dict_slice
-#   """  print "GGG required_metadata_dict_slice"
-#     print required_metadata_dict_slice
-#   860L: {'env_feature': 'hydrothermal vent', 'domain': 'Bacteria', 'dna_region': 'v4v5', 'adapter_sequence': 'NNNNATGCT', 'collection_date': '2016-05-18', 'env_package': 'extreme habitat', 'index_sequence': 'ACTTGA', 'longitude': None, 'env_biome': 'unknown', 'project': 'DCO_DAL_Bv4v5', 'geo_loc_name': 'Greece', 'latitude': None, 'forward_primer': 'CCAGCAGCCGCGGTAAN, CCAGCAGCTGCGGTAAN', 'reverse_primer': 'ACT[CT]AAANGAATTGACGG, ACTCAAAAGAATTGACGG, ACTCAAAGAAATTGACGG', 'dataset': 'NeoErasmio', 'env_matter': 'water', 'target_gene': '16s', 'sequencing_platform': 'illumina'}
-#   
-#   """
   
   for project_id, required_metadata_dict in required_metadata_dict_slice.items():
     file_name = "custom_metadata_per_project_%s.csv" % (project_id)
