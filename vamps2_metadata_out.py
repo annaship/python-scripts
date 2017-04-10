@@ -27,21 +27,15 @@ class Metadata():
     custom_fields = self.get_custom_fields(all_project_ids_str)
     utils.benchmark_w_return_2(t, "get_custom_fields")
 
-    # t = utils.benchmark_w_return_1("make_custom_table_names_list")
-    # custom_table_names_list = self.make_custom_table_names_list(all_project_ids_str)
-    # utils.benchmark_w_return_2(t, "make_custom_table_names_list")
-
-
     t = utils.benchmark_w_return_1("get_raw_metadata")
     raw_metadata = self.get_raw_metadata(all_project_ids_str)
-    print "RRR"
-    print raw_metadata
+    # print "RRR"
+    # print raw_metadata
     utils.benchmark_w_return_2(t, "get_raw_metadata")
         
   def get_raw_metadata(self, all_project_ids_str):
     raw_metadata = defaultdict(list)
     for project_id_str in all_project_ids_str:
-      # print project_id_str
       raw_metadata_query = """SELECT DISTINCT
       `required_metadata_info`.`required_metadata_id` AS `required_metadata_id`,
       `dataset`.`project_id` AS `project_id`,
@@ -98,11 +92,8 @@ class Metadata():
       JOIN custom_metadata_%s USING(dataset_id);
       """ % (project_id_str, project_id_str)
 
-      print raw_metadata_query
       try:
-        res = mysql_utils.execute_fetch_select_to_dict(raw_metadata_query)
-        # print res
-          
+        res = mysql_utils.execute_fetch_select_to_dict(raw_metadata_query)          
         raw_metadata[project_id_str] = res
       except MySQLdb.ProgrammingError:
         pass
@@ -112,39 +103,6 @@ class Metadata():
       
     return raw_metadata
     
-    
-  def get_project_datasets_metadata(self, custom_table_names_list):
-    custom_metadata_values_per_project_dataset = defaultdict(list)
-
-    for custom_table in custom_table_names_list:
-      # TODO: combine with get_custom_metadata_per_project
-      print "CCC"
-      print custom_table
-      poject_dataset_query = """SELECT DISTINCT project_id, project, dataset.dataset as sample, %s.*, required_metadata_info.* FROM %s JOIN dataset USING(dataset_id) JOIN project USING(project_id) JOIN required_metadata_info USING(dataset_id)""" % (custom_table, custom_table)
-      print "UUU"
-      print poject_dataset_query
-      try:
-        res = mysql_utils.execute_fetch_select_to_dict(poject_dataset_query)
-        # res = mysql_utils.execute_fetch_select_where(poject_dataset_query, (custom_table, custom_table))
-        # print res
-        # {'adapter_sequence_id': 194, 'required_metadata_id': 16772L, 'geo_loc_name_id': 14975L, 'domain_id': 3L, 'dna_region_id': 13, 'updated_at': datetime.datetime(2017, 3, 13, 12, 54, 33), 'sample': 'Bering_4_Bv6v4', 'env_package_id': 22, 'sample_id': 'BS-4 (B)', 'dataset_id': 336382L, 'pH': '7.72', 'custom_metadata_432_id': 8L, 'required_metadata_info.dataset_id': 336382L, 'samp_store_temp': '-80', 'target_gene_id': 1, 'collection_date': '2009-08-07', 'samp_store_dur': 'P2Y', 'redox_state': 'anoxic', 'phosphate': '121.17', 'env_feature_id': 6191L, 'geo_loc_name': 'Bering Sea', 'latitude': 58.7, 'access_point_type': 'piston core', 'sequencing_platform_id': 1, 'project_id': 432L, 'chloride': '522290.7', 'dna_extraction_meth': 'Mo Bio Power Soil', 'diss_inorg_carb': '33000', 'rock_type': 'sediment', 'primer_suite_id': 9, 'index_sequence_id': 83, 'env_matter_id': 1281L, 'created_at': datetime.datetime(2016, 6, 17, 13, 42, 18), 'longitude': -178.56, 'project': 'DCO_WAL_Bv6v4', 'calcium': '2654.1', 'depth': 8.65, 'tot_depth_water_col': '1950.9', 'env_biome_id': 1116L})]
-        
-        custom_metadata_values_per_project_dataset.append(res)
-      except MySQLdb.ProgrammingError:
-        pass
-      # _mysql_exceptions.ProgrammingError
-      except:
-        raise
-      # MySQLdb.OperationalError, e
-    return custom_metadata_values_per_project_dataset
-    
-    
-    print "PPP"
-    print custom_fields
-    
-  def get_custom_info(self):
-    pass
-
   def combine_req_n_custome(self):
     pass
     

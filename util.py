@@ -88,8 +88,8 @@ class Mysql_util:
       if self.dict_cursor:
         try:
           self.dict_cursor.execute(sql)
-          print "DDD"
-          print self.dict_cursor.description
+          # print "DDD"
+          # print self.dict_cursor.description
           return self.dict_cursor.fetchall ()
         except:
           self.utils.print_both(("ERROR: query = %s") % sql)
