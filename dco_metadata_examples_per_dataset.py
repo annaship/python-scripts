@@ -189,7 +189,7 @@ class Metadata():
     add_lines = [empty_fields, all_zeros]
     return zip(*add_lines)
     
-  def custom_metadata(self):
+  def custom_metadata(self, required_metadata_dict_slice):
     all_custom_tables = self.get_all_all_custom_tables()
 
     query_project_ids = """select project_id, project from project where project like "DCO%" """
@@ -288,8 +288,9 @@ class Metadata():
 
       empty_fields = self.make_empty_fields(all_field_name__descr, custom_md_field_names_for_1_pr)
       transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(empty_fields)
-      # # print "AAA"
-      # # print custom_md_field_names_for_1_pr
+      # print "AAA"
+      # print empty_fields
+      # print transposed_add_lines_empty_fields
       # # if project_id == 465:
       # #   print "AAA"
       # #   print empty_fields
@@ -323,8 +324,24 @@ class Metadata():
   
       """
       # empty_fields = list(all_fields) - custom_md_field_names_for_1_pr
-  
+      
+      
       file_name = "custom_metadata_per_project_%s.csv" % (project_id)
+      
+      # for project_id, required_metadata_dict in required_metadata_dict_slice.items():
+      # print "YYY"
+      # print required_metadata_dict_slice[project_id]
+      # print dataset_len
+      # {'env_feature': 'unknown', 'domain': 'Bacteria', 'dna_region': 'v6v4', 'adapter_sequence': 'CGCTC', 'collection_date': '2009-08-07', 'env_package': 'water-marine', 'index_sequence': 'unknown', 'longitude': -178.56, 'env_biome': 'marine biome', 'project': 'DCO_WAL_Bv6v4', 'geo_loc_name': 'Bering Sea', 'latitude': 58.7, 'forward_primer': 'TGGGCGTAAAG', 'reverse_primer': 'AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG', 'dataset': 'Bering_8_Bv6v4', 'env_matter': 'sediment', 'target_gene': '16s', 'sequencing_platform': '454'}
+      # 15
+      # 
+      
+      # ef make_transposed_empty_fields_lines(self, empty_fields):
+        # all_zeros = [0]*len(empty_fields)
+        # add_lines = [empty_fields, all_zeros]
+        # return zip(*add_lines)
+      
+      
   
       with open(file_name, "wb") as csv_file:
         csv_writer = csv.writer(csv_file)
@@ -474,8 +491,8 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
     required_metadata_dict_slice = self.make_required_metadata_dict_slice(required_metadata_dict, required_metadata_fields_ok_list, primer_suite_primers_dict)
   
     #
-    print "GGG required_metadata_dict_slice"
-    print required_metadata_dict_slice
+    # print "GGG required_metadata_dict_slice"
+    # print required_metadata_dict_slice
     """  print "GGG required_metadata_dict_slice"
       print required_metadata_dict_slice
     860L: {'env_feature': 'hydrothermal vent', 'domain': 'Bacteria', 'dna_region': 'v4v5', 'adapter_sequence': 'NNNNATGCT', 'collection_date': '2016-05-18', 'env_package': 'extreme habitat', 'index_sequence': 'ACTTGA', 'longitude': None, 'env_biome': 'unknown', 'project': 'DCO_DAL_Bv4v5', 'geo_loc_name': 'Greece', 'latitude': None, 'forward_primer': 'CCAGCAGCCGCGGTAAN, CCAGCAGCTGCGGTAAN', 'reverse_primer': 'ACT[CT]AAANGAATTGACGG, ACTCAAAAGAATTGACGG, ACTCAAAGAAATTGACGG', 'dataset': 'NeoErasmio', 'env_matter': 'water', 'target_gene': '16s', 'sequencing_platform': 'illumina'}
@@ -495,9 +512,13 @@ if __name__ == '__main__':
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
   # print a
+
+  # === required metadata ===
+  
+  required_metadata_dict_slice = metadata.make_required_metadata()
   
   # Uncomment !
-  # metadata.custom_metadata()
+  metadata.custom_metadata(required_metadata_dict_slice)
       
   # print "DDD"
   # metadata.print_all_values_per_field_name(field_values_dict_flat)
@@ -510,13 +531,10 @@ if __name__ == '__main__':
   # restructure: all operations with custom_field table, all operations with custom_metadata tables, all operations with req. table
   # get_project_datasets interm. TODO: make a dict
   
-  # === required metadata ===
   
-  required_metadata_dict_slice = metadata.make_required_metadata()
-  
-  for project_id, required_metadata_dict in required_metadata_dict_slice.items():
-    file_name = "custom_metadata_per_project_%s.csv" % (project_id)
-    print file_name
+  # for project_id, required_metadata_dict in required_metadata_dict_slice.items():
+  #   file_name = "custom_metadata_per_project_%s.csv" % (project_id)
+  #   print file_name
     # TODO: 
     # get dataset_len = len(one_table_res[0])
     # write to csv 
