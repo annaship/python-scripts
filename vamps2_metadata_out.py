@@ -76,9 +76,12 @@ class Metadata():
     # print all_field_names
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
-    self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
+    metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
+    print "CCCC"
+    print "metadata_per_project_dataset_lists_dict"
+    print metadata_per_project_dataset_lists_dict
 
   def f5(self, seq, idfun=None): 
      # order preserving
@@ -104,8 +107,10 @@ class Metadata():
      return unique_data
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
+    metadata_per_project_dataset_lists_dict = defaultdict(list)
+    
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
-      print project_id_str
+      metadata_per_project_dataset_lists_dict[project_id_str]
       metadata_per_project_dataset_list = []
       
       for pr_dat, m_dict in pr_dat_dict.items():
@@ -119,8 +124,11 @@ class Metadata():
 
       unique_data = self.make_unique_matrix_preserve_order(first_column, metadata_per_project_dataset_list)
 
+      metadata_per_project_dataset_lists_dict[project_id_str] = unique_data
+      
       print "DDD unique_data"
       print zip(*unique_data)
+    return metadata_per_project_dataset_lists_dict
 
 
   def get_all_field_names(self, metadata_w_units_dict):
