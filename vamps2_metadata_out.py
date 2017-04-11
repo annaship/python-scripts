@@ -60,8 +60,8 @@ class Metadata():
     t = utils.benchmark_w_return_1("mix_field_units_metadata")
     metadata_w_units_dict = self.mix_field_units_metadata(custom_fields_units_per_project, raw_metadata)
     utils.benchmark_w_return_2(t, "mix_field_units_metadata")
-    # print "metadata_w_units_dict = "
-    # print metadata_w_units_dict
+    print "EEE metadata_w_units_dict = "
+    print metadata_w_units_dict
     
     """
     {...
@@ -72,28 +72,30 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_all_field_names")
     all_field_names = self.get_all_field_names(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "get_all_field_names")
-    print "AAA all_field_names = "
-    print all_field_names
-    
-    
+    # print "AAA all_field_names = "
+    # print all_field_names
+
+    t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
+    self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
+    utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
+
+  def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
+    for project_id_str, m_dict in metadata_w_units_dict.items():
+      header_line = ["Field--Unit for all DCO projects", "All fields are empty?"]
+      project_fields = m_dict.keys()
+      # print "MMM"
+      # print m_dict
+      # header_line.append()
+      # print "header_line"
+      # print header_line
+
+
   def get_all_field_names(self, metadata_w_units_dict):
     all_field_names = []
     for project_id_str, m_dict in metadata_w_units_dict.items():
-      all_field_names = all_field_names + m_dict.keys()
-        
-    # print "set(all_field_names) = "
-    # print set(all_field_names)
-    # print len(set(all_field_names))
-
+      all_field_names = all_field_names + m_dict.keys()      
     return set(all_field_names)
     
-  def make_the_frist_column(self):
-    print "Field--Unit for all DCO projects"
-  
-  def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
-    pass
-    
-  
   def make_custom_fields_units_per_project(self, raw_custom_fields_units):
     custom_fields_units_per_project = defaultdict(dict)
     
@@ -108,15 +110,34 @@ class Metadata():
   def mix_field_units_metadata(self, custom_fields_units_per_project, raw_metadata):
     metadata_w_units_dict = defaultdict(dict)
 
-    for project_id_str in raw_metadata:
-      for m_dict in raw_metadata[project_id_str]:
-        for field in m_dict:
+    for project_id_str, m_tup in raw_metadata.items():
+      print "9" * 8
+      print "project_id_str = "
+      print project_id_str
+      for m_dict in m_tup:
+        project_dataset = m_dict['project'] + "--" + m_dict['dataset']
+        metadata_w_units_dict[project_id_str][project_dataset] = {}
+        for field, val in m_dict.items():
+          # print field, val
           try:
-            metadata_w_units_dict[project_id_str][custom_fields_units_per_project[project_id_str][field]] = m_dict[field]
+            metadata_w_units_dict[project_id_str][project_dataset][custom_fields_units_per_project[project_id_str][field]] = val
           except KeyError:
-            metadata_w_units_dict[project_id_str][field] = m_dict[field]
-          except:
-            raise
+            metadata_w_units_dict[project_id_str][project_dataset][field] = val
+        
+      # for m_dict in raw_metadata[project_id_str]:
+      #   for field in m_dict:
+      #     print "FFF"
+      #     print field
+      #     print "YYY"
+      #     print m_dict
+      #     try:
+      #       print m_dict['project']
+      #       print m_dict['dataset']
+      #       metadata_w_units_dict[project_id_str][custom_fields_units_per_project[project_id_str][field]] = m_dict[field]
+      #     except KeyError:
+      #       metadata_w_units_dict[project_id_str][field] = m_dict[field]
+      #     except:
+      #       raise
     return metadata_w_units_dict
 
   def get_raw_metadata(self, all_project_ids_str):
