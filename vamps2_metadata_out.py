@@ -79,32 +79,21 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    print "CCCC"
+    print "MMM"
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
-
-  def f5(self, seq, idfun=None): 
-     # order preserving
-     if idfun is None:
-         def idfun(x): return x
-     seen = {}
-     result = []
-     for item in seq:
-         marker = idfun(item)
-         # in old Python versions:
-         # if seen.has_key(marker)
-         # but in new ones:
-         if marker in seen: continue
-         seen[marker] = 1
-         result.append(item)
-     return result
-  
 
   def make_unique_matrix_preserve_order(self, first_column, metadata_per_project_dataset_list):
      unique_data = []
      unique_data.append(first_column)
      [unique_data.append(x) for x in metadata_per_project_dataset_list]
      return unique_data
+     
+  def make_empty_marker_line(self, dataset_len):
+   empty_marker = [1] * dataset_len
+   empty_marker.insert(0, "All fields are empty?")
+   return empty_marker
+
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
     metadata_per_project_dataset_lists_dict = defaultdict(list)
@@ -116,18 +105,19 @@ class Metadata():
       for pr_dat, m_dict in pr_dat_dict.items():
         this_pr_dat_fields = sorted(m_dict.keys())
         first_column = ['Field--Unit for all DCO projects'] + this_pr_dat_fields
+        second_column = self.make_empty_marker_line(len(this_pr_dat_fields))
         val_list = [pr_dat]
         for key in this_pr_dat_fields:
           val_list.append(m_dict[key])
       
         metadata_per_project_dataset_list.append(val_list)
 
-      unique_data = self.make_unique_matrix_preserve_order(first_column, metadata_per_project_dataset_list)
+      # unique_data = self.make_unique_matrix_preserve_order(first_column, metadata_per_project_dataset_list)
 
-      metadata_per_project_dataset_lists_dict[project_id_str] = unique_data
+      metadata_per_project_dataset_lists_dict[project_id_str] = self.make_unique_matrix_preserve_order([first_column, second_column], metadata_per_project_dataset_list)
       
-      print "DDD unique_data"
-      print zip(*unique_data)
+      # print "DDD metadata_per_project_dataset_lists_dict[project_id_str]"
+      # print zip(*metadata_per_project_dataset_lists_dict[project_id_str])
     return metadata_per_project_dataset_lists_dict
 
 
