@@ -80,25 +80,20 @@ class Metadata():
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
-    
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
-      header_line = ["Field--Unit for all DCO projects", "All fields are empty?"]
-      this_pr_fields = sorted(pr_dat_dict.keys())
-      header_line = header_line + this_pr_fields
-      print "header_line"
-      print header_line
+      metadata_per_project_dataset_list = []
       
       for pr_dat, m_dict in pr_dat_dict.items():
-        # aa = [x for (y,x) in sorted(zip(this_pr_fields, m_dict.values()))]
-        # # print zip(*aa)
-        print pr_dat, m_dict
-        # print m_dict.values()
-      # 
-      # for pr_dat, m_dict in pr_dat_dict.items():
-      #   project_fields = m_dict.keys()
-      #   # print "MMM"
-      #   # print m_dict
-      #   header_line.append()
+        # print "DDD pr_dat, m_dict"
+        # print pr_dat, m_dict 
+        this_pr_dat_fields = sorted(m_dict.keys())
+        val_list = [pr_dat]
+        for key in this_pr_dat_fields:
+          val_list.append(m_dict[key])
+      
+        metadata_per_project_dataset_list.append(val_list)
+      print "DDD metadata_per_project_dataset_list"
+      print metadata_per_project_dataset_list 
 
 
   def get_all_field_names(self, metadata_w_units_dict):
@@ -129,13 +124,12 @@ class Metadata():
     for project_id_str, m_tup in raw_metadata.items():
       for m_dict in m_tup:
         project_dataset = m_dict['project'] + "--" + m_dict['dataset']
-        m_dict['project_dataset'] = project_dataset
-        # metadata_w_units_dict[project_id_str][project_dataset] = {}
+        metadata_w_units_dict[project_id_str][project_dataset] = {}
         for field, val in m_dict.items():
           try:
-            metadata_w_units_dict[project_id_str][custom_fields_units_per_project[project_id_str][field]] = val
+            metadata_w_units_dict[project_id_str][project_dataset][custom_fields_units_per_project[project_id_str][field]] = val
           except KeyError:
-            metadata_w_units_dict[project_id_str][field] = val
+            metadata_w_units_dict[project_id_str][project_dataset][field] = val
           except:
             raise
     return metadata_w_units_dict
