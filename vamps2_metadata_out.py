@@ -97,6 +97,12 @@ class Metadata():
      return result
   
 
+  def make_unique_matrix_preserve_order(self, first_column, metadata_per_project_dataset_list):
+     unique_data = []
+     unique_data.append(first_column)
+     [unique_data.append(x) for x in metadata_per_project_dataset_list]
+     return unique_data
+
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
       print project_id_str
@@ -111,10 +117,7 @@ class Metadata():
       
         metadata_per_project_dataset_list.append(val_list)
 
-      unique_data = []
-      
-      unique_data.append(first_column)
-      [unique_data.append(x) for x in metadata_per_project_dataset_list]
+      unique_data = self.make_unique_matrix_preserve_order(first_column, metadata_per_project_dataset_list)
 
       print "DDD unique_data"
       print zip(*unique_data)
