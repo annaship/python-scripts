@@ -80,14 +80,21 @@ class Metadata():
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
-    for project_id_str, m_dict in metadata_w_units_dict.items():
+    
+    for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
       header_line = ["Field--Unit for all DCO projects", "All fields are empty?"]
-      project_fields = m_dict.keys()
-      # print "MMM"
-      # print m_dict
-      # header_line.append()
-      # print "header_line"
-      # print header_line
+      header_line = header_line + sorted(pr_dat_dict.keys())
+      print "header_line"
+      print header_line
+      
+      # for 
+
+      # 
+      # for pr_dat, m_dict in pr_dat_dict.items():
+      #   project_fields = m_dict.keys()
+      #   # print "MMM"
+      #   # print m_dict
+      #   header_line.append()
 
 
   def get_all_field_names(self, metadata_w_units_dict):
