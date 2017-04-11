@@ -83,12 +83,16 @@ class Metadata():
     
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
       header_line = ["Field--Unit for all DCO projects", "All fields are empty?"]
-      header_line = header_line + sorted(pr_dat_dict.keys())
+      this_pr_fields = sorted(pr_dat_dict.keys())
+      header_line = header_line + this_pr_fields
       print "header_line"
       print header_line
       
-      # for 
-
+      for pr_dat, m_dict in pr_dat_dict.items():
+        aa = [x for (y,x) in sorted(zip(this_pr_fields, m_dict.values()))]
+        # print zip(*aa)
+        print aa
+        # print m_dict.values()
       # 
       # for pr_dat, m_dict in pr_dat_dict.items():
       #   project_fields = m_dict.keys()
