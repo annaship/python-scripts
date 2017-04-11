@@ -16,6 +16,7 @@ class Metadata():
   """
   def __init__(self, project_name_startswith):
     self.project_name_startswith = project_name_startswith
+    self.req_fields = ['dataset', 'collection_date', 'env_biome', 'latitude', 'longitude', 'target_gene', 'dna_region', 'sequencing_platform', 'domain', 'geo_loc_name', 'env_feature', 'env_matter', 'env_package', 'adapter_sequence', 'illumina_index', 'primer_suite', 'run']
   
   def get_metadata_info(self):
     t = utils.benchmark_w_return_1("get_all_custom_tables")
@@ -99,7 +100,6 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = defaultdict(list)
     
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
-      metadata_per_project_dataset_lists_dict[project_id_str]
       metadata_per_project_dataset_list = []
       
       for pr_dat, m_dict in pr_dat_dict.items():
@@ -107,17 +107,15 @@ class Metadata():
         first_column = ['Field--Unit for all DCO projects'] + this_pr_dat_fields
         second_column = self.make_empty_marker_line(len(this_pr_dat_fields))
         val_list = [pr_dat]
+        # TODO:
+        # add keys_cleaning here
         for key in this_pr_dat_fields:
           val_list.append(m_dict[key])
       
         metadata_per_project_dataset_list.append(val_list)
 
-      # unique_data = self.make_unique_matrix_preserve_order(first_column, metadata_per_project_dataset_list)
-
       metadata_per_project_dataset_lists_dict[project_id_str] = self.make_unique_matrix_preserve_order([first_column, second_column], metadata_per_project_dataset_list)
       
-      # print "DDD metadata_per_project_dataset_lists_dict[project_id_str]"
-      # print zip(*metadata_per_project_dataset_lists_dict[project_id_str])
     return metadata_per_project_dataset_lists_dict
 
 
