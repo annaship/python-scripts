@@ -111,33 +111,16 @@ class Metadata():
     metadata_w_units_dict = defaultdict(dict)
 
     for project_id_str, m_tup in raw_metadata.items():
-      print "9" * 8
-      print "project_id_str = "
-      print project_id_str
       for m_dict in m_tup:
         project_dataset = m_dict['project'] + "--" + m_dict['dataset']
         metadata_w_units_dict[project_id_str][project_dataset] = {}
         for field, val in m_dict.items():
-          # print field, val
           try:
             metadata_w_units_dict[project_id_str][project_dataset][custom_fields_units_per_project[project_id_str][field]] = val
           except KeyError:
             metadata_w_units_dict[project_id_str][project_dataset][field] = val
-        
-      # for m_dict in raw_metadata[project_id_str]:
-      #   for field in m_dict:
-      #     print "FFF"
-      #     print field
-      #     print "YYY"
-      #     print m_dict
-      #     try:
-      #       print m_dict['project']
-      #       print m_dict['dataset']
-      #       metadata_w_units_dict[project_id_str][custom_fields_units_per_project[project_id_str][field]] = m_dict[field]
-      #     except KeyError:
-      #       metadata_w_units_dict[project_id_str][field] = m_dict[field]
-      #     except:
-      #       raise
+          except:
+            raise
     return metadata_w_units_dict
 
   def get_raw_metadata(self, all_project_ids_str):
