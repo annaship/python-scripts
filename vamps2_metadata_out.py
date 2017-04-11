@@ -62,15 +62,15 @@ class Metadata():
     t = utils.benchmark_w_return_1("make_custom_fields_list_per_project")
     custom_fields_list_per_project = self.make_custom_fields_list_per_project(raw_custom_fields_units, custom_fields_units_per_project)
     utils.benchmark_w_return_2(t, "make_custom_fields_list_per_project")
-    print "OOO"
-    print custom_fields_list_per_project
+    # print "OOO"
+    # print custom_fields_list_per_project
 
     
     t = utils.benchmark_w_return_1("mix_field_units_metadata")
     metadata_w_units_dict = self.mix_field_units_metadata(custom_fields_units_per_project, raw_metadata)
     utils.benchmark_w_return_2(t, "mix_field_units_metadata")
-    print "EEE metadata_w_units_dict = "
-    print metadata_w_units_dict
+    # print "EEE metadata_w_units_dict = "
+    # print metadata_w_units_dict
     
     """
     {...
@@ -88,23 +88,12 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    print "MMM"
-    print "metadata_per_project_dataset_lists_dict"
+    # print "MMM"
+    # print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
     
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
-    # print "FFF custom_fields_units_per_project"
-    # print custom_fields_units_per_project
-    custom_fields_list_per_project = defaultdict(list)
-    
-    # for project_id, u_dict in custom_fields_units_per_project.items():
-    #   print "DDD"
-    #   print u_dict.values()
-    #   custom_fields_list_per_project[project_id] = set(u_dict.values())
-      
-    custom_fields_list_per_project = {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
-    return custom_fields_list_per_project
-
+    return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
 
   def make_unique_matrix_preserve_order(self, first_column, metadata_per_project_dataset_list):
      unique_data = []
