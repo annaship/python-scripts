@@ -89,8 +89,8 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    # print "MMM"
-    # print "metadata_per_project_dataset_lists_dict"
+    print "MMM"
+    print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
     
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
@@ -122,7 +122,7 @@ class Metadata():
     this_pr_dat_fields = [field for field in all_pr_fields if field in good_fields]
     print "this_pr_dat_fields"
     print this_pr_dat_fields
-    return this_pr_dat_fields
+    return list(this_pr_dat_fields)
   
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict, custom_fields_list_per_project):
@@ -138,6 +138,7 @@ class Metadata():
         val_list = [pr_dat]
         # TODO:
         # add keys_cleaning here
+        # get values only for the filteres list of keys
         for key in this_pr_dat_fields:
           val_list.append(m_dict[key])
       
