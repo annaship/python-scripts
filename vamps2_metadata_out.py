@@ -93,15 +93,16 @@ class Metadata():
     print metadata_per_project_dataset_lists_dict
     
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
-    print "FFF custom_fields_units_per_project"
-    print custom_fields_units_per_project
+    # print "FFF custom_fields_units_per_project"
+    # print custom_fields_units_per_project
     custom_fields_list_per_project = defaultdict(list)
     
-    for project_id, u_dict in custom_fields_units_per_project.items():
-      print "DDD"
-      print u_dict.values()
-      custom_fields_list_per_project[project_id] = set(u_dict.values())
-    
+    # for project_id, u_dict in custom_fields_units_per_project.items():
+    #   print "DDD"
+    #   print u_dict.values()
+    #   custom_fields_list_per_project[project_id] = set(u_dict.values())
+      
+    custom_fields_list_per_project = {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
     return custom_fields_list_per_project
 
 
