@@ -105,33 +105,19 @@ class Metadata():
       for pr_dat, m_dict in pr_dat_dict.items():
         this_pr_dat_fields = sorted(m_dict.keys())
         first_column = ['Field--Unit for all DCO projects'] + this_pr_dat_fields
-        # todo: - do once!
-        # print "QQQ this_pr_dat_fields"
-        # print this_pr_dat_fields
         val_list = [pr_dat]
         for key in this_pr_dat_fields:
           val_list.append(m_dict[key])
       
         metadata_per_project_dataset_list.append(val_list)
 
-      noDupes = []
-        #    [noDupes.append(i) for i in seq if not noDupes.count(i)]
-      # [noDupes.append(list(x)) for x in set(tuple(x) for x in metadata_per_project_dataset_list) if not noDupes.count(list(x)) ]
-      # unique_data = self.f5(metadata_per_project_dataset_list)
+      unique_data = []
       
-      noDupes.append(first_column)
-      for x in metadata_per_project_dataset_list:
-        if not noDupes.count(x):
-          noDupes.append(x) 
-        # if noDupes.count(x):
-        #   print "PPP"
-        #   print x
-        # print "XXX"
-        # print x
-        
-      # print noDupes
-      print "DDD noDupes"
-      print zip(*noDupes)
+      unique_data.append(first_column)
+      [unique_data.append(x) for x in metadata_per_project_dataset_list]
+
+      print "DDD unique_data"
+      print zip(*unique_data)
 
 
   def get_all_field_names(self, metadata_w_units_dict):
