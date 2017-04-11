@@ -72,8 +72,8 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_all_field_names")
     all_field_names = self.get_all_field_names(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "get_all_field_names")
-    print "AAA all_field_names = "
-    print all_field_names
+    # print "AAA all_field_names = "
+    # print all_field_names
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
     self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
@@ -81,19 +81,22 @@ class Metadata():
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
+      print project_id_str
       metadata_per_project_dataset_list = []
       
       for pr_dat, m_dict in pr_dat_dict.items():
-        # print "DDD pr_dat, m_dict"
-        # print pr_dat, m_dict 
         this_pr_dat_fields = sorted(m_dict.keys())
+        metadata_per_project_dataset_list.append(this_pr_dat_fields)
+        # todo: - do once!
+        # print "QQQ this_pr_dat_fields"
+        # print this_pr_dat_fields
         val_list = [pr_dat]
         for key in this_pr_dat_fields:
           val_list.append(m_dict[key])
       
         metadata_per_project_dataset_list.append(val_list)
       print "DDD metadata_per_project_dataset_list"
-      print metadata_per_project_dataset_list 
+      print metadata_per_project_dataset_list
 
 
   def get_all_field_names(self, metadata_w_units_dict):
