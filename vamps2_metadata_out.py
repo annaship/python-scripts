@@ -72,8 +72,8 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_all_field_names")
     all_field_names = self.get_all_field_names(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "get_all_field_names")
-    # print "AAA all_field_names = "
-    # print all_field_names
+    print "AAA all_field_names = "
+    print all_field_names
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
     self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
@@ -92,8 +92,13 @@ class Metadata():
 
   def get_all_field_names(self, metadata_w_units_dict):
     all_field_names = []
-    for project_id_str, m_dict in metadata_w_units_dict.items():
-      all_field_names = all_field_names + m_dict.keys()      
+    for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
+      for pr_dat, m_dict in pr_dat_dict.items():
+        """
+        {'domain': 'Archaea', 'required_metadata_id': 11572L, 'dna_region': 'v6', 'geo_loc_name_id': 8771L, 'adapter_sequence': 'NNNNAGACA', 'dna_region_id': 12, 'adapter_sequence_id': 3316, 'dataset': 'LV13_5', 'env_package_id': 3, 'dataset_id': 239127L, 'domain_id': 2L, 'target_gene': '16s', 'env_feature': 'unknown', 'collection_date': 'unknown', 'env_biome': 'unknown', 'target_gene_id': 1, 'env_feature_id': 6191L, 'geo_loc_name': 'Italy', 'latitude': 43.403, 'sequencing_platform_id': 2, 'project_id': 319L, 'env_matter_id': 6191L, 'custom_metadata_319_id': 1L, 'illumina_index': 'CCAAGA', 'run': '20131115', 'temp__celsius': '13.9', 'pH__logH+': '7.1', 'custom_metadata_319.dataset_id': 239127L, 'updated_at': datetime.datetime(2017, 3, 13, 12, 54, 33), 'conductivity__milliseimenPerCentimeter': '2.76', 'illumina_index_id': 11, 'sequencing_platform': 'illumina', 'primer_suite_id': 1, 'depth__meter': 400.0, 'primer_suite': 'Archaeal V6 Suite', 'created_at': datetime.datetime(2016, 6, 16, 9, 10, 47), 'env_package': 'extreme habitat', 'longitude': 12.976, 'project': 'DCO_MAC_Av6', 'env_biome_id': 6191L, 'env_matter': 'unknown'}
+        
+        """
+        all_field_names = all_field_names + m_dict.keys()      
     return set(all_field_names)
     
   def make_custom_fields_units_per_project(self, raw_custom_fields_units):
