@@ -69,13 +69,9 @@ class Metadata():
     return custom_fields_units_per_project
 
   def mix_field_units_metadata(self, raw_custom_fields_units, raw_metadata):
-    # ['project_id', 'field_name', 'field_units', 'example']
-    print "UUU"
-    
     custom_fields_units_per_project = self.make_custom_fields_units_per_project(raw_custom_fields_units)
-    print custom_fields_units_per_project
-    
-    
+    # print "UUU"
+    # print custom_fields_units_per_project
     
     for project_id_str in raw_metadata:
       print "*" * 8
