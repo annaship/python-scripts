@@ -89,9 +89,9 @@ class Metadata():
       print header_line
       
       for pr_dat, m_dict in pr_dat_dict.items():
-        aa = [x for (y,x) in sorted(zip(this_pr_fields, m_dict.values()))]
-        # print zip(*aa)
-        print aa
+        # aa = [x for (y,x) in sorted(zip(this_pr_fields, m_dict.values()))]
+        # # print zip(*aa)
+        print pr_dat, m_dict
         # print m_dict.values()
       # 
       # for pr_dat, m_dict in pr_dat_dict.items():
@@ -129,12 +129,13 @@ class Metadata():
     for project_id_str, m_tup in raw_metadata.items():
       for m_dict in m_tup:
         project_dataset = m_dict['project'] + "--" + m_dict['dataset']
-        metadata_w_units_dict[project_id_str][project_dataset] = {}
+        m_dict['project_dataset'] = project_dataset
+        # metadata_w_units_dict[project_id_str][project_dataset] = {}
         for field, val in m_dict.items():
           try:
-            metadata_w_units_dict[project_id_str][project_dataset][custom_fields_units_per_project[project_id_str][field]] = val
+            metadata_w_units_dict[project_id_str][custom_fields_units_per_project[project_id_str][field]] = val
           except KeyError:
-            metadata_w_units_dict[project_id_str][project_dataset][field] = val
+            metadata_w_units_dict[project_id_str][field] = val
           except:
             raise
     return metadata_w_units_dict
