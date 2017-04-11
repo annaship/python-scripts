@@ -7,6 +7,13 @@ import sys
 from collections import defaultdict
 
 class Metadata():
+  """
+  Get data from 
+  project
+  dataset
+  custom_fields
+  custom and required metadata
+  """
   def __init__(self, project_name_startswith):
     self.project_name_startswith = project_name_startswith
   
@@ -27,15 +34,42 @@ class Metadata():
     raw_custom_fields_units = self.get_custom_fields(all_project_ids_str)
     utils.benchmark_w_return_2(t, "get_custom_fields")
 
+    """
+    print "UUU"
+    print raw_custom_fields_units
+    (((88L, 'methane', 'microMolar', '3363'), (88L,
+    """
+    
     t = utils.benchmark_w_return_1("get_raw_metadata")
     raw_metadata = self.get_raw_metadata(all_project_ids_str)
+    utils.benchmark_w_return_2(t, "get_raw_metadata")
+
+    # print "RRR"
+    # print raw_metadata
+
     """
     print "RRR"
     print raw_metadata
     ...}, {'domain': 'Bacteria', 'required_metadata_id': 16766L, 'dna_region': 'v6v4', 'geo_loc_name_id': 6542L, 'adapter_sequence': 'GACGT', 'dna_region_id': 13, 'adapter_sequence_id': 129, 'dataset': '1374_20R_Bac', 'env_package_id': 3, 'sample_id': '1374-20R', 'sample_volume': '0.005', 'dataset_id': 336354L, 'domain_id': 3L, 'target_gene': '16s', 'rock_type': 'igneous', 'env_feature': 'endolithic habitat', 'samp_store_temp': '-80', 'collection_date': 'unknown', 'formation_name': 'Louisville Seamounts, Rigil Guyot', 'env_biome': 'marine biome', 'custom_metadata_430.geo_loc_name': 'Pacific Ocean', 'target_gene_id': 1, 'tot_depth_water_col': '1545', 'env_feature_id': 1256L, 'lat_lon': '28.596 S, 173.381 W', 'geo_loc_name': 'Pacific Ocean', 'latitude': -28.596, 'sequencing_platform_id': 1, 'project_id': 430L, 'env_matter_id': 1269L, 'custom_metadata_430.dataset_id': 336354L, 'illumina_index': 'unknown', 'run': '20130405', 'dna_extraction_meth': 'CTAB phenol/chloroform extraction', 'lithology': 'aphyric basalt breccia', 'updated_at': datetime.datetime(2017, 3, 13, 12, 54, 33), 'illumina_index_id': 83, 'sequencing_platform': '454', 'primer_suite_id': 9, 'primer_suite': 'Bacterial V6-V4 Suite', 'created_at': datetime.datetime(2016, 6, 17, 13, 38, 34), 'env_package': 'extreme habitat', 'longitude': -173.381, 'project': 'DCO_SYL_Bv6v4', 'depth': 102.9, 'custom_metadata_430_id': 7L, 'env_biome_id': 1116L, 'env_matter': 'rock', 'custom_metadata_430.target_gene': '16S rDNA'})})    
     """
-    utils.benchmark_w_return_2(t, "get_raw_metadata")
-        
+    
+    t = utils.benchmark_w_return_1("mix_field_units_metadata")
+    field_units_metadata = self.mix_field_units_metadata(raw_custom_fields_units, raw_metadata)
+    utils.benchmark_w_return_2(t, "mix_field_units_metadata")
+    
+
+  def mix_field_units_metadata(self, raw_custom_fields_units, raw_metadata):
+    # ['project_id', 'field_name', 'field_units', 'example']
+    print "UUU"
+    
+    for field_unit_tuple in raw_custom_fields_units[0]:
+      project_id  = field_unit_tuple[0]
+      field_name  = field_unit_tuple[1]
+      field_units = field_unit_tuple[2]
+      print project_id
+      for x in raw_metadata[str(project_id)]:
+        print x
+
   def get_raw_metadata(self, all_project_ids_str):
     raw_metadata = defaultdict(list)
     for project_id_str in all_project_ids_str:
