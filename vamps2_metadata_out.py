@@ -79,6 +79,24 @@ class Metadata():
     self.make_metadata_per_project_dataset_list(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
+
+  def f5(self, seq, idfun=None): 
+     # order preserving
+     if idfun is None:
+         def idfun(x): return x
+     seen = {}
+     result = []
+     for item in seq:
+         marker = idfun(item)
+         # in old Python versions:
+         # if seen.has_key(marker)
+         # but in new ones:
+         if marker in seen: continue
+         seen[marker] = 1
+         result.append(item)
+     return result
+  
+
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict):
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
       print project_id_str
@@ -86,7 +104,7 @@ class Metadata():
       
       for pr_dat, m_dict in pr_dat_dict.items():
         this_pr_dat_fields = sorted(m_dict.keys())
-        metadata_per_project_dataset_list.append(this_pr_dat_fields)
+        first_column = ['Field--Unit for all DCO projects'] + this_pr_dat_fields
         # todo: - do once!
         # print "QQQ this_pr_dat_fields"
         # print this_pr_dat_fields
@@ -95,8 +113,25 @@ class Metadata():
           val_list.append(m_dict[key])
       
         metadata_per_project_dataset_list.append(val_list)
-      print "DDD metadata_per_project_dataset_list"
-      print metadata_per_project_dataset_list
+
+      noDupes = []
+        #    [noDupes.append(i) for i in seq if not noDupes.count(i)]
+      # [noDupes.append(list(x)) for x in set(tuple(x) for x in metadata_per_project_dataset_list) if not noDupes.count(list(x)) ]
+      # unique_data = self.f5(metadata_per_project_dataset_list)
+      
+      noDupes.append(first_column)
+      for x in metadata_per_project_dataset_list:
+        if not noDupes.count(x):
+          noDupes.append(x) 
+        # if noDupes.count(x):
+        #   print "PPP"
+        #   print x
+        # print "XXX"
+        # print x
+        
+      # print noDupes
+      print "DDD noDupes"
+      print zip(*noDupes)
 
 
   def get_all_field_names(self, metadata_w_units_dict):
