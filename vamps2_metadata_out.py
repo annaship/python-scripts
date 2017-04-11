@@ -53,9 +53,17 @@ class Metadata():
     ...}, {'domain': 'Bacteria', 'required_metadata_id': 16766L, 'dna_region': 'v6v4', 'geo_loc_name_id': 6542L, 'adapter_sequence': 'GACGT', 'dna_region_id': 13, 'adapter_sequence_id': 129, 'dataset': '1374_20R_Bac', 'env_package_id': 3, 'sample_id': '1374-20R', 'sample_volume': '0.005', 'dataset_id': 336354L, 'domain_id': 3L, 'target_gene': '16s', 'rock_type': 'igneous', 'env_feature': 'endolithic habitat', 'samp_store_temp': '-80', 'collection_date': 'unknown', 'formation_name': 'Louisville Seamounts, Rigil Guyot', 'env_biome': 'marine biome', 'custom_metadata_430.geo_loc_name': 'Pacific Ocean', 'target_gene_id': 1, 'tot_depth_water_col': '1545', 'env_feature_id': 1256L, 'lat_lon': '28.596 S, 173.381 W', 'geo_loc_name': 'Pacific Ocean', 'latitude': -28.596, 'sequencing_platform_id': 1, 'project_id': 430L, 'env_matter_id': 1269L, 'custom_metadata_430.dataset_id': 336354L, 'illumina_index': 'unknown', 'run': '20130405', 'dna_extraction_meth': 'CTAB phenol/chloroform extraction', 'lithology': 'aphyric basalt breccia', 'updated_at': datetime.datetime(2017, 3, 13, 12, 54, 33), 'illumina_index_id': 83, 'sequencing_platform': '454', 'primer_suite_id': 9, 'primer_suite': 'Bacterial V6-V4 Suite', 'created_at': datetime.datetime(2016, 6, 17, 13, 38, 34), 'env_package': 'extreme habitat', 'longitude': -173.381, 'project': 'DCO_SYL_Bv6v4', 'depth': 102.9, 'custom_metadata_430_id': 7L, 'env_biome_id': 1116L, 'env_matter': 'rock', 'custom_metadata_430.target_gene': '16S rDNA'})})    
     """
     
+    t = utils.benchmark_w_return_1("make_custom_fields_units_per_project")
+    custom_fields_units_per_project = self.make_custom_fields_units_per_project(raw_custom_fields_units)
+    utils.benchmark_w_return_2(t, "make_custom_fields_units_per_project")
+    
     t = utils.benchmark_w_return_1("mix_field_units_metadata")
-    field_units_metadata = self.mix_field_units_metadata(raw_custom_fields_units, raw_metadata)
+    metadata_w_units_dict = self.mix_field_units_metadata(custom_fields_units_per_project, raw_metadata)
     utils.benchmark_w_return_2(t, "mix_field_units_metadata")
+    
+    
+    print "metadata_w_units_dict"
+    print metadata_w_units_dict
     
   def make_custom_fields_units_per_project(self, raw_custom_fields_units):
     custom_fields_units_per_project = defaultdict(dict)
@@ -64,25 +72,15 @@ class Metadata():
       project_id  = field_unit_tuple[0]
       field_name  = field_unit_tuple[1]
       field_units = field_unit_tuple[2]
-      custom_fields_units_per_project[str(project_id)][field_name] = field_name + "--" + field_units
+      custom_fields_units_per_project[str(project_id)][field_name] = field_name + "__" + field_units
     
     return custom_fields_units_per_project
 
-  def mix_field_units_metadata(self, raw_custom_fields_units, raw_metadata):
+  def mix_field_units_metadata(self, custom_fields_units_per_project, raw_metadata):
     metadata_w_units_dict = defaultdict(dict)
-    
-    
-    custom_fields_units_per_project = self.make_custom_fields_units_per_project(raw_custom_fields_units)
-    print "UUU"
-    # print custom_fields_units_per_project
-    
+
     for project_id_str in raw_metadata:
-      print "*" * 8
-      # print project_id_str
       for m_dict in raw_metadata[project_id_str]:
-        # print "-" * 8
-        # print m_dict
-        # print custom_fields_units_per_project[project_id_str]
         for field in m_dict:
           try:
             metadata_w_units_dict[project_id_str][custom_fields_units_per_project[project_id_str][field]] = m_dict[field]
@@ -90,21 +88,12 @@ class Metadata():
             metadata_w_units_dict[project_id_str][field] = m_dict[field]
           except:
             raise
-    print metadata_w_units_dict
+    return metadata_w_units_dict
     """
     {...
     {'custom_metadata_88.dataset_id': 5961L, 'domain': 'Bacteria', 'required_metadata_id': 1051L, 'dna_region': 'v6v4', 'geo_loc_name_id': 9056L, 'adapter_sequence': 'TGATA', 'dna_region_id': 13, 'adapter_sequence_id': 186, 'dataset': 'ONK_PVA1', 'pressure--decibar': '', 'longitude': 21.4408, 'env_package_id': 3, 'calcium--micromole_per_kilogram': '1470', 'conductivity--milliseimenPerCentimeter': '1.5', 'sample_id--Alphanumeric': 'ONK_PVA1', 'isol_growth_cond--Alphanumeric': 'MoBioPowerWater', 'domain_id': 3L, 'redox_state--Alphanumeric': 'reducing', 'chloride--micromole_per_kilogram': '6480', 'geo_loc_name--Alphanumeric': 'Finland', 'created_at': datetime.datetime(2016, 5, 17, 15, 0, 8), 'collection_date': '2008-04-15', 'sample_volume--liter': '150', 'methane--microMolar': '', 'env_biome': 'terrestrial biome', 'illumina_index_id': 83, 'sodium--micromole_per_kilogram': '9.87510348E-008', 'target_gene_id': 1, 'env_feature_id': 6191L, 'latitude': 61.2369, 'sequencing_platform_id': 1, 'project_id': 88L, 'env_matter_id': 1315L, 'illumina_index': 'unknown', 'project': 'DCO_PED_Bv6v4', 'custom_metadata_88_id': 12L, 'run': '20120720', 'env_material--Alphanumeric': 'groundwater', 'iron_II--micromole_per_kilogram': '0.4', 'updated_at': datetime.datetime(2017, 3, 13, 12, 54, 33), 'env_feature--Alphanumeric': 'unknown', 'env_biome_id': 1115L, 'sulfide--micromole_per_kilogram': '3.44', 'target_gene--Alphanumeric': '16s', 'depth--meter': 14.6, 'custom_metadata_88.geo_loc_name': 'finland', 'custom_metadata_88.target_gene': '16S', 'dataset_id': 5961L, 'primer_suite_id': 9, 'sequencing_platform': '454', 'primer_suite': 'Bacterial V6-V4 Suite', 'dna_extraction_meth--Alphanumeric': 'MoBioPowerWater', 'quality_method--Alphanumeric': 'Picogreen', 'env_package': 'extreme habitat', 'sequencing_meth--Alphanumeric': 'pyrosequencing on a Roche GS-FLX with Roche Titanium protocol', 'potassium--micromole_per_kilogram': '187', 'env_matter': 'ground water', 'samp_store_temp--celsius': '4', 'custom_metadata_88.env_feature': 'plutonic rock aquifer', 'sulfate--micromole_per_kilogram': '1350', 'nitrite--micromole_per_kilogram': '', 'temp--celsius': '', 'pH--logH+': '7.9'}
     ...}
     """
-    
-    # for field_unit_tuple in raw_custom_fields_units[0]:
-    #   project_id  = field_unit_tuple[0]
-    #   field_name  = field_unit_tuple[1]
-    #   field_units = field_unit_tuple[2]
-    #   print project_id
-    #   for x in raw_metadata[str(project_id)]:
-    #     
-    #     print x
 
   def get_raw_metadata(self, all_project_ids_str):
     raw_metadata = defaultdict(list)
@@ -217,7 +206,9 @@ class Metadata():
     
   """
   TODO:
-  for dco_custom_field_info in dco_custom_fields[0]:
+  1) add primers
+
+  2) for dco_custom_field_info in dco_custom_fields[0]:
     # print "dco_custom_field_info"
     # print dco_custom_field_info
     # (860L, 'resistivity', 'ohm-meters', 'n.d.')
