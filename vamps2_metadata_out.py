@@ -57,18 +57,42 @@ class Metadata():
     field_units_metadata = self.mix_field_units_metadata(raw_custom_fields_units, raw_metadata)
     utils.benchmark_w_return_2(t, "mix_field_units_metadata")
     
-
-  def mix_field_units_metadata(self, raw_custom_fields_units, raw_metadata):
-    # ['project_id', 'field_name', 'field_units', 'example']
-    print "UUU"
+  def make_custom_fields_units_per_project(self, raw_custom_fields_units):
+    custom_fields_units_per_project = defaultdict(dict)
     
     for field_unit_tuple in raw_custom_fields_units[0]:
       project_id  = field_unit_tuple[0]
       field_name  = field_unit_tuple[1]
       field_units = field_unit_tuple[2]
-      print project_id
-      for x in raw_metadata[str(project_id)]:
-        print x
+      custom_fields_units_per_project[str(project_id)][field_name] = field_name + "--" + field_units
+    
+    return custom_fields_units_per_project
+
+  def mix_field_units_metadata(self, raw_custom_fields_units, raw_metadata):
+    # ['project_id', 'field_name', 'field_units', 'example']
+    print "UUU"
+    
+    custom_fields_units_per_project = self.make_custom_fields_units_per_project(raw_custom_fields_units)
+    print custom_fields_units_per_project
+    
+    
+    
+    for project_id_str in raw_metadata:
+      print "*" * 8
+      print project_id_str
+      for m_dict in raw_metadata[project_id_str]:
+        print "-" * 8
+        print m_dict
+        # print raw_custom_fields_units[0][int(project_id_str)]
+    
+    # for field_unit_tuple in raw_custom_fields_units[0]:
+    #   project_id  = field_unit_tuple[0]
+    #   field_name  = field_unit_tuple[1]
+    #   field_units = field_unit_tuple[2]
+    #   print project_id
+    #   for x in raw_metadata[str(project_id)]:
+    #     
+    #     print x
 
   def get_raw_metadata(self, all_project_ids_str):
     raw_metadata = defaultdict(list)
