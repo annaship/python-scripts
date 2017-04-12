@@ -123,6 +123,9 @@ class Metadata():
     self.get_all_metadata_per_field_unit(metadata_w_units_n_primers_dict)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
     
+    # print self.all_fields_metadata
+    
+    
   def slice_dict_by_list_keys(self, dict_obj):
     for k in set(self.all_ok_fields):
       try:
@@ -132,32 +135,37 @@ class Metadata():
       except: 
         raise
 
-  def flatten_dicts(self, d, res):    
+  def flatten_dicts_recurs(self, d, res):    
     if isinstance(d.values()[0], dict):
       for val in d.values():
-        res.update(self.flatten_dicts(val, res))
+        res.update(self.flatten_dicts_recurs(val, res))
         self.slice_dict_by_list_keys(res)
-        # for k in set(self.all_ok_fields):
-        #   try:
-        #     self.all_fields_metadata[k].add(res[k])
-        #   except KeyError: 
-        #     pass #first time key
-        #   except: 
-        #     raise
-
-        
     elif isinstance(d.keys()[0], str):
       res.update(d)
     else:
-      raise TypeError("Undefined type for flatten_dicts: %s"%type(d))
+      raise TypeError("Undefined type for flatten_dicts_recurs: %s"%type(d))
     return res
 
   def get_all_metadata_per_field_unit(self, pyobj):
     res = {}
-    self.flatten_dicts(pyobj, res)
-    print self.all_fields_metadata
-    return self.all_fields_metadata
-
+    self.flatten_dicts_recurs(pyobj, res)
+    "TODO: remove this method and call flatten_dicts_recurs from main?"
+    file_name = "all_fields_units_values.csv"
+    with open(file_name, "wb") as csv_file:
+      csv_writer = csv.writer(csv_file)
+      csv_writer.writerow(self.all_fields_metadata.keys())
+      aa = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
+      # aa = self.all_fields_metadata.values()
+      # for vv in self.all_fields_metadata.values():
+      print aa
+      #   print ", ".join(str(x) for x in list(vv))
+        # str(x) for x in list_of_ints
+        # ", ".join(list(vv))
+      
+        
+      csv_writer.writerows(zip(*[", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]))
+    
+    
   def write_to_csv_files(self, dict_to_csv):
     for project_id_str, tuple_to_csv in dict_to_csv.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
