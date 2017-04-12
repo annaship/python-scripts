@@ -117,6 +117,35 @@ class Metadata():
     self.write_to_csv_files(dict_to_csv)
     utils.benchmark_w_return_2(t, "write_to_csv_files")
 
+    t = utils.benchmark_w_return_1("get_all_metadata_per_field_unit")
+    self.get_all_metadata_per_field_unit(metadata_w_units_n_primers_dict)
+    utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
+
+
+  def get_all_metadata_per_field_unit(self, metadata_per_project_dataset_lists_dict):
+    
+    
+  # def get_all_metadata_per_field_unit(self, metadata_per_project_dataset_lists_dict):
+  #   ds = metadata_per_project_dataset_lists_dict.values()
+  #   all_fields_metadata = defaultdict(list)
+  #   for k in self.all_ok_fields:
+  #     # print "sss"
+  #     # print k
+  #     for pr_d_d in ds:
+  #       for d in pr_d_d.values():
+  #         # print "EEE"
+  #         # print d
+  #         try:
+  #           all_fields_metadata[k].append(d[k])
+  #         except KeyError: 
+  #           pass
+  #         except: 
+  #           raise
+  #   print "ddd"
+  #   print all_fields_metadata
+    
+  
+
   def write_to_csv_files(self, dict_to_csv):
     for project_id_str, tuple_to_csv in dict_to_csv.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
