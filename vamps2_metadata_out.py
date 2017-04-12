@@ -97,15 +97,12 @@ class Metadata():
     clean_primers_dict_per_suite_per_direction_dict = self.clean_primers_dict_per_suite_per_direction(primer_info_per_suite_per_direction)
     utils.benchmark_w_return_2(t, "make_primers_dict_per_suite_per_direction")
 
-    print "FFF clean_primers_dict_per_suite_per_direction_dict"
-    print clean_primers_dict_per_suite_per_direction_dict
-
-    # t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
-    # metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
-    # utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
-    #
-    # print "FFF metadata_w_units_n_primers_dict"
-    # print metadata_w_units_n_primers_dict
+    t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
+    metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
+    utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
+    
+    print "FFF metadata_w_units_n_primers_dict"
+    print metadata_w_units_n_primers_dict
 
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
@@ -116,14 +113,16 @@ class Metadata():
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
 
-  def add_primer_info_to_metadata(self, metadata_w_units_dict, primer_info_per_suite_per_direction):
-    print "LLL print metadata_w_units_dict"
-    print metadata_w_units_dict
+  def add_primer_info_to_metadata(self, metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict):
+    # print "LLL print metadata_w_units_dict"
+    # print metadata_w_units_dict
     for project_id_str, d in metadata_w_units_dict.items():
       for project_dataset, metadata_dict in d.items():
-        print "DDD "
-        print metadata_dict['primer_suite']
-        print primer_info_per_suite_per_direction[metadata_dict['primer_suite']]
+        # print "DDD "
+        # print metadata_dict['primer_suite']
+        # print clean_primers_dict_per_suite_per_direction_dict[metadata_dict['primer_suite']]
+        metadata_dict.update(clean_primers_dict_per_suite_per_direction_dict[metadata_dict['primer_suite']])
+    return metadata_w_units_dict
 
 
   def make_primers_dict_per_suite_per_direction(self, primer_info):
