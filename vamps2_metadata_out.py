@@ -101,34 +101,42 @@ class Metadata():
     metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
     utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
     
-    print "FFF metadata_w_units_n_primers_dict"
-    print metadata_w_units_n_primers_dict
-
-
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
-    metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_dict, custom_fields_list_per_project)
+    metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
     print "MMM"
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
 
+    t = utils.benchmark_w_return_1("write_to_csv_files")
+    self.write_to_csv_files(metadata_per_project_dataset_lists_dict)
+    utils.benchmark_w_return_2(t, "write_to_csv_files")
+
+
+  def write_to_csv_files(self, metadata_per_project_dataset_lists_dict):
+    for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
+      file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
+      transposed_matrix = zip(*m_mtrx)
+      with open(file_name, "wb") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerows(transposed_matrix)
+        # csv_writer.writerows(transposed_add_lines_empty_fields)
+  
+  def make_transposed_empty_fields_lines(self, empty_fields):
+    all_zeros = [0]*len(empty_fields)
+    add_lines = [empty_fields, all_zeros]
+    return zip(*add_lines)
+
+
+
   def add_primer_info_to_metadata(self, metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict):
-    # print "LLL print metadata_w_units_dict"
-    # print metadata_w_units_dict
     for project_id_str, d in metadata_w_units_dict.items():
       for project_dataset, metadata_dict in d.items():
-        # print "DDD "
-        # print metadata_dict['primer_suite']
-        # print clean_primers_dict_per_suite_per_direction_dict[metadata_dict['primer_suite']]
         metadata_dict.update(clean_primers_dict_per_suite_per_direction_dict[metadata_dict['primer_suite']])
     return metadata_w_units_dict
 
-
   def make_primers_dict_per_suite_per_direction(self, primer_info):
-    """
-    {'direction': 'F', 'primer': '515F', 'sequence': 'GTGTG[CT]CAGC[AC]GCCGCGGTAA', 'primer_suite': 'Archaeal V4 Suite', 'original_seq': 'GTGTGYCAGCMGCCGCGGTAA', 'region': 'v4', 'domain': 'bacteria', 'primer_suite_id': 33, 'notes': 'Same primer for Archaeal v4. Used for A&B v4 (Nov. 2016). "An initial \'GT\' spacer doesn\'t need to be included" (Hilary, Nov 2016). Left it here, needed for the pipeline.', 'primer_id': 288}
-    """
     primer_info_per_suite_per_direction = defaultdict(dict)
     for primer_info_dict in primer_info:
       try:
@@ -167,9 +175,10 @@ class Metadata():
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
     return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
 
-  def make_unique_matrix_preserve_order(self, first_column, metadata_per_project_dataset_list):
+  def make_unique_matrix_preserve_order(self, first_n_second_column, metadata_per_project_dataset_list):
      unique_data = []
-     unique_data.append(first_column)
+     unique_data.append(first_n_second_column[0])
+     unique_data.append(first_n_second_column[1])
      [unique_data.append(x) for x in metadata_per_project_dataset_list]
      return unique_data
 
