@@ -109,9 +109,6 @@ class Metadata():
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
 
-    print "DDD self.all_ok_fields"
-    print set(self.all_ok_fields)
-
     t = utils.benchmark_w_return_1("write_to_csv_files")
     self.write_to_csv_files(metadata_per_project_dataset_lists_dict)
     utils.benchmark_w_return_2(t, "write_to_csv_files")
@@ -121,13 +118,12 @@ class Metadata():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
       transposed_matrix = zip(*m_mtrx)
       additional_field_units = self.make_rows_for_all_fields(m_mtrx[0])
-      print "VVV additional_field_units"
-      print additional_field_units
+      transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
       
       with open(file_name, "wb") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerows(transposed_matrix)
-        # csv_writer.writerows(transposed_add_lines_empty_fields)
+        csv_writer.writerows(transposed_add_lines_empty_fields)
   
   def make_transposed_empty_fields_lines(self, empty_fields):
     all_zeros = [0]*len(empty_fields)
