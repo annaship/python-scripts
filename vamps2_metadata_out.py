@@ -156,8 +156,6 @@ class Metadata():
   def clean_primers_dict_per_suite_per_direction(self, primer_info_per_suite_per_direction):
     clean_primers_dict_per_suite_per_direction_dict = defaultdict(dict)
     for primer_suite, d in primer_info_per_suite_per_direction.items():
-      # for direction, primer_sequences_list in d.items():
-      #   d[direction] = self.change_dots_to_ns_in_primers(primer_sequences_list)
       d_mod = {direction: self.change_dots_to_ns_in_primers(primer_sequences_list) for direction, primer_sequences_list in d.items() }
 
       clean_primers_dict_per_suite_per_direction_dict[primer_suite]['forward_primer'] = ", ".join(d_mod['F'])
@@ -166,7 +164,6 @@ class Metadata():
       clean_primers_dict_per_suite_per_direction_dict = self.manually_change_primers_anchors(clean_primers_dict_per_suite_per_direction_dict)
             
     return clean_primers_dict_per_suite_per_direction_dict
-
 
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
     return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
