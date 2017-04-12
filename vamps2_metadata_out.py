@@ -149,14 +149,32 @@ class Metadata():
       print "primer_suite, d"
       print primer_suite, d
       """
-      self.req_fields = ['adapter_sequence', 'anchor for trimming (454 sequencing only)', 'collection_date', 'dataset', 'dna_region', 'domain', 'env_biome', 'env_feature', 'env_matter', 'env_package', 'forward_primer', 'geo_loc_name', 'illumina_index', 'latitude', 'longitude', 'reverse_primer', 'run', 'sequencing_platform', 'target_gene']
+      bv4v6	518F/1046R	CCAGCAGC.GCGGTAA.	AGGTG.TGCATGG..GTCG
+      
+      Bacterial V4-V6 Suite {'R': ['ACT[CT]AAA.GAATTGACGG', 'ACTCAAAAGAATTGACGG', 'ACTCAAAGAAATTGACGG'], 'F': ['CCAGCAGCCGCGGTAA.', 'CCAGCAGCTGCGGTAA.']}
+      
+      Bacterial V6-V4 Suite {'R': ['AGGTG.TGCATGGCTGTCG', 'AGGTG.TGCATGGTTGTCG', 'AGGTG.TGCATGGCCGTCG', 'AGGTG.TGCATGGTCGTCG'], 'F': ['TGGGCGTAAAG']}
 
-      Bacterial V6 Suite {'R': ['AGGTG.?TGCATGG*CTGTCG', 'AGGTG.?TGCATGG*TTGTCG', 'AGGTG.?TGCATGG*CCGTCG', 'AGGTG.?TGCATGG*TCGTCG'], 'F': ['C.ACGCGAAGAACCTTA.C', 'CAACGCGAAAA+CCTTACC', 'CAACGCGCAGAACCTTACC', 'ATACGCGA[AG]GAACCTTACC', 'CTAACCGA.GAACCT[CT]ACC', 'CAACGCG[AC]A[AG]AACCTTACC']}
-      """
+'Bacterial V6-V4 Suite': {'anchor for trimming (454 sequencing only)': 'TGGGCGTAAAG', 'forward_primer': 'AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG', 'reverse_primer': 'CCAGCAGCCGCGGTAAN, CCAGCAGCTGCGGTAAN'}
+ 
+'Bacterial V4-V6 Suite': {'anchor for trimming (454 sequencing only)': 'ACT[CT]AAANGAATTGACGG, ACTCAAAAGAATTGACGG, ACTCAAAGAAATTGACGG', 'forward_primer': 'CCAGCAGCCGCGGTAAN, CCAGCAGCTGCGGTAAN', 'reverse_primer': 'AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG'}
+
+
+
+"""
       for direction, primer_sequences_list in d.items():
         d[direction] = self.change_dots_to_ns_in_primers(primer_sequences_list)
 
-        clean_primers_dict_per_suite_per_direction_dict[primer_suite]['forward_primer'] = ", ".join(d['F'])
+      clean_primers_dict_per_suite_per_direction_dict[primer_suite]['forward_primer'] = ", ".join(d['F'])
+      clean_primers_dict_per_suite_per_direction_dict[primer_suite]['reverse_primer'] = ", ".join(d['R'])
+
+      clean_primers_dict_per_suite_per_direction_dict['Bacterial V6-V4 Suite']['anchor for trimming (454 sequencing only)'] = 'TGGGCGTAAAG'
+      clean_primers_dict_per_suite_per_direction_dict['Bacterial V6-V4 Suite']['reverse_primer'] = ", ".join(['CCAGCAGCCGCGGTAAN', 'CCAGCAGCTGCGGTAAN'])
+      clean_primers_dict_per_suite_per_direction_dict['Bacterial V6-V4 Suite']['forward_primer'] = ", ".join(['AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG'])
+      
+      clean_primers_dict_per_suite_per_direction_dict['Bacterial V4-V6 Suite']['anchor for trimming (454 sequencing only)'] = ", ".join(['ACT[CT]AAANGAATTGACGG', 'ACTCAAAAGAATTGACGG', 'ACTCAAAGAAATTGACGG'])
+      clean_primers_dict_per_suite_per_direction_dict['Bacterial V4-V6 Suite']['reverse_primer'] = ", ".join(['AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG'])
+            
     return clean_primers_dict_per_suite_per_direction_dict
 
 
