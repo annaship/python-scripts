@@ -153,17 +153,16 @@ class Metadata():
     file_name = "all_fields_units_values.csv"
     with open(file_name, "wb") as csv_file:
       csv_writer = csv.writer(csv_file)
-      csv_writer.writerow(self.all_fields_metadata.keys())
-      aa = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
-      # aa = self.all_fields_metadata.values()
-      # for vv in self.all_fields_metadata.values():
-      print aa
-      #   print ", ".join(str(x) for x in list(vv))
-        # str(x) for x in list_of_ints
-        # ", ".join(list(vv))
+      first_column = self.all_fields_metadata.keys()
       
-        
-      csv_writer.writerows(zip(*[", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]))
+      print "first_column"
+      print len(first_column)
+      aa = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
+      print "aa"
+      print len(aa)
+      bb = [first_column, aa]
+      
+      csv_writer.writerows(zip(*bb))
     
     
   def write_to_csv_files(self, dict_to_csv):
