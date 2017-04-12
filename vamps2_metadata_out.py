@@ -101,8 +101,11 @@ class Metadata():
     print metadata_per_project_dataset_lists_dict
     
     t = utils.benchmark_w_return_1("make_primers_dict_per_suite_per_direction")
-    self.make_primers_dict_per_suite_per_direction(primer_info)
+    primer_info_per_suite_per_direction = self.make_primers_dict_per_suite_per_direction(primer_info)
     utils.benchmark_w_return_2(t, "make_primers_dict_per_suite_per_direction")
+    
+    print "FFF primer_info_per_suite_per_direction"
+    print primer_info_per_suite_per_direction
     
     
     
@@ -113,21 +116,13 @@ class Metadata():
     primer_info_per_suite_per_direction = defaultdict(dict)
     for primer_info_dict in primer_info:
       try:
-        print "primer_info_dict OK: "
-        print primer_info_dict
         primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']].append(primer_info_dict['sequence'])
       except KeyError: 
-        pass
-        print "primer_info_dict Error: "
-        print primer_info_dict
-        # primer_info_per_suite_per_direction[primer_info_dict['primer_suite']] = [primer_info_dict['direction']]
         primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']] = [primer_info_dict['sequence']]
-        # primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']].append(primer_info_dict['sequence'])
-        # raise
       except: 
         raise
     print "FFF primer_info_per_suite_per_direction"
-    print primer_info_per_suite_per_direction
+    return primer_info_per_suite_per_direction
     
     
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
