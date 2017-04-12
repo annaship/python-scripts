@@ -122,23 +122,28 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_all_metadata_per_field_unit")
     self.get_all_metadata_per_field_unit(metadata_w_units_n_primers_dict)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
+    
+  def slice_dict_by_list_keys(self, dict_obj):
+    for k in set(self.all_ok_fields):
+      try:
+        self.all_fields_metadata[k].add(dict_obj[k])
+      except KeyError: 
+        pass #first time key
+      except: 
+        raise
 
   def flatten_dicts(self, d, res):    
     if isinstance(d.values()[0], dict):
       for val in d.values():
         res.update(self.flatten_dicts(val, res))
-        for k in set(self.all_ok_fields):
-          # print "KKK"
-          # print k
-          try:
-            # print "RRR res[k]"
-            # print res[k]
-            self.all_fields_metadata[k].add(res[k])
-          except KeyError: 
-            # print "KeyError: %s" % (k)
-            pass
-          except: 
-            raise
+        self.slice_dict_by_list_keys(res)
+        # for k in set(self.all_ok_fields):
+        #   try:
+        #     self.all_fields_metadata[k].add(res[k])
+        #   except KeyError: 
+        #     pass #first time key
+        #   except: 
+        #     raise
 
         
     elif isinstance(d.keys()[0], str):
@@ -150,40 +155,8 @@ class Metadata():
   def get_all_metadata_per_field_unit(self, pyobj):
     res = {}
     self.flatten_dicts(pyobj, res)
-    print "TTT"
     print self.all_fields_metadata
-    print "len(self.all_ok_fields)"
-    print len(set(self.all_ok_fields))
-    # 258
-    # aa = set(self.all_ok_fields) & set(res.keys())
-    # all_fields_metadata = defaultdict(set)
-    # for k in self.all_ok_fields:
-    #   all_fields_metadata[k].add(res[k])
-    # print "TTT"
-    # print all_fields_metadata
-    
-
-  
-  # def get_all_metadata_per_field_unit(self, metadata_per_project_dataset_lists_dict):
-  #   ds = metadata_per_project_dataset_lists_dict.values()
-  #   all_fields_metadata = defaultdict(list)
-  #   for k in self.all_ok_fields:
-  #     # print "sss"
-  #     # print k
-  #     for pr_d_d in ds:
-  #       for d in pr_d_d.values():
-  #         # print "EEE"
-  #         # print d
-  #         try:
-  #           all_fields_metadata[k].append(d[k])
-  #         except KeyError: 
-  #           pass
-  #         except: 
-  #           raise
-  #   print "ddd"
-  #   print all_fields_metadata
-    
-  
+    return self.all_fields_metadata
 
   def write_to_csv_files(self, dict_to_csv):
     for project_id_str, tuple_to_csv in dict_to_csv.items():
