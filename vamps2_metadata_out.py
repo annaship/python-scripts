@@ -109,21 +109,36 @@ class Metadata():
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
 
+
+    t = utils.benchmark_w_return_1("prepare_metadata_for_csv")
+    dict_to_csv = self.prepare_metadata_for_csv(metadata_per_project_dataset_lists_dict)
+    utils.benchmark_w_return_2(t, "prepare_metadata_for_csv")
+
     t = utils.benchmark_w_return_1("write_to_csv_files")
-    self.write_to_csv_files(metadata_per_project_dataset_lists_dict)
+    self.write_to_csv_files(dict_to_csv)
     utils.benchmark_w_return_2(t, "write_to_csv_files")
 
-  def write_to_csv_files(self, metadata_per_project_dataset_lists_dict):
-    for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
+
+  def write_to_csv_files(self, dict_to_csv):
+    
+    for project_id_str, tuple_to_csv in dict_to_csv.items():
+    
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
-      transposed_matrix = zip(*m_mtrx)
-      additional_field_units = self.make_rows_for_all_fields(m_mtrx[0])
-      transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
       
       with open(file_name, "wb") as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerows(transposed_matrix)
-        csv_writer.writerows(transposed_add_lines_empty_fields)
+        csv_writer.writerows(tuple_to_csv[0])
+        csv_writer.writerows(tuple_to_csv[1])
+
+  def prepare_metadata_for_csv(self, metadata_per_project_dataset_lists_dict):
+    dict_to_csv = {}
+    for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
+      transposed_matrix = zip(*m_mtrx)
+      
+      additional_field_units = self.make_rows_for_all_fields(m_mtrx[0])
+      transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
+      dict_to_csv[project_id_str] = (transposed_matrix, transposed_add_lines_empty_fields)
+    return dict_to_csv
   
   def make_transposed_empty_fields_lines(self, empty_fields):
     all_zeros = [0]*len(empty_fields)
@@ -132,7 +147,6 @@ class Metadata():
 
   def make_rows_for_all_fields(self, custom_md_field_names_for_1_pr):
     return set(self.all_ok_fields) - set(custom_md_field_names_for_1_pr)
-
 
   def add_primer_info_to_metadata(self, metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict):
     for project_id_str, d in metadata_w_units_dict.items():
