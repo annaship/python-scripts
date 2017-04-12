@@ -121,73 +121,29 @@ class Metadata():
     self.get_all_metadata_per_field_unit(metadata_w_units_n_primers_dict)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
 
-  # def flatten(self, d):    
-  #     res = []  # Result list
-  #     if isinstance(d, dict):
-  #         for val in d.values():
-  #             res.extend(self.flatten(val))
-  #     elif isinstance(d, list):
-  #         res = d        
-  #     else:
-  #       print d
-  #       return d
-  #       # raise TypeError("Undefined type for flatten: %s"%type(d))
-  #       # pass
-  # 
-  #     return res
-
-
-  def flatten(self, d, res):    
-    # print "RRR"
-    # print d
-    # res = {}  # Result list
-    # if isinstance(d.values()[0], dict):
+  def flatten_dicts(self, d, res):    
     if isinstance(d.values()[0], dict):
-      # print "WWW isinstance(d.values()[0], dict)"      
       for val in d.values():
-          res.update(self.flatten(val, res))
+          res.update(self.flatten_dicts(val, res))
     elif isinstance(d.keys()[0], str):
-      # print "VVV isinstance(d.keys()[0], str)"
-      # print res
       res.update(d)
       return res        
     else:
-      # print d
-      # return d
-      raise TypeError("Undefined type for flatten: %s"%type(d))
-      # pass
-    # print "res"
-    # print res
-
+      raise TypeError("Undefined type for flatten_dicts: %s"%type(d))
     return res
 
   def get_all_metadata_per_field_unit(self, pyobj):
     res = {} 
-    res.update(self.flatten(pyobj, res))
+    res.update(self.flatten_dicts(pyobj, res))
+    # aa = set(self.all_ok_fields) & set(res.keys())
+    all_fields_metadata = defaultdict(set)
+    for k in self.all_ok_fields:
+      all_fields_metadata[k].add(res[k])
     print "TTT"
-    print res.keys()
-
-
-    # n = 0
-    # try:
-    #   n += 1
-    #   print "TTT"
-    #   # print pyobj.values()
-    #   print set(pyobj.values()).intersection(set(self.all_ok_fields))
-    # except TypeError:
-    #   self.get_all_metadata_per_field_unit(pyobj.values())
-    # except AttributeError:
-    #   self.get_all_metadata_per_field_unit(pyobj[0])
-    # except:
-    #   raise
-    # # in 
-    # # if type(pyobj) is dict:
-    # #   self.get_all_metadata_per_field_unit(pyobj.values())
-    # # else:
-    # #   print "TTT"
-    # #   print pyobj
+    print all_fields_metadata
     
-    
+
+  
   # def get_all_metadata_per_field_unit(self, metadata_per_project_dataset_lists_dict):
   #   ds = metadata_per_project_dataset_lists_dict.values()
   #   all_fields_metadata = defaultdict(list)
