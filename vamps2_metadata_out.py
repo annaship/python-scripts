@@ -41,6 +41,13 @@ class Metadata():
     print raw_custom_fields_units
     (((88L, 'methane', 'microMolar', '3363'), (88L,
     """
+
+    t = utils.benchmark_w_return_1("get_primer_info")
+    primer_info = self.get_primer_info()
+    utils.benchmark_w_return_2(t, "get_primer_info")
+
+    print "PPP"
+    print primer_info
     
     t = utils.benchmark_w_return_1("get_raw_metadata")
     raw_metadata = self.get_raw_metadata(all_project_ids_str)
@@ -92,6 +99,36 @@ class Metadata():
     print "MMM"
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
+    
+    t = utils.benchmark_w_return_1("make_primers_dict_per_suite_per_direction")
+    self.make_primers_dict_per_suite_per_direction(primer_info)
+    utils.benchmark_w_return_2(t, "make_primers_dict_per_suite_per_direction")
+    
+    
+    
+  def make_primers_dict_per_suite_per_direction(self, primer_info):
+    """
+    {'direction': 'F', 'primer': '515F', 'sequence': 'GTGTG[CT]CAGC[AC]GCCGCGGTAA', 'primer_suite': 'Archaeal V4 Suite', 'original_seq': 'GTGTGYCAGCMGCCGCGGTAA', 'region': 'v4', 'domain': 'bacteria', 'primer_suite_id': 33, 'notes': 'Same primer for Archaeal v4. Used for A&B v4 (Nov. 2016). "An initial \'GT\' spacer doesn\'t need to be included" (Hilary, Nov 2016). Left it here, needed for the pipeline.', 'primer_id': 288}
+    """
+    primer_info_per_suite_per_direction = defaultdict(dict)
+    for primer_info_dict in primer_info:
+      try:
+        print "primer_info_dict OK: "
+        print primer_info_dict
+        primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']].append(primer_info_dict['sequence'])
+      except KeyError: 
+        pass
+        print "primer_info_dict Error: "
+        print primer_info_dict
+        # primer_info_per_suite_per_direction[primer_info_dict['primer_suite']] = [primer_info_dict['direction']]
+        primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']] = [primer_info_dict['sequence']]
+        # primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']].append(primer_info_dict['sequence'])
+        # raise
+      except: 
+        raise
+    print "FFF primer_info_per_suite_per_direction"
+    print primer_info_per_suite_per_direction
+    
     
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
     return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
@@ -257,18 +294,14 @@ class Metadata():
       
     return raw_metadata
     
-  def make_filed_units_pairs_per_project(self):
-    pass
-    
-  def make_project_dataset_pairs_per_project(self):
-    pass
+  def get_primer_info(self):
+    query_primers = """
+    SELECT * FROM ref_primer_suite_primer
+    JOIN primer_suite USING(primer_suite_id)
+    JOIN primer USING(primer_id)
+    """
+    return mysql_utils.execute_fetch_select_to_dict(query_primers)
 
-  def add_all_empty_fields(self):
-    pass
-    
-  def write_csv_file(self):
-    pass
-  
   def get_all_custom_tables(self):
     query_custom_tables = """
     SELECT table_name FROM information_schema.tables
