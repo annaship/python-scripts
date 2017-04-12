@@ -105,14 +105,13 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    print "MMM"
-    print "metadata_per_project_dataset_lists_dict"
-    print metadata_per_project_dataset_lists_dict
+    # print "MMM"
+    # print "metadata_per_project_dataset_lists_dict"
+    # print metadata_per_project_dataset_lists_dict
 
     t = utils.benchmark_w_return_1("write_to_csv_files")
     self.write_to_csv_files(metadata_per_project_dataset_lists_dict)
     utils.benchmark_w_return_2(t, "write_to_csv_files")
-
 
   def write_to_csv_files(self, metadata_per_project_dataset_lists_dict):
     for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
@@ -175,12 +174,15 @@ class Metadata():
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
     return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
 
+  # def make_unique_matrix_preserve_order(self, first_n_second_column, metadata_per_project_dataset_list):
+  #    unique_data = []
+  #    unique_data.append(first_n_second_column[0])
+  #    unique_data.append(first_n_second_column[1])
+  #    [unique_data.append(x) for x in metadata_per_project_dataset_list]
+  #    return unique_data
+
   def make_unique_matrix_preserve_order(self, first_n_second_column, metadata_per_project_dataset_list):
-     unique_data = []
-     unique_data.append(first_n_second_column[0])
-     unique_data.append(first_n_second_column[1])
-     [unique_data.append(x) for x in metadata_per_project_dataset_list]
-     return unique_data
+     return first_n_second_column + [x for x in metadata_per_project_dataset_list]
 
   def make_empty_marker_line(self, dataset_len):
    empty_marker = [1] * dataset_len
@@ -188,22 +190,12 @@ class Metadata():
    return empty_marker
 
   def filter_field_names(self, project_id_str, all_pr_fields, custom_fields_list_per_project):
-    print "GGG"
-    print "project_id_str"
-    print project_id_str
-    print "all_pr_fields"
-    print all_pr_fields
-    print "self.req_fields"
-    print self.req_fields
     print "custom_fields_list_per_project[project_id_str]"
     print custom_fields_list_per_project[project_id_str]
     # ['adapter_sequence', 'adapter_sequence_id', 'collection_date', 'conductivity__milliseimenPerCentimeter', 'created_at', 'custom_metadata_319.dataset_id', 'custom_metadata_319_id', 'dataset', 'dataset_id', 'depth__meter', 'dna_region', 'dna_region_id', 'domain', 'domain_id', 'env_biome', 'env_biome_id', 'env_feature', 'env_feature_id', 'env_matter', 'env_matter_id', 'env_package', 'env_package_id', 'geo_loc_name', 'geo_loc_name_id', 'illumina_index', 'illumina_index_id', 'latitude', 'longitude', 'pH__logH+', 'primer_suite', 'primer_suite_id', 'project', 'project_id', 'required_metadata_id', 'run', 'sequencing_platform', 'sequencing_platform_id', 'target_gene', 'target_gene_id', 'temp__celsius', 'updated_at']
     good_fields = self.req_fields + list(custom_fields_list_per_project[project_id_str])
     this_pr_dat_fields = [field for field in all_pr_fields if field in good_fields]
-    print "this_pr_dat_fields"
-    print this_pr_dat_fields
     return list(this_pr_dat_fields)
-
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict, custom_fields_list_per_project):
     metadata_per_project_dataset_lists_dict = defaultdict(list)
