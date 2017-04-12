@@ -18,6 +18,8 @@ class Metadata():
     self.project_name_startswith = project_name_startswith
     self.req_fields = ['adapter_sequence', 'anchor for trimming (454 sequencing only)', 'collection_date', 'dataset', 'dna_region', 'domain', 'env_biome', 'env_feature', 'env_matter', 'env_package', 'forward_primer', 'geo_loc_name', 'illumina_index', 'latitude', 'longitude', 'reverse_primer', 'run', 'sequencing_platform', 'target_gene']
     self.all_ok_fields = []
+    self.all_fields_metadata = defaultdict(set)
+    
 
   def get_metadata_info(self):
     t = utils.benchmark_w_return_1("get_all_custom_tables")
@@ -86,8 +88,8 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_all_field_names")
     all_field_names = self.get_all_field_names(metadata_w_units_dict)
     utils.benchmark_w_return_2(t, "get_all_field_names")
-    print "AAA all_field_names = "
-    print all_field_names
+    # print "AAA all_field_names = "
+    # print all_field_names
 
     t = utils.benchmark_w_return_1("make_primers_dict_per_suite_per_direction")
     primer_info_per_suite_per_direction = self.make_primers_dict_per_suite_per_direction(primer_info)
@@ -124,23 +126,41 @@ class Metadata():
   def flatten_dicts(self, d, res):    
     if isinstance(d.values()[0], dict):
       for val in d.values():
-          res.update(self.flatten_dicts(val, res))
+        res.update(self.flatten_dicts(val, res))
+        for k in set(self.all_ok_fields):
+          # print "KKK"
+          # print k
+          try:
+            # print "RRR res[k]"
+            # print res[k]
+            self.all_fields_metadata[k].add(res[k])
+          except KeyError: 
+            # print "KeyError: %s" % (k)
+            pass
+          except: 
+            raise
+
+        
     elif isinstance(d.keys()[0], str):
       res.update(d)
-      return res        
     else:
       raise TypeError("Undefined type for flatten_dicts: %s"%type(d))
     return res
 
   def get_all_metadata_per_field_unit(self, pyobj):
-    res = {} 
-    res.update(self.flatten_dicts(pyobj, res))
-    # aa = set(self.all_ok_fields) & set(res.keys())
-    all_fields_metadata = defaultdict(set)
-    for k in self.all_ok_fields:
-      all_fields_metadata[k].add(res[k])
+    res = {}
+    self.flatten_dicts(pyobj, res)
     print "TTT"
-    print all_fields_metadata
+    print self.all_fields_metadata
+    print "len(self.all_ok_fields)"
+    print len(set(self.all_ok_fields))
+    # 258
+    # aa = set(self.all_ok_fields) & set(res.keys())
+    # all_fields_metadata = defaultdict(set)
+    # for k in self.all_ok_fields:
+    #   all_fields_metadata[k].add(res[k])
+    # print "TTT"
+    # print all_fields_metadata
     
 
   
