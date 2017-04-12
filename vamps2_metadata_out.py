@@ -174,16 +174,6 @@ class Metadata():
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
     return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
 
-  # def make_unique_matrix_preserve_order(self, first_n_second_column, metadata_per_project_dataset_list):
-  #    unique_data = []
-  #    unique_data.append(first_n_second_column[0])
-  #    unique_data.append(first_n_second_column[1])
-  #    [unique_data.append(x) for x in metadata_per_project_dataset_list]
-  #    return unique_data
-
-  def make_unique_matrix_preserve_order(self, first_n_second_column, metadata_per_project_dataset_list):
-     return first_n_second_column + [x for x in metadata_per_project_dataset_list]
-
   def make_empty_marker_line(self, dataset_len):
    empty_marker = [1] * dataset_len
    empty_marker.insert(0, "All fields are empty?")
@@ -208,15 +198,12 @@ class Metadata():
         first_column = ['Field--Unit for all DCO projects'] + this_pr_dat_fields
         second_column = self.make_empty_marker_line(len(this_pr_dat_fields))
         val_list = [pr_dat]
-        # TODO:
-        # add keys_cleaning here
-        # get values only for the filteres list of keys
         for key in this_pr_dat_fields:
           val_list.append(m_dict[key])
 
         metadata_per_project_dataset_list.append(val_list)
 
-      metadata_per_project_dataset_lists_dict[project_id_str] = self.make_unique_matrix_preserve_order([first_column, second_column], metadata_per_project_dataset_list)
+      metadata_per_project_dataset_lists_dict[project_id_str] = [first_column, second_column] + metadata_per_project_dataset_list
 
     return metadata_per_project_dataset_lists_dict
 
