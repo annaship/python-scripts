@@ -16,7 +16,7 @@ class Metadata():
   """
   def __init__(self, project_name_startswith):
     self.project_name_startswith = project_name_startswith
-    self.req_fields = ['dataset', 'collection_date', 'env_biome', 'latitude', 'longitude', 'target_gene', 'dna_region', 'sequencing_platform', 'domain', 'geo_loc_name', 'env_feature', 'env_matter', 'env_package', 'adapter_sequence', 'illumina_index', 'primer_suite', 'run']
+    self.req_fields = ['adapter_sequence', 'anchor for trimming (454 sequencing only)', 'collection_date', 'dataset', 'dna_region', 'domain', 'env_biome', 'env_feature', 'env_matter', 'env_package', 'forward_primer', 'geo_loc_name', 'illumina_index', 'latitude', 'longitude', 'reverse_primer', 'run', 'sequencing_platform', 'target_gene']
     self.custom_fields_list_per_project = {}
   
   def get_metadata_info(self):
@@ -45,9 +45,6 @@ class Metadata():
     t = utils.benchmark_w_return_1("get_primer_info")
     primer_info = self.get_primer_info()
     utils.benchmark_w_return_2(t, "get_primer_info")
-
-    print "PPP"
-    print primer_info
     
     t = utils.benchmark_w_return_1("get_raw_metadata")
     raw_metadata = self.get_raw_metadata(all_project_ids_str)
@@ -92,6 +89,25 @@ class Metadata():
     # print "AAA all_field_names = "
     # print all_field_names
 
+    t = utils.benchmark_w_return_1("make_primers_dict_per_suite_per_direction")
+    primer_info_per_suite_per_direction = self.make_primers_dict_per_suite_per_direction(primer_info)
+    utils.benchmark_w_return_2(t, "make_primers_dict_per_suite_per_direction")
+
+    t = utils.benchmark_w_return_1("make_primers_dict_per_suite_per_direction")
+    clean_primers_dict_per_suite_per_direction_dict = self.clean_primers_dict_per_suite_per_direction(primer_info_per_suite_per_direction)
+    utils.benchmark_w_return_2(t, "make_primers_dict_per_suite_per_direction")
+    
+    print "FFF clean_primers_dict_per_suite_per_direction_dict"
+    print clean_primers_dict_per_suite_per_direction_dict
+
+    # t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
+    # metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
+    # utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
+    #   
+    # print "FFF metadata_w_units_n_primers_dict"
+    # print metadata_w_units_n_primers_dict
+    
+
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
@@ -100,14 +116,15 @@ class Metadata():
     print "metadata_per_project_dataset_lists_dict"
     print metadata_per_project_dataset_lists_dict
     
-    t = utils.benchmark_w_return_1("make_primers_dict_per_suite_per_direction")
-    primer_info_per_suite_per_direction = self.make_primers_dict_per_suite_per_direction(primer_info)
-    utils.benchmark_w_return_2(t, "make_primers_dict_per_suite_per_direction")
-    
-    print "FFF primer_info_per_suite_per_direction"
-    print primer_info_per_suite_per_direction
-    
-    
+  def add_primer_info_to_metadata(self, metadata_w_units_dict, primer_info_per_suite_per_direction):
+    print "LLL print metadata_w_units_dict"
+    print metadata_w_units_dict
+    for project_id_str, d in metadata_w_units_dict.items():
+      for project_dataset, metadata_dict in d.items():
+        print "DDD "
+        print metadata_dict['primer_suite']
+        print primer_info_per_suite_per_direction[metadata_dict['primer_suite']]
+  
     
   def make_primers_dict_per_suite_per_direction(self, primer_info):
     """
@@ -121,9 +138,19 @@ class Metadata():
         primer_info_per_suite_per_direction[primer_info_dict['primer_suite']][primer_info_dict['direction']] = [primer_info_dict['sequence']]
       except: 
         raise
-    print "FFF primer_info_per_suite_per_direction"
     return primer_info_per_suite_per_direction
     
+  def clean_primers_dict_per_suite_per_direction(self, primer_info_per_suite_per_direction):
+    clean_primers_dict_per_suite_per_direction_dict = defaultdict(dict)
+    for primer_suite, d in primer_info_per_suite_per_direction.items():
+      print "primer_suite, d"
+      print primer_suite, d
+      """
+      Bacterial V6 Suite {'R': ['AGGTG.?TGCATGG*CTGTCG', 'AGGTG.?TGCATGG*TTGTCG', 'AGGTG.?TGCATGG*CCGTCG', 'AGGTG.?TGCATGG*TCGTCG'], 'F': ['C.ACGCGAAGAACCTTA.C', 'CAACGCGAAAA+CCTTACC', 'CAACGCGCAGAACCTTACC', 'ATACGCGA[AG]GAACCTTACC', 'CTAACCGA.GAACCT[CT]ACC', 'CAACGCG[AC]A[AG]AACCTTACC']}
+      """
+      for direction, primer_sequences_dict in d.items():
+        clean_primers_dict_per_suite_per_direction_dict[primer_suite][]
+  
     
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
     return {project_id: set(u_dict.values()) for project_id, u_dict in custom_fields_units_per_project.items()}
