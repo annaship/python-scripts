@@ -105,10 +105,9 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    print "MMM"
-    print "metadata_per_project_dataset_lists_dict"
-    print metadata_per_project_dataset_lists_dict
-
+    # print "MMM"
+    # print "metadata_per_project_dataset_lists_dict"
+    # print metadata_per_project_dataset_lists_dict
 
     t = utils.benchmark_w_return_1("prepare_metadata_for_csv")
     dict_to_csv = self.prepare_metadata_for_csv(metadata_per_project_dataset_lists_dict)
@@ -118,11 +117,8 @@ class Metadata():
     self.write_to_csv_files(dict_to_csv)
     utils.benchmark_w_return_2(t, "write_to_csv_files")
 
-
   def write_to_csv_files(self, dict_to_csv):
-    
     for project_id_str, tuple_to_csv in dict_to_csv.items():
-    
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
       
       with open(file_name, "wb") as csv_file:
@@ -135,7 +131,7 @@ class Metadata():
     for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
       transposed_matrix = zip(*m_mtrx)
       
-      additional_field_units = self.make_rows_for_all_fields(m_mtrx[0])
+      additional_field_units = self.get_the_rest_of_fields(m_mtrx[0])
       transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
       dict_to_csv[project_id_str] = (transposed_matrix, transposed_add_lines_empty_fields)
     return dict_to_csv
@@ -145,7 +141,7 @@ class Metadata():
     add_lines = [empty_fields, all_zeros]
     return zip(*add_lines)
 
-  def make_rows_for_all_fields(self, custom_md_field_names_for_1_pr):
+  def get_the_rest_of_fields(self, custom_md_field_names_for_1_pr):
     return set(self.all_ok_fields) - set(custom_md_field_names_for_1_pr)
 
   def add_primer_info_to_metadata(self, metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict):
