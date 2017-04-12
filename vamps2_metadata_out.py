@@ -17,7 +17,7 @@ class Metadata():
   def __init__(self, project_name_startswith):
     self.project_name_startswith = project_name_startswith
     self.req_fields = ['adapter_sequence', 'anchor for trimming (454 sequencing only)', 'collection_date', 'dataset', 'dna_region', 'domain', 'env_biome', 'env_feature', 'env_matter', 'env_package', 'forward_primer', 'geo_loc_name', 'illumina_index', 'latitude', 'longitude', 'reverse_primer', 'run', 'sequencing_platform', 'target_gene']
-    self.custom_fields_list_per_project = {}
+    self.all_ok_fields = []
 
   def get_metadata_info(self):
     t = utils.benchmark_w_return_1("get_all_custom_tables")
@@ -105,9 +105,12 @@ class Metadata():
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    # print "MMM"
-    # print "metadata_per_project_dataset_lists_dict"
-    # print metadata_per_project_dataset_lists_dict
+    print "MMM"
+    print "metadata_per_project_dataset_lists_dict"
+    print metadata_per_project_dataset_lists_dict
+
+    print "DDD self.all_ok_fields"
+    print set(self.all_ok_fields)
 
     t = utils.benchmark_w_return_1("write_to_csv_files")
     self.write_to_csv_files(metadata_per_project_dataset_lists_dict)
@@ -117,6 +120,10 @@ class Metadata():
     for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
       transposed_matrix = zip(*m_mtrx)
+      additional_field_units = self.make_rows_for_all_fields(m_mtrx[0])
+      print "VVV additional_field_units"
+      print additional_field_units
+      
       with open(file_name, "wb") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerows(transposed_matrix)
@@ -127,6 +134,8 @@ class Metadata():
     add_lines = [empty_fields, all_zeros]
     return zip(*add_lines)
 
+  def make_rows_for_all_fields(self, custom_md_field_names_for_1_pr):
+    return set(self.all_ok_fields) - set(custom_md_field_names_for_1_pr)
 
 
   def add_primer_info_to_metadata(self, metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict):
@@ -180,14 +189,18 @@ class Metadata():
    return empty_marker
 
   def filter_field_names(self, project_id_str, all_pr_fields, custom_fields_list_per_project):
-    print "custom_fields_list_per_project[project_id_str]"
-    print custom_fields_list_per_project[project_id_str]
+    # print "custom_fields_list_per_project[project_id_str]"
+    # print custom_fields_list_per_project[project_id_str]
     # ['adapter_sequence', 'adapter_sequence_id', 'collection_date', 'conductivity__milliseimenPerCentimeter', 'created_at', 'custom_metadata_319.dataset_id', 'custom_metadata_319_id', 'dataset', 'dataset_id', 'depth__meter', 'dna_region', 'dna_region_id', 'domain', 'domain_id', 'env_biome', 'env_biome_id', 'env_feature', 'env_feature_id', 'env_matter', 'env_matter_id', 'env_package', 'env_package_id', 'geo_loc_name', 'geo_loc_name_id', 'illumina_index', 'illumina_index_id', 'latitude', 'longitude', 'pH__logH+', 'primer_suite', 'primer_suite_id', 'project', 'project_id', 'required_metadata_id', 'run', 'sequencing_platform', 'sequencing_platform_id', 'target_gene', 'target_gene_id', 'temp__celsius', 'updated_at']
     good_fields = self.req_fields + list(custom_fields_list_per_project[project_id_str])
     this_pr_dat_fields = [field for field in all_pr_fields if field in good_fields]
+    """diff: in good only: 'anchor for trimming (454 sequencing only)'"""
+
+    self.all_ok_fields.extend(this_pr_dat_fields)
     return list(this_pr_dat_fields)
 
   def make_metadata_per_project_dataset_list(self, metadata_w_units_dict, custom_fields_list_per_project):
+
     metadata_per_project_dataset_lists_dict = defaultdict(list)
 
     for project_id_str, pr_dat_dict in metadata_w_units_dict.items():
