@@ -227,6 +227,9 @@ class Utils:
     def make_entry_w_fields_dict(self, fields, entry):
       return dict(zip(fields, entry))
 
+    def transpose_mtrx(self, list_of_lists):
+        return zip(*list_of_lists)
+
     def write_to_csv_file_matrix(self, file_name, matrix_to_csv, headers = [], file_mode = "wb"):
       with open(file_name, file_mode) as csv_file:
         csv_writer = csv.writer(csv_file)

@@ -160,9 +160,8 @@ class Metadata():
     file_name    = "all_fields_units_values.csv"
     first_column = self.all_fields_metadata.keys()
     all_values   = self.get_all_values_as_str()
-    field_units_values_trnsp_mtrx = self.make_field_units_values_transposed_mtrx([first_column, all_values])
+    field_units_values_trnsp_mtrx = utils.transpose_mtrx([first_column, all_values])
     utils.write_to_csv_file_matrix(file_name, field_units_values_trnsp_mtrx)
-    # todo: split!
 
   def write_dict_by_project_to_csv_files(self, dict_to_csv):
     for project_id_str, tuple_to_csv in dict_to_csv.items():
