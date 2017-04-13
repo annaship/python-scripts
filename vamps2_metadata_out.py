@@ -140,10 +140,16 @@ class Metadata():
         raise
 
   def flatten_dicts_recurs(self, d, res):
-    if isinstance(d.values()[0], dict):
+    if isinstance(d.values()[0], dict) and isinstance(d.values()[0], str):
       for val in d.values():
+        
+        t = utils.benchmark_w_return_1("res.update(self.flatten_dicts_recurs(val, res))")
         res.update(self.flatten_dicts_recurs(val, res))
+        utils.benchmark_w_return_2(t, "res.update(self.flatten_dicts_recurs(val, res))")
+
+        t = utils.benchmark_w_return_1("self.slice_dict_by_list_keys(res)")
         self.slice_dict_by_list_keys(res)
+        utils.benchmark_w_return_2(t, "self.slice_dict_by_list_keys(res)")
     elif isinstance(d.keys()[0], str):
       res.update(d)
     else:
@@ -263,7 +269,6 @@ class Metadata():
       metadata_per_project_dataset_lists_dict[project_id_str] = [first_column, second_column] + metadata_per_project_dataset_list
 
     return metadata_per_project_dataset_lists_dict
-
 
   def get_all_field_names(self, metadata_w_units_dict):
     all_field_names = []
@@ -410,9 +415,9 @@ class Metadata():
 
   """
   TODO:
-  1) add primers
+  done) add primers
 
-  2) for dco_custom_field_info in dco_custom_fields[0]:
+  done) for dco_custom_field_info in dco_custom_fields[0]:
     # print "dco_custom_field_info"
     # print dco_custom_field_info
     # (860L, 'resistivity', 'ohm-meters', 'n.d.')
@@ -435,7 +440,7 @@ class Metadata():
 
     field_values_dict = self.make_dict_field_values(field_values_dict, str_project_id, field_name, custom_metadata_distinct_list)
 
-  3) add constant list of required fields
+  done) add constant list of required fields
   """
 
 if __name__ == '__main__':
@@ -452,3 +457,12 @@ if __name__ == '__main__':
   t = utils.benchmark_w_return_1("get_metadata_info")
   metadata.get_metadata_info()
   utils.benchmark_w_return_2(t, "get_metadata_info")
+
+  """TODO:
+  1) time
+      get_raw_metadata time: 0.04 m
+      get_all_metadata_per_field_unit time: 0.01 m
+
+      get_metadata_info time: 0.05 m
+  2) Not existing tables error message
+  """
