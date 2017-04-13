@@ -153,9 +153,6 @@ class Metadata():
   def get_all_values_as_str(self):
     return [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
     
-  def make_field_units_values_transposed_mtrx(self, list_of_lists):
-    return zip(*list_of_lists)
-    
   def make_field_units_values_csv(self):
     file_name    = "all_fields_units_values.csv"
     first_column = self.all_fields_metadata.keys()
@@ -171,7 +168,7 @@ class Metadata():
   def prepare_metadata_for_csv(self, metadata_per_project_dataset_lists_dict):
     dict_to_csv = {}
     for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
-      transposed_matrix = zip(*m_mtrx)
+      transposed_matrix = utils.transpose_mtrx(m_mtrx)
 
       additional_field_units = self.get_the_rest_of_fields(m_mtrx[0])
       transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
@@ -180,8 +177,7 @@ class Metadata():
 
   def make_transposed_empty_fields_lines(self, empty_fields):
     all_zeros = [0]*len(empty_fields)
-    add_lines = [empty_fields, all_zeros]
-    return zip(*add_lines)
+    return utils.transpose_mtrx([empty_fields, all_zeros])
 
   def get_the_rest_of_fields(self, custom_md_field_names_for_1_pr):
     return set(self.all_ok_fields) - set(custom_md_field_names_for_1_pr)
