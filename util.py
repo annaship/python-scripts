@@ -286,3 +286,13 @@ class Utils:
     def initialize_dict_of_lists(self, list_of_keys):
       return {key: [] for key in list_of_keys}
     
+
+    """
+    >>> from collections import defaultdict
+    >>> def autodict(): return defaultdict(autodict)
+    ...
+    >>> foo = autodict()
+    >>> foo['foo']['bar']['baz']['quuz'] = 42
+    >>> foo['bar']['baz'] = 123
+    
+    """
