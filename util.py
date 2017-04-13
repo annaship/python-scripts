@@ -227,7 +227,15 @@ class Utils:
     def make_entry_w_fields_dict(self, fields, entry):
       return dict(zip(fields, entry))
 
-    def write_to_csv_file(self, file_name, res, file_mode = "wb"):
+    def write_to_csv_file_matrix(self, file_name, matrix_to_csv, headers = [], file_mode = "wb"):
+      with open(file_name, file_mode) as csv_file:
+        csv_writer = csv.writer(csv_file)
+        if headers:
+          csv_writer.writerows(headers)    
+        csv_writer.writerows(matrix_to_csv)    
+
+
+    def write_to_csv_file_db_res(self, file_name, res, file_mode = "wb"):
       data_from_db, field_names = res
       # print "VVVV"
       # print field_names

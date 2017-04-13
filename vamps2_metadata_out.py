@@ -120,11 +120,15 @@ class Metadata():
     utils.benchmark_w_return_2(t, "write_dict_by_project_to_csv_files")
 
     t = utils.benchmark_w_return_1("get_all_metadata_per_field_unit")
-    self.get_all_metadata_per_field_unit(metadata_w_units_n_primers_dict)
+    res = {}
+    self.flatten_dicts_recurs(metadata_w_units_n_primers_dict, res)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
 
     # print self.all_fields_metadata
 
+    t = utils.benchmark_w_return_1("make_field_units_values_tuple")
+    field_units_values_tuple = self.make_field_units_values_tuple()
+    utils.benchmark_w_return_2(t, "make_field_units_values_tuple")
 
   def slice_dict_by_list_keys(self, dict_obj):
     for k in set(self.all_ok_fields):
@@ -146,16 +150,14 @@ class Metadata():
       raise TypeError("Undefined type for flatten_dicts_recurs: %s"%type(d))
     return res
 
-  def get_all_metadata_per_field_unit(self, pyobj):
-    res = {}
-    self.flatten_dicts_recurs(pyobj, res)
-    "TODO: remove this method and call flatten_dicts_recurs from main?"
+  def make_field_units_values_tuple(self):
     file_name = "all_fields_units_values.csv"
     first_column = self.all_fields_metadata.keys()
     all_values = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
-    with open(file_name, "wb") as csv_file:
-      csv_writer = csv.writer(csv_file)
-      csv_writer.writerows(zip(*[first_column, all_values]))
+    utils.write_to_csv_file_matrix(file_name, zip(*[first_column, all_values]))
+    # with open(file_name, "wb") as csv_file:
+    #   csv_writer = csv.writer(csv_file)
+    #   csv_writer.writerows(zip(*[first_column, all_values]))
       # TODO
       # refactoring!
 
