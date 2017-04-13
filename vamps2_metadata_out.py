@@ -19,7 +19,7 @@ class Metadata():
     self.req_fields = ['adapter_sequence', 'anchor for trimming (454 sequencing only)', 'collection_date', 'dataset', 'dna_region', 'domain', 'env_biome', 'env_feature', 'env_matter', 'env_package', 'forward_primer', 'geo_loc_name', 'illumina_index', 'latitude', 'longitude', 'reverse_primer', 'run', 'sequencing_platform', 'target_gene']
     self.all_ok_fields = []
     self.all_fields_metadata = defaultdict(set)
-    
+
 
   def get_metadata_info(self):
     t = utils.benchmark_w_return_1("get_all_custom_tables")
@@ -102,7 +102,7 @@ class Metadata():
     t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
     metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
     utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
-    
+
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
@@ -115,27 +115,27 @@ class Metadata():
     dict_to_csv = self.prepare_metadata_for_csv(metadata_per_project_dataset_lists_dict)
     utils.benchmark_w_return_2(t, "prepare_metadata_for_csv")
 
-    t = utils.benchmark_w_return_1("write_to_csv_files")
-    self.write_to_csv_files(dict_to_csv)
-    utils.benchmark_w_return_2(t, "write_to_csv_files")
+    t = utils.benchmark_w_return_1("write_dict_by_project_to_csv_files")
+    self.write_dict_by_project_to_csv_files(dict_to_csv)
+    utils.benchmark_w_return_2(t, "write_dict_by_project_to_csv_files")
 
     t = utils.benchmark_w_return_1("get_all_metadata_per_field_unit")
     self.get_all_metadata_per_field_unit(metadata_w_units_n_primers_dict)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
-    
+
     # print self.all_fields_metadata
-    
-    
+
+
   def slice_dict_by_list_keys(self, dict_obj):
     for k in set(self.all_ok_fields):
       try:
         self.all_fields_metadata[k].add(dict_obj[k])
-      except KeyError: 
+      except KeyError:
         pass #first time key
-      except: 
+      except:
         raise
 
-  def flatten_dicts_recurs(self, d, res):    
+  def flatten_dicts_recurs(self, d, res):
     if isinstance(d.values()[0], dict):
       for val in d.values():
         res.update(self.flatten_dicts_recurs(val, res))
@@ -151,24 +151,19 @@ class Metadata():
     self.flatten_dicts_recurs(pyobj, res)
     "TODO: remove this method and call flatten_dicts_recurs from main?"
     file_name = "all_fields_units_values.csv"
+    first_column = self.all_fields_metadata.keys()
+    all_values = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
     with open(file_name, "wb") as csv_file:
       csv_writer = csv.writer(csv_file)
-      first_column = self.all_fields_metadata.keys()
-      
-      print "first_column"
-      print len(first_column)
-      aa = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
-      print "aa"
-      print len(aa)
-      bb = [first_column, aa]
-      
-      csv_writer.writerows(zip(*bb))
-    
-    
-  def write_to_csv_files(self, dict_to_csv):
+      csv_writer.writerows(zip(*[first_column, all_values]))
+      # TODO
+      # refactoring!
+
+
+  def write_dict_by_project_to_csv_files(self, dict_to_csv):
     for project_id_str, tuple_to_csv in dict_to_csv.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
-      
+
       with open(file_name, "wb") as csv_file:
         csv_writer = csv.writer(csv_file)
         csv_writer.writerows(tuple_to_csv[0])
@@ -178,12 +173,12 @@ class Metadata():
     dict_to_csv = {}
     for project_id_str, m_mtrx in metadata_per_project_dataset_lists_dict.items():
       transposed_matrix = zip(*m_mtrx)
-      
+
       additional_field_units = self.get_the_rest_of_fields(m_mtrx[0])
       transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
       dict_to_csv[project_id_str] = (transposed_matrix, transposed_add_lines_empty_fields)
     return dict_to_csv
-  
+
   def make_transposed_empty_fields_lines(self, empty_fields):
     all_zeros = [0]*len(empty_fields)
     add_lines = [empty_fields, all_zeros]
@@ -211,15 +206,15 @@ class Metadata():
 
   def change_dots_to_ns_in_primers(self, primer_sequences_list):
     return [primer_sequence.replace(".", "N") for primer_sequence in primer_sequences_list]
-    
+
   def   manually_change_primers_anchors(self, clean_primers_dict_per_suite_per_direction_dict):
     clean_primers_dict_per_suite_per_direction_dict['Bacterial V6-V4 Suite']['anchor for trimming (454 sequencing only)'] = 'TGGGCGTAAAG'
     clean_primers_dict_per_suite_per_direction_dict['Bacterial V6-V4 Suite']['reverse_primer'] = ", ".join(['CCAGCAGCCGCGGTAAN', 'CCAGCAGCTGCGGTAAN'])
     clean_primers_dict_per_suite_per_direction_dict['Bacterial V6-V4 Suite']['forward_primer'] = ", ".join(['AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG'])
-    
+
     clean_primers_dict_per_suite_per_direction_dict['Bacterial V4-V6 Suite']['anchor for trimming (454 sequencing only)'] = ", ".join(['ACT[CT]AAANGAATTGACGG', 'ACTCAAAAGAATTGACGG', 'ACTCAAAGAAATTGACGG'])
     clean_primers_dict_per_suite_per_direction_dict['Bacterial V4-V6 Suite']['reverse_primer'] = ", ".join(['AGGTGNTGCATGGCTGTCG, AGGTGNTGCATGGTTGTCG, AGGTGNTGCATGGCCGTCG, AGGTGNTGCATGGTCGTCG'])
-    
+
     return clean_primers_dict_per_suite_per_direction_dict
 
   def clean_primers_dict_per_suite_per_direction(self, primer_info_per_suite_per_direction):
@@ -229,9 +224,9 @@ class Metadata():
 
       clean_primers_dict_per_suite_per_direction_dict[primer_suite]['forward_primer'] = ", ".join(d_mod['F'])
       clean_primers_dict_per_suite_per_direction_dict[primer_suite]['reverse_primer'] = ", ".join(d_mod['R'])
-      
+
       clean_primers_dict_per_suite_per_direction_dict = self.manually_change_primers_anchors(clean_primers_dict_per_suite_per_direction_dict)
-            
+
     return clean_primers_dict_per_suite_per_direction_dict
 
   def make_custom_fields_list_per_project(self, raw_custom_fields_units, custom_fields_units_per_project):
