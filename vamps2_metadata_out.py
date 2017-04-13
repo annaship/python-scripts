@@ -155,21 +155,16 @@ class Metadata():
     first_column = self.all_fields_metadata.keys()
     all_values = [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
     utils.write_to_csv_file_matrix(file_name, zip(*[first_column, all_values]))
-    # with open(file_name, "wb") as csv_file:
-    #   csv_writer = csv.writer(csv_file)
-    #   csv_writer.writerows(zip(*[first_column, all_values]))
-      # TODO
-      # refactoring!
-
+    # todo: split!
 
   def write_dict_by_project_to_csv_files(self, dict_to_csv):
     for project_id_str, tuple_to_csv in dict_to_csv.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
-
-      with open(file_name, "wb") as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerows(tuple_to_csv[0])
-        csv_writer.writerows(tuple_to_csv[1])
+      utils.write_to_csv_file_matrix(file_name, tuple_to_csv[1], headers = tuple_to_csv[0])
+      # with open(file_name, "wb") as csv_file:
+      #   csv_writer = csv.writer(csv_file)
+      #   csv_writer.writerows(tuple_to_csv[0])
+      #   csv_writer.writerows(tuple_to_csv[1])
 
   def prepare_metadata_for_csv(self, metadata_per_project_dataset_lists_dict):
     dict_to_csv = {}
