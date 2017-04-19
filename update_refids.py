@@ -74,9 +74,10 @@ class Update_refhvr_ids:
     return mysql_utils.execute_no_fetch(query)
 
   def get_rep_id_refhvr_ids(self):
-    chunk_size = 5000000
-    # chunk_size = 1000 # test
+    # chunk_size = 5000000
+    chunk_size = 1000 # test
     from_here  = 0;
+    n = 0
     
     if mysql_utils.cursor:
       query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
@@ -89,10 +90,10 @@ class Update_refhvr_ids:
       while(rows_left > 0):
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s" % (from_here, chunk_size)
         res = mysql_utils.execute_fetch_select(query)
-        print query
+        n += 1
+        print "%s) %s" % (n, query)
         rows_left -= chunk_size;
         from_here += chunk_size;
-        
         utils.write_to_csv_file_db_res(in_file_path_name, res, file_mode = 'a')
 
   def process_file(self, in_file_path_name, out_file):
