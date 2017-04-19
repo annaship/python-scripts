@@ -91,15 +91,16 @@ class Mysql_util:
     def execute_fetchmany(self, sql, arraysize=1000):
       if self.cursor:
           self.cursor.execute(sql)
-          print self.cursor.lastrowid
+          # print "self.cursor.lastrowid"
+          # print self.cursor.lastrowid
+          print "self.cursor.rowcount"
+          print self.cursor.rowcount
           
           data_from_db = []
           for result in self.result_iter(self.cursor, arraysize):
             data_from_db.append(result)
           
-          # return (self.cursor.rowcount, self.cursor.lastrowid)
-          return (data_from_db)
-
+          return data_from_db
 
     def execute_no_fetch(self, sql):
       if self.cursor:
