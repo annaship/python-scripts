@@ -73,15 +73,32 @@ class Update_refhvr_ids:
     print query
     return mysql_utils.execute_no_fetch(query)
     
-  def get_rep_id_refhvr_ids(self):
-    query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
-    print query
-    return mysql_utils.execute_fetch_select(query)
+  # def get_rep_id_refhvr_ids(self):
+  #   query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
+  #   print query
+  #   return mysql_utils.execute_fetch_select(query)
     
-  def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
-    data_from_db, field_names = res
+  # def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
+  def write_to_csv_file(self, in_file_path_name, file_mode = "wb"):
+    query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
+    mysql_utils.cursor.execute(query)
+    data_from_db = []
+    for result in mysql_utils.result_iter(mysql_utils.cursor):
+      data_from_db_temp = result
+      print "WWW"
+      print data_from_db_temp
+      data_from_db.append(data_from_db_temp)
+      # with open(in_file_path_name, "a") as csv_file:
+      #   csv_writer = csv.writer(csv_file)
+      #   csv_writer.writerows(data_from_db)
+      
+    
+    
+    # get_rep_id_refhvr_ids
+    # data_from_db, field_names = res
     # print "VVVV"
     # print field_names
+    print data_from_db
 
     with open(in_file_path_name, file_mode) as csv_file:
       csv_writer = csv.writer(csv_file)
@@ -178,49 +195,53 @@ if __name__ == '__main__':
   # print "AAA"
   # !!! Uncomment !!!
   
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  update_refhvr_ids.create_table_refids_per_dataset_temp()
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.get_project_id()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  update_refhvr_ids.benchmark_w_return_2(t0)
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  # update_refhvr_ids.benchmark_w_return_2(t0)
+  # 
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # update_refhvr_ids.create_table_refids_per_dataset_temp()
+  # update_refhvr_ids.benchmark_w_return_2(t0)
+  # 
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # update_refhvr_ids.benchmark_w_return_2(t0)
+  # 
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # update_refhvr_ids.benchmark_w_return_2(t0)
+  # 
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # rowcount, lastrowid = update_refhvr_ids.get_project_id()
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # update_refhvr_ids.benchmark_w_return_2(t0)
+  # 
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # update_refhvr_ids.benchmark_w_return_2(t0)
+  # 
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
+  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  # update_refhvr_ids.benchmark_w_return_2(t0)
 
   """  rep_id_refhvr_id  """
   
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
-  print "db_res[0][0]"
-  update_refhvr_ids.benchmark_w_return_2(t0)
+  # t0 = update_refhvr_ids.benchmark_w_return_1()
+  # db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
+  # # TODO
+  # # do mysql dump to file instead, by chunks 
+  # #  combine with write_to_csv_file
+  # print "db_res[0][0]"
+  # update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "write_to_csv_file"
-  update_refhvr_ids.write_to_csv_file(in_file_path_name, db_res)
+  # update_refhvr_ids.write_to_csv_file(in_file_path_name, db_res)
+  update_refhvr_ids.write_to_csv_file(in_file_path_name)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()

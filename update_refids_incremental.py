@@ -14,7 +14,7 @@ class Update_refhvr_ids:
     
   def create_table_refids_per_dataset_temp(self):
     query = """
-    create table refids_per_dataset_temp
+    create table IF NOT EXISTS refids_per_dataset_temp
     (
       refids_per_dataset_id int unsigned NOT NULL AUTO_INCREMENT primary key,
       frequency double NOT NULL DEFAULT '0' COMMENT 'sum seq_count (for this seq/project/dataset across all lines and runs) divided by dataset_count',
