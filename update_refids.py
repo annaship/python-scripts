@@ -79,13 +79,15 @@ class Update_refhvr_ids:
 
   # def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
   def write_to_csv_file(self, in_file_path_name, file_mode = "wb"):
-    chunk_size = 1000
+    chunk_size = 500000
+    # 1000
     from_here  = 0;
     
     if mysql_utils.cursor:
       query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
       res = mysql_utils.execute_fetch_select(query0)
       counts = int(res[0][0][0])
+      print "count(refids_per_dataset_id)"
       print counts
       rows_left = counts
       
@@ -95,14 +97,20 @@ class Update_refhvr_ids:
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s" % (from_here, chunk_size)
         res = mysql_utils.execute_fetch_select(query)
         print query
-        print "1) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
+        # print "1) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
+        # count(refids_per_dataset_id)
+        # 313335318
+        # SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT 0, 500000
         
         rows_left -= chunk_size;
         from_here += chunk_size;
 
-        print "0) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
+        # print "0) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
         
-        print res
+        # print res[0]
+        with open(in_file_path_name, "a") as csv_file:
+          csv_writer = csv.writer(csv_file)
+          csv_writer.writerows(res[0])
         
       
       
