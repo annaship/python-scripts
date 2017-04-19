@@ -93,6 +93,7 @@ class Mysql_util:
           self.cursor.execute(sql)
           # print "self.cursor.lastrowid"
           # print self.cursor.lastrowid
+          print sql
           print "self.cursor.rowcount"
           print self.cursor.rowcount
           

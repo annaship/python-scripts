@@ -211,17 +211,13 @@ if __name__ == '__main__':
   """  rep_id_refhvr_id  """
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "get_rep_id_refhvr_ids"
   db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
-  # # TODO
-  # # do mysql dump to file instead, by chunks 
-  # #  combine with write_to_csv_file
-  # print "db_res[0][0]"
   update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "write_to_csv_file"
   update_refhvr_ids.write_to_csv_file(in_file_path_name, db_res)
-  # update_refhvr_ids.write_to_csv_file(in_file_path_name)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
