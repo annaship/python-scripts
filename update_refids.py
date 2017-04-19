@@ -82,12 +82,14 @@ class Update_refhvr_ids:
   def write_to_csv_file(self, in_file_path_name, file_mode = "wb"):
     query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
     mysql_utils.cursor.execute(query)
-    data_from_db = []
-    for result in mysql_utils.result_iter(mysql_utils.cursor):
-      data_from_db_temp = result
-      print "WWW"
-      print data_from_db_temp
-      data_from_db.append(data_from_db_temp)
+    
+    data_from_db = mysql_utils.execute_fetchmany(query)
+    # data_from_db = []
+    # for result in mysql_utils.result_iter(mysql_utils.cursor):
+    #   data_from_db_temp = result
+    #   # print "WWW"
+    #   # print data_from_db_temp
+    #   data_from_db.append(data_from_db_temp)
       # with open(in_file_path_name, "a") as csv_file:
       #   csv_writer = csv.writer(csv_file)
       #   csv_writer.writerows(data_from_db)
@@ -98,7 +100,7 @@ class Update_refhvr_ids:
     # data_from_db, field_names = res
     # print "VVVV"
     # print field_names
-    print data_from_db
+    # print data_from_db
 
     with open(in_file_path_name, file_mode) as csv_file:
       csv_writer = csv.writer(csv_file)
