@@ -74,13 +74,8 @@ class Update_refhvr_ids:
     return mysql_utils.execute_no_fetch(query)
 
   def get_rep_id_refhvr_ids(self):
-    query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
-    return mysql_utils.execute_fetchmany(query)
-
-  # def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
-  def write_to_csv_file(self, in_file_path_name, file_mode = "wb"):
     chunk_size = 5000000
-    # 1000
+    # chunk_size = 1000 # test
     from_here  = 0;
     
     if mysql_utils.cursor:
@@ -91,43 +86,14 @@ class Update_refhvr_ids:
       print counts
       rows_left = counts
       
-      # print query
-      
       while(rows_left > 0):
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s" % (from_here, chunk_size)
         res = mysql_utils.execute_fetch_select(query)
         print query
-        # print "1) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
-        # count(refids_per_dataset_id)
-        # 313335318
-        # SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT 0, 500000
-        # echo "scale=2;313335318/5000000" | bc
-        # 62.66
-        # 626.67
         rows_left -= chunk_size;
         from_here += chunk_size;
-
-        # print "0) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
         
-        # print res[0]
-        with open(in_file_path_name, "a") as csv_file:
-          csv_writer = csv.writer(csv_file)
-          csv_writer.writerows(res[0])
-        
-      
-      
-      # query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
-      # print query
-      # mysql_utils.cursor.execute(query)
-      # print "mysql_utils.cursor.rowcount"
-      # print mysql_utils.cursor.rowcount
-      # 
-      # for result in mysql_utils.result_iter(mysql_utils.cursor):
-      #   # print "result"
-      #   # print result
-      #   with open(in_file_path_name, "a") as csv_file:
-      #     csv_writer = csv.writer(csv_file)
-      #     csv_writer.writerow(result)
+        utils.write_to_csv_file_db_res(in_file_path_name, res, file_mode = 'a')
 
   def process_file(self, in_file_path_name, out_file):
     with open(in_file_path_name, 'rb') as in_f:
@@ -262,16 +228,9 @@ if __name__ == '__main__':
 
   """  rep_id_refhvr_id  """
 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # print "get_rep_id_refhvr_ids"
-  # db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  # """TODO: write to csv by chunks"""
-
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "write_to_csv_file"
-  # update_refhvr_ids.write_to_csv_file(in_file_path_name, db_res)
-  update_refhvr_ids.write_to_csv_file(in_file_path_name)
+  print "get_rep_id_refhvr_ids"
+  db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
