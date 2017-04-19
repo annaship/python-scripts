@@ -23,7 +23,7 @@ class Mysql_util:
         self.lastrowid   = None
         self.rowcount    = None
         self.dict_cursor = None
-        
+
         if read_default_file == "":
           if self.utils.is_local():
             read_default_file = os.path.expanduser("~/.my.cnf_local")
@@ -37,7 +37,7 @@ class Mysql_util:
             # self.conn = MySQLdb.connect(host = host, db = db, read_default_file = read_default_file, port = port)
             self.conn    =  MySQLdb.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
             # print "host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file)
-            
+
             self.cursor = self.conn.cursor()
             self.dict_cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
 
@@ -61,8 +61,8 @@ class Mysql_util:
           self.utils.print_both(("ERROR: query = %s") % sql)
           raise
         return (res, field_names)
-        
-        
+
+
     def execute_fetch_select_where(self, sql, values):
       # print "+" * 20
       # print sql
@@ -76,11 +76,11 @@ class Mysql_util:
           self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
           raise
         return (res, field_names)
-    
+
     # http://code.activestate.com/recipes/137270-use-generators-for-fetching-large-db-record-sets/
     def result_iter(self, cursor, arraysize=1000):
       'An iterator that uses fetchmany to keep memory usage down'
-      
+
       while True:
         results = self.cursor.fetchmany(arraysize)
         if not results:
@@ -96,11 +96,11 @@ class Mysql_util:
           # print self.cursor.lastrowid
           print "self.cursor.rowcount"
           print self.cursor.rowcount
-          
+
           data_from_db = []
           for result in self.result_iter(self.cursor, arraysize):
             data_from_db.append(result)
-          
+
           return data_from_db
 
     def execute_no_fetch(self, sql):
@@ -119,17 +119,8 @@ class Mysql_util:
           return (self.cursor.rowcount, self.cursor.lastrowid)
         except:
           self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
-        
-
-      """
-        self.cursor.execute(sql, values)
-        res         = self.cursor.fetchall ()
-        field_names = [i[0] for i in self.cursor.description]
-      except:
-        self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
 
 
-      """          
     def execute_fetch_select_to_dict(self, sql):
       if self.dict_cursor:
         try:
@@ -140,7 +131,7 @@ class Mysql_util:
         except:
           self.utils.print_both(("ERROR: query = %s") % sql)
           raise
-    
+
 
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE"):
       try:
@@ -210,7 +201,7 @@ class Utils:
             return True
         else:
             return False
-            
+
     def is_vamps_prod(self):
         print os.uname()[1]
         dev_comps = ['bpcweb8', 'bpcweb8.bpcservers.private']
@@ -218,7 +209,7 @@ class Utils:
             return True
         else:
             return False
-            
+
     def print_both(self, message):
         print message
         logging.debug(message)
@@ -235,7 +226,7 @@ class Utils:
 
     def flatten_2d_list(self, list):
       return [item for sublist in list for item in sublist]
-      
+
     def sort_case_insesitive(self, unsorted_list):
       try:
         sorted_list = sorted(unsorted_list, key=lambda s: s.lower())
@@ -244,7 +235,7 @@ class Utils:
       except:
         raise
       return sorted_list
-      
+
 
     def wrapper(self, func, *args, **kwargs):
         def wrapped():
@@ -280,8 +271,8 @@ class Utils:
       with open(file_name, file_mode) as csv_file:
         csv_writer = csv.writer(csv_file)
         if headers:
-          csv_writer.writerows(headers)    
-        csv_writer.writerows(matrix_to_csv)    
+          csv_writer.writerows(headers)
+        csv_writer.writerows(matrix_to_csv)
 
 
     def write_to_csv_file_db_res(self, file_name, res, file_mode = "wb"):
@@ -293,27 +284,27 @@ class Utils:
         csv_writer = csv.writer(csv_file)
         if file_mode == "wb":
           csv_writer.writerow(field_names) # write headers
-        csv_writer.writerows(data_from_db)    
+        csv_writer.writerows(data_from_db)
 
     def get_csv_file_calls(self, query):
       return prod_mysql_util.execute_fetch_select(query)
       # prod_mysql_util = Mysql_util(host = host_prod, db = "vamps", read_default_file = read_default_file_prod, port = port_prod)
-      
+
     def slicedict(self, my_dict, key_list):
       return {k: v for k, v in my_dict.items() if k in key_list}
-      
+
     def benchmark_w_return_1(self, message):
       print  "\n"
       print "-" * 10
       print message
       return time.time()
-    
+
     def benchmark_w_return_2(self, t0, message = ""):
       t1 = time.time()
       total = float(t1-t0) / 60
       print '%s time: %.2f m' % (message, total)
-    
-    
+
+
     def chunks(self, arr, max_lines):
         """Yield successive n-sized chunks from l.
         Ex. for chunk in utils.chunks(query_a, self.max_lines):
@@ -331,7 +322,7 @@ class Utils:
 
     def initialize_dict_of_lists(self, list_of_keys):
       return {key: [] for key in list_of_keys}
-    
+
 
     """
     >>> from collections import defaultdict
@@ -340,5 +331,5 @@ class Utils:
     >>> foo = autodict()
     >>> foo['foo']['bar']['baz']['quuz'] = 42
     >>> foo['bar']['baz'] = 123
-    
+
     """
