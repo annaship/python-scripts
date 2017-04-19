@@ -88,10 +88,11 @@ class Update_refhvr_ids:
       rows_left = counts
       
       while(rows_left > 0):
-        query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s" % (from_here, chunk_size)
-        res = mysql_utils.execute_fetch_select(query)
+        query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
+         # % (from_here, chunk_size)
+        res = mysql_utils.execute_fetch_select_where(query, (from_here, chunk_size))
         n += 1
-        print "%s) %s" % (n, query)
+        print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
         rows_left -= chunk_size;
         from_here += chunk_size;
         utils.write_to_csv_file_db_res(in_file_path_name, res, file_mode = 'a')
