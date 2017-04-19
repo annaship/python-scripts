@@ -79,7 +79,7 @@ class Update_refhvr_ids:
 
   # def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
   def write_to_csv_file(self, in_file_path_name, file_mode = "wb"):
-    chunk_size = 500000
+    chunk_size = 5000000
     # 1000
     from_here  = 0;
     
@@ -101,7 +101,9 @@ class Update_refhvr_ids:
         # count(refids_per_dataset_id)
         # 313335318
         # SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT 0, 500000
-        
+        # echo "scale=2;313335318/5000000" | bc
+        # 62.66
+        # 626.67
         rows_left -= chunk_size;
         from_here += chunk_size;
 
