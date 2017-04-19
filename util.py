@@ -1,3 +1,4 @@
+from __future__ import generators    # needs to be at the top of your module
 import os
 import MySQLdb
 import logging
@@ -76,6 +77,16 @@ class Mysql_util:
           raise
         return (res, field_names)
     
+    # http://code.activestate.com/recipes/137270-use-generators-for-fetching-large-db-record-sets/
+    def result_iter(self, cursor, arraysize=1000):
+      'An iterator that uses fetchmany to keep memory usage down'
+      
+      while True:
+        results = self.cursor.fetchmany(arraysize)
+        if not results:
+          break
+        for result in results:
+          yield result
 
     def execute_no_fetch(self, sql):
       if self.cursor:
