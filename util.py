@@ -90,10 +90,10 @@ class Mysql_util:
 
     def execute_fetchmany(self, sql, arraysize=1000):
       if self.cursor:
+          print sql
           self.cursor.execute(sql)
           # print "self.cursor.lastrowid"
           # print self.cursor.lastrowid
-          print sql
           print "self.cursor.rowcount"
           print self.cursor.rowcount
           
