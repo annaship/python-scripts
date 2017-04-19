@@ -109,7 +109,27 @@ class Mysql_util:
           self.conn.commit()
           # print self.cursor.lastrowid
           return (self.cursor.rowcount, self.cursor.lastrowid)
-          
+
+    def execute_no_fetch_w_values(self, sql, values):
+      if self.cursor:
+        try:
+          self.cursor.execute(sql, values)
+          self.conn.commit()
+          # print self.cursor.lastrowid
+          return (self.cursor.rowcount, self.cursor.lastrowid)
+        except:
+          self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
+        
+
+      """
+        self.cursor.execute(sql, values)
+        res         = self.cursor.fetchall ()
+        field_names = [i[0] for i in self.cursor.description]
+      except:
+        self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
+
+
+      """          
     def execute_fetch_select_to_dict(self, sql):
       if self.dict_cursor:
         try:

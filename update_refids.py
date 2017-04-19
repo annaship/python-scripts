@@ -122,9 +122,11 @@ class Update_refhvr_ids:
     return mysql_utils.execute_no_fetch(query)
 
   def load_into_rep_id_refhvr_id_temp(self, out_file_path_name):
-    query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);" % (out_file_path_name)
+    query = "LOAD DATA LOCAL INFILE %s IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);"
+    # query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);" % (out_file_path_name)
     print query
-    return mysql_utils.execute_no_fetch(query)
+    return mysql_utils.execute_no_fetch_w_values(query, out_file_path_name)
+    # return mysql_utils.execute_no_fetch(query)
 
   def drop_col_refids_per_dataset_temp(self, column_names_arr):
     # query = """ALTER TABLE refids_per_dataset_temp
