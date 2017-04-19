@@ -79,19 +79,45 @@ class Update_refhvr_ids:
 
   # def write_to_csv_file(self, in_file_path_name, res, file_mode = "wb"):
   def write_to_csv_file(self, in_file_path_name, file_mode = "wb"):
+    chunk_size = 1000
+    from_here  = 0;
+    
     if mysql_utils.cursor:
-        query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
+      query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
+      res = mysql_utils.execute_fetch_select(query0)
+      counts = int(res[0][0][0])
+      print counts
+      rows_left = counts
+      
+      # print query
+      
+      while(rows_left > 0):
+        query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s" % (from_here, chunk_size)
+        res = mysql_utils.execute_fetch_select(query)
         print query
-        mysql_utils.cursor.execute(query)
-        print "mysql_utils.cursor.rowcount"
-        print mysql_utils.cursor.rowcount
+        print "1) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
+        
+        rows_left -= chunk_size;
+        from_here += chunk_size;
 
-        for result in mysql_utils.result_iter(mysql_utils.cursor):
-          # print "result"
-          # print result
-          with open(in_file_path_name, "a") as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(result)
+        print "0) rows_left = %s, from_here = %s, chunk_size = %s" % (rows_left, from_here, chunk_size)
+        
+        print res
+        
+      
+      
+      # query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp"
+      # print query
+      # mysql_utils.cursor.execute(query)
+      # print "mysql_utils.cursor.rowcount"
+      # print mysql_utils.cursor.rowcount
+      # 
+      # for result in mysql_utils.result_iter(mysql_utils.cursor):
+      #   # print "result"
+      #   # print result
+      #   with open(in_file_path_name, "a") as csv_file:
+      #     csv_writer = csv.writer(csv_file)
+      #     csv_writer.writerow(result)
 
   def process_file(self, in_file_path_name, out_file):
     with open(in_file_path_name, 'rb') as in_f:
