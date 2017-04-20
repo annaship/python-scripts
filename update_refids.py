@@ -112,11 +112,12 @@ class Update_refhvr_ids:
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
          # % (from_here, chunk_size)
         res = mysql_utils.execute_fetch_select_where(query, (from_here, chunk_size))
+        file_name = self.in_file_names[n]
+        
         n += 1
         print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
         rows_left -= chunk_size;
         from_here += chunk_size;
-        file_name = os.path.join(in_file_path_name_base + "." + str(n) + file_extension)
         try:
           os.remove(file_name)
         except OSError:
@@ -124,8 +125,7 @@ class Update_refhvr_ids:
         except:
           raise
         print file_name
-        all_file_names.append(file_name)
-        utils.write_to_csv_file_db_res(file_name, res, file_mode = 'a')
+        utils.write_to_csv_file_db_res(file_name, res, file_mode = 'wb')
     return all_file_names
 
   def process_file(self, in_file_path_name, out_file):
@@ -261,15 +261,18 @@ if __name__ == '__main__':
   # update_refhvr_ids.benchmark_w_return_2(t0)
   
   
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "create_file_names"
   update_refhvr_ids.create_file_names()
   print update_refhvr_ids.in_file_names
   print update_refhvr_ids.out_file_names
+  update_refhvr_ids.benchmark_w_return_2(t0)
 
   """  rep_id_refhvr_id  """
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "get_rep_id_refhvr_ids"
-  all_file_names = update_refhvr_ids.get_rep_id_refhvr_ids()
+  update_refhvr_ids.get_rep_id_refhvr_ids()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   print "process_files"
