@@ -273,9 +273,10 @@ if __name__ == '__main__':
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   print "process_files"
-  for in_file in all_file_names:
+  for in_file in update_refhvr_ids.in_file_names:
     t0 = update_refhvr_ids.benchmark_w_return_1()
-    out_file_name = in_file + out_filename
+    idx = update_refhvr_ids.in_file_names.index(in_file)
+    out_file_name = update_refhvr_ids.out_file_names[idx]
     try:
       os.remove(out_file_name)
     except OSError:
