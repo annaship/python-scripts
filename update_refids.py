@@ -72,6 +72,14 @@ class Update_refhvr_ids:
       """
     print query
     return mysql_utils.execute_no_fetch(query)
+    
+  def get_all_counts(self):
+    query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
+    res = mysql_utils.execute_fetch_select(query0)
+    counts = int(res[0][0][0])
+    print "count(refids_per_dataset_id)"
+    print counts
+    return counts
 
   def get_rep_id_refhvr_ids(self):
     # chunk_size = 5000000
@@ -80,12 +88,12 @@ class Update_refhvr_ids:
     n = 0
     
     if mysql_utils.cursor:
-      query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
-      res = mysql_utils.execute_fetch_select(query0)
-      counts = int(res[0][0][0])
-      print "count(refids_per_dataset_id)"
-      print counts
-      rows_left = counts
+      # query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
+      # res = mysql_utils.execute_fetch_select(query0)
+      # counts = int(res[0][0][0])
+      # print "count(refids_per_dataset_id)"
+      # print counts
+      rows_left = self.get_all_counts()
       all_file_names = []
       
       while(rows_left > 0):
