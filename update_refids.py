@@ -9,6 +9,11 @@ import math
 class Update_refhvr_ids:
   def __init__(self):
     self.write_separate_refids_arr = []
+    self.in_file_names  = []
+    self.out_file_names = []
+    
+    self.chunk_size = 1000 # test
+    
 
   def drop_table(self, table_name):
     query = "DROP TABLE IF EXISTS %s;" % (table_name)
@@ -82,14 +87,14 @@ class Update_refhvr_ids:
     print counts
     return counts
     
-  def create_in_file_names(self):
-    chunk_size = 1000 # test
-    nn = math.ceil(float(2693) / chunk_size)
+  def create_file_names(self):
+    nn = math.ceil(float(2693) / self.chunk_size)
     print "nn"
     print nn
     for n in range(1, int(nn)+1): 
-      file_name = os.path.join(in_file_path_name_base + "." + str(n) + file_extension)
-      print file_name
+      self.in_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + file_extension))
+      self.out_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + out_file_extension + file_extension))
+      
       
       
 
@@ -209,11 +214,11 @@ if __name__ == '__main__':
   in_filename  = "rep_id_refhvr_ids"
   # out_filename = "rep_id_refhvr_ids_separated"
   file_extension = ".csv"
-  out_filename = ".separated"
-  in_file_path_name_base  = os.path.join(csv_dir, in_filename)
+  out_file_extension = ".separated"
+  # in_file_path_name_base  = os.path.join(csv_dir, in_filename)
   # out_file_path_name_base = os.path.join(csv_dir, out_filename)
 
-  print in_file_path_name_base
+  # print in_file_path_name_base
   # print out_file_path_name_base
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
@@ -256,8 +261,9 @@ if __name__ == '__main__':
   # update_refhvr_ids.benchmark_w_return_2(t0)
   
   
-  update_refhvr_ids.create_in_file_names()
-
+  update_refhvr_ids.create_file_names()
+  print update_refhvr_ids.in_file_names
+  print update_refhvr_ids.out_file_names
 
   """  rep_id_refhvr_id  """
 
