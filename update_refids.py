@@ -74,8 +74,8 @@ class Update_refhvr_ids:
     return mysql_utils.execute_no_fetch(query)
 
   def get_rep_id_refhvr_ids(self):
-    chunk_size = 5000000
-    # chunk_size = 1000 # test
+    # chunk_size = 5000000
+    chunk_size = 1000 # test
     from_here  = 0;
     n = 0
     
@@ -86,6 +86,7 @@ class Update_refhvr_ids:
       print "count(refids_per_dataset_id)"
       print counts
       rows_left = counts
+      all_file_names = []
       
       while(rows_left > 0):
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
@@ -95,7 +96,17 @@ class Update_refhvr_ids:
         print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
         rows_left -= chunk_size;
         from_here += chunk_size;
-        utils.write_to_csv_file_db_res(in_file_path_name, res, file_mode = 'a')
+        file_name = os.path.join(in_file_path_name_base + "." + str(n) + file_extension)
+        try:
+          os.remove(file_name)
+        except OSError:
+          pass
+        except:
+          raise
+        print file_name
+        all_file_names.append(file_name)
+        utils.write_to_csv_file_db_res(file_name, res, file_mode = 'a')
+    return all_file_names
 
   def process_file(self, in_file_path_name, out_file):
     with open(in_file_path_name, 'rb') as in_f:
@@ -122,9 +133,13 @@ class Update_refhvr_ids:
     return mysql_utils.execute_no_fetch(query)
 
   def load_into_rep_id_refhvr_id_temp(self, out_file_path_name):
-    query = "LOAD DATA LOCAL INFILE %s IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);"
+    query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);" % (out_file_path_name)
+    print "load_into_rep_id_refhvr_id_temp"
+    print "query"
     print query
-    return mysql_utils.execute_no_fetch_w_values(query, out_file_path_name)
+    print "out_file_path_name"
+    print out_file_path_name
+    return mysql_utils.execute_no_fetch(query)
 
   def drop_col_refids_per_dataset_temp(self, column_names_arr):
     # query = """ALTER TABLE refids_per_dataset_temp
@@ -170,24 +185,21 @@ if __name__ == '__main__':
   utils = util.Utils()
 
   if (utils.is_local() == True):
-    mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
+    # mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps", read_default_group = "clientservers")
+    mysql_utils = util.Mysql_util(host = "localhost", db = "test_vamps", read_default_group = "clienthome")
   else:
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
 
   csv_dir      = "/tmp"
-  in_filename  = "rep_id_refhvr_ids.csv"
-  out_filename = "rep_id_refhvr_ids_separated.csv"
-  in_file_path_name  = os.path.join(csv_dir, in_filename)
-  out_file_path_name = os.path.join(csv_dir, out_filename)
-  try:
-    os.remove(in_file_path_name)
-    os.remove(out_file_path_name)
-  except OSError:
-    pass
-  except:
-    raise
-  print in_file_path_name
-  print out_file_path_name
+  in_filename  = "rep_id_refhvr_ids"
+  # out_filename = "rep_id_refhvr_ids_separated"
+  file_extension = ".csv"
+  out_filename = ".separated"
+  in_file_path_name_base  = os.path.join(csv_dir, in_filename)
+  # out_file_path_name_base = os.path.join(csv_dir, out_filename)
+
+  print in_file_path_name_base
+  # print out_file_path_name_base
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
 
@@ -232,16 +244,26 @@ if __name__ == '__main__':
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "get_rep_id_refhvr_ids"
-  db_res = update_refhvr_ids.get_rep_id_refhvr_ids()
+  all_file_names = update_refhvr_ids.get_rep_id_refhvr_ids()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "process_file"
-
-  out_f = open(out_file_path_name, "w")
-  update_refhvr_ids.process_file(in_file_path_name, out_f)
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  out_f.close()
+  print "process_files"
+  for in_file in all_file_names:
+    t0 = update_refhvr_ids.benchmark_w_return_1()
+    out_file_name = in_file + out_filename
+    try:
+      os.remove(out_file_name)
+    except OSError:
+      pass
+    except:
+      raise
+    
+    out_f = open(out_file_name, "w")
+    print "out_f"
+    print out_f
+    update_refhvr_ids.process_file(in_file, out_f)
+    update_refhvr_ids.benchmark_w_return_2(t0)
+    out_f.close()
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
@@ -252,11 +274,14 @@ if __name__ == '__main__':
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(out_file_path_name)
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  update_refhvr_ids.benchmark_w_return_2(t0)
-  #
+  for in_file in all_file_names:
+    t0 = update_refhvr_ids.benchmark_w_return_1()
+    res = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file + out_filename)
+    # print "res = %s" % (res)
+    rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file + out_filename)
+    print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+    update_refhvr_ids.benchmark_w_return_2(t0)
+
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
