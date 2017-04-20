@@ -12,8 +12,9 @@ class Update_refhvr_ids:
     self.in_file_names  = []
     self.out_file_names = []
     
-    # self.chunk_size = 5000000
-    self.chunk_size = 1000 # test
+    self.chunk_size = 5000000
+    # self.chunk_size = 1000 # test
+    self.all_ref_counts = self.get_all_counts()
     
 
   def drop_table(self, table_name):
@@ -89,7 +90,7 @@ class Update_refhvr_ids:
     return counts
     
   def create_file_names(self):
-    nn = math.ceil(float(2693) / self.chunk_size)
+    nn = math.ceil(float(self.all_ref_counts) / self.chunk_size)
     print "nn"
     print nn
     for n in range(1, int(nn)+1): 
@@ -102,7 +103,7 @@ class Update_refhvr_ids:
     n = 0
     
     if mysql_utils.cursor:
-      rows_left = self.get_all_counts()
+      rows_left = self.all_ref_counts
       
       while(rows_left > 0):
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
