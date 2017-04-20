@@ -150,8 +150,8 @@ class Update_refhvr_ids:
     return mysql_utils.execute_no_fetch(query)
 
   def load_into_rep_id_refhvr_id_temp(self, out_file_path_name):
-    query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' (rep_id, refhvr_id);" % (out_file_path_name)
-    print "load_into_rep_id_refhvr_id_temp"
+    query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' IGNORE 1 LINES (rep_id, refhvr_id);" % (out_file_path_name)
+    print "1) load_into_rep_id_refhvr_id_temp"
     print "query"
     print query
     print "out_file_path_name"
@@ -300,11 +300,11 @@ if __name__ == '__main__':
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  for in_file in all_file_names:
+  for in_file in update_refhvr_ids.out_file_names:
     t0 = update_refhvr_ids.benchmark_w_return_1()
-    res = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file + out_filename)
+    # res = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
     # print "res = %s" % (res)
-    rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file + out_filename)
+    rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
     print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
     update_refhvr_ids.benchmark_w_return_2(t0)
 
