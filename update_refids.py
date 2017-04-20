@@ -13,7 +13,6 @@ class Update_refhvr_ids:
     self.out_file_names = []
     
     # self.chunk_size = 5000000
-    
     self.chunk_size = 1000 # test
     
 
@@ -97,8 +96,6 @@ class Update_refhvr_ids:
       self.in_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + file_extension))
       self.out_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + out_file_extension + file_extension))
       
-      
-      
 
   def get_rep_id_refhvr_ids(self):
     from_here  = 0;
@@ -151,11 +148,6 @@ class Update_refhvr_ids:
 
   def load_into_rep_id_refhvr_id_temp(self, out_file_path_name):
     query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' IGNORE 1 LINES (rep_id, refhvr_id);" % (out_file_path_name)
-    print "1) load_into_rep_id_refhvr_id_temp"
-    print "query"
-    print query
-    print "out_file_path_name"
-    print out_file_path_name
     return mysql_utils.execute_no_fetch(query)
 
   def drop_col_refids_per_dataset_temp(self, column_names_arr):
@@ -209,14 +201,9 @@ if __name__ == '__main__':
 
   csv_dir      = "/tmp"
   in_filename  = "rep_id_refhvr_ids"
-  # out_filename = "rep_id_refhvr_ids_separated"
   file_extension = ".csv"
   out_file_extension = ".separated"
-  # in_file_path_name_base  = os.path.join(csv_dir, in_filename)
-  # out_file_path_name_base = os.path.join(csv_dir, out_filename)
 
-  # print in_file_path_name_base
-  # print out_file_path_name_base
   # query = "show tables"
   # a = mysql_utils.execute_fetch_select(query)
 
