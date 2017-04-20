@@ -12,6 +12,8 @@ class Update_refhvr_ids:
     self.in_file_names  = []
     self.out_file_names = []
     
+    # self.chunk_size = 5000000
+    
     self.chunk_size = 1000 # test
     
 
@@ -99,25 +101,21 @@ class Update_refhvr_ids:
       
 
   def get_rep_id_refhvr_ids(self):
-    # chunk_size = 5000000
-    chunk_size = 1000 # test
     from_here  = 0;
     n = 0
     
     if mysql_utils.cursor:
       rows_left = self.get_all_counts()
-      all_file_names = []
       
       while(rows_left > 0):
         query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
-         # % (from_here, chunk_size)
-        res = mysql_utils.execute_fetch_select_where(query, (from_here, chunk_size))
+        res = mysql_utils.execute_fetch_select_where(query, (from_here, self.chunk_size))
         file_name = self.in_file_names[n]
         
         n += 1
         print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
-        rows_left -= chunk_size;
-        from_here += chunk_size;
+        rows_left -= self.chunk_size;
+        from_here += self.chunk_size;
         try:
           os.remove(file_name)
         except OSError:
@@ -126,7 +124,6 @@ class Update_refhvr_ids:
           raise
         print file_name
         utils.write_to_csv_file_db_res(file_name, res, file_mode = 'wb')
-    return all_file_names
 
   def process_file(self, in_file_path_name, out_file):
     with open(in_file_path_name, 'rb') as in_f:
