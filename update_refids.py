@@ -4,6 +4,7 @@
 import util
 import time
 import csv, os
+import math
 
 class Update_refhvr_ids:
   def __init__(self):
@@ -80,6 +81,17 @@ class Update_refhvr_ids:
     print "count(refids_per_dataset_id)"
     print counts
     return counts
+    
+  def create_in_file_names(self):
+    chunk_size = 1000 # test
+    nn = math.ceil(float(2693) / chunk_size)
+    print "nn"
+    print nn
+    for n in range(1, int(nn)+1): 
+      file_name = os.path.join(in_file_path_name_base + "." + str(n) + file_extension)
+      print file_name
+      
+      
 
   def get_rep_id_refhvr_ids(self):
     # chunk_size = 5000000
@@ -88,11 +100,6 @@ class Update_refhvr_ids:
     n = 0
     
     if mysql_utils.cursor:
-      # query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
-      # res = mysql_utils.execute_fetch_select(query0)
-      # counts = int(res[0][0][0])
-      # print "count(refids_per_dataset_id)"
-      # print counts
       rows_left = self.get_all_counts()
       all_file_names = []
       
@@ -247,6 +254,10 @@ if __name__ == '__main__':
   # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
   # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   # update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  
+  update_refhvr_ids.create_in_file_names()
+
 
   """  rep_id_refhvr_id  """
 
