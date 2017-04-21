@@ -12,8 +12,8 @@ class Update_refhvr_ids:
     self.in_file_names  = []
     self.out_file_names = []
     
-    self.chunk_size = 5000000
-    # self.chunk_size = 1000 # test
+    # self.chunk_size = 5000000
+    self.chunk_size = 1000 # test
     self.all_ref_counts = self.get_all_counts()
     
 
@@ -97,8 +97,11 @@ class Update_refhvr_ids:
       self.in_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + file_extension))
       self.out_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + out_file_extension + file_extension))
       
+  def get_rep_id_refhvr_ids(self, from_here):
+      query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
+      return mysql_utils.execute_fetch_select_where(query, (from_here, self.chunk_size))
 
-  def get_rep_id_refhvr_ids(self):
+  def procees_data(self):
     from_here  = 0;
     n = 0
     
@@ -106,8 +109,8 @@ class Update_refhvr_ids:
       rows_left = self.all_ref_counts
       
       while(rows_left > 0):
-        query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
-        res = mysql_utils.execute_fetch_select_where(query, (from_here, self.chunk_size))
+        #sep!
+        res = self.get_rep_id_refhvr_ids(from_here)
         file_name = self.in_file_names[n]
         
         n += 1
@@ -121,8 +124,11 @@ class Update_refhvr_ids:
         except:
           raise
         print file_name
+        # step 1
+        
         utils.write_to_csv_file_db_res(file_name, res, file_mode = 'wb')
 
+  # step 2
   def process_file(self, in_file_path_name, out_file):
     with open(in_file_path_name, 'rb') as in_f:
       reader = csv.reader(in_f)
@@ -147,9 +153,11 @@ class Update_refhvr_ids:
     print query
     return mysql_utils.execute_no_fetch(query)
 
+  # step 3
   def load_into_rep_id_refhvr_id_temp(self, out_file_path_name):
     query = "LOAD DATA LOCAL INFILE '%s' IGNORE INTO TABLE rep_id_refhvr_id_temp  FIELDS TERMINATED BY ',' IGNORE 1 LINES (rep_id, refhvr_id);" % (out_file_path_name)
     return mysql_utils.execute_no_fetch(query)
+    #TODO: remove files
 
   def drop_col_refids_per_dataset_temp(self, column_names_arr):
     # query = """ALTER TABLE refids_per_dataset_temp
@@ -256,8 +264,8 @@ if __name__ == '__main__':
   """  rep_id_refhvr_id  """
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "get_rep_id_refhvr_ids"
-  update_refhvr_ids.get_rep_id_refhvr_ids()
+  print "procees_data"
+  update_refhvr_ids.procees_data()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   print "process_files"
