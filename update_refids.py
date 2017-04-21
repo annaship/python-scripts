@@ -119,42 +119,22 @@ class Update_refhvr_ids:
       while(rows_left > 0):
         #sep!
         res = self.get_rep_id_refhvr_ids(from_here)
+        
         in_file_name = self.in_file_names[n]
         out_file_name = self.out_file_names[n]
+        self.clear_file(in_file_name)
+        self.clear_file(out_file_name)
+        print in_file_name
         
         n += 1
         print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
         rows_left -= self.chunk_size;
         from_here += self.chunk_size;
         
-        self.clear_file(in_file_name)
-        self.clear_file(out_file_name)
-        # try:
-        #   os.remove(in_file_name)
-        #   os.remove(out_file_name)
-        # except OSError:
-        #   pass
-        # except:
-        #   raise
-        print in_file_name
+
         # step 1
         utils.write_to_csv_file_db_res(in_file_name, res, file_mode = 'wb')
         self.process_file(in_file_name, out_file_name)
-
-        """
-        idx = update_refhvr_ids.in_file_names.index(in_file)
-        out_file_name = update_refhvr_ids.out_file_names[idx]
-        try:
-          os.remove(out_file_name)
-        except OSError:
-          pass
-        except:
-          raise
-    
-        out_f = open(out_file_name, "w")
-        
-        """
-
 
   # step 2
   def process_file(self, in_file_path_name, out_file_path_name):
