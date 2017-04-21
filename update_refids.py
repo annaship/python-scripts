@@ -101,7 +101,7 @@ class Update_refhvr_ids:
       query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
       return mysql_utils.execute_fetch_select_where(query, (from_here, self.chunk_size))
 
-  def procees_data(self):
+  def process_data(self):
     from_here  = 0;
     n = 0
     
@@ -111,29 +111,46 @@ class Update_refhvr_ids:
       while(rows_left > 0):
         #sep!
         res = self.get_rep_id_refhvr_ids(from_here)
-        file_name = self.in_file_names[n]
+        in_file_name = self.in_file_names[n]
+        out_file_name = self.out_file_names[n]
         
         n += 1
         print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
         rows_left -= self.chunk_size;
         from_here += self.chunk_size;
         try:
-          os.remove(file_name)
+          os.remove(in_file_name)
         except OSError:
           pass
         except:
           raise
-        print file_name
+        print in_file_name
         # step 1
+        utils.write_to_csv_file_db_res(in_file_name, res, file_mode = 'wb')
+        self.process_file(in_file_name, out_file_name)
+
+        """
+        idx = update_refhvr_ids.in_file_names.index(in_file)
+        out_file_name = update_refhvr_ids.out_file_names[idx]
+        try:
+          os.remove(out_file_name)
+        except OSError:
+          pass
+        except:
+          raise
+    
+        out_f = open(out_file_name, "w")
         
-        utils.write_to_csv_file_db_res(file_name, res, file_mode = 'wb')
+        """
+
 
   # step 2
-  def process_file(self, in_file_path_name, out_file):
+  def process_file(self, in_file_path_name, out_file_path_name):
     with open(in_file_path_name, 'rb') as in_f:
-      reader = csv.reader(in_f)
-      for line in reader:
-        self.write_separate_refid(line, out_file)
+      with open(out_file_path_name, 'wb') as out_file:
+        reader = csv.reader(in_f)
+        for line in reader:
+          self.write_separate_refid(line, out_file)
 
   def write_separate_refid(self, line, out_file):
     for r in line[1].strip('"').split(","):
@@ -264,28 +281,28 @@ if __name__ == '__main__':
   """  rep_id_refhvr_id  """
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "procees_data"
-  update_refhvr_ids.procees_data()
+  print "process_data"
+  update_refhvr_ids.process_data()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  print "process_files"
-  for in_file in update_refhvr_ids.in_file_names:
-    t0 = update_refhvr_ids.benchmark_w_return_1()
-    idx = update_refhvr_ids.in_file_names.index(in_file)
-    out_file_name = update_refhvr_ids.out_file_names[idx]
-    try:
-      os.remove(out_file_name)
-    except OSError:
-      pass
-    except:
-      raise
-    
-    out_f = open(out_file_name, "w")
-    print "out_f"
-    print out_f
-    update_refhvr_ids.process_file(in_file, out_f)
-    update_refhvr_ids.benchmark_w_return_2(t0)
-    out_f.close()
+  # print "process_files"
+  # for in_file in update_refhvr_ids.in_file_names:
+  #   t0 = update_refhvr_ids.benchmark_w_return_1()
+  #   idx = update_refhvr_ids.in_file_names.index(in_file)
+  #   out_file_name = update_refhvr_ids.out_file_names[idx]
+  #   try:
+  #     os.remove(out_file_name)
+  #   except OSError:
+  #     pass
+  #   except:
+  #     raise
+  #
+  #   out_f = open(out_file_name, "w")
+  #   print "out_f"
+  #   print out_f
+  #   update_refhvr_ids.process_file(in_file, out_f)
+  #   update_refhvr_ids.benchmark_w_return_2(t0)
+  #   out_f.close()
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
