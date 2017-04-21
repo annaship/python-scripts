@@ -134,7 +134,12 @@ class Update_refhvr_ids:
 
         # step 1
         utils.write_to_csv_file_db_res(in_file_name, res, file_mode = 'wb')
+        # step 2
         self.process_file(in_file_name, out_file_name)
+        # step 3
+        rowcount, lastrowid = self.load_into_rep_id_refhvr_id_temp(out_file_name)
+        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+        
 
   # step 2
   def process_file(self, in_file_path_name, out_file_path_name):
@@ -271,31 +276,7 @@ if __name__ == '__main__':
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   """  rep_id_refhvr_id  """
-
-  t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "process_data"
-  update_refhvr_ids.process_data()
-  update_refhvr_ids.benchmark_w_return_2(t0)
-
-  # print "process_files"
-  # for in_file in update_refhvr_ids.in_file_names:
-  #   t0 = update_refhvr_ids.benchmark_w_return_1()
-  #   idx = update_refhvr_ids.in_file_names.index(in_file)
-  #   out_file_name = update_refhvr_ids.out_file_names[idx]
-  #   try:
-  #     os.remove(out_file_name)
-  #   except OSError:
-  #     pass
-  #   except:
-  #     raise
-  #
-  #   out_f = open(out_file_name, "w")
-  #   print "out_f"
-  #   print out_f
-  #   update_refhvr_ids.process_file(in_file, out_f)
-  #   update_refhvr_ids.benchmark_w_return_2(t0)
-  #   out_f.close()
-
+  
   t0 = update_refhvr_ids.benchmark_w_return_1()
   update_refhvr_ids.drop_table("rep_id_refhvr_id_temp")
   update_refhvr_ids.benchmark_w_return_2(t0)
@@ -305,13 +286,18 @@ if __name__ == '__main__':
   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
-  for in_file in update_refhvr_ids.out_file_names:
-    t0 = update_refhvr_ids.benchmark_w_return_1()
-    # res = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
-    # print "res = %s" % (res)
-    rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
-    print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-    update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "process_data"
+  update_refhvr_ids.process_data()
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  # for in_file in update_refhvr_ids.out_file_names:
+  #   t0 = update_refhvr_ids.benchmark_w_return_1()
+  #   # res = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
+  #   # print "res = %s" % (res)
+  #   rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
+  #   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  #   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
