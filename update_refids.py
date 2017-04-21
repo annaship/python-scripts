@@ -200,7 +200,7 @@ if __name__ == '__main__':
   else:
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps", read_default_group = "client")
 
-  csv_dir      = " /usr/local/tmp"
+  csv_dir      = "/usr/local/tmp"
   in_filename  = "rep_id_refhvr_ids"
   file_extension = ".csv"
   out_file_extension = ".separated"
