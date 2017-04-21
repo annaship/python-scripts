@@ -117,7 +117,6 @@ class Update_refhvr_ids:
       rows_left = self.all_ref_counts
       
       while(rows_left > 0):
-        #sep!
         res = self.get_rep_id_refhvr_ids(from_here)
         
         in_file_name = self.in_file_names[n]
@@ -139,6 +138,10 @@ class Update_refhvr_ids:
         # step 3
         rowcount, lastrowid = self.load_into_rep_id_refhvr_id_temp(out_file_name)
         print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+        
+        self.clear_file(in_file_name)
+        self.clear_file(out_file_name)
+        
         
 
   # step 2
