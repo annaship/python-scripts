@@ -12,9 +12,8 @@ class Update_refhvr_ids:
     self.in_file_names  = []
     self.out_file_names = []
     
-    # self.chunk_size = 5000000
-    self.chunk_size = 1000 # test
-    self.all_ref_counts = self.get_all_counts()
+    self.chunk_size = 5000000
+    # self.chunk_size = 10000 # test
     
 
   def drop_table(self, table_name):
@@ -91,7 +90,7 @@ class Update_refhvr_ids:
     
   def create_file_names(self):
     nn = math.ceil(float(self.all_ref_counts) / self.chunk_size)
-    print "nn"
+    print "total chuncks"
     print nn
     for n in range(1, int(nn)+1): 
       self.in_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + file_extension))
@@ -237,39 +236,50 @@ if __name__ == '__main__':
   # print "AAA"
   # !!! Uncomment !!!
 
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.drop_table("refids_per_dataset_temp")
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # update_refhvr_ids.create_table_refids_per_dataset_temp()
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.get_project_id()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
-  #
-  # t0 = update_refhvr_ids.benchmark_w_return_1()
-  # rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
-  # print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  # update_refhvr_ids.benchmark_w_return_2(t0)
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  update_refhvr_ids.drop_table("refids_per_dataset_temp")
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "create_table_refids_per_dataset_temp"
+  update_refhvr_ids.create_table_refids_per_dataset_temp()
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "insert_refids_per_dataset_temp"
   
+  rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "get_dataset_id"
+  rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "get_project_id"
+  rowcount, lastrowid = update_refhvr_ids.get_project_id()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "foreign_key_refids_per_dataset_temp"
+  rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "drop_col_refids_per_dataset_temp"
+  rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
+  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  update_refhvr_ids.benchmark_w_return_2(t0)
+  
+  t0 = update_refhvr_ids.benchmark_w_return_1()
+  print "get_all_counts"
+  update_refhvr_ids.all_ref_counts = update_refhvr_ids.get_all_counts()
+  update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
   print "create_file_names"
@@ -293,14 +303,6 @@ if __name__ == '__main__':
   print "process_data"
   update_refhvr_ids.process_data()
   update_refhvr_ids.benchmark_w_return_2(t0)
-
-  # for in_file in update_refhvr_ids.out_file_names:
-  #   t0 = update_refhvr_ids.benchmark_w_return_1()
-  #   # res = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
-  #   # print "res = %s" % (res)
-  #   rowcount, lastrowid = update_refhvr_ids.load_into_rep_id_refhvr_id_temp(in_file)
-  #   print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
-  #   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
