@@ -101,6 +101,14 @@ class Update_refhvr_ids:
       query = "SELECT rep_id, refhvr_ids FROM refids_per_dataset_temp LIMIT %s, %s"
       return mysql_utils.execute_fetch_select_where(query, (from_here, self.chunk_size))
 
+  def clear_file(self, file_path):
+    try:
+      os.remove(file_path)
+    except OSError:
+      pass
+    except:
+      raise
+      
   def process_data(self):
     from_here  = 0;
     n = 0
@@ -118,12 +126,16 @@ class Update_refhvr_ids:
         print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
         rows_left -= self.chunk_size;
         from_here += self.chunk_size;
-        try:
-          os.remove(in_file_name)
-        except OSError:
-          pass
-        except:
-          raise
+        
+        self.clear_file(in_file_name)
+        self.clear_file(out_file_name)
+        # try:
+        #   os.remove(in_file_name)
+        #   os.remove(out_file_name)
+        # except OSError:
+        #   pass
+        # except:
+        #   raise
         print in_file_name
         # step 1
         utils.write_to_csv_file_db_res(in_file_name, res, file_mode = 'wb')
