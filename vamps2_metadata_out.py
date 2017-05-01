@@ -124,11 +124,15 @@ class Metadata():
     self.flatten_dicts_recurs(metadata_w_units_n_primers_dict, res)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
 
+    # print "self.all_fields_metadata"
     # print self.all_fields_metadata
 
     t = utils.benchmark_w_return_1("make_field_units_values_csv")
     field_units_values_tuple = self.make_field_units_values_csv()
     utils.benchmark_w_return_2(t, "make_field_units_values_csv")
+    
+    print "field_units_values_tuple"
+    print field_units_values_tuple
 
   def slice_dict_by_list_keys(self, dict_obj):
     for k in set(self.all_ok_fields):
@@ -162,8 +166,14 @@ class Metadata():
   def make_field_units_values_csv(self):
     file_name    = "all_fields_units_values.csv"
     first_column = self.all_fields_metadata.keys()
+    print "first_column"
+    print first_column
     all_values   = self.get_all_values_as_str()
+    print "all_values"
+    print all_values
     field_units_values_trnsp_mtrx = utils.transpose_mtrx([first_column, all_values])
+    print "PPP"
+    print field_units_values_trnsp_mtrx
     utils.write_to_csv_file_matrix(file_name, field_units_values_trnsp_mtrx)
 
   def write_dict_by_project_to_csv_files(self, dict_to_csv):
