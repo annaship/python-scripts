@@ -101,19 +101,17 @@ class Metadata():
 
     t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
     metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
+    
     utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
 
-    # print "MMM"
-    # print "metadata_per_project_dataset_lists_dict"
-    # print metadata_per_project_dataset_lists_dict
-
     t = utils.benchmark_w_return_1("prepare_metadata_for_csv")
     dict_to_csv = self.prepare_metadata_for_csv(metadata_per_project_dataset_lists_dict)
     utils.benchmark_w_return_2(t, "prepare_metadata_for_csv")
+
 
     t = utils.benchmark_w_return_1("write_dict_by_project_to_csv_files")
     self.write_dict_by_project_to_csv_files(dict_to_csv)
@@ -121,11 +119,9 @@ class Metadata():
 
     t = utils.benchmark_w_return_1("get_all_metadata_per_field_unit")
     res = {}
+    # res = self.flatten_dicts_recurs(metadata_w_units_n_primers_dict, res)
     self.flatten_dicts_recurs(metadata_w_units_n_primers_dict, res)
     utils.benchmark_w_return_2(t, "get_all_metadata_per_field_unit")
-
-    # print "self.all_fields_metadata"
-    # print self.all_fields_metadata
 
     t = utils.benchmark_w_return_1("make_field_units_values_csv")
     field_units_values_tuple = self.make_field_units_values_csv()
@@ -134,7 +130,7 @@ class Metadata():
     print "field_units_values_tuple"
     print field_units_values_tuple
 
-  def slice_dict_by_list_keys(self, dict_obj):
+  def slice_dict_by_list_keys(self, dict_obj):    
     for k in set(self.all_ok_fields):
       try:
         self.all_fields_metadata[k].add(dict_obj[k])
@@ -142,9 +138,11 @@ class Metadata():
         pass #first time key
       except:
         raise
+    
 
   def flatten_dicts_recurs(self, d, res):
-    if isinstance(d.values()[0], dict) and isinstance(d.values()[0], str):
+    # if isinstance(d.values()[0], dict) and isinstance(d.values()[0], str):
+    if isinstance(d.values()[0], dict):
       for val in d.values():
         
         t = utils.benchmark_w_return_1("res.update(self.flatten_dicts_recurs(val, res))")
@@ -158,6 +156,7 @@ class Metadata():
       res.update(d)
     else:
       raise TypeError("Undefined type for flatten_dicts_recurs: %s"%type(d))
+
     return res
 
   def get_all_values_as_str(self):
@@ -166,17 +165,18 @@ class Metadata():
   def make_field_units_values_csv(self):
     file_name    = "all_fields_units_values.csv"
     first_column = self.all_fields_metadata.keys()
-    print "first_column"
-    print first_column
+    # print "first_column"
+    # print first_column
     all_values   = self.get_all_values_as_str()
-    print "all_values"
-    print all_values
+    # print "all_values"
+    # print all_values
     field_units_values_trnsp_mtrx = utils.transpose_mtrx([first_column, all_values])
-    print "PPP"
-    print field_units_values_trnsp_mtrx
+    # print "PPP"
+    # print field_units_values_trnsp_mtrx
     utils.write_to_csv_file_matrix(file_name, field_units_values_trnsp_mtrx)
 
   def write_dict_by_project_to_csv_files(self, dict_to_csv):
+  
     for project_id_str, tuple_to_csv in dict_to_csv.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
       utils.write_to_csv_file_matrix(file_name, tuple_to_csv[1], headers = tuple_to_csv[0])
@@ -189,6 +189,7 @@ class Metadata():
       additional_field_units = self.get_the_rest_of_fields(m_mtrx[0])
       transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
       dict_to_csv[project_id_str] = (transposed_matrix, transposed_add_lines_empty_fields)
+    
     return dict_to_csv
 
   def make_transposed_empty_fields_lines(self, empty_fields):
@@ -277,7 +278,7 @@ class Metadata():
         metadata_per_project_dataset_list.append(val_list)
 
       metadata_per_project_dataset_lists_dict[project_id_str] = [first_column, second_column] + metadata_per_project_dataset_list
-
+    
     return metadata_per_project_dataset_lists_dict
 
   def get_all_field_names(self, metadata_w_units_dict):
@@ -475,4 +476,5 @@ if __name__ == '__main__':
 
       get_metadata_info time: 0.05 m
   2) Not existing tables error message
+  3) If no custom - create csv with required only
   """
