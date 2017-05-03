@@ -129,7 +129,7 @@ class Mysql_util:
           # print self.dict_cursor.description
           return self.dict_cursor.fetchall ()
         except:
-          self.utils.print_both(("ERROR: query = %s") % sql)
+          # self.utils.print_both(("ERROR: query = %s") % sql)
           raise
 
 
