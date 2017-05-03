@@ -52,8 +52,8 @@ class Metadata():
     raw_metadata = self.get_raw_metadata(all_project_ids_str)
     utils.benchmark_w_return_2(t, "get_raw_metadata")
 
-    print "RRR"
-    print raw_metadata
+    # print "RRR"
+    # print raw_metadata
 
     """
     print "RRR"
@@ -101,12 +101,12 @@ class Metadata():
 
     t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
     metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
-
     utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
     metadata_per_project_dataset_lists_dict = self.make_metadata_per_project_dataset_list(metadata_w_units_n_primers_dict, custom_fields_list_per_project)
     utils.benchmark_w_return_2(t, "make_metadata_per_project_dataset_list")
+    
 
     t = utils.benchmark_w_return_1("prepare_metadata_for_csv")
     dict_to_csv = self.prepare_metadata_for_csv(metadata_per_project_dataset_lists_dict)
@@ -253,7 +253,12 @@ class Metadata():
     # print "custom_fields_list_per_project[project_id_str]"
     # print custom_fields_list_per_project[project_id_str]
     # ['adapter_sequence', 'adapter_sequence_id', 'collection_date', 'conductivity__milliseimenPerCentimeter', 'created_at', 'custom_metadata_319.dataset_id', 'custom_metadata_319_id', 'dataset', 'dataset_id', 'depth__meter', 'dna_region', 'dna_region_id', 'domain', 'domain_id', 'env_biome', 'env_biome_id', 'env_feature', 'env_feature_id', 'env_matter', 'env_matter_id', 'env_package', 'env_package_id', 'geo_loc_name', 'geo_loc_name_id', 'illumina_index', 'illumina_index_id', 'latitude', 'longitude', 'pH__logH+', 'primer_suite', 'primer_suite_id', 'project', 'project_id', 'required_metadata_id', 'run', 'sequencing_platform', 'sequencing_platform_id', 'target_gene', 'target_gene_id', 'temp__celsius', 'updated_at']
-    good_fields = self.req_fields + list(custom_fields_list_per_project[project_id_str])
+    try:
+      good_fields = self.req_fields + list(custom_fields_list_per_project[project_id_str])
+    except KeyError:
+      good_fields = self.req_fields
+    except:
+      raise
     this_pr_dat_fields = [field for field in all_pr_fields if field in good_fields]
     """diff: in good only: 'anchor for trimming (454 sequencing only)'"""
 
