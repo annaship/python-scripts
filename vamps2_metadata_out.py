@@ -101,7 +101,7 @@ class Metadata():
 
     t = utils.benchmark_w_return_1("add_primer_info_to_metadata")
     metadata_w_units_n_primers_dict = self.add_primer_info_to_metadata(metadata_w_units_dict, clean_primers_dict_per_suite_per_direction_dict)
-    
+
     utils.benchmark_w_return_2(t, "add_primer_info_to_metadata")
 
     t = utils.benchmark_w_return_1("make_metadata_per_project_dataset_list")
@@ -126,11 +126,11 @@ class Metadata():
     t = utils.benchmark_w_return_1("make_field_units_values_csv")
     field_units_values_tuple = self.make_field_units_values_csv()
     utils.benchmark_w_return_2(t, "make_field_units_values_csv")
-    
+
     print "field_units_values_tuple"
     print field_units_values_tuple
 
-  def slice_dict_by_list_keys(self, dict_obj):    
+  def slice_dict_by_list_keys(self, dict_obj):
     for k in set(self.all_ok_fields):
       try:
         self.all_fields_metadata[k].add(dict_obj[k])
@@ -138,13 +138,13 @@ class Metadata():
         pass #first time key
       except:
         raise
-    
+
 
   def flatten_dicts_recurs(self, d, res):
     # if isinstance(d.values()[0], dict) and isinstance(d.values()[0], str):
     if isinstance(d.values()[0], dict):
       for val in d.values():
-        
+
         t = utils.benchmark_w_return_1("res.update(self.flatten_dicts_recurs(val, res))")
         res.update(self.flatten_dicts_recurs(val, res))
         utils.benchmark_w_return_2(t, "res.update(self.flatten_dicts_recurs(val, res))")
@@ -161,7 +161,7 @@ class Metadata():
 
   def get_all_values_as_str(self):
     return [", ".join(str(x) for x in list(vv)) for vv in self.all_fields_metadata.values()]
-    
+
   def make_field_units_values_csv(self):
     file_name    = "all_fields_units_values.csv"
     first_column = self.all_fields_metadata.keys()
@@ -176,7 +176,7 @@ class Metadata():
     utils.write_to_csv_file_matrix(file_name, field_units_values_trnsp_mtrx)
 
   def write_dict_by_project_to_csv_files(self, dict_to_csv):
-  
+
     for project_id_str, tuple_to_csv in dict_to_csv.items():
       file_name = "custom_metadata_per_project_%s.csv" % (project_id_str)
       utils.write_to_csv_file_matrix(file_name, tuple_to_csv[1], headers = tuple_to_csv[0])
@@ -189,7 +189,7 @@ class Metadata():
       additional_field_units = self.get_the_rest_of_fields(m_mtrx[0])
       transposed_add_lines_empty_fields = self.make_transposed_empty_fields_lines(additional_field_units)
       dict_to_csv[project_id_str] = (transposed_matrix, transposed_add_lines_empty_fields)
-    
+
     return dict_to_csv
 
   def make_transposed_empty_fields_lines(self, empty_fields):
@@ -278,7 +278,7 @@ class Metadata():
         metadata_per_project_dataset_list.append(val_list)
 
       metadata_per_project_dataset_lists_dict[project_id_str] = [first_column, second_column] + metadata_per_project_dataset_list
-    
+
     return metadata_per_project_dataset_lists_dict
 
   def get_all_field_names(self, metadata_w_units_dict):
@@ -373,47 +373,41 @@ class Metadata():
     JOIN `primer_suite` USING(primer_suite_id)
     JOIN `run` USING(run_id)
     """ + addition_custom2
-    
-    
+
+
   def get_raw_metadata(self, all_project_ids_str):
     raw_metadata = defaultdict(list)
-    
+
     for project_id_str in all_project_ids_str:
       try:
-        
+
 
         addition_custom1 = """,
         custom_metadata_%s.*"""
 
         addition_custom2 = """JOIN custom_metadata_%s USING(dataset_id)"""
-        
+
         raw_metadata_query_base = self.make_raw_metadata_query(addition_custom1, addition_custom2)
         raw_metadata_query = raw_metadata_query_base % (project_id_str, project_id_str)
-        
-        print "RRR1"
-        print raw_metadata_query
-        
+
         res = mysql_utils.execute_fetch_select_to_dict(raw_metadata_query)
         raw_metadata[project_id_str] = res
       except MySQLdb.ProgrammingError:
         # pass
         # _mysql_exceptions.ProgrammingError
-        
+
         addition_custom1 = ""
         addition_custom2 = """
         WHERE project_id = %s
         ;
-        """ 
-        
+        """
+
         raw_metadata_query_base = self.make_raw_metadata_query(addition_custom1, addition_custom2)
-        
         raw_metadata_query = raw_metadata_query_base % (project_id_str)
-        
-        print "RRR2"
-        print raw_metadata_query
+
         res = mysql_utils.execute_fetch_select_to_dict(raw_metadata_query)
         raw_metadata[project_id_str] = res
-        
+
       except:
         raise
 
