@@ -305,6 +305,7 @@ class Metadata():
       field_name  = field_unit_tuple[1]
       field_units = field_unit_tuple[2]
       custom_fields_units_per_project[str(project_id)][field_name] = field_name + "__" + field_units
+      custom_fields_sep_units_per_project[str(project_id)][field_name] = (field_name, field_units)
 
     return custom_fields_units_per_project
 
