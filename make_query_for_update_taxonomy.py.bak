@@ -136,7 +136,7 @@ class Entry:
       
 
 if __name__ == '__main__':
-  fname = "bpcdb1_env454_Clostridium_14_5-24-16.csv"
+  fname = "newbpcdb2_env454_Clostridium_14_5-24-16.csv"
 
   with open(fname) as f:
     content = f.readlines()

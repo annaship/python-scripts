@@ -17,9 +17,9 @@ class MyConnection:
   import socket
   my_hostname = socket.gethostname()
   if my_hostname.endswith(".local"):
-    shared.my_conn = util.MyConnection(host="bpcdb1", db="env454", read_default_group="clientenv454")
+    shared.my_conn = util.MyConnection(host="newbpcdb2", db="env454", read_default_group="clientenv454")
   else:
-    shared.my_conn = util.MyConnection(host="bpcdb1", db="env454")
+    shared.my_conn = util.MyConnection(host="newbpcdb2", db="env454")
   
   """
   def __init__(self, host="vampsdev", db="test", read_default_group="client"):
