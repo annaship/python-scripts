@@ -107,6 +107,11 @@ class Metadata():
     # print rr
     #(('AACATC', 45), ('AAGCCT', 71), ...
     
+    rr = mysql_utils.get_all_name_id("domain", where_part = "WHERE domain = 'Bacteria'")
+    print "rr"
+    print rr
+    # (('Bacteria', 3L),)
+    
     
   # def find_id_by_value(self):
     
