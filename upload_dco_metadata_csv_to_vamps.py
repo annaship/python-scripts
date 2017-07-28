@@ -26,8 +26,8 @@ class Metadata():
     # print csv_file_fields
     #
     #
-    print "csv_file_content_list = "
-    print self.csv_file_content_list
+    # print "csv_file_content_list = "
+    # print self.csv_file_content_list
     
   def get_data_from_csv(self):
     # TODO: get from args
@@ -89,8 +89,22 @@ class Metadata():
     print intersection_no_id
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
     
-    rr = mysql_utils.get_all_name_id("illumina_index")
-    print rr
+    req_metadata = {}
+    for name in intersection_no_id:
+      for d in self.csv_file_content_dict:
+        for k, v in d.items():
+          if k == name:
+            # print "k = %s, v = %s" % (k, v)
+            req_metadata[k] = v
+            # k = illumina_index, v = unknown
+            # k = env_feature, v = aquifer
+
+    print "req_metadata"            
+    print req_metadata
+    #{'illumina_index': 'unknown', 'env_feature': 'aquifer', 'domain': 'Bacteria', 'run': '20080709', 'adapter_sequence': 'TGTCA', 'env_package': 'Please choose one', 'env_biome': 'Please choose one', 'env_material': 'water', 'dna_region': 'v3v5', 'target_gene': '16s'}
+
+    # rr = mysql_utils.get_all_name_id("illumina_index")
+    # print rr
     #(('AACATC', 45), ('AAGCCT', 71), ...
     
     
