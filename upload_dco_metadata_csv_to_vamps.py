@@ -74,6 +74,13 @@ class Metadata():
     # print intersection
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
     
+    for name in intersection:
+      for d in self.csv_file_content_dict:
+        for k, v in d.items():
+          if k == name:
+            # print "k = %s, v = %s" % (k, v)
+            self.required_metadata_update[k] = v
+                
     needed_req = list(set(req_field_names[0]) - set(self.csv_file_fields))
     # print "\nneeded_req == "
     # print needed_req
