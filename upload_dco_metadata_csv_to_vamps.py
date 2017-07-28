@@ -17,7 +17,8 @@ class Metadata():
     self.csv_file_fields = []
     self.csv_file_content_list = []
     self.csv_file_content_dict = []
-    self.required_metadata_update = {}
+    self.required_metadata_update = defaultdict(dict)
+
     
     self.get_data_from_csv()
     #TODO: convert csv_file_content into dict
@@ -82,7 +83,8 @@ class Metadata():
         for k, v in d.items():
           if k == name:
             # print "k = %s, v = %s" % (k, v)
-            self.required_metadata_update[k] = v
+            self.required_metadata_update[dataset_id][k] = v
+            
                 
     needed_req = list(set(req_field_names[0]) - set(self.csv_file_fields))
     # print "\nneeded_req == "
@@ -101,13 +103,17 @@ class Metadata():
     print intersection_no_id
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
     
-    req_metadata_from_csv_no_id = {}
+    req_metadata_from_csv_no_id = defaultdict(dict)
     for name in intersection_no_id:
       for d in self.csv_file_content_dict:
+        dataset_id = d['dataset_id']
+        print "dataset_id"
+        print dataset_id
+        
         for k, v in d.items():
           if k == name:
             # print "k = %s, v = %s" % (k, v)
-            req_metadata_from_csv_no_id[k] = v
+            req_metadata_from_csv_no_id[dataset_id][k] = v
             # k = illumina_index, v = unknown
             # k = env_feature, v = aquifer
 
@@ -127,27 +133,29 @@ class Metadata():
     
     
   def find_id_by_value(self, req_metadata_from_csv_no_id):
-    for field, val in req_metadata_from_csv_no_id.items():    
-      print "field = %s, val = %s" % (field, val)
-      where_part = "WHERE %s = '%s'" % (field, val)
-      try:
-        res = mysql_utils.get_all_name_id(field, where_part = where_part)
-        print "res"
-        print res
-        if res:
-          self.required_metadata_update[field] = int(res[0][1])
-      except MySQLdb.Error, e:
-        utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
-        # def get_all_name_id(self, table_name, id_name = "", field_name = "", where_part = ""):
+    for dataset, inner_d in req_metadata_from_csv_no_id.items():   
+      print "dataset = %s, inner_d = %s" % (dataset, inner_d)
+      for field, val in inner_d.items():    
+        print "field = %s, val = %s" % (field, val)
+        where_part = "WHERE %s = '%s'" % (field, val)
+        try:
+          res = mysql_utils.get_all_name_id(field, where_part = where_part)
+          print "res"
+          print res
+          if res:
+            self.required_metadata_update[field] = int(res[0][1])
+        except MySQLdb.Error, e:
+          utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
+          # def get_all_name_id(self, table_name, id_name = "", field_name = "", where_part = ""):
 
-        if field in ['env_feature', 'env_biome', 'env_material']:
-          field_name = "term_name"
-          where_part = "WHERE %s = '%s'" % (field_name, val)
-          res1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
-          if res1:
-            self.required_metadata_update[field] = int(res1[0][1])
-      except:
-        raise
+          if field in ['env_feature', 'env_biome', 'env_material']:
+            field_name = "term_name"
+            where_part = "WHERE %s = '%s'" % (field_name, val)
+            res1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
+            if res1:
+              self.required_metadata_update[field] = int(res1[0][1])
+        except:
+          raise
 
     print "self.required_metadata_update"
     print self.required_metadata_update
