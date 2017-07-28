@@ -82,6 +82,7 @@ class Metadata():
     # for field_name in needed_req:
     #   no_id_field = field_name.rstrip("_id")
     #   print "field_name = %s, no_id_field = %s" % (field_name, no_id_field)
+    print "list_of_fields_rm_id"
     print list_of_fields_rm_id
     
     intersection_no_id = list(set(list_of_fields_rm_id) & set(self.csv_file_fields))
@@ -89,31 +90,56 @@ class Metadata():
     print intersection_no_id
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
     
-    req_metadata = {}
+    req_metadata_from_csv_no_id = {}
     for name in intersection_no_id:
       for d in self.csv_file_content_dict:
         for k, v in d.items():
           if k == name:
             # print "k = %s, v = %s" % (k, v)
-            req_metadata[k] = v
+            req_metadata_from_csv_no_id[k] = v
             # k = illumina_index, v = unknown
             # k = env_feature, v = aquifer
 
-    print "req_metadata"            
-    print req_metadata
+    # print "req_metadata_from_csv_no_id"
+    # print req_metadata_from_csv_no_id
     #{'illumina_index': 'unknown', 'env_feature': 'aquifer', 'domain': 'Bacteria', 'run': '20080709', 'adapter_sequence': 'TGTCA', 'env_package': 'Please choose one', 'env_biome': 'Please choose one', 'env_material': 'water', 'dna_region': 'v3v5', 'target_gene': '16s'}
 
     # rr = mysql_utils.get_all_name_id("illumina_index")
     # print rr
     #(('AACATC', 45), ('AAGCCT', 71), ...
     
-    rr = mysql_utils.get_all_name_id("domain", where_part = "WHERE domain = 'Bacteria'")
-    print "rr"
-    print rr
+    self.find_id_by_value(req_metadata_from_csv_no_id)
+    # rr = mysql_utils.get_all_name_id("domain", where_part = "WHERE domain = 'Bacteria'")
+    # print "rr"
+    # print rr
     # (('Bacteria', 3L),)
     
     
-  # def find_id_by_value(self):
+  def find_id_by_value(self, req_metadata_from_csv_no_id):
+    for field, val in req_metadata_from_csv_no_id.items():    
+      print "field = %s, val = %s" % (field, val)
+      where_part = "WHERE %s = '%s'" % (field, val)
+      try:
+        rr = mysql_utils.get_all_name_id(field, where_part = where_part)
+        print "rr"
+        print rr
+      except MySQLdb.Error, e:
+        utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
+        # def get_all_name_id(self, table_name, id_name = "", field_name = "", where_part = ""):
+        #SELECT * FROM term
+        # WHERE term_name REGEXP "terrestrial"
+        if field in ['env_feature', 'env_biome', 'env_material']:
+          field_name = "term_name"
+          where_part = "WHERE %s = '%s'" % (field_name, val)
+          rr1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
+          print "rr1"
+          print rr1
+      except:
+        
+        # self.utils.print_both("Unexpected:")
+        # self.utils.print_both(sys.exc_info()[0])
+        raise
+
     
     
   def get_custom_field_names(self):
