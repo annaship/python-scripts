@@ -14,24 +14,26 @@ class Metadata():
   # find and print errors
   
   def __init__(self):
-    csv_file_fields, csv_file_content = self.get_data_from_csv()
+    self.csv_file_fields = []
+    self.csv_file_content_list = []
+    self.csv_file_content_dict = []
+    
+    self.get_data_from_csv()
     #TODO: convert csv_file_content into dict
     
-    self.get_required_fields(csv_file_fields)
+    self.get_required_fields()
     # print "csv_file_fields = "
     # print csv_file_fields
     #
     #
-    # print "csv_file_content = "
-    # print csv_file_content
+    print "csv_file_content_list = "
+    print self.csv_file_content_list
     
   def get_data_from_csv(self):
     # TODO: get from args
     file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1501274966258.csv"
-    vv = utils.read_csv_into_dict(file_name)
-    print "vv"
-    print vv
-    return utils.read_csv_into_list(file_name)
+    self.csv_file_fields, self.csv_file_content_list = utils.read_csv_into_list(file_name)
+    self.csv_file_content_dict = utils.read_csv_into_dict(file_name)
 
     
   def get_field_names(self, table_name):
@@ -44,7 +46,7 @@ class Metadata():
     # print query
     return mysql_utils.execute_fetch_select(query)
     
-  def get_required_fields(self, csv_file_fields):
+  def get_required_fields(self):
     #required_metadata_info
     # pass
     req_field_names_t = self.get_field_names("required_metadata_info")
@@ -66,12 +68,12 @@ class Metadata():
     # print type(csv_file_fields)
 # <type 'list'>
 
-    intersection = list(set(req_field_names[0]) & set(csv_file_fields))
+    intersection = list(set(req_field_names[0]) & set(self.csv_file_fields))
     # print "\nintersection == "
     # print intersection
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
     
-    needed_req = list(set(req_field_names[0]) - set(csv_file_fields))
+    needed_req = list(set(req_field_names[0]) - set(self.csv_file_fields))
     # print "\nneeded_req == "
     # print needed_req
     # ['adapter_sequence_id', 'required_metadata_id', 'geo_loc_name_id', 'run_id', 'created_at', 'dna_region_id', 'updated_at', 'domain_id', 'target_gene_id', 'env_feature_id', 'env_package_id', 'illumina_index_id', 'env_biome_id', 'sequencing_platform_id', 'primer_suite_id', 'env_material_id']
@@ -82,7 +84,7 @@ class Metadata():
     #   print "field_name = %s, no_id_field = %s" % (field_name, no_id_field)
     print list_of_fields_rm_id
     
-    intersection_no_id = list(set(list_of_fields_rm_id) & set(csv_file_fields))
+    intersection_no_id = list(set(list_of_fields_rm_id) & set(self.csv_file_fields))
     print "intersection_no_id ="
     print intersection_no_id
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
