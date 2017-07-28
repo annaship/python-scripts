@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import util
+import MySQLdb
+import csv
+import sys
+from collections import defaultdict
+
+class Metadata():
+  # parse csv
+  def __init__(self):
+    file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1501274966258.csv"
+    csv_file_fields, csv_file_content = utils.read_csv_into_list(file_name)
+    print "csv_file_fields = "
+    print csv_file_fields
+    
+    print "csv_file_content"
+    print csv_file_content
+
+class Upload():
+  # check if all custom fields are in custom_metadata_fields and custom_metadata_##
+  # upload custom data
+  # upload required data
+  
+  def __init__(self):
+    pass
+
+if __name__ == '__main__':
+  utils = util.Utils()
+
+  if (utils.is_local() == True):
+    mysql_utils = util.Mysql_util(host = "localhost", db = "vamps2", read_default_group = "clienthome")
+  else:
+    mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps2", read_default_group = "client")
+
+  metadata = Metadata()
