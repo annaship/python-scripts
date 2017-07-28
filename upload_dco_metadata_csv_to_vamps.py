@@ -15,6 +15,8 @@ class Metadata():
   
   def __init__(self):
     csv_file_fields, csv_file_content = self.get_data_from_csv()
+    #TODO: convert csv_file_content into dict
+    
     self.get_required_fields(csv_file_fields)
     # print "csv_file_fields = "
     # print csv_file_fields
@@ -26,6 +28,9 @@ class Metadata():
   def get_data_from_csv(self):
     # TODO: get from args
     file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1501274966258.csv"
+    vv = utils.read_csv_into_dict(file_name)
+    print "vv"
+    print vv
     return utils.read_csv_into_list(file_name)
 
     
@@ -76,6 +81,19 @@ class Metadata():
     #   no_id_field = field_name.rstrip("_id")
     #   print "field_name = %s, no_id_field = %s" % (field_name, no_id_field)
     print list_of_fields_rm_id
+    
+    intersection_no_id = list(set(list_of_fields_rm_id) & set(csv_file_fields))
+    print "intersection_no_id ="
+    print intersection_no_id
+    # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
+    
+    rr = mysql_utils.get_all_name_id("illumina_index")
+    print rr
+    #(('AACATC', 45), ('AAGCCT', 71), ...
+    
+    
+  # def find_id_by_value(self):
+    
     
   def get_custom_field_names(self):
     pass

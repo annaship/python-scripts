@@ -223,6 +223,24 @@ class Utils:
       csv_file_fields      = csv_file_content_all[0]
       csv_file_content     = csv_file_content_all[1:]
       return (csv_file_fields, csv_file_content)
+      
+    def read_csv_into_dict(self, file_name):
+      csv_file_content_all = csv.DictReader(open(file_name, 'rb'))
+      return [row for row in csv_file_content_all]
+      # for row in csv_file_content_all:
+      #   dict_list.append(row)
+      # return dict_list
+      # print "vv"
+      # for row in csv_file_content_all:
+      #     print "row"
+      #     print row
+      # print "vv"
+      #{'microbial_biomass_avg_cell_number': 'undefined', 'last_name': 'Gaidos', 'tot_org_carb': '', 'nitrogen_tot': '', 'samp_store_temp': '4', 'sodium': '30.65', 'collection_date': '2007-06-01', 'sulfate': '4.71', 'investigation_type': 'Please choose one', 'sample_name': 'A3', 'latitude': '64.49', 'geo_loc_name_marine': '
+      
+      # dict_list = []
+      # for line in csv_file_content_all:
+      #     dict_list.append(line)
+      # return dict_list
 
     def flatten_2d_list(self, list):
       return [item for sublist in list for item in sublist]
