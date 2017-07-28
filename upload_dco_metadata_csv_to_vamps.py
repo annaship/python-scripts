@@ -43,7 +43,7 @@ class Metadata():
     #required_metadata_info
     # pass
     req_field_names_t = self.get_field_names("required_metadata_info")
-    print req_field_names_t
+    # print req_field_names_t
     
     # for tup in req_field_names[0]:
       
@@ -55,17 +55,27 @@ class Metadata():
     # print list(req_field_names)
     
     req_field_names = zip(*req_field_names_t[0])
-    print req_field_names
+    # print req_field_names
 
-    print "type(csv_file_fields)"
-    print type(csv_file_fields)
+    # print "type(csv_file_fields)"
+    # print type(csv_file_fields)
 # <type 'list'>
 
     intersection = list(set(req_field_names[0]) & set(csv_file_fields))
-    print "\nintersection == "
-    print intersection
+    # print "\nintersection == "
+    # print intersection
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
     
+    needed_req = list(set(req_field_names[0]) - set(csv_file_fields))
+    # print "\nneeded_req == "
+    # print needed_req
+    # ['adapter_sequence_id', 'required_metadata_id', 'geo_loc_name_id', 'run_id', 'created_at', 'dna_region_id', 'updated_at', 'domain_id', 'target_gene_id', 'env_feature_id', 'env_package_id', 'illumina_index_id', 'env_biome_id', 'sequencing_platform_id', 'primer_suite_id', 'env_material_id']
+    
+    list_of_fields_rm_id = [field_name.rstrip("_id") for field_name in needed_req]
+    # for field_name in needed_req:
+    #   no_id_field = field_name.rstrip("_id")
+    #   print "field_name = %s, no_id_field = %s" % (field_name, no_id_field)
+    print list_of_fields_rm_id
     
   def get_custom_field_names(self):
     pass
