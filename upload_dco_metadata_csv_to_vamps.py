@@ -78,8 +78,8 @@ class Metadata():
     for name in intersection:
       for d in self.csv_file_content_dict:
         dataset_id = d['dataset_id']
-        print "dataset_id"
-        print dataset_id
+        # print "dataset_id"
+        # print dataset_id
         for k, v in d.items():
           if k == name:
             # print "k = %s, v = %s" % (k, v)
@@ -107,12 +107,12 @@ class Metadata():
     for name in intersection_no_id:
       for d in self.csv_file_content_dict:
         dataset_id = d['dataset_id']
-        print "dataset_id"
-        print dataset_id
+        # print "dataset_id"
+        # print dataset_id
         
         for k, v in d.items():
           if k == name:
-            # print "k = %s, v = %s" % (k, v)
+            print "k = %s, v = %s" % (k, v)
             req_metadata_from_csv_no_id[dataset_id][k] = v
             # k = illumina_index, v = unknown
             # k = env_feature, v = aquifer
@@ -143,7 +143,7 @@ class Metadata():
           print "res"
           print res
           if res:
-            self.required_metadata_update[field] = int(res[0][1])
+            self.required_metadata_update[dataset][field] = int(res[0][1])
         except MySQLdb.Error, e:
           utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
           # def get_all_name_id(self, table_name, id_name = "", field_name = "", where_part = ""):
@@ -153,7 +153,7 @@ class Metadata():
             where_part = "WHERE %s = '%s'" % (field_name, val)
             res1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
             if res1:
-              self.required_metadata_update[field] = int(res1[0][1])
+              self.required_metadata_update[dataset][field] = int(res1[0][1])
         except:
           raise
 
