@@ -14,33 +14,38 @@ class Metadata():
   # find and print errors
   
   def __init__(self):
-    self.get_data_from_csv()
-    self.get_required_fields_names()
+    csv_file_fields, csv_file_content = self.get_data_from_csv()
+    self.get_required_fields(csv_file_fields)
     
   def get_data_from_csv(self):
     # TODO: get from args
     file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1501274966258.csv"
-    csv_file_fields, csv_file_content = utils.read_csv_into_list(file_name)
-    print "csv_file_fields = "
+    return utils.read_csv_into_list(file_name)
+    # print "csv_file_fields = "
     # print csv_file_fields
-    
-    print "csv_file_content = "
+    #
+    #
+    # print "csv_file_content = "
     # print csv_file_content
     
-  def get_required_fields_names(self):
-    #required_metadata_info
-    # pass
-    table_name = "required_metadata_info"
+  def get_field_names(self, table_name):
     query = """
       SELECT COLUMN_NAME 
       FROM INFORMATION_SCHEMA.COLUMNS 
       WHERE TABLE_SCHEMA='vamps2' 
           AND TABLE_NAME='%s'; 
     """ % table_name
-    print query
+    # print query
+    return mysql_utils.execute_fetch_select(query)
     
-    field_names = mysql_utils.execute_fetch_select(query)
-    print field_names
+  def get_required_fields(self, csv_file_fields):
+    #required_metadata_info
+    # pass
+    field_names = self.get_field_names("required_metadata_info")
+    # print field_names
+    
+    for field in csv_file_fields:
+      print field
     
     
   def get_custom_field_names(self):
