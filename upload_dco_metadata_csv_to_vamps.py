@@ -76,6 +76,9 @@ class Metadata():
     
     for name in intersection:
       for d in self.csv_file_content_dict:
+        dataset_id = d['dataset_id']
+        print "dataset_id"
+        print dataset_id
         for k, v in d.items():
           if k == name:
             # print "k = %s, v = %s" % (k, v)
