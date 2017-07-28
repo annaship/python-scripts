@@ -17,6 +17,7 @@ class Metadata():
     self.csv_file_fields = []
     self.csv_file_content_list = []
     self.csv_file_content_dict = []
+    self.required_metadata_update = {}
     
     self.get_data_from_csv()
     #TODO: convert csv_file_content into dict
@@ -120,27 +121,28 @@ class Metadata():
       print "field = %s, val = %s" % (field, val)
       where_part = "WHERE %s = '%s'" % (field, val)
       try:
-        rr = mysql_utils.get_all_name_id(field, where_part = where_part)
-        print "rr"
-        print rr
+        res = mysql_utils.get_all_name_id(field, where_part = where_part)
+        print "res"
+        print res
+        if res:
+          self.required_metadata_update[field] = int(res[0][1])
       except MySQLdb.Error, e:
         utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
         # def get_all_name_id(self, table_name, id_name = "", field_name = "", where_part = ""):
-        #SELECT * FROM term
-        # WHERE term_name REGEXP "terrestrial"
+
         if field in ['env_feature', 'env_biome', 'env_material']:
           field_name = "term_name"
           where_part = "WHERE %s = '%s'" % (field_name, val)
-          rr1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
-          print "rr1"
-          print rr1
+          res1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
+          if res1:
+            self.required_metadata_update[field] = int(res1[0][1])
       except:
-        
-        # self.utils.print_both("Unexpected:")
-        # self.utils.print_both(sys.exc_info()[0])
         raise
 
-    
+    print "self.required_metadata_update"
+    print self.required_metadata_update
+    #{'illumina_index': 83, 'domain': 3, 'dna_region': 5, 'env_material': 1280, 'run': 47, 'target_gene': 1}
+
     
   def get_custom_field_names(self):
     pass
