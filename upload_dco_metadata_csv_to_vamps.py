@@ -10,6 +10,10 @@ from collections import defaultdict
 class Metadata():
   # parse csv
   def __init__(self):
+    self.get_data_from_csv()
+    
+  def get_data_from_csv(self):
+    # TODO: get from args
     file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1501274966258.csv"
     csv_file_fields, csv_file_content = utils.read_csv_into_list(file_name)
     print "csv_file_fields = "
@@ -17,6 +21,13 @@ class Metadata():
     
     print "csv_file_content"
     print csv_file_content
+    
+  def get_required_fields_names(self):
+    #required_metadata_info
+    pass
+    
+  def get_custom_field_names(self):
+    pass
 
 class Upload():
   # check if all custom fields are in custom_metadata_fields and custom_metadata_##
