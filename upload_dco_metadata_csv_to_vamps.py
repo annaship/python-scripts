@@ -10,43 +10,35 @@ from collections import defaultdict
 class RequiredMetadata():
   # find ids by value
   # find and print errors
-  /*
-  readonly:
-  VAMPS project name
-  VAMPS dataset name
-  abstract
-  Country
-  Longhurst Zone
-  Domain
-  Target gene name
-  DNA region
-  Sequencing method
-  Forward PCR Primer
-  Reverse PCR Primer
-  Index sequence (for Illumina)
-  Adapter sequence
-  Sequencing run date
-  */
-  /*
-  [('required_metadata_id', 'dataset_id', 'collection_date', 'env_biome_id', 'latitude', 'longitude', 'target_gene_id', 'dna_region_id', 'sequencing_platform_id', 'domain_id', 'geo_loc_name_id', 'env_feature_id', 'env_material_id', 'env_package_id', 'created_at', 'updated_at', 'adapter_sequence_id', 'illumina_index_id', 'primer_suite_id', 'run_id')]
-  
-  to update:
-  "collection_date",
-  "env_biome_id",
-  "env_feature_id",
-  "env_material_id",
-  "env_package_id",
-  "latitude",
-  "longitude",
-  ===
-  "pi_email",
-  "pi_name",
-  "project_title",
-  "references",
-  */
+  # readonly:
+  # VAMPS project name
+  # VAMPS dataset name
+  # abstract
+  # Country
+  # Longhurst Zone
+  # Domain
+  # Target gene name
+  # DNA region
+  # Sequencing method
+  # Forward PCR Primer
+  # Reverse PCR Primer
+  # Index sequence (for Illumina)
+  # Adapter sequence
+  # Sequencing run date
   
   def __init__(self, fields, content_list, content_dict):
-    
+    self.required_metadata_fields_to_update = ["collection_date",
+      "env_biome_id",
+      "env_feature_id",
+      "env_material_id",
+      "env_package_id",
+      "latitude",
+      "longitude"]
+    self.required_metadata_fields_to_update_project = ["pi_email",
+      "pi_name",
+      "project_title",
+      "references"]
+  
     self.fields = fields
     self.content_list = content_list
     self.content_dict = content_dict
