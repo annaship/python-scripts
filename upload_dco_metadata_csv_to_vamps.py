@@ -76,16 +76,6 @@ class Metadata():
     Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(file_name)
     Metadata.csv_file_content_dict = utils.read_csv_into_dict(file_name)
 
-  # def get_field_names(self, table_name):
-  #   query = """
-  #     SELECT COLUMN_NAME
-  #     FROM INFORMATION_SCHEMA.COLUMNS
-  #     WHERE TABLE_SCHEMA='vamps2'
-  #         AND TABLE_NAME='%s';
-  #   """ % table_name
-  #   # print query
-  #   return mysql_utils.execute_fetch_select(query)
-
    
 class RequiredMetadata(Metadata):
   # find ids by value
@@ -234,8 +224,9 @@ class RequiredMetadata(Metadata):
 class CustomMetadata(Metadata):
   # get project_id
   # get intersecton of csv and db field names
-  # prepare field names for custom_metadata_fields
-  # prepare info for custom_metadata_#
+  # missing column names for custom_metadata_fields
+  # missing column names for custom_metadata_#
+  # prepare info to update in custom_metadata_#
 
   def __init__(self):
     self.fields = Metadata.csv_file_fields
@@ -251,7 +242,7 @@ class CustomMetadata(Metadata):
     # print "req_field_names_t"
     # print req_field_names_t
     
-  # get_field_names(self, table_name)
+  get_field_names(self, table_name)
   # def get_custom_field_names(self):
   #   pass
   def get_project_id(self):
