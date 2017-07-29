@@ -43,18 +43,18 @@ class RequiredMetadata():
     self.content_list = content_list
     self.content_dict = content_dict
     self.required_metadata_update = defaultdict(dict)
-    self.req_field_names_from_db = []
+    # self.req_field_names_from_db = []
     
     self.get_required_fields()
     
   def put_required_field_names_in_dict(self, dataset_id):
-    for f_name in self.req_field_names_from_db:
+    for f_name in self.required_metadata_fields_to_update:
       self.required_metadata_update[dataset_id][f_name] = ""
     
   def get_required_fields(self):
     #required_metadata_info
     # pass
-    req_field_names_t = metadata.get_field_names("required_metadata_info")
+    # req_field_names_t = metadata.get_field_names("required_metadata_info")
     # print req_field_names_t
       
     
@@ -64,9 +64,9 @@ class RequiredMetadata():
 # <type 'tuple'>
     # print list(req_field_names_from_db)
   
-    req_field_names_from_db = zip(*req_field_names_t[0])
-    print "req_field_names_from_db"
-    print req_field_names_from_db
+    # req_field_names_from_db = zip(*req_field_names_t[0])
+    # print "req_field_names_from_db"
+    # print req_field_names_from_db
 
     for d in self.content_dict:
       dataset_id = d['dataset_id']
@@ -76,7 +76,7 @@ class RequiredMetadata():
     # print type(csv_file_fields)
 # <type 'list'>
 
-    intersection = list(set(req_field_names_from_db[0]) & set(self.fields))
+    intersection = list(set(self.required_metadata_fields_to_update) & set(self.fields))
     # print "\nintersection == "
     # print intersection
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
@@ -92,7 +92,7 @@ class RequiredMetadata():
             self.required_metadata_update[dataset_id][k] = v
           
               
-    needed_req_all = list(set(req_field_names_from_db[0]) - set(self.fields))
+    needed_req_all = list(set(self.required_metadata_fields_to_update) - set(self.fields))
     # print "\nneeded_req_all == "
     # print needed_req_all
     # ['adapter_sequence_id', 'required_metadata_id', 'geo_loc_name_id', 'run_id', 'created_at', 'dna_region_id', 'updated_at', 'domain_id', 'target_gene_id', 'env_feature_id', 'env_package_id', 'illumina_index_id', 'env_biome_id', 'sequencing_platform_id', 'primer_suite_id', 'env_material_id']
