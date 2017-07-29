@@ -34,10 +34,6 @@ class RequiredMetadata():
       "env_package_id",
       "latitude",
       "longitude"]
-    self.required_metadata_fields_to_update_project = ["pi_email",
-      "pi_name",
-      "project_title",
-      "references"]
   
     self.fields = fields
     self.content_list = content_list
@@ -174,8 +170,14 @@ class CustomMetadata():
     self.content_list = content_list
     self.content_dict = content_dict
     self.custom_metadata_update = defaultdict(dict)
+
+    # self.not_req_fields =
     self.project_id = self.get_project_id()
     print self.project_id
+    
+    # req_field_names_t = metadata.get_field_names("required_metadata_info")
+    # print "req_field_names_t"
+    # print req_field_names_t
     
   # get_field_names(self, table_name)
   # def get_custom_field_names(self):
@@ -201,7 +203,37 @@ class Metadata():
     self.csv_file_content_dict = []
     
     self.get_data_from_csv()
-    #TODO: convert csv_file_content into dict
+    req_fields_from_csv = ["adapter_sequence",
+    "collection_date",
+    "dataset",
+    "dna_region",
+    "domain",
+    "env_biome",
+    "env_feature",
+    "env_material",
+    "env_package",
+    "forward_primer",
+    "illumina_index",
+    "latitude",
+    "longitude",
+    "project",
+    "reverse_primer",
+    "run",
+    "target_gene"]
+    
+    required_fields_to_update_project = ["first_name",
+    "institution",
+    "last_name",
+    "pi_email",
+    "pi_name",
+    "project_title",
+    "public",
+    "references",
+    "username"]
+    
+    self.not_req_fields_from_csv = list(set(self.csv_file_fields) - set(req_fields_from_csv) - set(required_fields_to_update_project))
+    print "self.not_req_fields_from_csv"
+    print self.not_req_fields_from_csv
     
     # print "csv_file_fields = "
     # print self.csv_file_fields
@@ -217,15 +249,15 @@ class Metadata():
     self.csv_file_fields, self.csv_file_content_list = utils.read_csv_into_list(file_name)
     self.csv_file_content_dict = utils.read_csv_into_dict(file_name)
 
-  def get_field_names(self, table_name):
-    query = """
-      SELECT COLUMN_NAME 
-      FROM INFORMATION_SCHEMA.COLUMNS 
-      WHERE TABLE_SCHEMA='vamps2' 
-          AND TABLE_NAME='%s'; 
-    """ % table_name
-    # print query
-    return mysql_utils.execute_fetch_select(query)
+  # def get_field_names(self, table_name):
+  #   query = """
+  #     SELECT COLUMN_NAME
+  #     FROM INFORMATION_SCHEMA.COLUMNS
+  #     WHERE TABLE_SCHEMA='vamps2'
+  #         AND TABLE_NAME='%s';
+  #   """ % table_name
+  #   # print query
+  #   return mysql_utils.execute_fetch_select(query)
 
     
 
