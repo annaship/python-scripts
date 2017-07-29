@@ -7,7 +7,87 @@ import csv
 import sys
 from collections import defaultdict
 
-class RequiredMetadata():
+    
+class Metadata():
+  # parse csv
+  # separate required from custom
+  # find ids by value
+  # find and print errors
+  
+  required_metadata_fields_to_update = ["collection_date",
+    "env_biome_id",
+    "env_feature_id",
+    "env_material_id",
+    "env_package_id",
+    "latitude",
+    "longitude"]
+    
+  req_fields_from_csv = ["adapter_sequence",
+    "collection_date",
+    "dataset",
+    "dna_region",
+    "domain",
+    "env_biome",
+    "env_feature",
+    "env_material",
+    "env_package",
+    "forward_primer",
+    "illumina_index",
+    "latitude",
+    "longitude",
+    "project",
+    "reverse_primer",
+    "run",
+    "target_gene"]
+    
+  required_fields_to_update_project = ["first_name",
+    "institution",
+    "last_name",
+    "pi_email",
+    "pi_name",
+    "project_title",
+    "public",
+    "references",
+    "username"]
+    
+  not_req_fields_from_csv = []
+  csv_file_fields = []
+  csv_file_content_list = []
+  csv_file_content_dict = []
+
+  def __init__(self):
+    self.get_data_from_csv()
+
+    Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
+    print "Metadata.not_req_fields_from_csv"
+    print Metadata.not_req_fields_from_csv
+    
+    # print "csv_file_fields = "
+    # print Metadata.csv_file_fields
+    # ['NPOC', 'access_point_type', 'adapter_sequence', 'alkalinity', 'ammonium', 'bicarbonate', 'env_biome', 'biome_secondary', 'calcium', 'calcium_carbonate', 'chloride', 'clone_library_results', 'collection_date', 'conductivity', 'dataset', 'dataset_id', 'del18O_water', 'depth_in_core', 'depth_subseafloor', 'depth_subterrestrial', 'diss_hydrogen', 'diss_inorg_carb', 'diss_inorg_carbon_del13C', 'diss_org_carb', 'diss_oxygen', 'dna_extraction_meth', 'dna_quantitation', 'dna_region', 'domain', 'elevation', 'env_package', 'enzyme_activities', 'env_feature', 'feature_secondary', 'formation_name', 'forward_primer', 'functional_gene_assays', 'geo_loc_name_continental', 'geo_loc_name_marine', 'illumina_index', 'investigation_type', 'iron', 'iron_II', 'iron_III', 'isol_growth_cond', 'latitude', 'longitude', 'magnesium', 'manganese', 'env_material', 'material_secondary', 'methane', 'methane_del13C', 'microbial_biomass_FISH', 'microbial_biomass_avg_cell_number', 'microbial_biomass_intactpolarlipid', 'microbial_biomass_microscopic', 'microbial_biomass_platecounts', 'microbial_biomass_qPCR', 'nitrate', 'nitrite', 'nitrogen_tot', 'noble_gas_chemistry', 'org_carb_nitro_ratio', 'pH', 'part_org_carbon_del13C', 'phosphate', 'pi_email', 'pi_name', 'plate_counts', 'porosity', 'potassium', 'pressure', 'project', 'project_abstract', 'project_title', 'redox_potential', 'redox_state', 'references', 'resistivity', 'reverse_primer', 'rock_age', 'run', 'salinity', 'samp_store_dur', 'samp_store_temp', 'sample_name', 'sample_size_mass', 'sample_size_vol', 'sample_type', 'sequencing_meth', 'sodium', 'sulfate', 'sulfide', 'sulfur_tot', 'target_gene', 'temperature', 'tot_carb', 'tot_depth_water_col', 'tot_inorg_carb', 'tot_org_carb', 'trace_element_geochem', 'water_age', 'first_name', 'institution', 'last_name', 'public', 'username']
+    #
+    # print "csv_file_content_list = "
+    # print self.csv_file_content_list
+    
+    
+  def get_data_from_csv(self):
+    # TODO: get from args
+    file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv"
+    Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(file_name)
+    Metadata.csv_file_content_dict = utils.read_csv_into_dict(file_name)
+
+  # def get_field_names(self, table_name):
+  #   query = """
+  #     SELECT COLUMN_NAME
+  #     FROM INFORMATION_SCHEMA.COLUMNS
+  #     WHERE TABLE_SCHEMA='vamps2'
+  #         AND TABLE_NAME='%s';
+  #   """ % table_name
+  #   # print query
+  #   return mysql_utils.execute_fetch_select(query)
+
+   
+class RequiredMetadata(Metadata):
   # find ids by value
   # find and print errors
   # readonly:
@@ -25,19 +105,11 @@ class RequiredMetadata():
   # Index sequence (for Illumina)
   # Adapter sequence
   # Sequencing run date
-  
-  def __init__(self, fields, content_list, content_dict):
-    self.required_metadata_fields_to_update = ["collection_date",
-      "env_biome_id",
-      "env_feature_id",
-      "env_material_id",
-      "env_package_id",
-      "latitude",
-      "longitude"]
-  
-    self.fields = fields
-    self.content_list = content_list
-    self.content_dict = content_dict
+
+  def __init__(self):
+    self.fields = Metadata.csv_file_fields
+    self.content_list = Metadata.csv_file_content_list
+    self.content_dict = Metadata.csv_file_content_dict
     self.required_metadata_update = defaultdict(dict)
     # self.req_field_names_from_db = []
     
@@ -155,20 +227,20 @@ class RequiredMetadata():
         except:
           raise
 
-    # print "self.required_metadata_update"
-    # print self.required_metadata_update
+    print "self.required_metadata_update"
+    print self.required_metadata_update
     # {'4312': {'illumina_index': 83, 'domain': 3, 'run': 47, 'collection_date': '2007-06-01', 'longitude': '-17.51', 'env_material': 1280, 'latitude': '64.49', 'dna_region': 5, 'dataset_id': '4312', 'target_gene': 1}, 
 
-class CustomMetadata():
+class CustomMetadata(Metadata):
   # get project_id
   # get intersecton of csv and db field names
   # prepare field names for custom_metadata_fields
   # prepare info for custom_metadata_#
-  
-  def __init__(self, fields, content_list, content_dict):
-    self.fields = fields
-    self.content_list = content_list
-    self.content_dict = content_dict
+
+  def __init__(self):
+    self.fields = Metadata.csv_file_fields
+    self.content_list = Metadata.csv_file_content_list
+    self.content_dict = Metadata.csv_file_content_dict
     self.custom_metadata_update = defaultdict(dict)
 
     # self.not_req_fields =
@@ -190,76 +262,7 @@ class CustomMetadata():
     where_part = ("WHERE project = '%s'") % (project)
     project_id = mysql_utils.get_all_name_id("project", where_part = where_part)
     return int(project_id[0][1])
-    
-class Metadata():
-  # parse csv
-  # separate required from custom
-  # find ids by value
-  # find and print errors
-  
-  def __init__(self):
-    self.csv_file_fields = []
-    self.csv_file_content_list = []
-    self.csv_file_content_dict = []
-    
-    self.get_data_from_csv()
-    req_fields_from_csv = ["adapter_sequence",
-    "collection_date",
-    "dataset",
-    "dna_region",
-    "domain",
-    "env_biome",
-    "env_feature",
-    "env_material",
-    "env_package",
-    "forward_primer",
-    "illumina_index",
-    "latitude",
-    "longitude",
-    "project",
-    "reverse_primer",
-    "run",
-    "target_gene"]
-    
-    required_fields_to_update_project = ["first_name",
-    "institution",
-    "last_name",
-    "pi_email",
-    "pi_name",
-    "project_title",
-    "public",
-    "references",
-    "username"]
-    
-    self.not_req_fields_from_csv = list(set(self.csv_file_fields) - set(req_fields_from_csv) - set(required_fields_to_update_project))
-    print "self.not_req_fields_from_csv"
-    print self.not_req_fields_from_csv
-    
-    # print "csv_file_fields = "
-    # print self.csv_file_fields
-    # ['NPOC', 'access_point_type', 'adapter_sequence', 'alkalinity', 'ammonium', 'bicarbonate', 'env_biome', 'biome_secondary', 'calcium', 'calcium_carbonate', 'chloride', 'clone_library_results', 'collection_date', 'conductivity', 'dataset', 'dataset_id', 'del18O_water', 'depth_in_core', 'depth_subseafloor', 'depth_subterrestrial', 'diss_hydrogen', 'diss_inorg_carb', 'diss_inorg_carbon_del13C', 'diss_org_carb', 'diss_oxygen', 'dna_extraction_meth', 'dna_quantitation', 'dna_region', 'domain', 'elevation', 'env_package', 'enzyme_activities', 'env_feature', 'feature_secondary', 'formation_name', 'forward_primer', 'functional_gene_assays', 'geo_loc_name_continental', 'geo_loc_name_marine', 'illumina_index', 'investigation_type', 'iron', 'iron_II', 'iron_III', 'isol_growth_cond', 'latitude', 'longitude', 'magnesium', 'manganese', 'env_material', 'material_secondary', 'methane', 'methane_del13C', 'microbial_biomass_FISH', 'microbial_biomass_avg_cell_number', 'microbial_biomass_intactpolarlipid', 'microbial_biomass_microscopic', 'microbial_biomass_platecounts', 'microbial_biomass_qPCR', 'nitrate', 'nitrite', 'nitrogen_tot', 'noble_gas_chemistry', 'org_carb_nitro_ratio', 'pH', 'part_org_carbon_del13C', 'phosphate', 'pi_email', 'pi_name', 'plate_counts', 'porosity', 'potassium', 'pressure', 'project', 'project_abstract', 'project_title', 'redox_potential', 'redox_state', 'references', 'resistivity', 'reverse_primer', 'rock_age', 'run', 'salinity', 'samp_store_dur', 'samp_store_temp', 'sample_name', 'sample_size_mass', 'sample_size_vol', 'sample_type', 'sequencing_meth', 'sodium', 'sulfate', 'sulfide', 'sulfur_tot', 'target_gene', 'temperature', 'tot_carb', 'tot_depth_water_col', 'tot_inorg_carb', 'tot_org_carb', 'trace_element_geochem', 'water_age', 'first_name', 'institution', 'last_name', 'public', 'username']
-    #
-    # print "csv_file_content_list = "
-    # print self.csv_file_content_list
-    
-    
-  def get_data_from_csv(self):
-    # TODO: get from args
-    file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv"
-    self.csv_file_fields, self.csv_file_content_list = utils.read_csv_into_list(file_name)
-    self.csv_file_content_dict = utils.read_csv_into_dict(file_name)
-
-  # def get_field_names(self, table_name):
-  #   query = """
-  #     SELECT COLUMN_NAME
-  #     FROM INFORMATION_SCHEMA.COLUMNS
-  #     WHERE TABLE_SCHEMA='vamps2'
-  #         AND TABLE_NAME='%s';
-  #   """ % table_name
-  #   # print query
-  #   return mysql_utils.execute_fetch_select(query)
-
-    
+ 
 
 class Upload():
   # check if all custom fields are in custom_metadata_fields and custom_metadata_##
@@ -278,9 +281,10 @@ if __name__ == '__main__':
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps2", read_default_group = "client")
 
   metadata = Metadata()
-  
-  metadata.required_metadata = RequiredMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
-
-  metadata.custom_metadata = CustomMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
+  required_metadata = RequiredMetadata()
+  custom_metadata = CustomMetadata()
+  # metadata.required_metadata = RequiredMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
+  #
+  # metadata.custom_metadata = CustomMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
   
   
