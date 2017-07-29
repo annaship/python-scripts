@@ -178,14 +178,14 @@ class Mysql_util:
       # self.utils.print_array_w_title(id_result, "=====\nid_result IN get_id")
       return id_result
 
-    def get_field_names(self, table_name):
+    def get_field_names(self, table_schema, table_name):
       query = """
         SELECT COLUMN_NAME
         FROM INFORMATION_SCHEMA.COLUMNS
         WHERE TABLE_SCHEMA='%s'
             AND TABLE_NAME='%s';
       """ % (table_schema, table_name)
-      # print query
+      print query
       return self.execute_fetch_select(query)
       
 

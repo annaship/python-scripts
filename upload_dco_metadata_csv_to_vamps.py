@@ -238,11 +238,20 @@ class CustomMetadata(Metadata):
     self.project_id = self.get_project_id()
     print self.project_id
     
-    # req_field_names_t = metadata.get_field_names("required_metadata_info")
-    # print "req_field_names_t"
-    # print req_field_names_t
+    self.custom_metadata_table_name = "custom_metadata_%s" % (str(self.project_id))
     
-  get_field_names(self, table_name)
+    print "self.custom_metadata_table_name"
+    print self.custom_metadata_table_name
+    
+    custom_metadata_fields_t = mysql_utils.get_field_names("vamps2", self.custom_metadata_table_name)
+    # print "custom_metadata_fields_t"
+    # print custom_metadata_fields_t
+    
+    custom_fields_from_db = zip(*custom_metadata_fields_t[0])
+    print "custom_fields_from_db"
+    print custom_fields_from_db
+    
+    
   # def get_custom_field_names(self):
   #   pass
   def get_project_id(self):
