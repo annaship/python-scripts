@@ -185,7 +185,7 @@ class Mysql_util:
         WHERE TABLE_SCHEMA='%s'
             AND TABLE_NAME='%s';
       """ % (table_schema, table_name)
-      print query
+      # print query
       return self.execute_fetch_select(query)
       
 

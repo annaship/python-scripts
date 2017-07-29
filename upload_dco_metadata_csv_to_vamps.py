@@ -236,20 +236,14 @@ class CustomMetadata(Metadata):
 
     # self.not_req_fields =
     self.project_id = self.get_project_id()
-    print self.project_id
-    
+    # print self.project_id
     self.custom_metadata_table_name = "custom_metadata_%s" % (str(self.project_id))
-    
-    print "self.custom_metadata_table_name"
-    print self.custom_metadata_table_name
-    
-    custom_metadata_fields_t = mysql_utils.get_field_names("vamps2", self.custom_metadata_table_name)
-    # print "custom_metadata_fields_t"
-    # print custom_metadata_fields_t
-    
-    custom_fields_from_db = zip(*custom_metadata_fields_t[0])
-    print "custom_fields_from_db"
-    print custom_fields_from_db
+    # print "self.custom_metadata_table_name"
+    # print self.custom_metadata_table_name
+
+    self.custom_fields_from_db = self.get_custom_fields_from_db()
+    print "self.custom_fields_from_db"
+    print self.custom_fields_from_db[0][0]
     
     
   # def get_custom_field_names(self):
@@ -262,6 +256,10 @@ class CustomMetadata(Metadata):
     where_part = ("WHERE project = '%s'") % (project)
     project_id = mysql_utils.get_all_name_id("project", where_part = where_part)
     return int(project_id[0][1])
+    
+  def get_custom_fields_from_db(self):
+    custom_metadata_fields_t = mysql_utils.get_field_names("vamps2", self.custom_metadata_table_name)
+    return zip(*custom_metadata_fields_t[0])
  
 
 class Upload():
