@@ -152,7 +152,7 @@ class RequiredMetadata():
 
           if field in ['env_feature', 'env_biome', 'env_material']:
             field_name = "term_name"
-            where_part = "WHERE %s = '%s'" % (field_name, val)
+            where_part = "WHERE %s = '%s' or %s = '%s %s'" % (field_name, val, field_name, val, field.lstrip("env_"))
             res1 = mysql_utils.get_all_name_id("term", field_name = field_name, where_part = where_part)
             if res1:
               self.required_metadata_update[dataset][field_id_name] = int(res1[0][1])
@@ -187,7 +187,7 @@ class Metadata():
     
   def get_data_from_csv(self):
     # TODO: get from args
-    file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1501274966258.csv"
+    file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv"
     self.csv_file_fields, self.csv_file_content_list = utils.read_csv_into_list(file_name)
     self.csv_file_content_dict = utils.read_csv_into_dict(file_name)
 
