@@ -237,7 +237,13 @@ class CustomMetadata(Metadata):
   # prepare info to update in custom_metadata_#
 
   def __init__(self):
-    self.fields = Metadata.csv_file_fields
+    self.fields_w_sec = [f if f not in Metadata.field_names_equivalents_csv_db else Metadata.field_names_equivalents_csv_db[f] for f in Metadata.csv_file_fields]
+
+    #   
+    # return {k: v for k, v in my_dict.items() if k in key_list}
+    # if key in Metadata.field_names_equivalents_csv_db:
+    #   key = Metadata.field_names_equivalents_csv_db[key]
+    
     self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
     self.custom_metadata_update = defaultdict(dict)
@@ -255,48 +261,78 @@ class CustomMetadata(Metadata):
     # print 'self.custom_fields_from_db'
     # print self.custom_fields_from_db[0]
     # [0]
-    self.custom_fields_from_csv = set(self.fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project)
+    self.custom_fields_from_csv = set(self.fields_w_sec) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project)
     print 'self.custom_fields_from_csv'
     print self.custom_fields_from_csv
     
-    diff_db_csv1 = set(self.custom_fields_from_db) - set (self.custom_fields_from_csv)
-    print 'diff_db_csv1: set(self.custom_fields_from_db) - set (self.custom_fields_from_csv)'
-    print diff_db_csv1
+    self.diff_db_csv = set(self.custom_fields_from_db) - self.custom_fields_from_csv
+    print 'diff_db_csv: set(self.custom_fields_from_db) - self.custom_fields_from_csv'
+    print self.diff_db_csv
 
-    diff_db_csv2 = set(self.custom_fields_from_csv) - set (self.custom_fields_from_db)
-    print 'diff_db_csv2: set(self.custom_fields_from_csv) - set (self.custom_fields_from_db)'
-    print diff_db_csv2
 
+    # print "type(self.custom_fields_from_csv)"
+    # print type(self.custom_fields_from_csv)
+    # 
+    # print "type(self.custom_fields_from_db)"
+    # print type(self.custom_fields_from_db)
+
+    self.diff_csv_db = self.custom_fields_from_csv - set(self.custom_fields_from_db)
+    print 'diff_csv_db: set(self.custom_fields_from_csv) - set (self.custom_fields_from_db)'
+    print self.diff_csv_db
     
+        
+    self.get_not_empty_csv_only_fields()
+
+    # self.new_custom_fields = 
     self.populate_custom_data_from_csv()
     
+  def get_not_empty_csv_only_fields(self):
+    for d in Metadata.csv_file_content_dict:
+      current_dict1 = utils.slicedict(d, self.diff_csv_db)
+      for key, val in current_dict1.items():
+        if val not in Metadata.empty_equivalents:
+          print 'MMM key = %s, val = %s' % (key, val)
+        
+        
+      
     
   def populate_custom_data_from_csv(self):
     fields_to_add_to_db = set()
     # print 'type(Metadata.csv_file_content_dict)' list
     # print 'Metadata.csv_file_content_dict'
     # print len(Metadata.csv_file_content_dict) 8
+    
+    # !!!should be custom_fields_from_db + new fields
+    
     for d in Metadata.csv_file_content_dict:
       current_dict = utils.slicedict(d, self.custom_fields_from_db)
-      dataset = current_dict['dataset_id']
+      dataset_id = current_dict['dataset_id']
+      print 'DDD dataset_id'
+      print dataset_id
+      
       for key, val in current_dict.items():
         # print 'key = %s, val = %s' % (key, val)
         if key in Metadata.field_names_equivalents_csv_db:
           key = Metadata.field_names_equivalents_csv_db[key]
+        
         for cust_field in self.custom_fields_from_db:
-          if (cust_field != key) and (val not in Metadata.empty_equivalents):
-            # print "if (cust_field != key) and (val not in Metadata.empty_equivalents)"
-            # print 'key = %s, val = %s' % (key, val)
-            fields_to_add_to_db.add(key) # wrong
-            # should be only depth_subterrestrial, investigation_type (-- dataset_id)
-          elif (cust_field == key) and (val not in Metadata.empty_equivalents):
+          # if (cust_field != key) and (val not in Metadata.empty_equivalents):
+          #   # print "if (cust_field != key) and (val not in Metadata.empty_equivalents)"
+          #   # print 'key = %s, val = %s' % (key, val)
+          #   fields_to_add_to_db.add(key) # wrong
+          #   # should be only depth_subterrestrial, investigation_type (-- dataset_id)
+          if (cust_field == key) and (val not in Metadata.empty_equivalents):
             print "else"
             print 'key = %s, val = %s' % (key, val)
             
-          #   self.custom_metadata_update[dataset][field_id_name] = int(res1[0][1])
+            self.custom_metadata_update[dataset_id][key] = val
           
-      print "fields_to_add_to_db = "
-      print fields_to_add_to_db
+
+        print "CCC custom_metadata_update = "
+        print self.custom_metadata_update
+
+      # print "fields_to_add_to_db = "
+      # print fields_to_add_to_db
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
       # TODO: env_feature is not in term?
       
