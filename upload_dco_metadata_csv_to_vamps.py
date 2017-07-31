@@ -65,6 +65,7 @@ class Metadata():
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
+    self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
     print 'Metadata.not_req_fields_from_csv'
@@ -83,6 +84,20 @@ class Metadata():
     # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
     Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
     Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
+    
+  def change_keys_in_csv_content_dict(self, arr_of_dictis, key_dict):
+    new_format = []
+    for old_key, new_key in key_dict.items():
+      print "old_key = %s, new_key = %s" % (old_key, new_key)
+      for dictionary in arr_of_dictis:
+        print "dictionary 1 = %s" % (dictionary)
+        dictionary[new_key] = dictionary[old_key]
+        del dictionary[old_key]
+        print "dictionary = %s" % (dictionary)
+        new_format.append(dictionary)
+        
+    return new_format
+    
 
    
 class RequiredMetadata(Metadata):
