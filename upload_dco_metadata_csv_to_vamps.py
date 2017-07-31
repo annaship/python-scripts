@@ -53,11 +53,7 @@ class Metadata():
     
   empty_equivalents = ['None', 'undefined', 'Please choose one', '']
   
-  field_names_equivalents = {}
-  field_names_equivalents['biome_secondary'] = 'env_biome_sec'
-  field_names_equivalents['feature_secondary'] = 'env_feature_sec'
-  field_names_equivalents['material_secondary'] = 'env_material_sec'
-  
+  field_names_equivalents = {'biome_secondary':'env_biome_sec', 'feature_secondary':'env_feature_sec', 'material_secondary':'env_material_sec'}
     
   not_req_fields_from_csv = []
   csv_file_fields = []
