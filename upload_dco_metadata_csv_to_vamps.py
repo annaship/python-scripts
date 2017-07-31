@@ -243,9 +243,28 @@ class CustomMetadata(Metadata):
     # print self.custom_metadata_table_name
 
     self.custom_fields_from_db = self.get_custom_fields_from_db()
-    print "self.custom_fields_from_db"
-    print self.custom_fields_from_db[0][0]
+    # print "self.custom_fields_from_db"
+    # print self.custom_fields_from_db[0]
+    # [0]
+    self.custom_fields_from_csv = set(self.fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project)
+    print "self.custom_fields_from_csv"
+    print self.custom_fields_from_csv
     
+    self.populate_custom_data_from_csv()
+    
+    
+  def populate_custom_data_from_csv(self):
+    # print "type(Metadata.csv_file_content_dict)" list
+    # print "Metadata.csv_file_content_dict"
+    # print len(Metadata.csv_file_content_dict) 8
+    for d in Metadata.csv_file_content_dict:
+      for k, v in d.items():
+        # print "k = %s, v = %s" % (k, v)
+          for cust_field in self.custom_fields_from_db[0]:
+            if (cust_field != k) and (v != ""):
+              print "k = %s, v = %s" % (k, v)
+            # pass
+      
     
     
   # def get_custom_field_names(self):
