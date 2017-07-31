@@ -51,7 +51,7 @@ class Metadata():
     'references',
     'username']
     
-  empty_equivalents = ['None', 'undefined', 'Please choose one', '']
+  empty_equivalents = ['none', 'undefined', 'please choose one', '']
   
   field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 
   'feature_secondary':'env_feature_sec', 
@@ -294,7 +294,7 @@ class CustomMetadata(Metadata):
     for d in Metadata.csv_file_content_dict:
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
-        if val not in Metadata.empty_equivalents:
+        if val.lower() not in Metadata.empty_equivalents:
           self.fields_to_add_to_db.add(key)
     # print "EEE self.fields_to_add_to_db = "
     # print self.fields_to_add_to_db
@@ -328,7 +328,7 @@ class CustomMetadata(Metadata):
           #   fields_to_add_to_db.add(key) # wrong
           # should be only set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
           
-          if (cust_field == key) and (val not in Metadata.empty_equivalents):
+          if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
             # print "else"
             # print 'key = %s, val = %s' % (key, val)
             # 
