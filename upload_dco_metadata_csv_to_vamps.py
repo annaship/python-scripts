@@ -53,7 +53,10 @@ class Metadata():
     
   empty_equivalents = ['None', 'undefined', 'Please choose one', '']
   
-  field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 'feature_secondary':'env_feature_sec', 'material_secondary':'env_material_sec'}
+  field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 
+  'feature_secondary':'env_feature_sec', 
+  'material_secondary':'env_material_sec',
+  'geo_loc_name_continental':'geo_loc_name'}
     
   not_req_fields_from_csv = []
   csv_file_fields = []
@@ -238,6 +241,8 @@ class CustomMetadata(Metadata):
     self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
     self.custom_metadata_update = defaultdict(dict)
+    self.fields_to_add_to_db = []
+    
 
     # self.not_req_fields =
     self.project_id = self.get_project_id()
@@ -273,18 +278,27 @@ class CustomMetadata(Metadata):
     # print len(Metadata.csv_file_content_dict) 8
     for d in Metadata.csv_file_content_dict:
       current_dict = utils.slicedict(d, self.custom_fields_from_db)
-      for k, v in current_dict.items():
-        # print 'k = %s, v = %s' % (k, v)
-        if k in Metadata.field_names_equivalents_csv_db:
-          k = Metadata.field_names_equivalents_csv_db[k]
+      dataset = current_dict['dataset_id']
+      for key, val in current_dict.items():
+        # print 'key = %s, val = %s' % (key, val)
+        if key in Metadata.field_names_equivalents_csv_db:
+          key = Metadata.field_names_equivalents_csv_db[key]
         for cust_field in self.custom_fields_from_db:
-          if (cust_field != k) and (v not in Metadata.empty_equivalents):
-            print 'k = %s, v = %s' % (k, v)
-            fields_to_add_to_db.add(k)
-          # pass
+          if (cust_field != key) and (val not in Metadata.empty_equivalents):
+            # print "if (cust_field != key) and (val not in Metadata.empty_equivalents)"
+            # print 'key = %s, val = %s' % (key, val)
+            fields_to_add_to_db.add(key) # wrong
+            # should be only depth_subterrestrial, investigation_type (-- dataset_id)
+          elif (cust_field == key) and (val not in Metadata.empty_equivalents):
+            print "else"
+            print 'key = %s, val = %s' % (key, val)
+            
+          #   self.custom_metadata_update[dataset][field_id_name] = int(res1[0][1])
+          
       print "fields_to_add_to_db = "
       print fields_to_add_to_db
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
+      # TODO: env_feature is not in term?
       
     
     
