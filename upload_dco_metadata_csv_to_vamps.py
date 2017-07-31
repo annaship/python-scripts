@@ -53,7 +53,7 @@ class Metadata():
     
   empty_equivalents = ['None', 'undefined', 'Please choose one', '']
   
-  field_names_equivalents = {'biome_secondary':'env_biome_sec', 'feature_secondary':'env_feature_sec', 'material_secondary':'env_material_sec'}
+  field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 'feature_secondary':'env_feature_sec', 'material_secondary':'env_material_sec'}
     
   not_req_fields_from_csv = []
   csv_file_fields = []
@@ -267,6 +267,7 @@ class CustomMetadata(Metadata):
     
     
   def populate_custom_data_from_csv(self):
+    fields_to_add_to_db = set()
     # print 'type(Metadata.csv_file_content_dict)' list
     # print 'Metadata.csv_file_content_dict'
     # print len(Metadata.csv_file_content_dict) 8
@@ -274,10 +275,16 @@ class CustomMetadata(Metadata):
       current_dict = utils.slicedict(d, self.custom_fields_from_db)
       for k, v in current_dict.items():
         # print 'k = %s, v = %s' % (k, v)
-          for cust_field in self.custom_fields_from_db:
-            if (cust_field != k) and (v not in Metadata.empty_equivalents):
-              print 'k = %s, v = %s' % (k, v)
-            # pass
+        if k in Metadata.field_names_equivalents_csv_db:
+          k = Metadata.field_names_equivalents_csv_db[k]
+        for cust_field in self.custom_fields_from_db:
+          if (cust_field != k) and (v not in Metadata.empty_equivalents):
+            print 'k = %s, v = %s' % (k, v)
+            fields_to_add_to_db.add(k)
+          # pass
+      print "fields_to_add_to_db = "
+      print fields_to_add_to_db
+      # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
       
     
     
