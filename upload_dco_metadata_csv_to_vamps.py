@@ -56,7 +56,8 @@ class Metadata():
   field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 
   'feature_secondary':'env_feature_sec', 
   'material_secondary':'env_material_sec',
-  'geo_loc_name_continental':'geo_loc_name'}
+  'geo_loc_name_continental':'geo_loc_name',
+  'dna_extraction_meth': 'DNA_extraction_method'}
     
   not_req_fields_from_csv = []
   csv_file_fields = []
@@ -65,7 +66,7 @@ class Metadata():
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
-    self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
+    Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
     print 'Metadata.not_req_fields_from_csv'
@@ -88,14 +89,10 @@ class Metadata():
   def change_keys_in_csv_content_dict(self, arr_of_dictis, key_dict):
     new_format = []
     for old_key, new_key in key_dict.items():
-      print "old_key = %s, new_key = %s" % (old_key, new_key)
       for dictionary in arr_of_dictis:
-        print "dictionary 1 = %s" % (dictionary)
         dictionary[new_key] = dictionary[old_key]
         del dictionary[old_key]
-        print "dictionary = %s" % (dictionary)
-        new_format.append(dictionary)
-        
+        new_format.append(dictionary)        
     return new_format
     
 
@@ -260,9 +257,8 @@ class CustomMetadata(Metadata):
     #   key = Metadata.field_names_equivalents_csv_db[key]
     
     self.content_list = Metadata.csv_file_content_list
-    self.content_dict = Metadata.csv_file_content_dict
     self.custom_metadata_update = defaultdict(dict)
-    self.fields_to_add_to_db = []
+    self.fields_to_add_to_db = set()
     
 
     # self.not_req_fields =
@@ -302,17 +298,20 @@ class CustomMetadata(Metadata):
     self.populate_custom_data_from_csv()
     
   def get_not_empty_csv_only_fields(self):
+    # fields_to_add_to_db = set()
     for d in Metadata.csv_file_content_dict:
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
         if val not in Metadata.empty_equivalents:
-          print 'MMM key = %s, val = %s' % (key, val)
-        
+          # print 'MMM key = %s, val = %s' % (key, val)
+          self.fields_to_add_to_db.add(key)
+    print "EEE self.fields_to_add_to_db = "
+    print self.fields_to_add_to_db
         
       
     
   def populate_custom_data_from_csv(self):
-    fields_to_add_to_db = set()
+    
     # print 'type(Metadata.csv_file_content_dict)' list
     # print 'Metadata.csv_file_content_dict'
     # print len(Metadata.csv_file_content_dict) 8
@@ -326,25 +325,22 @@ class CustomMetadata(Metadata):
       print dataset_id
       
       for key, val in current_dict.items():
-        # print 'key = %s, val = %s' % (key, val)
-        if key in Metadata.field_names_equivalents_csv_db:
-          key = Metadata.field_names_equivalents_csv_db[key]
-        
         for cust_field in self.custom_fields_from_db:
           # if (cust_field != key) and (val not in Metadata.empty_equivalents):
           #   # print "if (cust_field != key) and (val not in Metadata.empty_equivalents)"
           #   # print 'key = %s, val = %s' % (key, val)
           #   fields_to_add_to_db.add(key) # wrong
-          #   # should be only depth_subterrestrial, investigation_type (-- dataset_id)
+          # should be only set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
+          
           if (cust_field == key) and (val not in Metadata.empty_equivalents):
-            print "else"
-            print 'key = %s, val = %s' % (key, val)
-            
+            # print "else"
+            # print 'key = %s, val = %s' % (key, val)
+            # 
             self.custom_metadata_update[dataset_id][key] = val
           
 
-        print "CCC custom_metadata_update = "
-        print self.custom_metadata_update
+    print "CCC custom_metadata_update = "
+    print self.custom_metadata_update
 
       # print "fields_to_add_to_db = "
       # print fields_to_add_to_db
@@ -356,7 +352,7 @@ class CustomMetadata(Metadata):
   # def get_custom_field_names(self):
   #   pass
   def get_project_id(self):
-    projects = [d['project'] for d in self.content_dict]
+    projects = [d['project'] for d in Metadata.csv_file_content_dict]
     project  = list(set(projects))[0]
     print 'project ='
     print project
