@@ -5,6 +5,7 @@ import util
 import MySQLdb
 import csv
 import sys
+import argparse
 from collections import defaultdict
 
     
@@ -55,8 +56,8 @@ class Metadata():
   csv_file_content_list = []
   csv_file_content_dict = []
 
-  def __init__(self):
-    self.get_data_from_csv()
+  def __init__(self, input_file):
+    self.get_data_from_csv(input_file)
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
     print "Metadata.not_req_fields_from_csv"
@@ -70,11 +71,11 @@ class Metadata():
     # print self.csv_file_content_list
     
     
-  def get_data_from_csv(self):
+  def get_data_from_csv(self, input_file):
     # TODO: get from args
-    file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv"
-    Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(file_name)
-    Metadata.csv_file_content_dict = utils.read_csv_into_dict(file_name)
+    # file_name = "/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv"
+    Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
+    Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
 
    
 class RequiredMetadata(Metadata):
@@ -246,6 +247,7 @@ class CustomMetadata(Metadata):
     print self.custom_fields_from_db[0][0]
     
     
+    
   # def get_custom_field_names(self):
   #   pass
   def get_project_id(self):
@@ -271,6 +273,8 @@ class Upload():
     pass
 
 if __name__ == '__main__':
+  # ~/BPC/python-scripts$ python upload_dco_metadata_csv_to_vamps.py -f /Users/ashipunova/BPC/vamps-node.js/user_data/vamps2/AnnaSh/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1500930353039.csv 
+  
   utils = util.Utils()
 
   if (utils.is_local() == True):
@@ -278,7 +282,17 @@ if __name__ == '__main__':
   else:
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps2", read_default_group = "client")
 
-  metadata = Metadata()
+  parser = argparse.ArgumentParser()
+
+  parser.add_argument("-f", "--file_name",
+      required = True, action = "store", dest = "input_file",
+      help = """Input file name""")
+
+  args = parser.parse_args()
+  print "args = "
+  print args
+
+  metadata = Metadata(args.input_file)
   required_metadata = RequiredMetadata()
   custom_metadata = CustomMetadata()
   # metadata.required_metadata = RequiredMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
