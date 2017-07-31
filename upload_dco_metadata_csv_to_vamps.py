@@ -125,10 +125,10 @@ class RequiredMetadata(Metadata):
     
     self.get_required_fields()
     
-  def put_required_field_names_in_dict(self, dataset_id):
-    for f_name in self.required_metadata_fields_to_update:
-      self.required_metadata_update[dataset_id][f_name] = ''
-    
+  # def put_required_field_names_in_dict(self, dataset_id):
+  #   for f_name in self.required_metadata_fields_to_update:
+  #     self.required_metadata_update[dataset_id][f_name] = ''
+  #   
   def get_required_fields(self):
     #required_metadata_info
     # pass
@@ -148,7 +148,7 @@ class RequiredMetadata(Metadata):
 
     for d in self.content_dict:
       dataset_id = d['dataset_id']
-      self.put_required_field_names_in_dict(dataset_id)
+      # self.put_required_field_names_in_dict(dataset_id)
 
     # print 'type(csv_file_fields)'
     # print type(csv_file_fields)
@@ -165,7 +165,7 @@ class RequiredMetadata(Metadata):
         # print 'dataset_id'
         # print dataset_id
         for k, v in d.items():
-          if k == name:
+          if (k == name) and (v not in Metadata.empty_equivalents):
             # print 'k = %s, v = %s' % (k, v)
             self.required_metadata_update[dataset_id][k] = v
           
@@ -307,7 +307,6 @@ class CustomMetadata(Metadata):
     # print 'Metadata.csv_file_content_dict'
     # print len(Metadata.csv_file_content_dict) 8
     
-    # !!!should be custom_fields_from_db + new fields
     all_custom_fields = list(self.custom_fields_from_db) + list(self.fields_to_add_to_db)
     print "AAA all_custom_fields"
     print all_custom_fields
@@ -365,6 +364,51 @@ class Upload():
   def __init__(self):
     pass
 
+  # TODO:
+  
+  # required
+  # UPDATE required_metadata_info_new_view_temp AS base JOIN
+  # term AS t2 on(env_biome = term_name)
+  # SET base.env_biome_id = t2.term_id
+
+  # UPDATE required_metadata_info
+  # JOIN dataset USING(dataset_id)
+  # JOIN project USING(project_id)
+  # SET required_metadata_info.env_biome_id = (SELECT term_id FROM term
+  # WHERE term_name = "terrestrial biome")
+  # WHERE project = "DCO_TCO_Bv6";
+  # 
+  
+  # update required_metadata_info 
+  # join env_package using(env_package_id)
+  # join dataset using(dataset_id)
+  # join project using(project_id)
+  # set required_metadata_info.env_package_id = (select env_package_id from env_package where env_package = "water")
+  # where env_package = "extreme_habitat"
+  # and project in ("DCO_GRA_Bv6v4",
+  # "DCO_SYL_Bv6v4",
+  # "DCO_BOM_Bv6",
+  # "DCO_BOM_Av6");
+  
+  # join term on (geo_loc_name_id = term_id)
+  # set required_metadata_info.geo_loc_name_id = (select term_id from term where term_name = "CCAL" and ontology_id = 3)
+  
+  
+  
+  # custom 1
+  # alter table custom_metadata_##
+  # add column `env_biome_sec` varchar(128) DEFAULT NULL,
+  
+  # custom 2
+  # INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ()
+  ## UPDATE custom_metadata_fields SET field_name = "temperature" WHERE field_name = "temp" AND project_id = "$1";
+
+  # custom 3
+  # UPDATE custom_metadata_110
+  # SET env_biome_sec = "subseafloor aquatic biome";
+  
+  
+
 if __name__ == '__main__':
   # ~/BPC/python-scripts$ python upload_dco_metadata_csv_to_vamps.py -f /Users/ashipunova/BPC/vamps-node.js/user_data/vamps2/AnnaSh/metadata-project_DCO_GAI_Bv3v5_AnnaSh_1500930353039.csv 
   
@@ -389,10 +433,19 @@ if __name__ == '__main__':
   required_metadata = RequiredMetadata()
   custom_metadata = CustomMetadata()
   
+  required_metadata_update = required_metadata.required_metadata_update
+  
   # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
   add_fields_to_db_set = custom_metadata.fields_to_add_to_db
-  # metadata.required_metadata = RequiredMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
-  #
-  # metadata.custom_metadata = CustomMetadata(metadata.csv_file_fields, metadata.csv_file_content_list, metadata.csv_file_content_dict)
+  custom_metadata_update = custom_metadata.custom_metadata_update
   
+  print 'QQQ1 = required_metadata_update'
+  print required_metadata_update
+
+  print 'QQQ2 = add_fields_to_db_set'
+  print add_fields_to_db_set
+
+
+  print 'QQQ3 = custom_metadata_update'
+  print custom_metadata_update
   
