@@ -51,7 +51,39 @@ class Metadata():
     'references',
     'username']
     
+  term_equivalents = {'abyssal zone biome':'marine abyssal zone biome',
+    'anaerobic':'anaerobic sediment',
+    'bathyal biome':'marine bathyal zone biome',
+    'benthic biome':'marine benthic biome',
+    'biogenous':'biogenous sediment',
+    'carbon dioxide-reducing':'carbon dioxide-reducing sediment',
+    'colloidal':'colloidal sediment',
+    'contaminated':'contaminated sediment',
+    'granular':'granular sediment',
+    'groundwater':'ground water',
+    'hadal zone biome':'marine hadal zone biome',
+    'holomictic - fully mixed lake':'holomictic lake',
+    'hydrogenous':'hydrogenous sediment',
+    'hyperthermophilic':'hyperthermophilic sediment',
+    'inorganically contaminated':'inorganically contaminated sediment',
+    'iron-reducing':'iron-reducing sediment',
+    'manganese-reducing':'manganese-reducing sediment',
+    'marine':'marine biome',
+    'meromictic - non-mixing lake':'meromictic lake',
+    'mesophilic':'mesophilic sediment',
+    'nitrate-reducing':'nitrate-reducing sediment',
+    'organically contaminated':'organically contaminated sediment',
+    'pelagic biome':'marine pelagic biome',
+    'petroleum contaminated':'petroleum contaminated sediment',
+    'radioactive':'radioactive sediment',
+    'sulphate-reducing':'sulphate-reducing sediment',
+    'terrestrial':'terrestrial biome',
+    'terrigenous':'terrigenous sediment',
+    'vent':'marine hydrothermal vent'}
+    
   empty_equivalents = ['none', 'undefined', 'please choose one', '']
+  
+  env_fields = ['env_feature', 'env_biome', 'env_material', 'env_package']
   
   field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 
   'feature_secondary':'env_feature_sec', 
@@ -227,10 +259,16 @@ class RequiredMetadata(Metadata):
         except MySQLdb.Error, e:
           # utils.print_both('Error %d: %s' % (e.args[0], e.args[1]))
           # def get_all_name_id(self, table_name, id_name = '', field_name = '', where_part = ''):
-
-          if field in ['env_feature', 'env_biome', 'env_material', 'env_package']:
+          
+          if field in Metadata.env_fields:
             field_name = 'term_name'
-            where_part = 'WHERE %s = "%s" or %s = "%s %s"' % (field_name, val, field_name, val, field.lstrip('env_'))
+            try:
+              where_part = 'WHERE %s in ("%s", "%s")' % (field_name, val, Metadata.term_equivalents[val])              
+            except KeyError:
+              where_part = 'WHERE %s = "%s"' % (field_name, val)
+            except:
+              raise
+
             res1 = mysql_utils.get_all_name_id('term', field_name = field_name, where_part = where_part)
             if res1:
               self.required_metadata_update[dataset][field_id_name] = int(res1[0][1])
@@ -362,14 +400,45 @@ class Upload():
   # upload required data
   
   def __init__(self):
-    pass
+    print "EEE required_metadata_update"
+    print required_metadata_update
+    
+    self.update_required_metadata()
+
+  def update_required_metadata(self):
+    # make one big query with multiple sets?
+    for dataset_id in required_metadata_update.keys():
+      for field_name, field_value in required_metadata_update[dataset_id].items():
+        print 'field_name = %s, field_value = %s' % (field_name, field_value)
+        query = """ UPDATE required_metadata_info 
+                    SET required_metadata_info.%s = '%s',
+                        updated_at = Now()                        
+                    where dataset_id = '%s'
+                """ % (field_name, str(field_value), dataset_id)
+        print "UUU query"
+        print query
+        res = mysql_utils.execute_no_fetch(query)
+        print "RRR res"
+        print res
+        
+    
+
 
   # TODO:
-  
   # required
+  
+  # update if different!
+  
   # UPDATE required_metadata_info_new_view_temp AS base JOIN
   # term AS t2 on(env_biome = term_name)
   # SET base.env_biome_id = t2.term_id
+  # query = """UPDATE refids_per_dataset_temp
+  #     JOIN new_dataset using(dataset)
+  #     SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
+  # """
+  # print query
+  # return mysql_utils.execute_no_fetch(query)
+  
 
   # UPDATE required_metadata_info
   # JOIN dataset USING(dataset_id)
@@ -448,4 +517,6 @@ if __name__ == '__main__':
 
   print 'QQQ3 = custom_metadata_update'
   print custom_metadata_update
+  
+  upload_metadata = Upload()
   
