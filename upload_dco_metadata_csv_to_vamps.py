@@ -51,18 +51,119 @@ class Metadata():
     'references',
     'username']
     
-  empty_equivalents = ['none', 'undefined', 'please choose one', '']
+  csv_fields_with_units = {"FISH_probe_name":"",
+    "FISH_probe_seq":"",
+    "NPOC":"percent",
+    "adapter_sequence":"",
+    "alkalinity":"meq/L",
+    "ammonium":"µmol/kg",
+    "bicarbonate":"µmol/kg",
+    "biomass_dry_weight":"gram",
+    "biomass_wet_weight":"gram",
+    "biome_secondary":"",
+    "calcium":"µmol/kg",
+    "calcium_carbonate":"percent",
+    "chloride":"µmol/kg",
+    "clone_library_results":"",
+    "collection_date":"YYYY-MM-DD",
+    "conductivity":"mS/cm",
+    "dataset":"",
+    "del18O_water":"parts per mil",
+    "depth_subseafloor":"mbsf",
+    "depth_subterrestrial":"meter",
+    "diss_hydrogen":"µmol/kg",
+    "diss_inorg_carb":"µmol/kg",
+    "diss_inorg_carbon_del13C":"parts per mil",
+    "diss_org_carb":"µmol/kg",
+    "diss_oxygen":"µmol/kg",
+    "dna_extraction_meth":"",
+    "dna_quantitation":"",
+    "dna_region":"",
+    "domain":"",
+    "elevation":"meter",
+    "env_biome":"",
+    "env_feature":"",
+    "env_material":"",
+    "env_package":"",
+    "enzyme_activities":"",
+    "feature_secondary":"",
+    "formation_name":"",
+    "forward_primer":"",
+    "functional_gene_assays":"",
+    "geo_loc_name_continental":"",
+    "geo_loc_name_marine":"",
+    "illumina_index":"",
+    "intact_polar_lipid":"pg/g",
+    "investigation_type":"",
+    "iron":"µmol/kg",
+    "iron_II":"µmol/kg",
+    "iron_III":"µmol/kg",
+    "isol_growth_cond", "PMID, DOI or URL",
+    "latitude":"decimal degrees ±90°",
+    "longitude":"decimal degrees ±180°",
+    "magnesium":"µmol/kg",
+    "manganese":"µmol/kg",
+    "material_secondary":"",
+    "methane":"µmol/kg",
+    "methane_del13C":"parts per mil",
+    "microbial_biomass_FISH":"cells/g",
+    "microbial_biomass_microscopic":"cells/g",
+    "microbial_biomass_qPCR":"gene copies",
+    "n_acid_for_cell_cnt":"",
+    "nitrate":"µmol/kg",
+    "nitrite":"µmol/kg",
+    "nitrogen_tot":"µmol/kg",
+    "noble_gas_chemistry":"",
+    "org_carb_nitro_ratio":"",
+    "pH":"",
+    "part_org_carbon_del13C":"parts per mil",
+    "phosphate":"µmol/kg",
+    "plate_counts":"CFU/ml",
+    "porosity":"percent",
+    "potassium":"µmol/kg",
+    "pressure":"decibar",
+    "redox_potential":"millivolt",
+    "redox_state":"",
+    "resistivity":"ohm-meter",
+    "reverse_primer":"",
+    "rock_age":"millions of years (Ma)",
+    "run":"YYYY-MM-DD",
+    "salinity":"PSS-78",
+    "samp_store_dur":"days",
+    "samp_store_temp":"degrees celsius",
+    "sample_collection_device":"",
+    "sample_name":"",
+    "sample_size_mass":"gram",
+    "sample_size_vol":"liter",
+    "sample_type":"",
+    "sequencing_meth":"",
+    "sodium":"µmol/kg",
+    "structured comment name":"",
+    "sulfate":"µmol/kg",
+    "sulfide":"µmol/kg",
+    "sulfur_tot":"µmol/kg",
+    "target_gene":"",
+    "temperature":"degrees celsius",
+    "tot_carb":"percent",
+    "tot_depth_water_col":"meter",
+    "tot_inorg_carb":"percent",
+    "tot_org_carb":"percent",
+    "trace_element_geochem":"",
+    "water_age":"thousands of years (ka)"
+    }
+    
+  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', '']
   
   field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec', 
-  'feature_secondary':'env_feature_sec', 
-  'material_secondary':'env_material_sec',
-  'geo_loc_name_continental':'geo_loc_name',
-  'dna_extraction_meth': 'DNA_extraction_method'}
+    'feature_secondary':'env_feature_sec', 
+    'material_secondary':'env_material_sec',
+    'geo_loc_name_continental':'geo_loc_name',
+    'dna_extraction_meth': 'DNA_extraction_method'}
     
   not_req_fields_from_csv = []
-  csv_file_fields = []
-  csv_file_content_list = []
-  csv_file_content_dict = []
+  csv_file_fields         = []
+  csv_file_content_list   = []
+  csv_file_content_dict   = []
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
@@ -79,7 +180,6 @@ class Metadata():
     # print 'csv_file_content_list = '
     # print self.csv_file_content_list
     
-    
   def get_data_from_csv(self, input_file):
     # TODO: get from args
     # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
@@ -95,8 +195,6 @@ class Metadata():
         new_format.append(dictionary)        
     return new_format
     
-
-   
 class RequiredMetadata(Metadata):
   # find ids by value
   # find and print errors
