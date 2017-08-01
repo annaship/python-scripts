@@ -566,7 +566,7 @@ class Upload():
     
     for column_name in add_fields_to_db_set:
       query = """ALTER TABLE custom_metadata_%s
-                ADD COLUMN `%s` varchar(128) DEFAULT NULL
+                ADD COLUMN IF NOT EXISTS `%s` varchar(128) DEFAULT NULL
             """ % (project_id, column_name)
       print "UUU query"
       print query
