@@ -245,6 +245,41 @@ class RequiredMetadata(Metadata):
   # Index sequence (for Illumina)
   # Adapter sequence
   # Sequencing run date
+  
+  # check terms
+  # UPDATE required_metadata_info_new_view_temp AS base JOIN
+  # term AS t2 on(env_biome = term_name)
+  # SET base.env_biome_id = t2.term_id
+  # query = """UPDATE refids_per_dataset_temp
+  #     JOIN new_dataset using(dataset)
+  #     SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
+  # """
+  # print query
+  # return mysql_utils.execute_no_fetch(query)
+  
+
+  # UPDATE required_metadata_info
+  # JOIN dataset USING(dataset_id)
+  # JOIN project USING(project_id)
+  # SET required_metadata_info.env_biome_id = (SELECT term_id FROM term
+  # WHERE term_name = "terrestrial biome")
+  # WHERE project = "DCO_TCO_Bv6";
+  # 
+  
+  # update required_metadata_info 
+  # join env_package using(env_package_id)
+  # join dataset using(dataset_id)
+  # join project using(project_id)
+  # set required_metadata_info.env_package_id = (select env_package_id from env_package where env_package = "water")
+  # where env_package = "extreme_habitat"
+  # and project in ("DCO_GRA_Bv6v4",
+  # "DCO_SYL_Bv6v4",
+  # "DCO_BOM_Bv6",
+  # "DCO_BOM_Av6");
+  
+  # join term on (geo_loc_name_id = term_id)
+  # set required_metadata_info.geo_loc_name_id = (select term_id from term where term_name = "CCAL" and ontology_id = 3)
+  
 
   def __init__(self):
     self.fields = Metadata.csv_file_fields
@@ -493,15 +528,19 @@ class CustomMetadata(Metadata):
  
 
 class Upload():
+  # upload required data
   # check if all custom fields are in custom_metadata_fields and custom_metadata_##
   # upload custom data
-  # upload required data
+  # custom 1: alter table custom_metadata_##
+  # custom 2: add custom_metadata_fields
+  # custom 3: UPDATE custom_metadata_##
   
   def __init__(self):
     # print "EEE required_metadata_update"
     # print required_metadata_update
     
     self.update_required_metadata()
+    self.add_fields_to_custom_metadata_table()
 
   def update_required_metadata(self):
     for dataset_id in required_metadata_update.keys():
@@ -521,49 +560,21 @@ class Upload():
       # print "RRR res"
       # print res
         
+  def add_fields_to_custom_metadata_table(self):
+    # QQQ2 = add_fields_to_db_set
+    # set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
     
+    for column_name in add_fields_to_db_set:
+      query = """ALTER TABLE custom_metadata_%s
+                ADD COLUMN `%s` varchar(128) DEFAULT NULL
+            """ % (project_id, column_name)
+      print "UUU query"
+      print query
+    
+  
 
 
   # TODO:
-  # required
-  
-  # update if different!
-  
-  # UPDATE required_metadata_info_new_view_temp AS base JOIN
-  # term AS t2 on(env_biome = term_name)
-  # SET base.env_biome_id = t2.term_id
-  # query = """UPDATE refids_per_dataset_temp
-  #     JOIN new_dataset using(dataset)
-  #     SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
-  # """
-  # print query
-  # return mysql_utils.execute_no_fetch(query)
-  
-
-  # UPDATE required_metadata_info
-  # JOIN dataset USING(dataset_id)
-  # JOIN project USING(project_id)
-  # SET required_metadata_info.env_biome_id = (SELECT term_id FROM term
-  # WHERE term_name = "terrestrial biome")
-  # WHERE project = "DCO_TCO_Bv6";
-  # 
-  
-  # update required_metadata_info 
-  # join env_package using(env_package_id)
-  # join dataset using(dataset_id)
-  # join project using(project_id)
-  # set required_metadata_info.env_package_id = (select env_package_id from env_package where env_package = "water")
-  # where env_package = "extreme_habitat"
-  # and project in ("DCO_GRA_Bv6v4",
-  # "DCO_SYL_Bv6v4",
-  # "DCO_BOM_Bv6",
-  # "DCO_BOM_Av6");
-  
-  # join term on (geo_loc_name_id = term_id)
-  # set required_metadata_info.geo_loc_name_id = (select term_id from term where term_name = "CCAL" and ontology_id = 3)
-  
-  
-  
   # custom 1
   # alter table custom_metadata_##
   # add column `env_biome_sec` varchar(128) DEFAULT NULL,
@@ -607,6 +618,7 @@ if __name__ == '__main__':
   # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
   add_fields_to_db_set = custom_metadata.fields_to_add_to_db
   custom_metadata_update = custom_metadata.custom_metadata_update
+  project_id = custom_metadata.project_id
   
   print 'QQQ1 = required_metadata_update'
   print required_metadata_update
