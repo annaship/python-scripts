@@ -498,26 +498,29 @@ class Upload():
   # upload required data
   
   def __init__(self):
-    print "EEE required_metadata_update"
-    print required_metadata_update
+    # print "EEE required_metadata_update"
+    # print required_metadata_update
     
     self.update_required_metadata()
 
   def update_required_metadata(self):
     # make one big query with multiple sets?
     for dataset_id in required_metadata_update.keys():
+      set_str = ""
       for field_name, field_value in required_metadata_update[dataset_id].items():
-        print 'field_name = %s, field_value = %s' % (field_name, field_value)
-        query = """ UPDATE required_metadata_info 
-                    SET required_metadata_info.%s = '%s',
-                        updated_at = Now()                        
-                    where dataset_id = '%s'
-                """ % (field_name, str(field_value), dataset_id)
-        print "UUU query"
-        print query
-        res = mysql_utils.execute_no_fetch(query)
-        print "RRR res"
-        print res
+        set_str += """required_metadata_info.%s = '%s', """ % (field_name, field_value)
+        
+        print 'field_name = %s, field_value = %s' % (field_name, str(field_value))
+      query = """ UPDATE required_metadata_info 
+                  SET %s
+                      updated_at = Now()                        
+                  where dataset_id = '%s'
+              """ % (set_str, dataset_id)
+      print "UUU query"
+      print query
+      res = mysql_utils.execute_no_fetch(query)
+      print "RRR res"
+      print res
         
     
 
