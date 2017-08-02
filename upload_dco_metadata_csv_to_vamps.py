@@ -486,31 +486,13 @@ class CustomMetadata(Metadata):
     # print self.fields_to_add_to_db
         
   def get_new_fields_units(self, field):
-    print "TTT0 field = "
-    print field
-    # new_col = [field, ""]
-    # print "TTT1 new_col = "
-    # print new_col
     try:
-      # new_column_name = new_column_units = ""
       new_col = field.split('--UNITS--')
-      # new_column_name = new_col[0]
-      # new_column_units = new_col[1]
-      # print 'WWW new_column_name = %s, new_column_units = %s' % (new_column_name, new_column_units)
-      #WWW new_column_name = column_name_1, new_column_units = row_1_units
     except IndexError:
       new_col = [field, ""]
-      
-      # pass      
     except:
       raise
-      
-    print "TTT1 new_col = "
-    print new_col
-      
     return new_col
-    
-    
     # column_name_1--UNITS--row_1_units1
     
   def populate_custom_data_from_csv(self):
@@ -603,11 +585,15 @@ class Upload():
   def add_fields_to_custom_metadata_table(self):
     # QQQ2 = add_fields_to_db_set
     # set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
-    
-    for column_name in add_fields_to_db_set:
+    # defaultdict(<type 'dict'>, {'dna_quantitation': ['dna_quantitation'], 'project_abstract': ['project_abstract'], 'column_name_1--UNITS--row_1_units': ['column_name_1', 'row_1_units']})
+
+    for k, v in add_fields_to_db_set.items():
+      print "UUU1 v"
+      print v
+      # column_name = v[0]
       query = """ALTER TABLE custom_metadata_%s
                 ADD COLUMN IF NOT EXISTS `%s` varchar(128) DEFAULT NULL
-            """ % (project_id, column_name)
+            """ % (project_id, v[0])
       print "UUU query"
       print query
     
