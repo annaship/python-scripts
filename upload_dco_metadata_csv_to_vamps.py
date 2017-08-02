@@ -221,8 +221,8 @@ class Metadata():
     
     Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
     
-    print "MMM3 Metadata.csv_fields_with_units"
-    print Metadata.csv_fields_with_units
+    print "MMM3 Metadata.csv_file_content_dict"
+    print Metadata.csv_file_content_dict
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
     print 'Metadata.not_req_fields_from_csv'
@@ -236,13 +236,15 @@ class Metadata():
     # print self.csv_file_content_list
     
   def get_new_fields_units(self, field):
-    # print "MMM Metadata.csv_file_fields"
-    # print Metadata.csv_file_fields
+    print "field"
+    print field
     # field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
     try:
       new_col = field.split('--UNITS--')
-      Metadata.field_names_equivalents_csv_db[field] = new_col[0]
-      Metadata.csv_fields_with_units[new_col[0]] = new_col[1]
+      if field != new_col[0]:
+        Metadata.field_names_equivalents_csv_db[field] = new_col[0]
+        Metadata.csv_fields_with_units[new_col[0]] = new_col[1]
+      #TODO: change field to new_col[0] in Metadata.csv_file_fields
     except IndexError:
       pass
     #   new_col = [field, csv_fields_with_units[field]]
@@ -259,10 +261,13 @@ class Metadata():
   def change_keys_in_csv_content_dict(self, arr_of_dictis, key_dict):
     new_format = []
     for old_key, new_key in key_dict.items():
-      for dictionary in arr_of_dictis:
-        dictionary[new_key] = dictionary[old_key]
-        del dictionary[old_key]
-        new_format.append(dictionary)
+      if old_key != new_key:
+        for dictionary in arr_of_dictis:
+          # print 'dictionary = %s' % (dictionary)
+        
+          dictionary[new_key] = dictionary[old_key]
+          del dictionary[old_key]
+          new_format.append(dictionary)
     return new_format
 
 class RequiredMetadata(Metadata):
