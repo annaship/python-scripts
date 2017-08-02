@@ -473,13 +473,7 @@ class CustomMetadata(Metadata):
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
-          field = self.get_new_fields_units(key)
-          print "TTT field"
-          print field
-          try:
-            self.fields_to_add_to_db[key] = field
-          except:
-            raise
+          self.fields_to_add_to_db[key] = self.get_new_fields_units(key)
     # print "EEE self.fields_to_add_to_db = "
     # print self.fields_to_add_to_db
 
@@ -584,11 +578,11 @@ class Upload():
       # print res
 
   def add_fields_to_custom_metadata_table(self):
-    # QQQ2 = add_fields_to_db_set
+    # QQQ2 = add_fields_to_db_dict
     # set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
     # defaultdict(<type 'dict'>, {'dna_quantitation': ['dna_quantitation'], 'project_abstract': ['project_abstract'], 'column_name_1--UNITS--row_1_units': ['column_name_1', 'row_1_units']})
 
-    for k, v in add_fields_to_db_set.items():
+    for k, v in add_fields_to_db_dict.items():
       query = """ALTER TABLE custom_metadata_%s
                 ADD COLUMN IF NOT EXISTS `%s` varchar(128) DEFAULT NULL
             """ % (project_id, v[0])
@@ -596,10 +590,7 @@ class Upload():
       print query
 
   def add_fields_to_custom_metadata_fields(self):
-    for k, v in add_fields_to_db_set.items():
-      print "RRR v"
-      print v
-      
+    for k, v in add_fields_to_db_dict.items():
       try:
         f_units = v[1]
       except IndexError:
@@ -608,7 +599,8 @@ class Upload():
         raise
 
       query = """INSERT IGNORE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, v[0], f_units, "")
-
+      print "UUU5 query"
+      print query
 
 
 
@@ -654,15 +646,15 @@ if __name__ == '__main__':
   required_metadata_update = required_metadata.required_metadata_update
 
   # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
-  add_fields_to_db_set = custom_metadata.fields_to_add_to_db
+  add_fields_to_db_dict = custom_metadata.fields_to_add_to_db
   custom_metadata_update = custom_metadata.custom_metadata_update
   project_id = custom_metadata.project_id
 
   print 'QQQ1 = required_metadata_update'
   print required_metadata_update
 
-  print 'QQQ2 = add_fields_to_db_set'
-  print add_fields_to_db_set
+  print 'QQQ2 = add_fields_to_db_dict'
+  print add_fields_to_db_dict
 
   print 'QQQ3 = custom_metadata_update'
   print custom_metadata_update
