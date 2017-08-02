@@ -435,7 +435,7 @@ class CustomMetadata(Metadata):
     
     self.content_list = Metadata.csv_file_content_list
     self.custom_metadata_update = defaultdict(dict)
-    self.fields_to_add_to_db = set()
+    self.fields_to_add_to_db = defaultdict(dict)
   
 
     # self.not_req_fields =
@@ -463,7 +463,6 @@ class CustomMetadata(Metadata):
     
         
     self.get_not_empty_csv_only_fields()
-    self.get_new_fields_units()
 
     # self.new_custom_fields = 
     self.populate_custom_data_from_csv()
@@ -473,25 +472,44 @@ class CustomMetadata(Metadata):
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
-          self.fields_to_add_to_db.add(key)
+          field = self.get_new_fields_units(key)
+          print "TTT field"
+          print field
+          
+          try:
+            self.fields_to_add_to_db[key] = field
+          except IndexError:
+            self.fields_to_add_to_db[key] = field
+          except:
+            raise
     # print "EEE self.fields_to_add_to_db = "
     # print self.fields_to_add_to_db
         
-  def get_new_fields_units(self):
-    for field in self.fields_to_add_to_db:
-      print 'www1 field = %s' % (field)
-      try:
-        new_column_name = new_column_units = "" 
-        new_col = field.split('--UNITS--')
-        new_column_name = new_col[0]
-        new_column_units = new_col[1]
-        print 'WWW new_column_name = %s, new_column_units = %s' % (new_column_name, new_column_units)
-        #WWW new_column_name = column_name_1, new_column_units = row_1_units
-
-      except IndexError:
-        pass
-      except:
-        raise
+  def get_new_fields_units(self, field):
+    print "TTT0 field = "
+    print field
+    # new_col = [field, ""]
+    # print "TTT1 new_col = "
+    # print new_col
+    try:
+      # new_column_name = new_column_units = ""
+      new_col = field.split('--UNITS--')
+      # new_column_name = new_col[0]
+      # new_column_units = new_col[1]
+      # print 'WWW new_column_name = %s, new_column_units = %s' % (new_column_name, new_column_units)
+      #WWW new_column_name = column_name_1, new_column_units = row_1_units
+    except IndexError:
+      new_col = [field, ""]
+      
+      # pass      
+    except:
+      raise
+      
+    print "TTT1 new_col = "
+    print new_col
+      
+    return new_col
+    
     
     # column_name_1--UNITS--row_1_units1
     
@@ -647,7 +665,6 @@ if __name__ == '__main__':
 
   print 'QQQ2 = add_fields_to_db_set'
   print add_fields_to_db_set
-
 
   print 'QQQ3 = custom_metadata_update'
   print custom_metadata_update
