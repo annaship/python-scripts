@@ -7,6 +7,12 @@ import csv
 import sys
 import argparse
 from collections import defaultdict
+try:
+    # Python 2.6-2.7 
+    from HTMLParser import HTMLParser
+except ImportError:
+    # Python 3
+    from html.parser import HTMLParser
 
     
 class Metadata():
@@ -457,6 +463,7 @@ class CustomMetadata(Metadata):
     
         
     self.get_not_empty_csv_only_fields()
+    self.get_new_fields_units()
 
     # self.new_custom_fields = 
     self.populate_custom_data_from_csv()
@@ -470,7 +477,23 @@ class CustomMetadata(Metadata):
     # print "EEE self.fields_to_add_to_db = "
     # print self.fields_to_add_to_db
         
-      
+  def get_new_fields_units(self):
+    for field in self.fields_to_add_to_db:
+      print 'www1 field = %s' % (field)
+      try:
+        new_column_name = new_column_units = "" 
+        new_col = field.split('--UNITS--')
+        new_column_name = new_col[0]
+        new_column_units = new_col[1]
+        print 'WWW new_column_name = %s, new_column_units = %s' % (new_column_name, new_column_units)
+        #WWW new_column_name = column_name_1, new_column_units = row_1_units
+
+      except IndexError:
+        pass
+      except:
+        raise
+    
+    # column_name_1--UNITS--row_1_units1
     
   def populate_custom_data_from_csv(self):
     
@@ -478,9 +501,11 @@ class CustomMetadata(Metadata):
     # print 'Metadata.csv_file_content_dict'
     # print len(Metadata.csv_file_content_dict) 8
     
-    all_custom_fields = list(self.custom_fields_from_db) + list(self.fields_to_add_to_db)
+    
+    all_custom_fields = list(self.custom_fields_from_db) + list()
     print "AAA all_custom_fields"
     print all_custom_fields
+    html_pars = HTMLParser()
     
     
     for d in Metadata.csv_file_content_dict:
@@ -499,11 +524,8 @@ class CustomMetadata(Metadata):
           # should be only set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
           
           if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
-            # print "else"
-            # print 'key = %s, val = %s' % (key, val)
-            # 
-            self.custom_metadata_update[dataset_id][key] = val
-          
+            self.custom_metadata_update[dataset_id][key] = html_pars.unescape(val)
+            
 
     print "CCC custom_metadata_update = "
     print self.custom_metadata_update
