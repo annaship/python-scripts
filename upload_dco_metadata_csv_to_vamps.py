@@ -508,28 +508,12 @@ class CustomMetadata(Metadata):
           # print 'YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field)          
           if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
             column_name = key
-            print "FFF31 self.fields_to_add_to_db = "
-            print self.fields_to_add_to_db
-            print len(self.fields_to_add_to_db)
-            print "YYY0 key"
-            print key
-            # print "YYY len(self.fields_to_add_to_db[key]"
-            # print len(self.fields_to_add_to_db[key])
-            print "FFF33 self.fields_to_add_to_db = "
-            print self.fields_to_add_to_db
-            
             if (key in self.fields_to_add_to_db and len(self.fields_to_add_to_db[key]) > 0):
               column_name = self.fields_to_add_to_db[key][0]
-              print "FFF32 self.fields_to_add_to_db = "
-              print self.fields_to_add_to_db
-              print len(self.fields_to_add_to_db)
             self.custom_metadata_update[dataset_id][column_name] = html_pars.unescape(val)
 
     print "CCC custom_metadata_update = "
     print self.custom_metadata_update
-
-    print "FFF1 self.fields_to_add_to_db = "
-    print self.fields_to_add_to_db
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
       # TODO: env_feature is not in term?
 
