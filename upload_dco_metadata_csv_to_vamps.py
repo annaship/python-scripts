@@ -438,7 +438,6 @@ class CustomMetadata(Metadata):
     self.custom_metadata_update = defaultdict(dict)
     self.fields_to_add_to_db = defaultdict(dict)
 
-
     # self.not_req_fields =
     self.project_id = self.get_project_id()
     # print self.project_id
@@ -474,8 +473,6 @@ class CustomMetadata(Metadata):
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
           self.fields_to_add_to_db[key] = self.get_new_fields_units(key)
-    # print "EEE self.fields_to_add_to_db = "
-    # print self.fields_to_add_to_db
 
   def get_new_fields_units(self, field):
     try:
@@ -492,14 +489,14 @@ class CustomMetadata(Metadata):
     # print 'type(Metadata.csv_file_content_dict)' list
     # print 'Metadata.csv_file_content_dict'
     # print len(Metadata.csv_file_content_dict) 8
-
-
-    all_custom_fields = list(self.custom_fields_from_db) + list()
+    
+    all_custom_fields = list(self.custom_fields_from_db) + list(self.fields_to_add_to_db.keys())
     print "AAA all_custom_fields"
     print all_custom_fields
     html_pars = HTMLParser()
 
-
+    print "FFF2 self.fields_to_add_to_db = "
+    print self.fields_to_add_to_db
     for d in Metadata.csv_file_content_dict:
       current_dict = utils.slicedict(d, all_custom_fields)
       dataset_id = current_dict['dataset_id']
@@ -508,22 +505,31 @@ class CustomMetadata(Metadata):
 
       for key, val in current_dict.items():
         for cust_field in all_custom_fields:
-
-          # if (cust_field != key) and (val not in Metadata.empty_equivalents):
-          #   # print "if (cust_field != key) and (val not in Metadata.empty_equivalents)"
-          #   # print 'key = %s, val = %s' % (key, val)
-          #   fields_to_add_to_db.add(key) # wrong
-          # should be only set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
-
+          # print 'YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field)          
           if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
-            self.custom_metadata_update[dataset_id][key] = html_pars.unescape(val)
-
+            column_name = key
+            print "FFF31 self.fields_to_add_to_db = "
+            print self.fields_to_add_to_db
+            print len(self.fields_to_add_to_db)
+            print "YYY0 key"
+            print key
+            # print "YYY len(self.fields_to_add_to_db[key]"
+            # print len(self.fields_to_add_to_db[key])
+            print "FFF33 self.fields_to_add_to_db = "
+            print self.fields_to_add_to_db
+            
+            if (key in self.fields_to_add_to_db and len(self.fields_to_add_to_db[key]) > 0):
+              column_name = self.fields_to_add_to_db[key][0]
+              print "FFF32 self.fields_to_add_to_db = "
+              print self.fields_to_add_to_db
+              print len(self.fields_to_add_to_db)
+            self.custom_metadata_update[dataset_id][column_name] = html_pars.unescape(val)
 
     print "CCC custom_metadata_update = "
     print self.custom_metadata_update
 
-      # print "fields_to_add_to_db = "
-      # print fields_to_add_to_db
+    print "FFF1 self.fields_to_add_to_db = "
+    print self.fields_to_add_to_db
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
       # TODO: env_feature is not in term?
 
@@ -647,6 +653,9 @@ if __name__ == '__main__':
 
   # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
   add_fields_to_db_dict = custom_metadata.fields_to_add_to_db
+  print "FFF6 custom_metadata.fields_to_add_to_db = "
+  print custom_metadata.fields_to_add_to_db
+  
   custom_metadata_update = custom_metadata.custom_metadata_update
   project_id = custom_metadata.project_id
 
