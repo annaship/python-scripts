@@ -510,7 +510,8 @@ class CustomMetadata(Metadata):
             column_name = key
             if (key in self.fields_to_add_to_db and len(self.fields_to_add_to_db[key]) > 0):
               column_name = self.fields_to_add_to_db[key][0]
-            self.custom_metadata_update[dataset_id][column_name] = html_pars.unescape(val)
+            self.custom_metadata_update[dataset_id][column_name] = val
+            # html_pars.unescape(val)
 
     print "CCC custom_metadata_update = "
     print self.custom_metadata_update
@@ -548,6 +549,8 @@ class Upload():
     self.add_fields_to_custom_metadata_table()
     # custom 2
     self.add_fields_to_custom_metadata_fields()
+    # custom 3
+    self.update_custom_metadata()
 
   def update_required_metadata(self):
     for dataset_id in required_metadata_update.keys():
@@ -574,10 +577,13 @@ class Upload():
 
     for k, v in add_fields_to_db_dict.items():
       query = """ALTER TABLE custom_metadata_%s
-                ADD COLUMN IF NOT EXISTS `%s` varchar(128) DEFAULT NULL
+                ADD COLUMN `%s` varchar(128) DEFAULT NULL
             """ % (project_id, v[0])
       print "UUU query"
       print query
+      res = mysql_utils.execute_no_fetch(query)
+      print "res"
+      print res
 
   def add_fields_to_custom_metadata_fields(self):
     example = ""
@@ -604,8 +610,26 @@ class Upload():
       query = """INSERT IGNORE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, v[0], f_units, example)
       print "UUU5 query"
       print query
+      res = mysql_utils.execute_no_fetch(query)
+      print "res"
+      print res
 
-
+  def update_custom_metadata(self):
+    for dataset_id in custom_metadata_update.keys():    
+      table_name = "custom_metadata_" + str(project_id)
+      set_str = []
+      for field_name, field_value in custom_metadata_update[dataset_id].items():
+        set_str.append("%s.%s = '%s'" % (table_name, field_name, field_value))
+        # print 'field_name = %s, field_value = %s' % (field_name, str(field_value))
+      query = """ UPDATE %s
+                  SET %s
+                  where dataset_id = '%s'
+              """ % (table_name, ', '.join(set_str), dataset_id)
+      print "UUU00 query"
+      print query
+      res = mysql_utils.execute_no_fetch(query)
+      print "res"
+      print res
 
   # TODO:
   # custom 1
