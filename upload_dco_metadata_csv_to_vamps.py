@@ -508,7 +508,7 @@ class CustomMetadata(Metadata):
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
-          self.fields_to_add_to_db[key] = self.get_new_fields_units(key)
+          self.fields_to_add_to_db[key] = val
 
   def get_new_fields_units(self, field):
     try:
@@ -541,11 +541,15 @@ class CustomMetadata(Metadata):
 
       for key, val in current_dict.items():
         for cust_field in all_custom_fields:
-          # print 'YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field)          
+          # print 'YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field)
           if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
             column_name = key
             if (key in self.fields_to_add_to_db and len(self.fields_to_add_to_db[key]) > 0):
               column_name = self.fields_to_add_to_db[key][0]
+              print "000 column_name = "
+              print column_name
+              print "000111 self.fields_to_add_to_db[key] = "
+              print self.fields_to_add_to_db[key]
             self.custom_metadata_update[dataset_id][column_name] = val
             # html_pars.unescape(val)
 
