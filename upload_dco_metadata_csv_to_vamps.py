@@ -580,6 +580,7 @@ class Upload():
       print query
 
   def add_fields_to_custom_metadata_fields(self):
+    example = ""
     for k, v in add_fields_to_db_dict.items():
       try:
         f_units = v[1]
@@ -587,8 +588,20 @@ class Upload():
         f_units = ""
       except:
         raise
-
-      query = """INSERT IGNORE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, v[0], f_units, "")
+      for dataset_id, d in custom_metadata_update.items():
+        # print "MMM d"
+        # print d
+        
+        try:
+          example = d[v[0]]
+          # print "OOO example"
+          # print example
+        except KeyError:
+          pass
+        except: 
+          raise
+          
+      query = """INSERT IGNORE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, v[0], f_units, example)
       print "UUU5 query"
       print query
 
