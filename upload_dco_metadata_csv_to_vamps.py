@@ -179,6 +179,7 @@ class Metadata():
     'marine':'marine biome',
     'meromictic - non-mixing lake':'meromictic lake',
     'mesophilic':'mesophilic sediment',
+    'misc environment':'miscellaneous_natural_or_artificial_environment',
     'nitrate-reducing':'nitrate-reducing sediment',
     'organically contaminated':'organically contaminated sediment',
     'pelagic biome':'marine pelagic biome',
