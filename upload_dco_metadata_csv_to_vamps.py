@@ -419,6 +419,7 @@ class RequiredMetadata(Metadata):
 
     self.find_id_by_value(req_metadata_from_csv_no_id)
 
+  # TODO: simplify
   def find_id_by_value(self, req_metadata_from_csv_no_id):
     for dataset, inner_d in req_metadata_from_csv_no_id.items():
       # print 'dataset = %s, inner_d = %s' % (dataset, inner_d)
@@ -520,6 +521,7 @@ class CustomMetadata(Metadata):
   #   return new_col
     # column_name_1--UNITS--row_1_units1
 
+  # TODO: simplify
   def populate_custom_data_from_csv(self):
 
     # print 'type(Metadata.csv_file_content_dict)' list
@@ -529,7 +531,7 @@ class CustomMetadata(Metadata):
     all_custom_fields = list(self.custom_fields_from_db) + list(self.fields_to_add_to_db.keys())
     print "AAA all_custom_fields"
     print all_custom_fields
-    html_pars = HTMLParser()
+    # html_pars = HTMLParser()
 
     print "FFF2 self.fields_to_add_to_db = "
     print self.fields_to_add_to_db
@@ -543,8 +545,8 @@ class CustomMetadata(Metadata):
         for cust_field in all_custom_fields:
           # print 'YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field)
           if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
-            column_name = key
-            self.custom_metadata_update[dataset_id][column_name] = val
+            # column_name = key
+            self.custom_metadata_update[dataset_id][key] = val
             # html_pars.unescape(val)
 
     print "CCC custom_metadata_update = "
@@ -606,8 +608,8 @@ class Upload():
 
   def add_fields_to_custom_metadata_table(self):
     # QQQ2 = add_fields_to_db_dict
-    # set(['column_name_1_units_in_row_1', 'project_abstract', 'dna_quantitation'])
-    # defaultdict(<type 'dict'>, {'dna_quantitation': ['dna_quantitation'], 'project_abstract': ['project_abstract'], 'column_name_1--UNITS--row_1_units': ['column_name_1', 'row_1_units']})
+    # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
+
 
     for k, v in add_fields_to_db_dict.items():
       query = """ALTER TABLE custom_metadata_%s
@@ -632,6 +634,7 @@ class Upload():
       print "res"
       print res
 
+  # TODO: combine with update_required_metadata
   def update_custom_metadata(self):
     for dataset_id in custom_metadata_update.keys():    
       table_name = "custom_metadata_" + str(project_id)
