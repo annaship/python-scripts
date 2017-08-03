@@ -610,9 +610,11 @@ class Upload():
     # defaultdict(<type 'dict'>, {'dna_quantitation': ['dna_quantitation'], 'project_abstract': ['project_abstract'], 'column_name_1--UNITS--row_1_units': ['column_name_1', 'row_1_units']})
 
     for k, v in add_fields_to_db_dict.items():
+      print 'k = %s, v = %s' % (k, v)
+      
       query = """ALTER TABLE custom_metadata_%s
                 ADD COLUMN `%s` varchar(128) DEFAULT NULL
-            """ % (project_id, v[0])
+            """ % (project_id, k)
       print "UUU query"
       print query
       res = mysql_utils.execute_no_fetch(query)
