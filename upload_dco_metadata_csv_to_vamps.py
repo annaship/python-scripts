@@ -192,7 +192,7 @@ class Metadata():
 
   empty_equivalents = ['none', 'undefined', 'please choose one', '']
 
-  env_fields = ['env_feature', 'env_biome', 'env_material', 'env_package']
+  env_fields = ['env_feature', 'env_biome', 'env_material']
 
   field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
     'feature_secondary':'env_feature_sec',
@@ -425,33 +425,42 @@ class RequiredMetadata(Metadata):
     for dataset, inner_d in req_metadata_from_csv_no_id.items():
       # print 'dataset = %s, inner_d = %s' % (dataset, inner_d)
       for field, val in inner_d.items():
-        # print 'field = %s, val = %s' % (field, val)
-        where_part = 'WHERE %s = "%s"' % (field, val)
-        field_id_name = field + '_id'
-        try:
-          res = mysql_utils.get_all_name_id(field, where_part = where_part)
-          # print 'res'
-          # print res
-          if res:
-            self.required_metadata_update[dataset][field_id_name] = int(res[0][1])
-        except MySQLdb.Error, e:
-          # utils.print_both('Error %d: %s' % (e.args[0], e.args[1]))
-          # def get_all_name_id(self, table_name, id_name = '', field_name = '', where_part = ''):
+        if val.lower() not in Metadata.empty_equivalents:
+          try:
+            clean_val = Metadata.term_equivalents[val]
+          except KeyError:
+            clean_val = val
+          except:
+            raise
+            #empty_equivalents
+          print 'FFF field = %s, val = %s, clean_val = %s' % (field, val, clean_val)
+          where_part = 'WHERE %s = "%s"' % (field, clean_val)
+          field_id_name = field + '_id'
+          try:
+            res = mysql_utils.get_all_name_id(field, where_part = where_part)
+            # print 'res'
+            # print res
+            if res:
+              self.required_metadata_update[dataset][field_id_name] = int(res[0][1])
+          except MySQLdb.Error, e:
+            # utils.print_both('Error %d: %s' % (e.args[0], e.args[1]))
+            # def get_all_name_id(self, table_name, id_name = '', field_name = '', where_part = ''):
+            # if field == 'env_package':
+            
+            if field in Metadata.env_fields:
+              field_name = 'term_name'
+              try:
+                where_part = 'WHERE %s in ("%s", "%s")' % (field_name, val, clean_val)
+              except KeyError:
+                where_part = 'WHERE %s = "%s"' % (field_name, clean_val)
+              except:
+                raise
 
-          if field in Metadata.env_fields:
-            field_name = 'term_name'
-            try:
-              where_part = 'WHERE %s in ("%s", "%s")' % (field_name, val, Metadata.term_equivalents[val])
-            except KeyError:
-              where_part = 'WHERE %s = "%s"' % (field_name, val)
-            except:
-              raise
-
-            res1 = mysql_utils.get_all_name_id('term', field_name = field_name, where_part = where_part)
-            if res1:
-              self.required_metadata_update[dataset][field_id_name] = int(res1[0][1])
-        except:
-          raise
+              res1 = mysql_utils.get_all_name_id('term', field_name = field_name, where_part = where_part)
+              if res1:
+                self.required_metadata_update[dataset][field_id_name] = int(res1[0][1])
+          except:
+            raise
 
     print 'self.required_metadata_update'
     print self.required_metadata_update
