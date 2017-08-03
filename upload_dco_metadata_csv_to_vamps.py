@@ -211,23 +211,23 @@ class Metadata():
     for field in Metadata.csv_file_fields:
       self.get_new_fields_units(field)
       
-    print "MMM0 Metadata.csv_file_fields"
-    print Metadata.csv_file_fields
-
-    print "MMM1 Metadata.field_names_equivalents_csv_db"
-    print Metadata.field_names_equivalents_csv_db
-
-    print "MMM2 Metadata.csv_fields_with_units"
-    print Metadata.csv_fields_with_units
+    # print "MMM0 Metadata.csv_file_fields"
+    # print Metadata.csv_file_fields
+    #
+    # print "MMM1 Metadata.field_names_equivalents_csv_db"
+    # print Metadata.field_names_equivalents_csv_db
+    #
+    # print "MMM2 Metadata.csv_fields_with_units"
+    # print Metadata.csv_fields_with_units
     
     Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
     
-    print "MMM3 Metadata.csv_file_content_dict"
-    print Metadata.csv_file_content_dict
+    # print "MMM3 Metadata.csv_file_content_dict"
+    # print Metadata.csv_file_content_dict
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
-    print 'Metadata.not_req_fields_from_csv'
-    print Metadata.not_req_fields_from_csv
+    # print 'Metadata.not_req_fields_from_csv'
+    # print Metadata.not_req_fields_from_csv
 
     # print 'csv_file_fields = '
     # print Metadata.csv_file_fields
@@ -237,8 +237,8 @@ class Metadata():
     # print self.csv_file_content_list
     
   def get_new_fields_units(self, field):
-    print "field"
-    print field
+    # print "field"
+    # print field
     # field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
     try:
       new_col = field.split('--UNITS--')
@@ -433,7 +433,7 @@ class RequiredMetadata(Metadata):
           except:
             raise
             #empty_equivalents
-          print 'FFF field = %s, val = %s, clean_val = %s' % (field, val, clean_val)
+          # print 'FFF field = %s, val = %s, clean_val = %s' % (field, val, clean_val)
           where_part = 'WHERE %s = "%s"' % (field, clean_val)
           field_id_name = field + '_id'
           try:
@@ -543,13 +543,13 @@ class CustomMetadata(Metadata):
     print all_custom_fields
     # html_pars = HTMLParser()
 
-    print "FFF2 self.fields_to_add_to_db = "
-    print self.fields_to_add_to_db
+    # print "FFF2 self.fields_to_add_to_db = "
+    # print self.fields_to_add_to_db
     for d in Metadata.csv_file_content_dict:
       current_dict = utils.slicedict(d, all_custom_fields)
       dataset_id = current_dict['dataset_id']
-      print 'DDD dataset_id'
-      print dataset_id
+      # print 'DDD dataset_id'
+      # print dataset_id
 
       for key, val in current_dict.items():
         for cust_field in all_custom_fields:
@@ -559,8 +559,8 @@ class CustomMetadata(Metadata):
             self.custom_metadata_update[dataset_id][key] = val
             # html_pars.unescape(val)
 
-    print "CCC custom_metadata_update = "
-    print self.custom_metadata_update
+    # print "CCC custom_metadata_update = "
+    # print self.custom_metadata_update
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
       # TODO: env_feature is not in term?
 
@@ -685,7 +685,8 @@ if __name__ == '__main__':
   if (utils.is_local() == True):
     mysql_utils = util.Mysql_util(host = 'localhost', db = 'vamps2', read_default_group = 'clienthome')
   else:
-    mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
+    # mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
+    mysql_utils = util.Mysql_util(host = 'vampsdev', db = 'vamps2', read_default_group = 'client')
 
   parser = argparse.ArgumentParser()
 
@@ -705,8 +706,8 @@ if __name__ == '__main__':
 
   # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
   add_fields_to_db_dict = custom_metadata.fields_to_add_to_db
-  print "FFF6 custom_metadata.fields_to_add_to_db = "
-  print custom_metadata.fields_to_add_to_db
+  # print "FFF6 custom_metadata.fields_to_add_to_db = "
+  # print custom_metadata.fields_to_add_to_db
   
   custom_metadata_update = custom_metadata.custom_metadata_update
   project_id = custom_metadata.project_id
