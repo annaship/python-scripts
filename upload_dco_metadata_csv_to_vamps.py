@@ -624,11 +624,6 @@ class Upload():
     # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
 
     for k, v in add_fields_to_db_dict.items():
-      # print 'k = %s, v = %s' % (k, v)
-      # csv_fields_with_units
-      # for dataset_id, d in custom_metadata_update.items():
-      #   print "MMM d"
-      #   print d
       query = """INSERT IGNORE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k], v)
       print "UUU5 query"
       print query
