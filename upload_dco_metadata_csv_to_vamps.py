@@ -379,7 +379,7 @@ class RequiredMetadata(Metadata):
         # print 'dataset_id'
         # print dataset_id
         for k, v in d.items():
-          if (k == name) and (v not in Metadata.empty_equivalents):
+          if (k == name) and (v.lower() not in Metadata.empty_equivalents):
             # print 'k = %s, v = %s' % (k, v)
             self.required_metadata_update[dataset_id][k] = v
 
