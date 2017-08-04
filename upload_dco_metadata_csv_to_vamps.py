@@ -615,11 +615,11 @@ class Upload():
                       updated_at = Now()
                   where dataset_id = '%s'
               """ % (set_str, dataset_id)
-      # print "UUU query"
-      # print query
+      print "UUU000 query"
+      print query
       res = mysql_utils.execute_no_fetch(query)
-      # print "RRR res"
-      # print res
+      print "RRR000 res"
+      print res
 
   def add_fields_to_custom_metadata_table(self):
     # QQQ2 = add_fields_to_db_dict
