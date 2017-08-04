@@ -83,6 +83,7 @@ class Metadata():
     "diss_org_carb":"µmol/kg",
     "diss_oxygen":"µmol/kg",
     "dna_extraction_meth":"",
+    "DNA_extraction_method":"",
     "dna_quantitation":"",
     "dna_region":"",
     "domain":"",
