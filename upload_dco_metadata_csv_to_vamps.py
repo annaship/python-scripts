@@ -689,9 +689,9 @@ if __name__ == '__main__':
     mysql_utils = util.Mysql_util(host = 'localhost', db = 'vamps2', read_default_group = 'clienthome')
     print "host = 'localhost', db = 'vamps2'"
   else:
-    # mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
-    mysql_utils = util.Mysql_util(host = 'vampsdev', db = 'vamps2', read_default_group = 'client')
-    print "host = 'vampsdev', db = 'vamps2'"
+    mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
+    # mysql_utils = util.Mysql_util(host = 'vampsdev', db = 'vamps2', read_default_group = 'client')
+    # print "host = 'vampsdev', db = 'vamps2'"
     
   parser = argparse.ArgumentParser()
 
