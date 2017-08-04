@@ -83,7 +83,6 @@ class Metadata():
     "diss_org_carb":"µmol/kg",
     "diss_oxygen":"µmol/kg",
     "dna_extraction_meth":"",
-    "DNA_extraction_method":"",
     "dna_quantitation":"",
     "dna_region":"",
     "domain":"",
@@ -201,8 +200,10 @@ class Metadata():
   field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
     'feature_secondary':'env_feature_sec',
     'material_secondary':'env_material_sec',
-    'geo_loc_name_continental':'geo_loc_name',
-    'dna_extraction_meth': 'DNA_extraction_method'}
+    'geo_loc_name_continental':'geo_loc_name'
+    # ,
+    # 'dna_extraction_meth': 'DNA_extraction_method'
+  }
 
   not_req_fields_from_csv = []
   csv_file_fields         = []
