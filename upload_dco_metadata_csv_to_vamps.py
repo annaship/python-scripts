@@ -88,8 +88,11 @@ class Metadata():
     "domain":"",
     "elevation":"meter",
     "env_biome":"",
+    "env_biome_sec":"",
     "env_feature":"",
+    "env_feature_sec":"",
     "env_material":"",
+    "env_material_sec":"",
     "env_package":"",
     "enzyme_activities":"",
     "feature_secondary":"",
@@ -684,10 +687,12 @@ if __name__ == '__main__':
 
   if (utils.is_local() == True):
     mysql_utils = util.Mysql_util(host = 'localhost', db = 'vamps2', read_default_group = 'clienthome')
+    print "host = 'localhost', db = 'vamps2'"
   else:
     # mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
     mysql_utils = util.Mysql_util(host = 'vampsdev', db = 'vamps2', read_default_group = 'client')
-
+    print "host = 'vampsdev', db = 'vamps2'"
+    
   parser = argparse.ArgumentParser()
 
   parser.add_argument('-f', '--file_name',
