@@ -88,11 +88,8 @@ class Metadata():
     "domain":"",
     "elevation":"meter",
     "env_biome":"",
-    "env_biome_sec":"",
     "env_feature":"",
-    "env_feature_sec":"",
     "env_material":"",
-    "env_material_sec":"",
     "env_package":"",
     "enzyme_activities":"",
     "feature_secondary":"",
@@ -197,13 +194,22 @@ class Metadata():
 
   env_fields = ['env_feature', 'env_biome', 'env_material']
 
-  field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
-    'feature_secondary':'env_feature_sec',
-    'material_secondary':'env_material_sec',
+  # field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
+  #   'feature_secondary':'env_feature_sec',
+  #   'material_secondary':'env_material_sec',
+  #   'geo_loc_name_continental':'geo_loc_name'
+  #   # ,
+  #   # 'dna_extraction_meth': 'DNA_extraction_method'
+  # }
+
+  field_names_equivalents_csv_db = {'biome_secondary':'biome_secondary',
+    'feature_secondary':'feature_secondary',
+    'material_secondary':'material_secondary',
     'geo_loc_name_continental':'geo_loc_name'
     # ,
     # 'dna_extraction_meth': 'DNA_extraction_method'
   }
+
 
   not_req_fields_from_csv = []
   csv_file_fields         = []
