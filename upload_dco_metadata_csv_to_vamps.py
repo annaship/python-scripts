@@ -159,7 +159,7 @@ class Metadata():
     "water_age":"thousands of years (ka)"
     }
 
-/*
+"""
 secondary?
 Hege <> term
 'abyssal zone':'marine abyssal zone biome',
@@ -170,7 +170,7 @@ Hege <> term
 'continental margin biome':'continental margin',
 'pelagic biome':'marine pelagic biome',
 
-*/
+"""
 
 # to correct term or to what we have in the form
   term_equivalents = {'abyssal zone biome':'marine abyssal zone biome',
