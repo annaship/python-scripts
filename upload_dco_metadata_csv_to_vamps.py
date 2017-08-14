@@ -651,7 +651,7 @@ class Upload():
       query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k].decode('utf-8'), v)
       print "UUU5 query"
       print query
-      print "UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units[k].decode('utf-8') = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units[k].decode('utf-8'), v)
+      print "UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v)
       res = mysql_utils.execute_no_fetch(query)
       print "res"
       print res
