@@ -159,18 +159,18 @@ class Metadata():
     "water_age":"thousands of years (ka)"
     }
 
-"""
-secondary?
-Hege <> term
-'abyssal zone':'marine abyssal zone biome',
-'bathyal biome':'marine bathyal zone biome',
-'benthic biome':'marine benthic biome',
-'hadal zone biome':'marine hadal zone biome',
-'clastic sedimentary':'clastic sedimentary rock',
-'continental margin biome':'continental margin',
-'pelagic biome':'marine pelagic biome',
+  """
+  secondary?
+  Hege <> term
+  'abyssal zone':'marine abyssal zone biome',
+  'bathyal biome':'marine bathyal zone biome',
+  'benthic biome':'marine benthic biome',
+  'hadal zone biome':'marine hadal zone biome',
+  'clastic sedimentary':'clastic sedimentary rock',
+  'continental margin biome':'continental margin',
+  'pelagic biome':'marine pelagic biome',
 
-"""
+  """
 
 # to correct term or to what we have in the form
   term_equivalents = {'abyssal zone biome':'marine abyssal zone biome',
