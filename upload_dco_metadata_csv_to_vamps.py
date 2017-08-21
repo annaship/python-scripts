@@ -232,7 +232,7 @@ class Metadata():
     'volcanic rock':'volcanic',
     'vent':'marine hydrothermal vent'}
 
-  empty_equivalents = ['none', 'undefined', 'please choose one', '']
+  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', '']
 
   env_fields = ['env_feature', 'env_biome', 'env_material']
 
