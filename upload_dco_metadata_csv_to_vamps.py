@@ -690,9 +690,15 @@ class Upload():
 
     for k, v in add_fields_to_db_dict.items():
       #96717	307	potassium	nanogram_per_liter	125000
-      print "UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v)
       
-      query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k].decode('utf-8'), v)
+      try:
+        query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k].decode('utf-8'), v)
+      except KeyError:
+        print "UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v)
+        raise
+        
+      except:
+        raise
       print "UUU5 query"
       print query
       res = mysql_utils.execute_no_fetch(query)
