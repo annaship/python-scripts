@@ -47,12 +47,12 @@ class Fields:
       # for object in set(self.all_fields):
       #     if object in other_set:
       #         return object
-      print "self.pid_missing_fields_dict: "
-      print self.pid_missing_fields_dict
-      print "self.all_missing_fields"
-      print self.all_missing_fields
-      print "len(self.all_missing_fields)"
-      print len(self.all_missing_fields)
+      # print "self.pid_missing_fields_dict: "
+      # print self.pid_missing_fields_dict
+      # print "self.all_missing_fields"
+      # print self.all_missing_fields
+      # print "len(self.all_missing_fields)"
+      # print len(self.all_missing_fields)
       #81
 
     def get_field_description_for_custom_metadata_pid(self):
@@ -143,19 +143,32 @@ class Fields:
       # return mysql_utils.execute_fetch_select(query_custom_tables)
 
     def make_custom_metadata_fields_queries(self):
-      for field_d in self.field_description_for_custom_metadata_fields:
-        print "FFF"
-        # print field_d.keys()
-        # ['field_units', 'field_name', 'example']
-        
-        print "('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example'])
-        # print "('%s', '%s', '%s', '%s', '')" % (pid, field_d.field_name, field_d.field_units, field_d.example)
-        # print "FFF field_d"
-        # print field_d
-        # {'field_units': 'millivolt', 'field_name': 'redox_potential', 'example': '53.5'}
-      # pass
-      """INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES ('%s', '%s', '%s', '%s', '');
-      """
+      for pid, miss_fields in self.pid_missing_fields_dict.items():
+        for f in miss_fields:
+          # print f
+          for field_d in self.field_description_for_custom_metadata_fields:
+            # print "LLL"
+            # print "field_d['field_name']"
+            #
+            # print field_d['field_name']
+            # print f
+            if field_d['field_name'] == f.strip('"'):
+              print "LLL"
+              
+              print "('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example'])
+          
+          # resultlist = [field_d    for field_d in self.field_description_for_custom_metadata_fields     if field_d['field_name'] == f]
+          # # first_result = resultlist[0]
+          # print "LLL"
+          # print resultlist
+          #
+          
+      
+      # for field_d in self.field_description_for_custom_metadata_fields:
+      #   print "FFF"
+      #   print "('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example'])
+      # """INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES ('%s', '%s', '%s', '%s', '');
+      # """
             
 
 if __name__ == '__main__':
