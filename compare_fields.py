@@ -13,32 +13,37 @@ class Fields:
       self.fname_exist_fields = fname_exist_fields
       self.pid_fields_dict = defaultdict(list)
       self.pid_missing_fields_dict = defaultdict(list)
+      self.all_fields = []
       
       
     def make_fields_per_pr_dict(self):
       file = open(self.fname_exist_fields) 
       for line in file: 
-        print line,
+        # print line,
         pid, field_name = line.strip().split(",");
         self.pid_fields_dict[pid].append(field_name)
       
       print "=" *8
-      # print type(self.exist_fields)
-      print "=" *8
-      
-      # '879,"temperature"\n'
-      # for line in self.exist_fields:
-        # print line
-      #   pid, field_name = line.strip().split(",");
-      #   try:
-      #     self.pid_fields_dict[pid].append(field_name)
-      #   except:
-      #     raise
       print self.pid_fields_dict
       
     def compare_with_all_fields(self):
+      file_all_fields = open(self.fname_all_fields, 'r')
+      # print type(file_all_fields)
+      
+      # with open(self.fname_all_fields, 'r') as f:
+      #   data = f.readlines()
+      # print data
+      # print type(data)
+      
+      # for line in file_all_fields:
+      #   self.all_fields.append(line.strip())
+        
+      self.all_fields = [line.strip() for line in file_all_fields]
+      #   # print "line"
+      print self.all_fields,
+        
       # for line in self.all_fields:
-      print "line"
+      # print "line"
       # print self.all_fields
       
       
