@@ -88,11 +88,17 @@ class Fields:
       custom_fields_def_res = self.get_field_description_for_custom_metadata_pid()
       # self.custom_fields_def = {c[0]: c[1] for c in custom_fields_def_res[0]}
       
-      self.custom_fields_def = { c[0]:(c[1] + "(128)" if c[1] == "varchar" else c[1]) for c in custom_fields_def_res[0] }
+      self.custom_fields_def = { c[0].lower():(c[1] + "(128)" if c[1] == "varchar" else c[1]) for c in custom_fields_def_res[0] }
+      
+      self.custom_fields_def['tot_inorg_carb'] = "varchar(128)"
+      self.custom_fields_def['plate_counts'] = "varchar(128)"
+      self.custom_fields_def['sample_size_mass'] = "varchar(128)"
+      self.custom_fields_def['references'] = "varchar(128)"
+      
       
       #
-      # print "ccc"
-      # print self.custom_fields_def
+      print "ccc"
+      print self.custom_fields_def
       #
       # print "len(self.custom_fields_def.keys())"
       # print len(self.custom_fields_def.keys())
@@ -102,9 +108,8 @@ class Fields:
       print self.pid_missing_fields_dict
       print "rrr"
       for pid, miss_fields in self.pid_missing_fields_dict.items():
-        print "AAA"
-        for field in miss_fields:
-          print "BBB"
+        for f in miss_fields:
+          field = f.strip('"').lower()
           query_custom_metadata_pid_col = """
             ALTER TABLE custom_metadata_%s add column %s %s DEFAULT NULL;
             """ % (pid, field, self.custom_fields_def[field])
