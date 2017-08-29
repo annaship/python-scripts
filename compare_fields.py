@@ -83,7 +83,11 @@ class Fields:
       
     def make_custom_metadata_pids_queries(self):
       custom_fields_def_res = fields.get_field_description_for_custom_metadata_pid()
-      self.custom_fields_def = {c[0]: c[1] for c in custom_fields_def_res[0]}
+      # self.custom_fields_def = {c[0]: c[1] for c in custom_fields_def_res[0]}
+      
+      self.custom_fields_def = { c[0]:(c[1] + "(128)" if c[1] == "varchar" 
+                else c[1]) for c in custom_fields_def_res[0] }
+      
       print "ccc"
       print self.custom_fields_def
       # for c in custom_fields_def[0]:
