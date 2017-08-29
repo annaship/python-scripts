@@ -17,6 +17,7 @@ class Fields:
       self.pid_missing_fields_dict = defaultdict(list)
       self.all_fields = [line.strip() for line in open(self.fname_all_fields, 'r')]
       self.diff_dict = defaultdict(list)
+      self.all_missing_fields = set()
       
     def make_fields_per_pr_dict(self):
       file = open(self.fname_exist_fields) 
@@ -32,20 +33,19 @@ class Fields:
       # print "self.all_fields"
       # print self.all_fields
       for pid, f_arr in self.pid_fields_dict.items():
-        print "pid"
-        print pid
-        print "f_arr"
-        print f_arr
         for f_name in set(self.all_fields):
           if f_name not in set(f_arr):        
             print "f_name = %s" % (f_name)
             self.diff_dict[pid].append(f_name)
+            self.all_missing_fields.add(f_name)
         
       # for object in set(self.all_fields):
       #     if object in other_set:
       #         return object
       print "self.diff_dict: "
       print self.diff_dict
+      print "self.all_missing_fields"
+      print self.all_missing_fields
       
       
 if __name__ == '__main__':
