@@ -430,6 +430,8 @@ class RequiredMetadata(Metadata):
           if (k == name) and (v.lower() not in Metadata.empty_equivalents):
             # print 'k = %s, v = %s' % (k, v)
             self.required_metadata_update[dataset_id][k] = v
+          # else:
+          #   self.required_metadata_update[dataset_id][k] = "None"
 
 
     needed_req_all = list(set(self.required_metadata_fields_to_update) - set(self.fields))
@@ -514,6 +516,8 @@ class RequiredMetadata(Metadata):
                 self.required_metadata_update[dataset][field_id_name] = int(res1[0][1])
           except:
             raise
+        # else:
+        #   self.required_metadata_update[dataset_id][field_id_name] = "None"
 
     print 'self.required_metadata_update'
     print self.required_metadata_update
@@ -573,6 +577,8 @@ class CustomMetadata(Metadata):
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
           self.fields_to_add_to_db[key] = val
+        # else:
+        #   self.fields_to_add_to_db[key] = "None"
 
   # def get_new_fields_units(self, field):
   #   try:
@@ -611,6 +617,9 @@ class CustomMetadata(Metadata):
             # column_name = key
             self.custom_metadata_update[dataset_id][key] = val
             # html_pars.unescape(val)
+          # else:
+          #   self.custom_metadata_update[dataset_id][key] = "None"
+
 
     # print "CCC custom_metadata_update = "
     # print self.custom_metadata_update
@@ -699,8 +708,8 @@ class Upload():
         
       except:
         raise
-      print "UUU5 query"
-      print query
+      print "UUU5 query.decode('utf-8')"
+      print query.decode('utf-8')
       res = mysql_utils.execute_no_fetch(query)
       print "res"
       print res
