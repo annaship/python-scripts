@@ -143,19 +143,16 @@ class Fields:
       # return mysql_utils.execute_fetch_select(query_custom_tables)
 
     def make_custom_metadata_fields_queries(self):
+      query_insert_into_custom_metadata_fields_arr = []
+      query_insert_into_custom_metadata_fields = """INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES """
+      
       for pid, miss_fields in self.pid_missing_fields_dict.items():
         for f in miss_fields:
           # print f
           for field_d in self.field_description_for_custom_metadata_fields:
-            # print "LLL"
-            # print "field_d['field_name']"
-            #
-            # print field_d['field_name']
-            # print f
             if field_d['field_name'] == f.strip('"'):
-              print "LLL"
-              
-              print "('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example'])
+              # print "LLL"
+              query_insert_into_custom_metadata_fields_arr.append("('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example']))
           
           # resultlist = [field_d    for field_d in self.field_description_for_custom_metadata_fields     if field_d['field_name'] == f]
           # # first_result = resultlist[0]
@@ -169,7 +166,12 @@ class Fields:
       #   print "('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example'])
       # """INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES ('%s', '%s', '%s', '%s', '');
       # """
-            
+      
+      query_insert_into_custom_metadata_fields += ", ".join(query_insert_into_custom_metadata_fields_arr)
+      
+      print "TTT query_insert_into_custom_metadata_fields"
+      print query_insert_into_custom_metadata_fields
+
 
 if __name__ == '__main__':
   fname_all_fields = "all_custom_fields.txt"
