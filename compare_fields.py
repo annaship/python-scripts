@@ -20,6 +20,7 @@ class Fields:
       self.all_fields = [line.strip() for line in open(self.fname_all_fields, 'r')]
       self.diff_dict = defaultdict(list)
       self.all_missing_fields = set()
+      self.custom_fields_def = {}
 
     def make_fields_per_pr_dict(self):
       file = open(self.fname_exist_fields)
@@ -81,20 +82,25 @@ class Fields:
       return mysql_utils.execute_fetch_select(query_column_def)
       
     def make_custom_metadata_pids_queries(self):
-      custom_fields_def = fields.get_field_description_for_custom_metadata_pid()
-      for c in custom_fields_def[0]:
-        print "ccc"
-        print c
-        # ('salinity', 'varchar')
-        
-      # for missing_field in self.all_missing_fields:
-        query_custom_metadata_pid_col = 
-        """
-        ALTER TABLE custom_metadata_%s add column %s %s DEFAULT NULL;
-        """ % (pid, c[0], c[1])
-      # VARCHAR(128)
-        print "QQQ"
-        print query_custom_metadata_pid_col
+      custom_fields_def_res = fields.get_field_description_for_custom_metadata_pid()
+      self.custom_fields_def = {c[0]: c[1] for c in custom_fields_def_res[0]}
+      print "ccc"
+      print self.custom_fields_def
+      # for c in custom_fields_def[0]:
+      #   field_name = c[0]
+      #   field_units = c[1]
+      #   print "ccc"
+      #   print c
+      #   # ('salinity', 'varchar')
+      #
+      # # for missing_field in self.all_missing_fields:
+      #   query_custom_metadata_pid_col =
+      #   """
+      #   ALTER TABLE custom_metadata_%s add column %s %s DEFAULT NULL;
+      #   """ % (pid, c[0], c[1])
+      # # VARCHAR(128)
+      #   print "QQQ"
+      #   print query_custom_metadata_pid_col
 
 if __name__ == '__main__':
   fname_all_fields = "all_custom_fields.txt"
@@ -115,6 +121,7 @@ if __name__ == '__main__':
   # print "custom_fields_def = "
   # print custom_fields_def
   # ((('formation_name', 'varchar'),..., ['column_name', 'data_type'])
-  fields.make_custom_metadata_fields_queries()
+  # fields.make_custom_metadata_fields_queries()
+  fields.make_custom_metadata_pids_queries()
   
   #        INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES ('%s', '%s', '%s', '%s', '');
