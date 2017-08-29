@@ -21,6 +21,8 @@ class Fields:
       # self.diff_dict = defaultdict(list)
       self.all_missing_fields = set()
       self.custom_fields_def = {}
+      self.field_description_for_custom_metadata_fields = []
+      self.field_description_for_custom_metadata_fields_no_units = []
 
     def make_fields_per_pr_dict(self):
       file = open(self.fname_exist_fields)
@@ -51,25 +53,7 @@ class Fields:
       print self.all_missing_fields
       print "len(self.all_missing_fields)"
       print len(self.all_missing_fields)
-      #93
-      
-    def get_field_description_for_custom_metadata_fields(self):
-      for missing_field in self.all_missing_fields:
-        # print "missing_field = %s" % (missing_field)
-
-        query_missing_field = """SELECT field_name, field_units, example FROM custom_metadata_fields
-        join project using(project_id)
-        WHERE field_name = %s
-        AND project like 'DCO%%'
-        limit 1
-        """ % (missing_field)
-
-        print "query_missing_field"
-        print query_missing_field
-        res =  mysql_utils.execute_fetch_select(query_missing_field)
-        print "res"
-        print res
-      # return mysql_utils.execute_fetch_select(query_custom_tables)
+      #81
 
     def get_field_description_for_custom_metadata_pid(self):
     # custom_metadata_101
@@ -95,18 +79,17 @@ class Fields:
       self.custom_fields_def['sample_size_mass'] = "varchar(128)"
       self.custom_fields_def['references'] = "varchar(128)"
       
-      
+      # 
       #
-      print "ccc"
-      print self.custom_fields_def
-      #
+      # print "ccc"
+      # print self.custom_fields_def
+      # #
       # print "len(self.custom_fields_def.keys())"
       # print len(self.custom_fields_def.keys())
-      # # 44
+      # 81
       
-      print "999"
-      print self.pid_missing_fields_dict
-      print "rrr"
+      # print "999"
+      # print self.pid_missing_fields_dict
       for pid, miss_fields in self.pid_missing_fields_dict.items():
         for f in miss_fields:
           field = f.strip('"').lower()
@@ -115,22 +98,65 @@ class Fields:
             """ % (pid, field, self.custom_fields_def[field])
           print "QQQ"
           print query_custom_metadata_pid_col
+          
+          """
+          TODO: combine into one by pid
+          ALTER TABLE custom_metadata_430 add column carbonate varchar(128) DEFAULT NULL;
+          ALTER TABLE custom_metadata_430 add column sodium varchar(128) DEFAULT NULL;
+          """
+
+    def get_field_description_for_custom_metadata_fields(self):
+      for missing_field in self.all_missing_fields:
+        # print "missing_field = %s" % (missing_field)
+
+        query_missing_field = """SELECT field_name, field_units, example FROM custom_metadata_fields
+        join project using(project_id)
+        WHERE field_name = %s
+        AND project like 'DCO%%'
+        limit 1
+        """ % (missing_field)
+
+        # print "query_missing_field"
+        # print query_missing_field
+
+        res = mysql_utils.execute_fetch_select_to_dict(query_missing_field)
+        # print "RRR mysql_utils.execute_fetch_select_to_dict(query_missing_field)"
+        # print res
+        # ({'field_units': 'millivolt', 'field_name': 'redox_potential', 'example': '53.5'},)
+        try:
+          self.field_description_for_custom_metadata_fields.append(res[0])
+        except IndexError:
+          self.field_description_for_custom_metadata_fields_no_units.append(missing_field.strip('"'))
+        except:
+          raise
+        
+      print "MMM self.field_description_for_custom_metadata_fields_no_units"
+      print self.field_description_for_custom_metadata_fields_no_units
       
-      # for c in custom_fields_def[0]:
-      #   field_name = c[0]
-      #   field_units = c[1]
-      #   print "ccc"
-      #   print c
-      #   # ('salinity', 'varchar')
-      #
-      # # for missing_field in self.all_missing_fields:
-      #   query_custom_metadata_pid_col =
-      #   """
-      #   ALTER TABLE custom_metadata_%s add column %s %s DEFAULT NULL;
-      #   """ % (pid, c[0], c[1])
-      # # VARCHAR(128)
-      #   print "QQQ"
-      #   print query_custom_metadata_pid_col
+      self.field_description_for_custom_metadata_fields.append({'field_units': 'percent', 'field_name': 'tot_inorg_carb', 'example': ''})
+      self.field_description_for_custom_metadata_fields.append({'field_units': 'colony forming units per ml', 'field_name': 'plate_counts', 'example': ''})
+      self.field_description_for_custom_metadata_fields.append({'field_units': 'gram', 'field_name': 'sample_size_mass', 'example': ''})
+      self.field_description_for_custom_metadata_fields.append({'field_units': 'Alphanumeric', 'field_name': 'references', 'example': ''})
+        
+      print "EEE self.field_description_for_custom_metadata_fields"
+      print self.field_description_for_custom_metadata_fields
+      # return mysql_utils.execute_fetch_select(query_custom_tables)
+
+    def make_custom_metadata_fields_queries(self):
+      for field_d in self.field_description_for_custom_metadata_fields:
+        print "FFF"
+        # print field_d.keys()
+        # ['field_units', 'field_name', 'example']
+        
+        print "('%s', '%s', '%s', '')" % (field_d['field_name'], field_d['field_units'], field_d['example'])
+        # print "('%s', '%s', '%s', '%s', '')" % (pid, field_d.field_name, field_d.field_units, field_d.example)
+        # print "FFF field_d"
+        # print field_d
+        # {'field_units': 'millivolt', 'field_name': 'redox_potential', 'example': '53.5'}
+      # pass
+      """INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES ('%s', '%s', '%s', '%s', '');
+      """
+            
 
 if __name__ == '__main__':
   fname_all_fields = "all_custom_fields.txt"
@@ -147,11 +173,6 @@ if __name__ == '__main__':
   fields.make_fields_per_pr_dict()
   fields.compare_with_all_fields()
   fields.get_field_description_for_custom_metadata_fields()
-  # custom_fields_def = fields.get_field_description_for_custom_metadata_pid()
-  # print "custom_fields_def = "
-  # print custom_fields_def
-  # ((('formation_name', 'varchar'),..., ['column_name', 'data_type'])
-  # fields.make_custom_metadata_fields_queries()
+  fields.make_custom_metadata_fields_queries()
   fields.make_custom_metadata_pids_queries()
   
-  #        INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES ('%s', '%s', '%s', '%s', '');
