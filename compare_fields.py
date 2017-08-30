@@ -4,6 +4,9 @@
 
 # Copyright (C) 2017, Marine Biological Laboratory
 
+# TODO: ALTER TABLE custom_metadata_110 > ", "
+# TODO: `references`
+
 from collections import defaultdict
 from timeit import timeit
 # print timeit("forin()", forin, number = 100)
