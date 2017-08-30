@@ -155,9 +155,7 @@ class Fields:
               query_insert_into_custom_metadata_fields_arr.append("('%s', '%s', '%s', '%s', '')" % (pid, field_d['field_name'], field_d['field_units'], field_d['example']))
               
           # TODO
-          # err: ('"project_id"', 'redox_potential', 'millivolt', '53.5', '')
-          # ALTER TABLE custom_metadata_"project_id" add column temperature varchar(128) DEFAULT NULL;
-          #
+          # timimg
           # resultlist = [field_d    for field_d in self.field_description_for_custom_metadata_fields     if field_d['field_name'] == f]
           # # first_result = resultlist[0]
           # print "LLL"
