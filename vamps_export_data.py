@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2011, Marine Biological Laboratory
@@ -17,10 +15,8 @@
 import os
 #from stat import * # ST_SIZE etc
 import sys
-
 import ConfigParser
 from time import sleep
-sys.path.append('/groups/vampsweb/vampsdev')
 import MySQLdb
 import MySQLdb.cursors
 from os.path import expanduser
@@ -28,6 +24,7 @@ from os.path import expanduser
 import datetime
 import subprocess as subp
 import gzip, csv, json
+sys.path.append('/groups/vampsweb/vampsdev')
 
 # GLOBALS
 allowed_ranks = ('domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species', 'strain')
@@ -43,9 +40,9 @@ class GZipWriter(object):
         self.proc = subp.Popen(['gzip'], stdin=subp.PIPE, stdout=self.fp)
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, my_type, value, traceback):
         self.close()
-        if type:
+        if my_type:
             os.remove(self.filename)
 
     def close(self):
@@ -56,7 +53,7 @@ class GZipWriter(object):
     def write(self, data):
         self.proc.stdin.write(data)
 
-def get_fasta_sql(args, dids):
+def get_fasta_sql(dids):
     sql = "SELECT UNCOMPRESS(sequence_comp) as seq, sequence_id, seq_count, project, dataset from sequence_pdr_info\n"
     sql += " JOIN sequence using (sequence_id)\n"
     sql += " JOIN dataset using (dataset_id)\n"
@@ -148,7 +145,7 @@ def get_req_metadata_sql(args, dids, req_headersA, req_headersB):
 
 def write_file_txt(args, out_file, file_txt):
 
-    print(out_file)
+    print out_file
     if args.compress:
         with GZipWriter(out_file+'.gz') as gz:
             gz.write(file_txt)
@@ -165,7 +162,7 @@ def run_fasta(args):
         out_file = os.path.join(args.base,'fasta-'+args.runcode+'.fasta')
     cursor = args.obj.cursor()
     dids = "','".join(args.dids)
-    sql = get_fasta_sql(args,dids)
+    sql = get_fasta_sql(dids)
 
     print sql
     cursor.execute(sql)
@@ -374,7 +371,7 @@ def run_metadata(args, file_form):
                          "dna_region", "domain", "env_package",
                          "target_gene", "latitude", "longitude",
                          "sequencing_platform", "run"]
-    required_headersB = ["env_biome",  "env_feature", "env_material", "geo_loc_name"]      # these have to be matched with term table
+    required_headersB = ["env_biome", "env_feature", "env_material", "geo_loc_name"]      # these have to be matched with term table
 
 
 
@@ -382,7 +379,7 @@ def run_metadata(args, file_form):
     print sql
     cursor.execute(sql)
     result_count = cursor.rowcount
-    data= {}
+    data = {}
     #dataset_name_collector = {}
     headers_collector = {}
     for project_dataset in args.dataset_name_collector.values():
@@ -395,7 +392,7 @@ def run_metadata(args, file_form):
             project_dataset = row['project']+'--'+row['dataset']
 
             for key in row:
-                data[project_dataset][key]= row[key]
+                data[project_dataset][key] = row[key]
                 headers_collector[key] = 1
 
     #print 'headers_collector',headers_collector
@@ -403,7 +400,7 @@ def run_metadata(args, file_form):
     for pid in args.pids:
         custom_table = 'custom_metadata_'+pid
 
-        sql3  = "SELECT * from "+custom_table+"\n "
+        sql3 = "SELECT * from " + custom_table + "\n"
         #print 'args.dataset_name_collector'
         #print args.dataset_name_collector
         try:
@@ -422,10 +419,10 @@ def run_metadata(args, file_form):
                         if key != custom_table+'_id':
 
                             #print 'row[key]',row[key]
-                            data[pjds][key]= row[key]
+                            data[pjds][key] = row[key]
                             headers_collector[key] = 1
         except:
-            print('Could not find/query custom metadata table:',custom_table)
+            print('Could not find/query custom metadata table:', custom_table)
 
     headers_collector_keys = sorted(headers_collector.keys())
     ds_sorted = sorted(data.keys())
@@ -433,7 +430,7 @@ def run_metadata(args, file_form):
     file_txt += "VAMPS Metadata\n"
     # convert to a list and sort
     if file_form == 'datasets_as_rows':
-        out_file = os.path.join(args.base,'metadata-'+args.runcode+'-1.csv')
+        out_file = os.path.join(args.base, 'metadata-' + args.runcode + '-1.csv')
 
 
         file_txt += 'dataset'
@@ -444,15 +441,14 @@ def run_metadata(args, file_form):
             file_txt += pjds
             for mditem in headers_collector_keys:
                 #if header not in ['custom_metadata_273_id','custom_metadata_517_id']:
-
-                    if mditem in data[pjds]:
-                        file_txt += '\t'+str(data[pjds][mditem])
-                    else:
-                        file_txt += '\t'
+                if mditem in data[pjds]:
+                    file_txt += '\t'+str(data[pjds][mditem])
+                else:
+                    file_txt += '\t'
             file_txt += '\n'
         file_txt += '\n'
     else:
-        out_file = os.path.join(args.base,'metadata-'+args.runcode+'-2.csv')
+        out_file = os.path.join(args.base, 'metadata-' + args.runcode + '-2.csv')
         file_txt += 'metadata'
         for pjds in ds_sorted:
             file_txt += '\t'+pjds
@@ -493,27 +489,27 @@ def run_taxbytax(args):
             count = knt
         else:
             if args.dataset_counts[pjds] <= 0:
-                dataset_count = 1;
+                dataset_count = 1
             else:
                 dataset_count = args.dataset_counts[pjds]
             if args.normalization == 'normalized_by_percent':
-                count = round((knt /  dataset_count)*100,8)
+                count = round((knt /  dataset_count) * 100, 8)
             elif args.normalization == 'normalized_to_maximum':
                 count = int((knt /  dataset_count) * args.max)
             else:
                 count = knt  # should never get here
         #print 'count',count
         #print knt,args.dataset_counts[pjds],args.max,count
-        tax   = row['taxonomy']
+        tax = row['taxonomy']
         taxa = tax.split(';')
         dom = taxa[0]
         if dom in args.domains:
             # exclude Chloroplasts if Organelle not in
             if dom == 'Bacteria' and 'Organelle' not in args.domains and 'Chloroplast' in tax:
-                print('Chloroplast - Excluding',tax)
+                print('Chloroplast - Excluding', tax)
             else:
                 if  args.exclude_nas and len(taxa) != allowed_ranks.index(args.rank)+1:
-                    print('_NA -- Excluding',tax)
+                    print('_NA -- Excluding', tax)
                 else:
                     if tax in tax_array:
                         if pjds in tax_array[tax]:
@@ -528,12 +524,12 @@ def run_taxbytax(args):
     tax_order = sorted(tax_array.keys())
     #write_taxbytax_file(args, tax_array, tax_order, sample_order)
 
-    out_file = os.path.join(args.base,'taxbytax-'+args.runcode+'.csv')
-    ranks = ('domain','phylum','class','order','family','genus','species','strain')
+    out_file = os.path.join(args.base, 'taxbytax-' + args.runcode + '.csv')
+    ranks = ('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain')
     file_txt = 'VAMPS TaxByTax\tNormalization: '+args.normalization+'\n'
     for d in sample_order:
         file_txt += d+'\t'
-    file_txt += "Rank\tTaxonomy\n";
+    file_txt += "Rank\tTaxonomy\n"
 
 
     for tax in tax_order:
@@ -564,7 +560,7 @@ def run_taxbyseq(args):
     seqs_tax_array     = {}
     seqs_dist_array    = {}
     seqs_refhvrs_array = {}
-    sample_order_dict = {}
+    sample_order_dict  = {}
     for row in rows:
         pjds = row['project']+'--'+row['dataset']
         sample_order_dict[pjds] = 1
@@ -578,21 +574,21 @@ def run_taxbyseq(args):
             count = seq_count
         else:
             if args.dataset_counts[pjds] <= 0:
-                dataset_count = 1;
+                dataset_count = 1
             else:
                 dataset_count = args.dataset_counts[pjds]
 
             if args.normalization == 'normalized_by_percent':
-                count = round((seq_count /  dataset_count)*100,8)
+                count = round((seq_count /  dataset_count) * 100, 8)
             elif args.normalization == 'normalized_to_maximum':
                 count = int((seq_count /  dataset_count) * args.max)
             else:
                 count = seq_count  # should never get here
 
 
-        seqs_dist_array[seq]    = distance
+        seqs_dist_array[seq] = distance
         #seqs_refhvrs_array[seq] = refhvr_ids
-        seqs_tax_array[seq]     = taxonomy
+        seqs_tax_array[seq] = taxonomy
         if seq in seqs_array:
             if pjds in seqs_array[seq]:
                 seqs_array[seq][pjds] += count
@@ -605,8 +601,8 @@ def run_taxbyseq(args):
     #tax_order = sorted(collector.keys())
     #write_taxbyseq_file(args, seqs_array, seqs_tax_array, seqs_refhvrs_array, seqs_dist_array)
     #write_taxbyseq_file(args, seqs_array, seqs_tax_array, seqs_dist_array,sample_order)
-    out_file = os.path.join(args.base,'taxbyseq-'+args.runcode+'.csv')
-    ranks = ('domain','phylum','class','order','family','genus','species','strain')
+    out_file = os.path.join(args.base, 'taxbyseq-' + args.runcode + '.csv')
+    ranks = ('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain')
     file_txt = 'VAMPS TaxBySeq\tNormalization: '+args.normalization+'\n\t'
 
     for d in sample_order:
@@ -642,7 +638,7 @@ def run_taxbyseq(args):
 
 def clean_samples(samples):
     pjds = samples.strip().split(';')
-    pjds = [p.replace(',','--') for p in pjds]
+    pjds = [p.replace(',', '--') for p in pjds]
     return pjds
 
 
@@ -661,7 +657,7 @@ def get_dataset_counts(args):
     print sql
     cursor.execute(sql)
     rows = cursor.fetchall()
-    max=0;
+    max = 0;
     pd_counter = {}
     dataset_name_collector = {}
 
@@ -709,7 +705,7 @@ if __name__ == '__main__':
 
 
     """
-    parser = argparse.ArgumentParser(description="" ,usage=myusage)
+    parser = argparse.ArgumentParser(description = "", usage = myusage)
 
 
 
@@ -779,10 +775,10 @@ if __name__ == '__main__':
     db_name = args.NODE_DATABASE
 
 
-    print db_host,db_name
+    print db_host, db_name
 
     home = expanduser("~")
-    print(home)
+    print home
     args.obj = MySQLdb.connect(host=db_host, db=db_name, read_default_file=home+'/.my.cnf_node', cursorclass=MySQLdb.cursors.DictCursor)
 
     output_dir = args.base
@@ -797,8 +793,8 @@ if __name__ == '__main__':
 
     (args.max, args.dataset_counts, args.dataset_name_collector) = get_dataset_counts(args)
     args.datasets = args.dataset_counts.keys()
-    print 'max',args.max
-    print 'max2',args.dataset_counts
+    print 'max', args.max
+    print 'max2', args.dataset_counts
     #sys.exit()
 
 
