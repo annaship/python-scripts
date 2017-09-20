@@ -61,12 +61,12 @@ def get_fasta_sql(dids):
     sql += " where dataset_id in ('"+dids+"');"
     return sql
 
-def get_matrix_biom_taxbytax_sql(args, dids):
+def get_matrix_biom_taxbytax_sql(my_args, dids):
     sql = "SELECT project, dataset, SUM(seq_count) as knt, concat_ws(';',\n"
     tmp = ''
     for rank  in allowed_ranks:
         tmp += " IF(LENGTH(`"+rank+"`),`"+rank+"`,NULL),\n"
-        if rank == args.rank:
+        if rank == my_args.rank:
             break
     sql += tmp[:-2]+"\n"
     sql += " ) as taxonomy\n"
@@ -79,14 +79,14 @@ def get_matrix_biom_taxbytax_sql(args, dids):
     sql += " JOIN silva_taxonomy as T on (C.silva_taxonomy_id=T.silva_taxonomy_id)\n"
     for rank  in allowed_ranks:
         sql += " JOIN `"+rank+"` using ("+rank+"_id)\n"
-        if rank == args.rank:
+        if rank == my_args.rank:
             break
     sql += " WHERE D.dataset_id in ('"+dids+"') \n"
     sql += " GROUP BY taxonomy, dataset\n"
     sql += " ORDER BY taxonomy\n"
     return sql
 
-def get_taxbyseq_sql(args, dids):
+def get_taxbyseq_sql(dids):
     sql = "SELECT project, dataset, seq_count, gast_distance, UNCOMPRESS(sequence_comp) as sequence, concat_ws(';', \n"
     sql += " IF(LENGTH(`domain`),`domain`,NULL),\n"
     sql += " IF(LENGTH(`phylum`),`phylum`,NULL),\n"
@@ -116,7 +116,7 @@ def get_taxbyseq_sql(args, dids):
     sql += " ORDER BY taxonomy\n"
     return sql
 
-def get_req_metadata_sql(args, dids, req_headersA, req_headersB):
+def get_req_metadata_sql(dids, req_headersA, req_headersB):
 
     sql  = "SELECT project, dataset, dataset_id, "+','.join(req_headersA)
     sql += ', t1.term_name as '+ req_headersB[0]
@@ -143,25 +143,25 @@ def get_req_metadata_sql(args, dids, req_headersA, req_headersB):
     return sql
 
 
-def write_file_txt(args, out_file, file_txt):
+def write_file_txt(my_args, out_file, file_txt):
 
     print out_file
-    if args.compress:
+    if my_args.compress:
         with GZipWriter(out_file+'.gz') as gz:
             gz.write(file_txt)
     else:
         with open(out_file, 'w') as f:
             f.write(file_txt)
 
-def run_fasta(args):
+def run_fasta(my_args):
     print """running fasta --->>>"""
-    # args.datasets is a list of p--d pairs
-    if args.function == 'otus':
-        out_file = os.path.join(args.base,'fasta.fa')
+    # my_args.datasets is a list of p--d pairs
+    if my_args.function == 'otus':
+        out_file = os.path.join(my_args.base,'fasta.fa')
     else:
-        out_file = os.path.join(args.base,'fasta-'+args.runcode+'.fasta')
-    cursor = args.obj.cursor()
-    dids = "','".join(args.dids)
+        out_file = os.path.join(my_args.base,'fasta-'+my_args.runcode+'.fasta')
+    cursor = my_args.obj.cursor()
+    dids = "','".join(my_args.dids)
     sql = get_fasta_sql(dids)
 
     print sql
@@ -172,32 +172,32 @@ def run_fasta(args):
     for row in rows:
         seq = row['seq']
         seq_count = row['seq_count']
-       #  if args.function == 'otus':
+       #  if my_args.function == 'otus':
 #             # for otus id = ICM_LCY_Bv6--LCY_0007_2003_05_04--249319_1171  pjds _ seqid _ num
 #             for n in range(1,seq_count+1):
 #                 id = row['project']+'--'+row['dataset']+'--'+str(row['sequence_id'])+'_'+str(n)+'_'+str(seq_count)
 #                 file_txt += '>'+str(id)+'\n'+str(seq)+'\n'
 #         else:
-        id = str(row['sequence_id'])+'|'+row['project']+'--'+row['dataset']+'|'+str(seq_count)
-        file_txt += '>'+str(id)+'\n'+str(seq)+'\n'
+        my_id = str(row['sequence_id'])+'|'+row['project']+'--'+row['dataset']+'|'+str(seq_count)
+        file_txt += '>'+str(my_id)+'\n'+str(seq)+'\n'
 
 
     file_txt += "\n"
 
-    write_file_txt(args, out_file, file_txt)
+    write_file_txt(my_args, out_file, file_txt)
 
 
-def run_matrix(args):
+def run_matrix(my_args):
     print '''running matrix --->>>'''
     # file name could have date,include_nas,tax-depth,units,domains, normalization
     # or this data could go inside file?
-    out_file = os.path.join(args.base,'matrix-'+args.runcode+'.csv')
-    cursor = args.obj.cursor()
-    dids = "','".join(args.dids)
+    out_file = os.path.join(my_args.base,'matrix-'+my_args.runcode+'.csv')
+    cursor = my_args.obj.cursor()
+    dids = "','".join(my_args.dids)
 
-    if args.rank not in allowed_ranks:
-        args.rank = 'genus'
-    sql = get_matrix_biom_taxbytax_sql(args, dids)
+    if my_args.rank not in allowed_ranks:
+        my_args.rank = 'genus'
+    sql = get_matrix_biom_taxbytax_sql(my_args, dids)
 
     print sql
     cursor.execute(sql)
@@ -212,29 +212,29 @@ def run_matrix(args):
         knt = row['knt']
 
 
-        if args.normalization == 'not_normalized':
+        if my_args.normalization == 'not_normalized':
             count = knt
         else:
-            if args.dataset_counts[samp] <= 0:
+            if my_args.dataset_counts[samp] <= 0:
                 dataset_count = 1
             else:
-                dataset_count = args.dataset_counts[samp]
-            if args.normalization == 'normalized_by_percent':
+                dataset_count = my_args.dataset_counts[samp]
+            if my_args.normalization == 'normalized_by_percent':
                 count = round((knt /  dataset_count)*100, 8)
-            elif args.normalization == 'normalized_to_maximum':
-                count = int((knt /  dataset_count) * args.max)
+            elif my_args.normalization == 'normalized_to_maximum':
+                count = int((knt /  dataset_count) * my_args.max)
             else:
                 count = knt  # should never get here
 
         tax = row['taxonomy']
         taxa = tax.split(';')
         dom = taxa[0]
-        if dom in args.domains:
+        if dom in my_args.domains:
             # exclude Chloroplasts if Organelle not in
-            if dom == 'Bacteria' and 'Organelle' not in args.domains and 'Chloroplast' in tax:
+            if dom == 'Bacteria' and 'Organelle' not in my_args.domains and 'Chloroplast' in tax:
                 print('Chloroplast - Excluding', tax)
             else:
-                if  args.exclude_nas and len(taxa) != allowed_ranks.index(args.rank)+1:
+                if  my_args.exclude_nas and len(taxa) != allowed_ranks.index(my_args.rank)+1:
                     print('_NA -- Excluding', tax)
                 else:
                     if tax not in collector:
@@ -243,7 +243,7 @@ def run_matrix(args):
 
     sample_order = sorted(sample_order_dict.keys())
     tax_order    = sorted(collector.keys())
-    file_txt = 'VAMPS Taxonomy Matrix\tRank:'+args.rank+'\tNormalization:'+args.normalization+'\n'
+    file_txt = 'VAMPS Taxonomy Matrix\tRank:'+my_args.rank+'\tNormalization:'+my_args.normalization+'\n'
     for pjds in sample_order:
         file_txt += "\t"+pjds
     file_txt += "\n"
@@ -257,15 +257,15 @@ def run_matrix(args):
         file_txt += tmp[:-1]+"\n"
     file_txt += "\n"
 
-    write_file_txt(args, out_file, file_txt)
+    write_file_txt(my_args, out_file, file_txt)
 
 
-def run_biom(args):
+def run_biom(my_args):
     print '''running biom --->>>'''
-    cursor = args.obj.cursor()
-    out_file = os.path.join(args.base, 'biom-'+args.runcode+'.biom')
-    dids = "','".join(args.dids)
-    sql = get_matrix_biom_taxbytax_sql(args, dids)
+    cursor = my_args.obj.cursor()
+    out_file = os.path.join(my_args.base, 'biom-'+my_args.runcode+'.biom')
+    dids = "','".join(my_args.dids)
+    sql = get_matrix_biom_taxbytax_sql(my_args, dids)
 
     print sql
     cursor.execute(sql)
@@ -278,7 +278,7 @@ def run_biom(args):
     boilerplate_text += '"format_url": "http://biom-format.org/documentation/format_versions/biom-1.0.html",'+"\n"
     boilerplate_text += '"type": "OTU table",'+"\n"
     boilerplate_text += '"generated_by": "VAMPS-Node.js",'+"\n"
-    boilerplate_text += '"date": "'+args.today+'",'+"\n"
+    boilerplate_text += '"date": "'+my_args.today+'",'+"\n"
 
     collector = {}
     sample_order_dict = {}
@@ -287,29 +287,29 @@ def run_biom(args):
         sample_order_dict[samp] = 1
         knt = row['knt']
 
-        if args.normalization == 'not_normalized':
+        if my_args.normalization == 'not_normalized':
             count = knt
         else:
-            if args.dataset_counts[pjds] <= 0:
+            if my_args.dataset_counts[pjds] <= 0:
                 dataset_count = 1
             else:
-                dataset_count = args.dataset_counts[pjds]
-            if args.normalization == 'normalized_by_percent':
+                dataset_count = my_args.dataset_counts[pjds]
+            if my_args.normalization == 'normalized_by_percent':
                 count = round((knt /  dataset_count) * 100, 8)
-            elif args.normalization == 'normalized_to_maximum':
-                count = int((knt /  dataset_count) * args.max)
+            elif my_args.normalization == 'normalized_to_maximum':
+                count = int((knt /  dataset_count) * my_args.max)
             else:
                 count = knt  # should never get here
 
         tax  = row['taxonomy']
         taxa = tax.split(';')
         dom = taxa[0]
-        if dom in args.domains:
+        if dom in my_args.domains:
             # exclude Chloroplasts if Organelle not in
-            if dom == 'Bacteria' and 'Organelle' not in args.domains and 'Chloroplast' in tax:
+            if dom == 'Bacteria' and 'Organelle' not in my_args.domains and 'Chloroplast' in tax:
                 print('Chloroplast - Excluding', tax)
             else:
-                if  args.exclude_nas and len(taxa) != allowed_ranks.index(args.rank)+1:
+                if  my_args.exclude_nas and len(taxa) != allowed_ranks.index(my_args.rank)+1:
                     print('_NA -- Excluding', tax)
                 else:
                     if tax not in collector:
@@ -336,7 +336,7 @@ def run_biom(args):
     file_txt += '"matrix_type":"dense",'+"\n"
     file_txt += '"matrix_element_type":"int",'+"\n"
     file_txt += '"shape":['+str(len(tax_order))+','+str(len(sample_order))+'],'+"\n"
-    file_txt += '"normalization":"'+args.normalization+'",'+"\n"
+    file_txt += '"normalization":"'+my_args.normalization+'",'+"\n"
     file_txt += '"data":['+"\n"
     txt = ''
     for tax in tax_order:
@@ -353,7 +353,7 @@ def run_biom(args):
     file_txt += "]\n"
     file_txt += "}\n"
 
-    write_file_txt(args, out_file, file_txt)
+    write_file_txt(my_args, out_file, file_txt)
 
 
 def run_metadata(args, file_form):
@@ -375,7 +375,7 @@ def run_metadata(args, file_form):
 
 
 
-    sql = get_req_metadata_sql(args, dids, required_headersA, required_headersB)
+    sql = get_req_metadata_sql(dids, required_headersA, required_headersB)
     print sql
     cursor.execute(sql)
     result_count = cursor.rowcount
@@ -550,7 +550,7 @@ def run_taxbyseq(args):
     print 'running taxbyseq --->>>'
     cursor = args.obj.cursor()
     dids = "','".join(args.dids)
-    sql = get_taxbyseq_sql(args, dids)
+    sql = get_taxbyseq_sql(dids)
 
     print sql
     cursor.execute(sql)
