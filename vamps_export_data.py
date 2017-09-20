@@ -20,7 +20,7 @@ import sys
 
 import ConfigParser
 from time import sleep
-sys.path.append( '/groups/vampsweb/vampsdev' )
+sys.path.append('/groups/vampsweb/vampsdev')
 import MySQLdb
 import MySQLdb.cursors
 from os.path import expanduser
@@ -30,7 +30,7 @@ import subprocess as subp
 import gzip, csv, json
 
 # GLOBALS
-allowed_ranks = ('domain','phylum','klass','order','family','genus','species','strain')
+allowed_ranks = ('domain', 'phylum', 'klass', 'order', 'family', 'genus', 'species', 'strain')
 
 class GZipWriter(object):
 
@@ -57,11 +57,11 @@ class GZipWriter(object):
         self.proc.stdin.write(data)
 
 def get_fasta_sql(args, dids):
-    sql = "SELECT UNCOMPRESS(sequence_comp) as seq, sequence_id, seq_count, project, dataset from sequence_pdr_info\n";
-    sql += " JOIN sequence using (sequence_id)\n";
-    sql += " JOIN dataset using (dataset_id)\n";
-    sql += " JOIN project using (project_id)\n";
-    sql += " where dataset_id in ('"+dids+"')";
+    sql = "SELECT UNCOMPRESS(sequence_comp) as seq, sequence_id, seq_count, project, dataset from sequence_pdr_info\n"
+    sql += " JOIN sequence using (sequence_id)\n"
+    sql += " JOIN dataset using (dataset_id)\n"
+    sql += " JOIN project using (project_id)\n"
+    sql += " where dataset_id in ('"+dids+"');"
     return sql
 
 def get_matrix_biom_taxbytax_sql(args, dids):
@@ -90,7 +90,7 @@ def get_matrix_biom_taxbytax_sql(args, dids):
     return sql
 
 def get_taxbyseq_sql(args, dids):
-    sql = "SELECT project,dataset,seq_count, gast_distance,UNCOMPRESS(sequence_comp) as sequence,concat_ws(';',\n"
+    sql = "SELECT project, dataset, seq_count, gast_distance, UNCOMPRESS(sequence_comp) as sequence, concat_ws(';', \n"
     sql += " IF(LENGTH(`domain`),`domain`,NULL),\n"
     sql += " IF(LENGTH(`phylum`),`phylum`,NULL),\n"
     sql += " IF(LENGTH(`klass`),`klass`,NULL),\n"
@@ -219,26 +219,26 @@ def run_matrix(args):
             count = knt
         else:
             if args.dataset_counts[samp] <= 0:
-                dataset_count = 1;
+                dataset_count = 1
             else:
                 dataset_count = args.dataset_counts[samp]
             if args.normalization == 'normalized_by_percent':
-                count = round((knt /  dataset_count )*100,8)
+                count = round((knt /  dataset_count)*100, 8)
             elif args.normalization == 'normalized_to_maximum':
-                count = int(( knt /  dataset_count ) * args.max)
+                count = int((knt /  dataset_count) * args.max)
             else:
                 count = knt  # should never get here
 
-        tax   = row['taxonomy']
+        tax = row['taxonomy']
         taxa = tax.split(';')
         dom = taxa[0]
         if dom in args.domains:
             # exclude Chloroplasts if Organelle not in
             if dom == 'Bacteria' and 'Organelle' not in args.domains and 'Chloroplast' in tax:
-                print('Chloroplast - Excluding',tax)
+                print('Chloroplast - Excluding', tax)
             else:
                 if  args.exclude_nas and len(taxa) != allowed_ranks.index(args.rank)+1:
-                    print('_NA -- Excluding',tax)
+                    print('_NA -- Excluding', tax)
                 else:
                     if tax not in collector:
                         collector[tax] = {}
@@ -266,7 +266,7 @@ def run_matrix(args):
 def run_biom(args):
     print '''running biom --->>>'''
     cursor = args.obj.cursor()
-    out_file = os.path.join(args.base,'biom-'+args.runcode+'.biom')
+    out_file = os.path.join(args.base, 'biom-'+args.runcode+'.biom')
     dids = "','".join(args.dids)
     sql = get_matrix_biom_taxbytax_sql(args, dids)
 
@@ -287,33 +287,33 @@ def run_biom(args):
     sample_order_dict = {}
     for row in rows:
         samp = row['project']+'--'+row['dataset']
-        sample_order_dict[samp]=1
+        sample_order_dict[samp] = 1
         knt = row['knt']
 
         if args.normalization == 'not_normalized':
             count = knt
         else:
             if args.dataset_counts[pjds] <= 0:
-                dataset_count = 1;
+                dataset_count = 1
             else:
                 dataset_count = args.dataset_counts[pjds]
             if args.normalization == 'normalized_by_percent':
-                count = round((knt /  dataset_count )*100,8)
+                count = round((knt /  dataset_count) * 100, 8)
             elif args.normalization == 'normalized_to_maximum':
-                count = int(( knt /  dataset_count ) * args.max)
+                count = int((knt /  dataset_count) * args.max)
             else:
                 count = knt  # should never get here
 
-        tax   = row['taxonomy']
+        tax  = row['taxonomy']
         taxa = tax.split(';')
         dom = taxa[0]
         if dom in args.domains:
             # exclude Chloroplasts if Organelle not in
             if dom == 'Bacteria' and 'Organelle' not in args.domains and 'Chloroplast' in tax:
-                print('Chloroplast - Excluding',tax)
+                print('Chloroplast - Excluding', tax)
             else:
                 if  args.exclude_nas and len(taxa) != allowed_ranks.index(args.rank)+1:
-                    print('_NA -- Excluding',tax)
+                    print('_NA -- Excluding', tax)
                 else:
                     if tax not in collector:
                         collector[tax] = {}
@@ -362,7 +362,7 @@ def run_biom(args):
 def run_metadata(args, file_form):
     print 'running metadata --->>>'
     # args.datasets is a list of p--d pairs
-    
+
     cursor = args.obj.cursor()
     dids = "','".join(args.dids)
     pids = "','".join(args.pids)
@@ -370,14 +370,14 @@ def run_metadata(args, file_form):
     # REQUIRED METADATA
 
     required_headersA = ["collection_date",
-                               "run_key", "illumina_index","primer_suite",
-                                "dna_region", "domain", "env_package",
-                                "target_gene", "latitude", "longitude",
-                                "sequencing_platform", "run"]
-    required_headersB = [  "env_biome",  "env_feature", "env_material", "geo_loc_name" ]      # these have to be matched with term table
-    
-    
- 
+                         "run_key", "illumina_index", "primer_suite",
+                         "dna_region", "domain", "env_package",
+                         "target_gene", "latitude", "longitude",
+                         "sequencing_platform", "run"]
+    required_headersB = ["env_biome",  "env_feature", "env_material", "geo_loc_name"]      # these have to be matched with term table
+
+
+
     sql = get_req_metadata_sql(args, dids, required_headersA, required_headersB)
     print sql
     cursor.execute(sql)
@@ -434,8 +434,8 @@ def run_metadata(args, file_form):
     # convert to a list and sort
     if file_form == 'datasets_as_rows':
         out_file = os.path.join(args.base,'metadata-'+args.runcode+'-1.csv')
-        
-        
+
+
         file_txt += 'dataset'
         for header in headers_collector_keys:
             file_txt += '\t'+header
@@ -456,7 +456,7 @@ def run_metadata(args, file_form):
         file_txt += 'metadata'
         for pjds in ds_sorted:
             file_txt += '\t'+pjds
-        file_txt += '\n'   
+        file_txt += '\n'
         for mditem in headers_collector_keys:
             file_txt += mditem
             for pjds in ds_sorted:
@@ -497,9 +497,9 @@ def run_taxbytax(args):
             else:
                 dataset_count = args.dataset_counts[pjds]
             if args.normalization == 'normalized_by_percent':
-                count = round((knt /  dataset_count )*100,8)
+                count = round((knt /  dataset_count)*100,8)
             elif args.normalization == 'normalized_to_maximum':
-                count = int(( knt /  dataset_count ) * args.max)
+                count = int((knt /  dataset_count) * args.max)
             else:
                 count = knt  # should never get here
         #print 'count',count
@@ -583,9 +583,9 @@ def run_taxbyseq(args):
                 dataset_count = args.dataset_counts[pjds]
 
             if args.normalization == 'normalized_by_percent':
-                count = round((seq_count /  dataset_count )*100,8)
+                count = round((seq_count /  dataset_count)*100,8)
             elif args.normalization == 'normalized_to_maximum':
-                count = int(( seq_count /  dataset_count ) * args.max)
+                count = int((seq_count /  dataset_count) * args.max)
             else:
                 count = seq_count  # should never get here
 
@@ -697,7 +697,7 @@ if __name__ == '__main__':
             --compress          Compress files in gzip format
 
             --rank              used only for taxbytax, biom and matrix  [ DEFAULT:phylum ]
-            --domains           [ DEFAULT:"Archaea,Bacteria,Eukarya,Organelle,Unknown" ]
+            --domains           [ DEFAULT:"Archaea, Bacteria, Eukarya, Organelle, Unknown" ]
 
             --taxbytax_file     if present will create TaxByTax file
             --taxbyref_file     if present will create TaxByRef file  NOT YET WORKING
@@ -738,7 +738,7 @@ if __name__ == '__main__':
     parser.add_argument("-metadata_file1", "--metadata_file1",   required=False,  action="store_true",   dest = "metadata1", default=False,
                                                     help="Datasets as rows/Metadata as columns")
     parser.add_argument("-metadata_file2", "--metadata_file2",   required=False,  action="store_true",   dest = "metadata2", default=False,
-                                                    help="Metadata as Rows/Datasets as columns")                                                
+                                                    help="Metadata as Rows/Datasets as columns")
     parser.add_argument("-biom_file", "--biom_file",           required=False,  action="store_true",   dest = "biom", default=False,
                                                     help="")
     parser.add_argument("-matrix_file", "--matrix_file",           required=False,  action="store_true",   dest = "matrix", default=False,
@@ -783,7 +783,7 @@ if __name__ == '__main__':
 
     home = expanduser("~")
     print(home)
-    args.obj = MySQLdb.connect( host=db_host, db=db_name, read_default_file=home+'/.my.cnf_node', cursorclass=MySQLdb.cursors.DictCursor    )
+    args.obj = MySQLdb.connect(host=db_host, db=db_name, read_default_file=home+'/.my.cnf_node', cursorclass=MySQLdb.cursors.DictCursor)
 
     output_dir = args.base
 
