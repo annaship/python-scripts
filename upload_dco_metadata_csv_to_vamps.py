@@ -658,6 +658,9 @@ class Upload():
     # custom 2
     self.add_fields_to_custom_metadata_fields()
     # custom 3
+    # insert dataset_id if ot there
+    self.insert_dataset_id_custom_metadata()
+    # custom 4
     self.update_custom_metadata()
 
   def update_required_metadata(self):
@@ -731,6 +734,15 @@ class Upload():
       res = mysql_utils.execute_no_fetch(query)
       print "res"
       print res
+      
+  def insert_dataset_id_custom_metadata(self):
+    query = "INSERT IGNORE INTO custom_metadata_%s (dataset_id) SELECT dataset_id FROM dataset WHERE project_id = %s;" % (project_id, project_id)
+    print "UUU7 query from insert_dataset_id_custom_metadata"
+    print query
+    res = mysql_utils.execute_no_fetch(query)
+    print "res"
+    print res
+    
 
   # TODO:
   # custom 1
