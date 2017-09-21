@@ -17,13 +17,13 @@ import os
 import sys
 import ConfigParser
 from time import sleep
-import MySQLdb
-import MySQLdb.cursors
 from os.path import expanduser
-#from apps.ConDictMySQL import Conn
 import datetime
 import subprocess as subp
 import gzip, csv, json
+import MySQLdb
+import MySQLdb.cursors
+#from apps.ConDictMySQL import Conn
 sys.path.append('/groups/vampsweb/vampsdev')
 
 # GLOBALS
@@ -271,7 +271,6 @@ def run_biom(my_args):
     cursor.execute(sql)
     rows = cursor.fetchall()
 
-    tax_array = {}
     boilerplate_text = "{\n"
     boilerplate_text += '"id":null,'+"\n"
     boilerplate_text += '"format": "Biological Observation Matrix 1.0.0",'+"\n"
@@ -290,6 +289,7 @@ def run_biom(my_args):
         if my_args.normalization == 'not_normalized':
             count = knt
         else:
+            # Using variable 'pjds' before assignment
             if my_args.dataset_counts[pjds] <= 0:
                 dataset_count = 1
             else:
@@ -356,13 +356,13 @@ def run_biom(my_args):
     write_file_txt(my_args, out_file, file_txt)
 
 
-def run_metadata(args, file_form):
+def run_metadata(my_args, file_form):
     print 'running metadata --->>>'
-    # args.datasets is a list of p--d pairs
+    # my_args.datasets is a list of p--d pairs
 
-    cursor = args.obj.cursor()
-    dids = "','".join(args.dids)
-    pids = "','".join(args.pids)
+    cursor = my_args.obj.cursor()
+    dids = "','".join(my_args.dids)
+    # pids = "','".join(my_args.pids)
 
     # REQUIRED METADATA
 
@@ -382,7 +382,7 @@ def run_metadata(args, file_form):
     data = {}
     #dataset_name_collector = {}
     headers_collector = {}
-    for project_dataset in args.dataset_name_collector.values():
+    for project_dataset in my_args.dataset_name_collector.values():
         data[project_dataset] = {}
 
     if result_count:
@@ -397,23 +397,23 @@ def run_metadata(args, file_form):
 
     #print 'headers_collector',headers_collector
     # CUSTOM METADATA
-    for pid in args.pids:
+    for pid in my_args.pids:
         custom_table = 'custom_metadata_'+pid
 
         sql3 = "SELECT * from " + custom_table + "\n"
-        #print 'args.dataset_name_collector'
-        #print args.dataset_name_collector
+        #print 'my_args.dataset_name_collector'
+        #print my_args.dataset_name_collector
         try:
             cursor.execute(sql3)
             rows = cursor.fetchall()
             for row in rows:
                 did = row['dataset_id']
-                if did in args.dataset_name_collector:
-                    pjds = args.dataset_name_collector[did]
+                if did in my_args.dataset_name_collector:
+                    pjds = my_args.dataset_name_collector[did]
                 else:
                     pjds = 'unknown'
                 #print pjds
-                if str(did) in args.dids:
+                if str(did) in my_args.dids:
                     for key in row:
                         #print('key',key)  ## key is mditem
                         if key != custom_table+'_id':
@@ -430,7 +430,7 @@ def run_metadata(args, file_form):
     file_txt += "VAMPS Metadata\n"
     # convert to a list and sort
     if file_form == 'datasets_as_rows':
-        out_file = os.path.join(args.base, 'metadata-' + args.runcode + '-1.csv')
+        out_file = os.path.join(my_args.base, 'metadata-' + my_args.runcode + '-1.csv')
 
 
         file_txt += 'dataset'
@@ -448,7 +448,7 @@ def run_metadata(args, file_form):
             file_txt += '\n'
         file_txt += '\n'
     else:
-        out_file = os.path.join(args.base, 'metadata-' + args.runcode + '-2.csv')
+        out_file = os.path.join(my_args.base, 'metadata-' + my_args.runcode + '-2.csv')
         file_txt += 'metadata'
         for pjds in ds_sorted:
             file_txt += '\t'+pjds
@@ -462,16 +462,16 @@ def run_metadata(args, file_form):
                     file_txt += '\t'
             file_txt += '\n'
         file_txt += '\n'
-    write_file_txt(args, out_file, file_txt)
+    write_file_txt(my_args, out_file, file_txt)
 
-def run_taxbytax(args):
+def run_taxbytax(my_args):
     print 'running taxbytax --->>>'
 
-    cursor = args.obj.cursor()
-    dids = "','".join(args.dids)
-    if args.rank not in allowed_ranks:
-        args.rank = 'genus'
-    sql = get_matrix_biom_taxbytax_sql(args, dids)
+    cursor = my_args.obj.cursor()
+    dids = "','".join(my_args.dids)
+    if my_args.rank not in allowed_ranks:
+        my_args.rank = 'genus'
+    sql = get_matrix_biom_taxbytax_sql(my_args, dids)
 
     print sql
     cursor.execute(sql)
@@ -485,30 +485,30 @@ def run_taxbytax(args):
         knt = row['knt']
 
 
-        if args.normalization == 'not_normalized':
+        if my_args.normalization == 'not_normalized':
             count = knt
         else:
-            if args.dataset_counts[pjds] <= 0:
+            if my_args.dataset_counts[pjds] <= 0:
                 dataset_count = 1
             else:
-                dataset_count = args.dataset_counts[pjds]
-            if args.normalization == 'normalized_by_percent':
+                dataset_count = my_args.dataset_counts[pjds]
+            if my_args.normalization == 'normalized_by_percent':
                 count = round((knt /  dataset_count) * 100, 8)
-            elif args.normalization == 'normalized_to_maximum':
-                count = int((knt /  dataset_count) * args.max)
+            elif my_args.normalization == 'normalized_to_maximum':
+                count = int((knt /  dataset_count) * my_args.max)
             else:
                 count = knt  # should never get here
         #print 'count',count
-        #print knt,args.dataset_counts[pjds],args.max,count
+        #print knt,my_args.dataset_counts[pjds],my_args.max,count
         tax = row['taxonomy']
         taxa = tax.split(';')
         dom = taxa[0]
-        if dom in args.domains:
+        if dom in my_args.domains:
             # exclude Chloroplasts if Organelle not in
-            if dom == 'Bacteria' and 'Organelle' not in args.domains and 'Chloroplast' in tax:
+            if dom == 'Bacteria' and 'Organelle' not in my_args.domains and 'Chloroplast' in tax:
                 print('Chloroplast - Excluding', tax)
             else:
-                if  args.exclude_nas and len(taxa) != allowed_ranks.index(args.rank)+1:
+                if  my_args.exclude_nas and len(taxa) != allowed_ranks.index(my_args.rank)+1:
                     print('_NA -- Excluding', tax)
                 else:
                     if tax in tax_array:
@@ -522,11 +522,11 @@ def run_taxbytax(args):
                         tax_array[tax][pjds] = count
     sample_order = sorted(sample_order_dict.keys())
     tax_order = sorted(tax_array.keys())
-    #write_taxbytax_file(args, tax_array, tax_order, sample_order)
+    #write_taxbytax_file(my_args, tax_array, tax_order, sample_order)
 
-    out_file = os.path.join(args.base, 'taxbytax-' + args.runcode + '.csv')
+    out_file = os.path.join(my_args.base, 'taxbytax-' + my_args.runcode + '.csv')
     ranks = ('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain')
-    file_txt = 'VAMPS TaxByTax\tNormalization: '+args.normalization+'\n'
+    file_txt = 'VAMPS TaxByTax\tNormalization: '+my_args.normalization+'\n'
     for d in sample_order:
         file_txt += d+'\t'
     file_txt += "Rank\tTaxonomy\n"
@@ -544,12 +544,12 @@ def run_taxbytax(args):
         line += rank+"\t"+tax+"\n"
         file_txt += line
 
-    write_file_txt(args, out_file, file_txt)
+    write_file_txt(my_args, out_file, file_txt)
 
-def run_taxbyseq(args):
+def run_taxbyseq(my_args):
     print 'running taxbyseq --->>>'
-    cursor = args.obj.cursor()
-    dids = "','".join(args.dids)
+    cursor = my_args.obj.cursor()
+    dids = "','".join(my_args.dids)
     sql = get_taxbyseq_sql(dids)
 
     print sql
@@ -559,7 +559,7 @@ def run_taxbyseq(args):
     seqs_array         = {}
     seqs_tax_array     = {}
     seqs_dist_array    = {}
-    seqs_refhvrs_array = {}
+    # seqs_refhvrs_array = {}
     sample_order_dict  = {}
     for row in rows:
         pjds = row['project']+'--'+row['dataset']
@@ -570,18 +570,18 @@ def run_taxbyseq(args):
         seq        = row['sequence'].encode('zlib')
         taxonomy   = row['taxonomy']
 
-        if args.normalization == 'not_normalized':
+        if my_args.normalization == 'not_normalized':
             count = seq_count
         else:
-            if args.dataset_counts[pjds] <= 0:
+            if my_args.dataset_counts[pjds] <= 0:
                 dataset_count = 1
             else:
-                dataset_count = args.dataset_counts[pjds]
+                dataset_count = my_args.dataset_counts[pjds]
 
-            if args.normalization == 'normalized_by_percent':
+            if my_args.normalization == 'normalized_by_percent':
                 count = round((seq_count /  dataset_count) * 100, 8)
-            elif args.normalization == 'normalized_to_maximum':
-                count = int((seq_count /  dataset_count) * args.max)
+            elif my_args.normalization == 'normalized_to_maximum':
+                count = int((seq_count /  dataset_count) * my_args.max)
             else:
                 count = seq_count  # should never get here
 
@@ -599,11 +599,11 @@ def run_taxbyseq(args):
             seqs_array[seq][pjds] = count
     sample_order = sorted(sample_order_dict.keys())
     #tax_order = sorted(collector.keys())
-    #write_taxbyseq_file(args, seqs_array, seqs_tax_array, seqs_refhvrs_array, seqs_dist_array)
-    #write_taxbyseq_file(args, seqs_array, seqs_tax_array, seqs_dist_array,sample_order)
-    out_file = os.path.join(args.base, 'taxbyseq-' + args.runcode + '.csv')
+    #write_taxbyseq_file(my_args, seqs_array, seqs_tax_array, seqs_refhvrs_array, seqs_dist_array)
+    #write_taxbyseq_file(my_args, seqs_array, seqs_tax_array, seqs_dist_array,sample_order)
+    out_file = os.path.join(my_args.base, 'taxbyseq-' + my_args.runcode + '.csv')
     ranks = ('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain')
-    file_txt = 'VAMPS TaxBySeq\tNormalization: '+args.normalization+'\n\t'
+    file_txt = 'VAMPS TaxBySeq\tNormalization: '+my_args.normalization+'\n\t'
 
     for d in sample_order:
         file_txt += d+'\t'
@@ -629,7 +629,7 @@ def run_taxbyseq(args):
                 line += "0\t"
         line += str(dist)+"\t"+show_seq+"\t"+rank+"\t"+tax+"\n"
         file_txt += line
-    write_file_txt(args, out_file, file_txt)
+    write_file_txt(my_args, out_file, file_txt)
 
 #def write_taxbytax_file(args, tax_array, tax_order, sample_order):
 #def write_taxbyseq_file(args, seqs_array, seqs_tax_array, seqs_refhvrs_array, seqs_dist_array):
@@ -642,11 +642,11 @@ def clean_samples(samples):
     return pjds
 
 
-def get_dataset_counts(args):
+def get_dataset_counts(my_args):
     print '''getting dataset_counts --->>>'''
-    cursor = args.obj.cursor()
-    dids = "','".join(args.dids)
-    #pd = "') OR\n(project='".join(["' and dataset='".join(p.split('--')) for p in args.datasets])
+    cursor = my_args.obj.cursor()
+    dids = "','".join(my_args.dids)
+    #pd = "') OR\n(project='".join(["' and dataset='".join(p.split('--')) for p in my_args.datasets])
     #sql = "SELECT distinct project, dataset, dataset_count from "+pd_table+" WHERE\n(project='" + pd + "')\n"
     sql = "SELECT dataset_id, project, dataset, sum(seq_count) as dataset_count"
     sql += " from sequence_pdr_info as i"
@@ -657,7 +657,7 @@ def get_dataset_counts(args):
     print sql
     cursor.execute(sql)
     rows = cursor.fetchall()
-    max = 0;
+    max_val = 0;
     pd_counter = {}
     dataset_name_collector = {}
 
@@ -666,10 +666,10 @@ def get_dataset_counts(args):
         ds_count = row['dataset_count']
         pd_counter[pjds] = ds_count
         dataset_name_collector[row['dataset_id']] = pjds
-        if ds_count > max:
-            max = ds_count
+        if ds_count > max_val:
+            max_val = ds_count
 
-    return (max, pd_counter, dataset_name_collector)
+    return (max_val, pd_counter, dataset_name_collector)
 
 
 if __name__ == '__main__':
