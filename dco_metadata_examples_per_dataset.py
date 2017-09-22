@@ -108,7 +108,7 @@ class Metadata():
     
     for dco_custom_table in dco_custom_tables:
       # TODO: combine with get_custom_metadata_per_project
-      dco_poject_dataset_query = """SELECT DISTINCT project_id, project, dataset.dataset as sample, %s.* FROM %s JOIN dataset USING(dataset_id) JOIN project USING(project_id)""" % (dco_custom_table, dco_custom_table)
+      dco_poject_dataset_query = """SELECT DISTINCT dataset.project_id, project, dataset.dataset as sample, %s.* FROM %s JOIN dataset USING(dataset_id) JOIN project on (dataset.project_id = project.project_id)""" % (dco_custom_table, dco_custom_table)
       try:
         res = mysql_utils.execute_fetch_select(dco_poject_dataset_query)
         # print res
@@ -374,13 +374,13 @@ SELECT
   `geo_loc_name`.`term_name` AS `geo_loc_name`,
   env_feature_id,
   `env_feature`.`term_name` AS `env_feature`,
-  env_matter_id,
+  env_material_id,
   `env_matter`.`term_name` AS `env_matter`,
   env_package_id,
   env_package,
   adapter_sequence_id,
   `run_key`.`run_key` AS `adapter_sequence`,
-  index_sequence_id,
+  illumina_index_id,
   `illumina_index`.`illumina_index` AS `index_sequence`,
   primer_suite_id,
   primer_suite
@@ -392,12 +392,12 @@ JOIN `sequencing_platform` USING(sequencing_platform_id)
 JOIN `target_gene` USING(target_gene_id)
 JOIN `domain` USING(domain_id)
 JOIN `term` `env_feature` ON(`env_feature`.`term_id` = `required_metadata_info`.`env_feature_id`) 
-JOIN `term` `env_matter` ON(`env_matter`.`term_id` = `required_metadata_info`.`env_matter_id`) 
+JOIN `term` `env_matter` ON(`env_matter`.`term_id` = `required_metadata_info`.`env_material_id`) 
 JOIN `term` `env_biome` ON(`env_biome`.`term_id` = `required_metadata_info`.`env_biome_id`) 
 JOIN `term` `geo_loc_name` ON(`geo_loc_name`.`term_id` = `required_metadata_info`.`geo_loc_name_id`) 
 JOIN `env_package` USING(env_package_id) 
 JOIN `run_key` ON(`run_key`.`run_key_id` = `required_metadata_info`.`adapter_sequence_id`)
-JOIN `illumina_index` ON(`illumina_index`.`illumina_index_id` = `required_metadata_info`.`index_sequence_id`) 
+JOIN `illumina_index` using(illumina_index_id) 
 JOIN `primer_suite` USING(primer_suite_id) 
 JOIN ref_primer_suite_primer USING(primer_suite_id)
     """
@@ -452,7 +452,7 @@ JOIN ref_primer_suite_primer USING(primer_suite_id)
     # print required_metadata_dict
     
     """
-  ...{'domain': 'Bacteria', 'required_metadata_id': 25490L, 'dna_region': 'v6', 'geo_loc_name_id': 8583L, 'adapter_sequence': 'NNNNTCAGC', 'dna_region_id': 12, 'adapter_sequence_id': 1535, 'dataset': '0_2_i_1', 'env_package_id': 19, 'dataset_id': 338482L, 'domain_id': 3L, 'target_gene': '16s', 'env_feature': 'unknown', 'collection_date': 'unknown', 'env_biome': 'unknown', 'index_sequence_id': 43, 'target_gene_id': 1, 'env_feature_id': 6191L, 'geo_loc_name': 'United States of America', 'latitude': None, 'sequencing_platform_id': 2, 'project_id': 516L, 'env_matter_id': 6191L, 'sequencing_platform': 'illumina', 'index_sequence': 'GTAGTA', 'primer_suite_id': 23, 'primer_suite': 'Bacterial V6 Suite', 'env_package': 'unknown', 'longitude': None, 'project': 'VTS_MIC_Bv6', 'env_biome_id': 6191L, 'env_matter': 'unknown'})
+  ...{'domain': 'Bacteria', 'required_metadata_id': 25490L, 'dna_region': 'v6', 'geo_loc_name_id': 8583L, 'adapter_sequence': 'NNNNTCAGC', 'dna_region_id': 12, 'adapter_sequence_id': 1535, 'dataset': '0_2_i_1', 'env_package_id': 19, 'dataset_id': 338482L, 'domain_id': 3L, 'target_gene': '16s', 'env_feature': 'unknown', 'collection_date': 'unknown', 'env_biome': 'unknown', 'illumina_index_id': 43, 'target_gene_id': 1, 'env_feature_id': 6191L, 'geo_loc_name': 'United States of America', 'latitude': None, 'sequencing_platform_id': 2, 'project_id': 516L, 'env_material_id': 6191L, 'sequencing_platform': 'illumina', 'index_sequence': 'GTAGTA', 'primer_suite_id': 23, 'primer_suite': 'Bacterial V6 Suite', 'env_package': 'unknown', 'longitude': None, 'project': 'VTS_MIC_Bv6', 'env_biome_id': 6191L, 'env_matter': 'unknown'})
     """
     
     primer_info_dict = self.get_primer_info_dict()
