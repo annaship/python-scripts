@@ -79,6 +79,35 @@ class My_fasta:
     while input.next():
       output.store(input, split = False)
     output.close()
+    
+  def lines_that_contain(self, string, fp):
+      return [line for line in fp if string in line]
+  
+  
+  # output = fa.FastaOutput(output_file_path)
+  
+
+  
+  # with open("filename.txt") as f:
+  #     for line in f:
+  #         if "Smith" in line:
+  #              print line
+  # if line in my2_content
+  
+  def combine_w_gast_fa(self, input_file_path, output_file_path):
+    fa_input = fa.SequenceSource(input_file_path)
+    gast_file_name = input_file_path + ".gast"
+    # print "gast_file_name = %s" % gast_file_name
+    # print "input_file_path = %s" % input_file_path
+    while fa_input.next():
+      file = open(gast_file_name, "r") 
+      gast_file_content = file.readlines() 
+      res = self.lines_that_contain(fa_input.id, gast_file_content)
+      print "RRR res = %s" % res
+      
+    #   print input.id
+    #   output.store(input, split = False)
+    # output.close()
 
   def seq_concat_id_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
@@ -177,6 +206,9 @@ if __name__ == '__main__':
   parser.add_argument("-r", "--region",
     required = False, action = "store_true", dest = "cut_region",
     help = """Cut refhvr region. ???Add about reverse-complimenting???""")
+  parser.add_argument("-g", "--com_gast",
+    required = False, action = "store_true", dest = "com_gast",
+    help = """Combines gast taxonomy and fasta""")
 
   parser.add_argument("-o", "--output",
     required = False, action = "store", dest = "output_file_name",
@@ -227,6 +259,9 @@ if __name__ == '__main__':
       elif args.unsplit:
         my_fasta.unsplit_fa(in_file_name, out_file_name)
         if is_verbatim: print "Running unsplit_fa"
+      elif args.com_gast:
+        my_fasta.combine_w_gast_fa(in_file_name, out_file_name)
+        if is_verbatim: print "Running combine_w_gast_fa"
       elif args.cut_region:
         my_fasta.cut_region(in_file_name)
         my_fasta.write_cuts(out_file_name)
