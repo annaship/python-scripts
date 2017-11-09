@@ -103,11 +103,20 @@ class My_fasta:
       file = open(gast_file_name, "r") 
       gast_file_content = file.readlines() 
       res = self.lines_that_contain(fa_input.id, gast_file_content)
-      print "RRR res = %s" % res
-      
+      gast_taxonomy = res[0].split("\t")
+      id_gast = fa_input.id + "|" + 
+      fa_input.id = id_gast
+      print "RRR res_l[1] = %s" % gast_taxonomy[1]
+      print "id_gast = %s" % (id_gast)
+      # if fa_input.id != gast_taxonomy[0]:
+      #   print "UUUU"
+      # if fa_input.id == gast_taxonomy[0]:
+      #   print "URA"
+      # fa_input.id = D4ZHLFP1:36:C10H4ACXX:5:1101:17727:2173 1:N:0:CGATGT|frequency:126671
     #   print input.id
-    #   output.store(input, split = False)
-    # output.close()
+    
+      output.store(fa_input, split = False)
+    output.close()
 
   def seq_concat_id_fa(self, input_file_path, output_file_path):
     input = fa.SequenceSource(input_file_path)
