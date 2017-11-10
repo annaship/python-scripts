@@ -82,39 +82,19 @@ class My_fasta:
     
   def lines_that_contain(self, string, fp):
       return [line for line in fp if string in line]
-  
-  
-  # output = fa.FastaOutput(output_file_path)
-  
-
-  
-  # with open("filename.txt") as f:
-  #     for line in f:
-  #         if "Smith" in line:
-  #              print line
-  # if line in my2_content
-  
+    
   def combine_w_gast_fa(self, input_file_path, output_file_path):
+    output = fa.FastaOutput(output_file_path)
+    
     fa_input = fa.SequenceSource(input_file_path)
     gast_file_name = input_file_path + ".gast"
-    # print "gast_file_name = %s" % gast_file_name
-    # print "input_file_path = %s" % input_file_path
     while fa_input.next():
       file = open(gast_file_name, "r") 
       gast_file_content = file.readlines() 
       res = self.lines_that_contain(fa_input.id, gast_file_content)
       gast_taxonomy = res[0].split("\t")
-      id_gast = fa_input.id + "|" + 
-      fa_input.id = id_gast
-      print "RRR res_l[1] = %s" % gast_taxonomy[1]
-      print "id_gast = %s" % (id_gast)
-      # if fa_input.id != gast_taxonomy[0]:
-      #   print "UUUU"
-      # if fa_input.id == gast_taxonomy[0]:
-      #   print "URA"
-      # fa_input.id = D4ZHLFP1:36:C10H4ACXX:5:1101:17727:2173 1:N:0:CGATGT|frequency:126671
-    #   print input.id
-    
+      id_gast = fa_input.id + "|" + gast_taxonomy[1]
+      fa_input.id = id_gast    
       output.store(fa_input, split = False)
     output.close()
 
