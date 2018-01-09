@@ -23,12 +23,13 @@ class Sequence():
     cnt = 1
     # range(begin,end, step)
     for counter in range(1, int(self.all_cnt_orig[0][0][0]), chunk_size):
-      my_sql = """insert ignore into uncomr_seq (sequence)
+      my_sql = """insert ignore into sequence (sequence)
               select distinct uncompress(sequence_comp) as sequence
               from sequence_ill limit %s, %s
               ON DUPLICATE KEY UPDATE sequence = VALUES(sequence)
               """ % (counter, chunk_size)
       print my_sql
+      print mysql_utils.execute_no_fetch_w_info(my_sql)
 
 if __name__ == '__main__':
 
