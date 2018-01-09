@@ -36,12 +36,15 @@ if __name__ == '__main__':
   utils = util.Utils()
 
   if (utils.is_local() == True):
+    host = 'localhost'
     db = 'test_env454'
-    mysql_utils = util.Mysql_util(host = 'localhost', db = db, read_default_group = 'clienthome')
-    print "host = 'localhost', db = %s" % db
+    read_default_group = 'clienthome'
   else:
-    pass
-    # mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
+    host = "bpcdb1"
+    db = 'env454'
+    read_default_group = 'client'
+  mysql_utils = util.Mysql_util(host = host, db = db, read_default_group = read_default_group)
+  # print "host = %s, db = %s" % (host, db)
     
   seq = Sequence()
   seq.uncompress_all()
