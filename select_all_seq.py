@@ -1,9 +1,11 @@
 # from collections import defaultdict
 # import time
+import sys, os
+sys.path.append(os.getcwd())
+
 import util
 import MySQLdb
 import csv
-import sys
 from collections import defaultdict
 
 
@@ -22,6 +24,8 @@ class Sequence():
     chunk_size = 10000
     cnt = 1
     # range(begin,end, step)
+    print "total seq originally: " 
+    print self.all_cnt_orig
     for counter in range(1, int(self.all_cnt_orig[0][0][0]), chunk_size):
       my_sql = """insert ignore into sequence (sequence)
               select distinct uncompress(sequence_comp) as sequence
