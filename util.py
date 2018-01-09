@@ -104,6 +104,13 @@ class Mysql_util:
 
           return data_from_db
 
+    def execute_no_fetch_w_info(self, sql):
+        if self.cursor:
+            self.cursor.execute(sql)
+            self.conn.commit()
+            return self.cursor._info
+
+
     def execute_no_fetch(self, sql):
       if self.cursor:
           self.cursor.execute(sql)
