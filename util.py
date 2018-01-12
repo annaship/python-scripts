@@ -207,7 +207,6 @@ class Utils:
 
         dev_comps = ['ashipunova.mbl.edu', "as-macbook.home", "as-macbook.local", "Ashipunova.local", "Annas-MacBook-new.local", "Annas-MacBook.local",'Andrews-Mac-Pro.local']
 
-
         if os.uname()[1] in dev_comps:
             return True
         else:
@@ -296,7 +295,6 @@ class Utils:
         if headers:
           csv_writer.writerows(headers)
         csv_writer.writerows(matrix_to_csv)
-
 
     def write_to_csv_file_db_res(self, file_name, res, file_mode = "wb"):
       data_from_db, field_names = res
