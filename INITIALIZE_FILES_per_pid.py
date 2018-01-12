@@ -14,7 +14,7 @@ import logging
 import datetime
 import socket
 
-today = str(datetime.date.today())
+today     = str(datetime.date.today())
 
 parser = argparse.ArgumentParser(description="")
 
@@ -23,48 +23,71 @@ query_from += " JOIN sequence_uniq_info USING(sequence_id)"
 
 query_core_silva119 = query_from+" JOIN silva_taxonomy_info_per_seq USING(silva_taxonomy_info_per_seq_id)"
 query_core_silva119 += " JOIN silva_taxonomy USING(silva_taxonomy_id)"
+#query_core_silva119 += " WHERE dataset_id in ('%s')"
 
 query_core_rdp26 = query_from+" JOIN rdp_taxonomy_info_per_seq USING(rdp_taxonomy_info_per_seq_id)"
 query_core_rdp26 += " JOIN rdp_taxonomy USING(rdp_taxonomy_id)"
-
+#query_core_rdp26 += " WHERE dataset_id in ('%s')"
 
 domain_query = "SELECT sum(seq_count), dataset_id, domain_id"
 #domain_query += query_core
-domain_query += "%s GROUP BY dataset_id, domain_id"
+domain_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id"
 
 phylum_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id"
 #phylum_query += query_core
-phylum_query += "%s GROUP BY dataset_id, domain_id, phylum_id"
+phylum_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id"
 
 class_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id"
 #class_query += query_core
-class_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id"
+class_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id"
 
 order_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id"
 #order_query += query_core
-order_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id"
+order_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id"
 
 family_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id"
 #family_query += query_core
-family_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id"
+family_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id"
 
 genus_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id"
 #genus_query += query_core
-genus_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id"
+genus_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id"
 
 species_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id"
 #species_query += query_core
-species_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id"
+species_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id"
 
 strain_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
 #strain_query += query_core
-strain_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
+strain_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
 dataset_query = "SELECT dataset_id from dataset"
 
+# these SHOULD be the same headers as in the NODE_DATABASE table: required_metadata_info (order doesn't matter)
+# required_metadata_fields = ["altitude", "assigned_from_geo", "collection_date", "common_name", "country", "depth", "description", "dna_region", "domain", "elevation", "env_package", "fragment_name", "latitude", "longitude", "public", "sequencing_platform", "taxon_id"];
+# req_pquery = "SELECT dataset_id, " + ', '.join(required_metadata_fields) + """
+# , env_biome.term_name AS env_biome, env_feature.term_name AS env_feature, env_material.term_name AS env_material
+# from required_metadata_info
+#                 JOIN fragment_name USING(fragment_name_id)
+#                 JOIN dna_region USING(dna_region_id)
+#                 JOIN sequencing_platform USING(sequencing_platform_id)
+#                 JOIN domain USING(domain_id)
+#                 JOIN term AS env_biome ON(env_biome_id = env_biome.term_id)
+#                 JOIN term AS env_feature ON(env_feature_id = env_feature.term_id)
+#                 JOIN term AS env_material ON(env_material_id = env_material.term_id)
+#                 JOIN country USING(country_id)
+#                 JOIN env_package USING(env_package_id)
 
-req_pquery = "SELECT dataset_id, %s from required_metadata_info"
+# """
+# required_metadata_fields = ["altitude", "assigned_from_geo", "collection_date", "common_name", "country_id", "depth", "description", "dna_region_id", 
+#                         "domain_id", "elevation", "env_sample_source_id", "fragment_name_id", "latitude", "longitude", "sequencing_platform_id", 
+#                         "taxon_id", "env_biome_id", "env_feature_id", "env_material_id"];
+
+req_pquery = "SELECT dataset_id, %s from required_metadata_info JOIN env_package USING(env_package_id)"
+req_pquery += " WHERE dataset_id in ('%s')"
+#required_metadata_fields.extend(["env_biome", "env_feature", "env_material"])
 
 cust_pquery = "SELECT project_id,field_name from custom_metadata_fields"
+cust_pquery += " WHERE project_id='%s'"
 
 ranks = ['domain','phylum','klass','order','family','genus','species','strain']
 queries = [{"rank":"domain","query":domain_query},
@@ -82,90 +105,22 @@ logging.basicConfig(level=logging.DEBUG, filename=LOG_FILENAME, filemode="a+",
                            format="%(asctime)-15s %(levelname)-8s %(message)s")
 
 def get_required_metadata_fields(args):
-    q =  "SHOW fields from required_metadata_info"   
+    q = " SELECT `COLUMN_NAME` "
+    q += " FROM `INFORMATION_SCHEMA`.`COLUMNS`"
+    q += " WHERE `TABLE_SCHEMA`='%s'"
+    q += " AND `TABLE_NAME`='required_metadata_info';"
+    q = q % (args.NODE_DATABASE)
     cur.execute(q)
-    md_fields = []
-    fields_not_wanted = ['required_metadata_id','dataset_id','created_at','updated_at']    
-    for row in cur.fetchall():
-        if row[0] not in fields_not_wanted:
-            md_fields.append(row[0])
-    return md_fields
+    rows = cur.fetchall()
+    required_metadata_fields = []
+    
+    for row in rows:
+        if row[0] != 'required_metadata_id' and row[0] != 'dataset_id':
+            required_metadata_fields.append(row[0])
+    
+    return required_metadata_fields
 
-def check_files(args):
-    cur.execute(dataset_query)
-    db_dids = []
-    for row in cur.fetchall():
-        db_dids.append(str(row[0]))
-    #print db_dids
-    did_count = len(db_dids)
 
-    ###### INDIVIDUAL JSON FILES ##################
-    print("\nChecking for files in:\n", args.files_prefix)
-    okay_count = 0
-    file_dids = []
-    missing = []
-    for f in os.listdir(args.files_prefix):
-        filename, file_extension = os.path.splitext(f)
-        file_dids.append(filename)
-    for did in db_dids:
-        if did in file_dids:
-            #print f,'okay'
-            okay_count += 1
-        else:
-            missing.append(did)
-
-    if okay_count == did_count:
-        print('OK1 -- No missing files')
-    else:
-        print('Missing from',os.path.basename(args.files_prefix))
-        print("('" + "','".join(missing) + "')")
-        pass
-    print('DID presence is REQUIRED')
-
-    ######### TAXCOUNTS ###########################
-    if args.units == 'silva119':
-        print("\nChecking Group File:\n",args.taxcounts_file_original)
-        with open(args.taxcounts_file_original) as tax_file:
-            tdata = json.load(tax_file)
-
-        okay_count = 0
-        missing = []
-        for did in db_dids:
-            if did in tdata:
-                #print 'found',did
-                okay_count += 1
-            else:
-                missing.append(did)
-        if okay_count == did_count:
-            print('OK2 -- No missing dids in group taxcounts file')
-        else:
-            print('Missing from',os.path.basename(args.taxcounts_file_original))
-            print("('" + "','".join(missing) + "')")
-            pass
-        print('DID presence is REQUIRED')
-    else:
-        print('\nNo group taxcounts file for',args.units)
-    ########## METADATA ##########################
-
-    print("\nChecking Metadata File:\n",args.metadata_file_original)
-    with open(args.metadata_file_original) as md_file:
-        mdata = json.load(md_file)
-
-    okay_count = 0
-    missing = []
-    for did in db_dids:
-        if did in mdata:
-            #print 'found',did
-            okay_count += 1
-        else:
-            missing.append(did)
-    if okay_count == did_count:
-        print('OK3 -- No missing metadata')
-    else:
-        print('Missing from',os.path.basename(args.metadata_file_original))
-        print ("('" + "','".join(missing) + "')")
-        pass
-    print ('DID presence is NOT Required')
 
 def go(args):
     """
@@ -182,33 +137,35 @@ def go(args):
     #         shutil.move(args.taxcounts_file, os.path.join(args.json_file_path, args.NODE_DATABASE+'--taxcounts_silva119'+today+'.json'))
     #     shutil.move(args.metadata_file,  os.path.join(args.json_file_path, args.NODE_DATABASE+'--metadata'+ today+'.json'))
     #     logging.debug('Backed up old taxcounts and metadata files')
-
+    
     # except IOError:
     #     print "Could not back up one of files directory, taxcounts or metadata files: "
-    # except:
+    # except:        
     #     raise
     #     # sys.exit()
     if os.path.exists(args.files_prefix):
         shutil.rmtree(args.files_prefix)
-    os.makedirs(args.files_prefix)
+    os.makedirs(args.files_prefix)  
+    sql_dids =   "','".join(args.did_list)
     #os.mkdir(args.files_prefix)
     logging.debug('Created Dir: '+args.files_prefix)
     for q in queries:
         #print q["query"]
         dirs = []
+        
         if args.units == 'rdp2.6':
-            query = q["query"] % query_core_rdp26
+            query = q["query"] % (query_core_rdp26, sql_dids)
         else:
-            query = q["query"] % query_core_silva119
+            query = q["query"] % (query_core_silva119, sql_dids)
         try:
-            print()
-            print ("running mysql query for:",q['rank'])
+            print
+            print "running mysql query for:",q['rank']
             logging.debug("running mysql query for: "+q['rank'])
 
-            print(query)
+            print query
             cur.execute(query)
         except:
-            print("Trying to query with:",query)
+            print "Trying to query with:",query
             logging.debug("Failing to query with: "+query)
             sys.exit("This Database Doesn't Look Right -- Exiting")
         for row in cur.fetchall():
@@ -232,22 +189,28 @@ def go(args):
                 counts_lookup[ds_id][tax_id_str] = count
 
 
-    print('gathering metadata from tables')
+    print 'gathering metadata from tables'
     logging.debug('gathering metadata from tables')
     metadata_lookup = go_metadata()
 
-    print('writing to individual files')
+    print 'writing to individual files'
     logging.debug('writing to individual files')
     write_data_to_files(args, metadata_lookup, counts_lookup)
 
     if args.units == 'silva119':
-        print('writing metadata file')
+        print 'writing metadata file'
         logging.debug('writing metadata file')
         write_all_metadata_file(args, metadata_lookup)
 
-        print('writing taxcount file')
+        print 'writing taxcount file'
         logging.debug('writing taxcount file')
         write_all_taxcounts_file(args, counts_lookup)
+
+    for w in warnings:
+        print w
+        logging.debug(w)
+    print "DONE"
+    logging.debug("DONE")
 
 
 def write_data_to_files(args, metadata_lookup, counts_lookup):
@@ -270,20 +233,24 @@ def write_data_to_files(args, metadata_lookup, counts_lookup):
 def write_all_metadata_file(args, metadata_lookup):
 
     #print md_file
-    json_str = json.dumps(metadata_lookup, encoding='latin1')
-    #print(json_str)
-    f = open(args.metadata_file_new,'w')   # overwrite
-    f.write(json_str+"\n")
-    f.close()
+    with open(args.metadata_file_original) as mdata_file:    
+        mdata = json.load(mdata_file)
+    for did in metadata_lookup:
+        mdata[did] = metadata_lookup[did]
+    with open(args.metadata_file_new, 'w') as outfile:
+            json.dump(mdata, outfile)    
+        
 
 def write_all_taxcounts_file(args, counts_lookup):
-
+    
+    with open(args.taxcounts_file_original) as tdata_file:    
+        tdata = json.load(tdata_file)
+    for did in counts_lookup:
+        tdata[did] = counts_lookup[did]
+    with open(args.taxcounts_file_new, 'w') as outfile:
+            json.dump(tdata, outfile)   
     #print tc_file
-    json_str = json.dumps(counts_lookup)
-    #print(json_str)
-    f = open(args.taxcounts_file_new,'w')  # overwrite
-    f.write(json_str+"\n")
-    f.close()
+    
 
 def go_metadata():
     """
@@ -294,20 +261,19 @@ def go_metadata():
     metadata_lookup = {}
 
     logging.debug("running mysql for required metadata")
-    print("req_pquery")
-
+    print "req_pquery"
+    
     logging.debug("running mysql for required metadata")
-    req_pquery_full = req_pquery % (','.join(args.req_metadata_fields))
-    print(req_pquery_full)
+    req_pquery_full = req_pquery % (','.join(args.req_metadata_fields), "','".join(args.did_list))
+    print req_pquery_full
     cur.execute(req_pquery_full)
     for row in cur.fetchall():
         did = row[0]
         for i,name in enumerate(args.req_metadata_fields):
-            # print("enumerate(required_metadata_fields): SSS")
-            # print(i,did,name,row[i+1])
+            print "enumerate(required_metadata_fields): SSS"
+            print i,did,name,row[i+1]
 
-            # logging.debug("enumerate(required_metadata_fields): SSS")
-            # logging.debug(str(i)+' '+str(did)+' '+name+' '+str(row[i+1]))
+           
 
             value = row[i+1]
             if value == '':
@@ -320,12 +286,14 @@ def go_metadata():
                 metadata_lookup[did][name] = str(value)
 
 
-
+    print 'metadata_lookup'
+    print metadata_lookup
     pid_collection = {}
-
-    print('running mysql for custom metadata',cust_pquery)
-    logging.debug('running mysql for custom metadata: '+cust_pquery)
-    cur.execute(cust_pquery)
+    cust_pquery2 = cust_pquery % (args.pid)
+    print 'running mysql for custom metadata',cust_pquery2
+    logging.debug('running mysql for custom metadata: '+cust_pquery2)
+    
+    cur.execute(cust_pquery2)
     cust_metadata_lookup = {}
     for row in cur.fetchall():
 
@@ -336,53 +304,49 @@ def go_metadata():
             pid_collection[pid].append(field)
         else:
             pid_collection[pid] = [field]
-    print()
+    print
     for pid in pid_collection:
         table = 'custom_metadata_'+ pid
         fields = ['dataset_id']+pid_collection[pid]
-        q = "SELECT * FROM information_schema.tables WHERE table_schema = '"+args.NODE_DATABASE+"' AND table_name = '"+table+"' LIMIT 1;"
-        print(q)
-        cur.execute(q)
-        if cur.rowcount > 0:
-            cust_dquery = "SELECT `" + '`,`'.join(fields) + "` from " + table
-            print('running other cust',cust_dquery)
-            logging.debug('running other cust: ' +cust_dquery)
-            #try:
-            cur.execute(cust_dquery)
 
-            print()
-            for row in cur.fetchall():
-                print(row)
-                did = row[0]
-                if did not in metadata_lookup:
-                    metadata_lookup[did] = {}
-                #metadata_lookup[did]['primer_id'] = []
-                n = 1
-                for field in pid_collection[pid]:
-                    #print did,n,field,row[n]
-                    name = field
-                    value = str(row[n])
-                    if value == '':
-                        warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+name+'"')
+        cust_dquery = "SELECT `" + '`,`'.join(fields) + "` from " + table
+        print 'running other cust',cust_dquery
+        logging.debug('running other cust: ' +cust_dquery)
+        #try:
+        cur.execute(cust_dquery)
+
+        print
+        for row in cur.fetchall():
+            print row
+            did = row[0]
+            n = 1
+            for field in pid_collection[pid]:
+                #print did,n,field,row[n]
+                name = field
+                value = str(row[n])
+                if value == '':
+                    warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+name+'"')
+
+                if did in metadata_lookup:
                     metadata_lookup[did][name] = value
-                    # if name == 'primer_suite_id' and value:
-#                         primer_query = "SELECT primer_id FROM ref_primer_suite_primer"
-#                         primer_query += " JOIN primer_suite USING(primer_suite_id)"
-#                         primer_query += " JOIN primer USING(primer_id)"
-#                         primer_query += " WHERE primer_suite_id='%s'"
-#                         query = primer_query % (value)
-#                         cur.execute(query)
-#                         rows = cur.fetchall()
-#                         for row in rows:
-#                             metadata_lookup[did]['primer_id'].append(row[0])
-                    
-                    n += 1
-        else:
-            print('No "'+table+'" table found')
+                else:
+                    metadata_lookup[did] = {}
+                    metadata_lookup[did][name] = value
+                n += 1
+        #except:
+        #    warnings.append('could not find/read CUSTOM table: "'+table+'" Skipping')
     db.commit()
     return metadata_lookup
 
-
+def get_did_list(args):
+    q = "SELECT dataset_id from dataset where project_id='%s'" % (args.pid)
+    print q
+    cur.execute(q)
+    rows = cur.fetchall()
+    dids = []
+    for row in rows:
+        dids.append(str(row[0]))
+    return dids
 #
 #
 #
@@ -398,7 +362,7 @@ if __name__ == '__main__':
 
         **THIS SCRIPT WILL RE-CREATE ALL THE FILES UNDER A NEW FILENAME** for the chosen database.
         **THEN YOU MUST MANUALLY MOVE THEM TO THE CORRECT LOCATION**
-        The above is true unless you use the -o/--overwrite flag
+        
         It will create a /public/json/<NODE_DATABASE>--datasets/<datasetid>.json file for each dataset.
           These files have taxonomic counts and metadata for that dataset for
           use when selecting datsets for visualization.
@@ -411,10 +375,8 @@ if __name__ == '__main__':
 
         -json_file_path/--json_file_path   json files path Default: ../json [usually calculated from -host]
         -host/--host        vampsdb, vampsdev or localhost     Default: localhost
-        -o/--overwrite      [default: false]  If set will delete first then overwrite current files (not good on a live server)
         -units/--units      [silva119, rdp2.6]  default: silva119
-        -c/--check_files    [default: false] Will look for continuity between database(dataset table) and JSON files (no initialization)
-
+        
     """
     parser = argparse.ArgumentParser(description="" ,usage=myusage)
     parser.add_argument("-json_file_path", "--json_file_path",
@@ -429,24 +391,20 @@ if __name__ == '__main__':
     parser.add_argument("-units", "--units",
                 required=False,  action='store', choices=['silva119', 'rdp2.6'], dest = "units",  default='silva119',
                 help="UNITS")
-    parser.add_argument("-o", "--overwrite",
-                required=False,  action='store_true',  dest = "overwrite",  default=False,
-                help="If set will delete and overwrite current files (not good on a live server)")
-    parser.add_argument("-c", "--check_files",
-                required=False,  action='store_true', dest = "check_files",  default=False,
-                help="If set will look for continuity between database(dataset table) and JSON files")
-
+    parser.add_argument("-pid", "--pid",
+                required=True,  action='store', dest = "pid",  default=False,
+                help="PID of project to update")
     if len(sys.argv[1:])==0:
-        print(myusage)
-        sys.exit()
+        print myusage
+        sys.exit() 
     args = parser.parse_args()
 
-    print()
+    print
     warnings = []
     if args.dbhost == 'vampsdev':
         args.json_file_path = os.path.join('/','groups','vampsweb','vampsdev_node_data','json')
         args.NODE_DATABASE = 'vamps2'
-    elif args.dbhost == 'vampsdb' or args.dbhost == 'vamps':
+    elif args.dbhost == 'vampsdb':
         args.json_file_path = os.path.join('/','groups','vampsweb','vamps_node_data','json')
         args.NODE_DATABASE = 'vamps2'
     if not args.json_file_path:
@@ -454,26 +412,22 @@ if __name__ == '__main__':
         args.json_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'../','../','json')
 
     if not os.path.exists(args.json_file_path):
-        print("Could not find json directory: '",args.json_file_path,"'-Exiting")
+        print "Could not find json directory: '",args.json_file_path,"'-Exiting"
         sys.exit(-1)
     else:
-        print("ARGS: json_dir=",args.json_file_path,'[Validated]')
-        print("ARGS: dbhost  =",args.dbhost)
+        print "ARGS: json_dir=",args.json_file_path,'[Validated]'
+        print "ARGS: dbhost  =",args.dbhost
 
-    from os.path import expanduser
-    home = expanduser("~")
-    if not os.path.exists(os.path.join(home,".my.cnf_node")):
-        print("Install a mysql .my.cnf file in this location: ","~/.my.cnf_node")
-        sys.exit()
+
+
     try:
         db = MySQLdb.connect( host=args.dbhost, # your host, usually localhost
             read_default_file="~/.my.cnf_node" # you can use another ini file, for example .my.cnf_node
         )
     except:
-        print("ARGS: json_dir=",args.json_file_path,'[Validated]')
-        print(myusage)
-        print("ARGS: dbhost  =",args.dbhost)
-        print('Could not connect to mysql database')
+        print "ARGS: json_dir=",args.json_file_path,'[Validated]'
+        print "ARGS: dbhost  =",args.dbhost
+        print myusage
         sys.exit()
     cur = db.cursor()
 
@@ -484,7 +438,7 @@ if __name__ == '__main__':
         cur.execute("SHOW databases")
         dbs = []
         db_str = ''
-        print(myusage)
+        print myusage
         i = 0
         for row in cur.fetchall():
             if row[0] != 'mysql' and row[0] != 'information_schema':
@@ -498,14 +452,14 @@ if __name__ == '__main__':
         else:
             sys.exit("unrecognized number -- Exiting")
 
-    print()
+    print
     cur.execute("USE "+args.NODE_DATABASE)
 
     #out_file = "tax_counts--"+NODE_DATABASE+".json"
 
-    print('DATABASE:',args.NODE_DATABASE)
-    print('JSON DIRECTORY:',args.json_file_path)
-    print()
+    print 'DATABASE:',args.NODE_DATABASE
+    print 'JSON DIRECTORY:',args.json_file_path
+    print
 #    args.sql_db_table               = True
     #args.separate_taxcounts_files   = True
 
@@ -515,32 +469,21 @@ if __name__ == '__main__':
 
     #args.json_dir = os.path.join("../","json")
     #permissible_units = ['silva119','rdp']
+    args.did_list = get_did_list(args)
+    
     args.req_metadata_fields = get_required_metadata_fields(args)
-    if args.overwrite or args.check_files:
-        if args.units == 'rdp2.6':
-            args.files_prefix   = os.path.join(args.json_file_path,args.NODE_DATABASE+"--datasets_rdp2.6")
-            args.taxcounts_file_original = ''
-        else:
-            args.files_prefix   = os.path.join(args.json_file_path,args.NODE_DATABASE+"--datasets_silva119")
-            args.taxcounts_file_original = os.path.join(args.json_file_path,args.NODE_DATABASE+"--taxcounts_silva119.json")
-        args.metadata_file_original  = os.path.join(args.json_file_path,args.NODE_DATABASE+"--metadata.json")
+    
+    if args.units == 'rdp2.6':
+        args.files_prefix   = os.path.join(args.json_file_path,args.NODE_DATABASE+"--datasets_rdp2.6NEW")
+        args.taxcounts_file_original = ''
     else:
-        if args.units == 'rdp2.6':
-            args.files_prefix   = os.path.join(args.json_file_path,args.NODE_DATABASE+"--datasets_rdp2.6NEW")
-            args.taxcounts_file_new = ''
-        else:
-            args.files_prefix   = os.path.join(args.json_file_path,args.NODE_DATABASE+"--datasets_silva119NEW")
-            args.taxcounts_file_new = os.path.join(args.json_file_path,args.NODE_DATABASE+"--taxcounts_silva119NEW.json")
-        args.metadata_file_new  = os.path.join(args.json_file_path,args.NODE_DATABASE+"--metadataNEW.json")
-    #print args.files_prefix , args.taxcounts_file,args.metadata_file
-    if args.check_files:
-        check_files(args)
-    else:
-        print("This may take awhile.... Best to be running in a 'screen' session.")
-        go(args)
-        for w in warnings:
-            print(w)
-            logging.debug(w)
-        print("DONE ** Remember to copy over the transfer files in "+args.json_file_path+" **")
-        print()
-        logging.debug("DONE")
+        args.files_prefix   = os.path.join(args.json_file_path,args.NODE_DATABASE+"--datasets_silva119NEW")
+        args.taxcounts_file_original = os.path.join(args.json_file_path,args.NODE_DATABASE+"--taxcounts_silva119.json")
+        args.taxcounts_file_new = os.path.join(args.json_file_path,args.NODE_DATABASE+"--taxcounts_silva119NEW.json")
+    args.metadata_file_original  = os.path.join(args.json_file_path,args.NODE_DATABASE+"--metadata.json")
+    args.metadata_file_new  = os.path.join(args.json_file_path,args.NODE_DATABASE+"--metadataNEW.json")
+    
+    
+    print "This may take awhile.... Best to be running in a 'screen' session."
+    go(args)
+
