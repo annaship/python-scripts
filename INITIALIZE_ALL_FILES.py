@@ -100,12 +100,16 @@ def check_files(args):
 
     ###### INDIVIDUAL JSON FILES ##################
     print("\nChecking for files in:\n", args.files_prefix)
-    okay_count = 0
     file_dids = []
-    missing = []
     for f in os.listdir(args.files_prefix):
         filename, file_extension = os.path.splitext(f)
         file_dids.append(filename)
+
+    missing, okay_count = ok_cnt(db_dids, file_dids)  # 20286, 5
+
+
+    okay_count = 0
+    missing = []
     for did in db_dids:
         if did in file_dids:
             #print f, 'okay'
@@ -127,16 +131,8 @@ def check_files(args):
         with open(args.taxcounts_file_original) as tax_file:
             tdata = json.load(tax_file)
 
-        missing, okay_count = ok_cnt(db_dids, tdata)  # 20248, 43
+        missing, okay_count = ok_cnt(db_dids, tdata)
 
-        okay_count = 0
-        missing = []
-        for did in db_dids:
-            if did in tdata:
-                #print 'found', did
-                okay_count += 1
-            else:
-                missing.append(did)
         if okay_count == did_count:
             print('OK2 -- No missing dids in group taxcounts file')
         else:
