@@ -8,7 +8,12 @@
 
 import sys,os,shutil
 import argparse
-import pymysql as MySQLdb
+try:
+  import pymysql as MySQLdb
+except ImportError:
+  import MySQLdb
+except:
+  raise
 import json
 import logging
 import datetime
@@ -23,42 +28,32 @@ query_from += " JOIN sequence_uniq_info USING(sequence_id)"
 
 query_core_silva119 = query_from+" JOIN silva_taxonomy_info_per_seq USING(silva_taxonomy_info_per_seq_id)"
 query_core_silva119 += " JOIN silva_taxonomy USING(silva_taxonomy_id)"
-#query_core_silva119 += " WHERE dataset_id in ('%s')"
 
 query_core_rdp26 = query_from+" JOIN rdp_taxonomy_info_per_seq USING(rdp_taxonomy_info_per_seq_id)"
 query_core_rdp26 += " JOIN rdp_taxonomy USING(rdp_taxonomy_id)"
-#query_core_rdp26 += " WHERE dataset_id in ('%s')"
 
 domain_query = "SELECT sum(seq_count), dataset_id, domain_id"
-#domain_query += query_core
 domain_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id"
 
 phylum_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id"
-#phylum_query += query_core
 phylum_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id"
 
 class_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id"
-#class_query += query_core
 class_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id"
 
 order_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id"
-#order_query += query_core
 order_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id"
 
 family_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id"
-#family_query += query_core
 family_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id"
 
 genus_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id"
-#genus_query += query_core
 genus_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id"
 
 species_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id"
-#species_query += query_core
 species_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id"
 
 strain_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
-#strain_query += query_core
 strain_query += " %s WHERE dataset_id in ('%s') GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
 dataset_query = "SELECT dataset_id from dataset"
 
@@ -129,25 +124,11 @@ def go(args):
     """
     counts_lookup = {}
 
-    # try:
-
-    #     #shutil.rmtree(args.files_prefix)
-    #     shutil.move(args.files_prefix, os.path.join(args.json_file_path, args.NODE_DATABASE+'--datasets_'+args.units+today))
-    #     if args.taxcounts_file:
-    #         shutil.move(args.taxcounts_file, os.path.join(args.json_file_path, args.NODE_DATABASE+'--taxcounts_silva119'+today+'.json'))
-    #     shutil.move(args.metadata_file,  os.path.join(args.json_file_path, args.NODE_DATABASE+'--metadata'+ today+'.json'))
-    #     logging.debug('Backed up old taxcounts and metadata files')
-    
-    # except IOError:
-    #     print "Could not back up one of files directory, taxcounts or metadata files: "
-    # except:        
-    #     raise
-    #     # sys.exit()
     if os.path.exists(args.files_prefix):
         shutil.rmtree(args.files_prefix)
     os.makedirs(args.files_prefix)  
     sql_dids =   "','".join(args.did_list)
-    #os.mkdir(args.files_prefix)
+
     logging.debug('Created Dir: '+args.files_prefix)
     for q in queries:
         #print q["query"]
