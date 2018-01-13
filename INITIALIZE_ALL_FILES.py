@@ -309,16 +309,7 @@ def go_metadata():
     query_res = cur.fetchall()
     # cust_metadata_lookup = {}
     pid_collection = get_fields_per_pid_dict(query_res)
-    # for row in cur.fetchall():
-    #
-    #     pid = str(row[0])
-    #     field = row[1]
-    #     # table = 'custom_metadata_' + pid
-    #     if pid in pid_collection:
-    #         pid_collection[pid].append(field)
-    #     else:
-    #         pid_collection[pid] = [field]
-    # print()
+
     for pid in pid_collection:
         table = 'custom_metadata_' + pid
         fields = ['dataset_id']+pid_collection[pid]
