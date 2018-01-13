@@ -127,6 +127,8 @@ def check_files(args):
         with open(args.taxcounts_file_original) as tax_file:
             tdata = json.load(tax_file)
 
+        missing, okay_count = ok_cnt(db_dids, tdata)  # 20248, 43
+
         okay_count = 0
         missing = []
         for did in db_dids:
@@ -152,14 +154,6 @@ def check_files(args):
 
 
     missing, okay_count = ok_cnt(db_dids, mdata) #1145
-    # okay_count = 0
-    # missing = []
-    # for did in db_dids:
-    #     if did in mdata:
-    #         #print 'found', did
-    #         okay_count += 1
-    #     else:
-    #         missing.append(did)
     if okay_count == did_count:
         print('OK3 -- No missing metadata')
     else:
