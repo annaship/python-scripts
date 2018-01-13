@@ -150,14 +150,16 @@ def check_files(args):
     with open(args.metadata_file_original) as md_file:
         mdata = json.load(md_file)
 
-    okay_count = 0
-    missing = []
-    for did in db_dids:
-        if did in mdata:
-            #print 'found', did
-            okay_count += 1
-        else:
-            missing.append(did)
+
+    missing, okay_count = ok_cnt(db_dids, mdata) #1145
+    # okay_count = 0
+    # missing = []
+    # for did in db_dids:
+    #     if did in mdata:
+    #         #print 'found', did
+    #         okay_count += 1
+    #     else:
+    #         missing.append(did)
     if okay_count == did_count:
         print('OK3 -- No missing metadata')
     else:
@@ -166,6 +168,17 @@ def check_files(args):
         pass
     print ('DID presence is NOT Required')
 
+def ok_cnt(dids, data):
+    okay_count = 0
+    missing = []
+    for did in dids:
+        if did in data:
+            #print 'found', did
+            okay_count += 1
+        else:
+            missing.append(did)
+
+    return (missing, okay_count)
 
 def go(args):
     """
