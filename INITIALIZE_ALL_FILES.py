@@ -105,25 +105,8 @@ def check_files(args):
         filename, file_extension = os.path.splitext(f)
         file_dids.append(filename)
 
-    missing, okay_count = ok_cnt(db_dids, file_dids)  # 20286, 5
-
-
-    okay_count = 0
-    missing = []
-    for did in db_dids:
-        if did in file_dids:
-            #print f, 'okay'
-            okay_count += 1
-        else:
-            missing.append(did)
-
-    if okay_count == did_count:
-        print('OK1 -- No missing files')
-    else:
-        print('Missing from', os.path.basename(args.files_prefix))
-        print("('" + "', '".join(missing) + "')")
-        pass
-    print('DID presence is REQUIRED')
+    missing, okay_count = ok_cnt(db_dids, file_dids)
+    print_results(okay_count, did_count, missing, os.path.basename(args.files_prefix))
 
     ######### TAXCOUNTS ###########################
     if args.units == 'silva119':
@@ -157,6 +140,16 @@ def check_files(args):
         print ("('" + "', '".join(missing) + "')")
         pass
     print ('DID presence is NOT Required')
+
+
+def print_results(okay_count, did_count, missing, f_name):
+    if okay_count == did_count:
+        print 'OK -- No missing files for %s' % f_name
+    else:
+        print 'Missing from %s' % f_name
+        print("('" + "', '".join(missing) + "')")
+    print('DID presence is REQUIRED')
+
 
 def ok_cnt(dids, data):
     okay_count = 0
