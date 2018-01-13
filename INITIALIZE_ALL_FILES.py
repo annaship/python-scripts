@@ -115,16 +115,8 @@ def check_files(args):
             tdata = json.load(tax_file)
 
         missing, okay_count = ok_cnt(db_dids, tdata)
+        print_results(okay_count, did_count, missing, os.path.basename(args.taxcounts_file_original))
 
-        if okay_count == did_count:
-            print('OK2 -- No missing dids in group taxcounts file')
-        else:
-            print('Missing from', os.path.basename(args.taxcounts_file_original))
-            print("('" + "', '".join(missing) + "')")
-            pass
-        print('DID presence is REQUIRED')
-    else:
-        print('\nNo group taxcounts file for', args.units)
     ########## METADATA ##########################
 
     print("\nChecking Metadata File:\n", args.metadata_file_original)
