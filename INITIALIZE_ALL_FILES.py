@@ -273,8 +273,6 @@ def go_metadata():
 
     """
 
-
-
     logging.debug("running mysql for required metadata")
     print("req_pquery")
 
@@ -285,38 +283,19 @@ def go_metadata():
     query_res = cur.fetchall()
     metadata_lookup = {}
     metadata_lookup = make_req_metadata_per_did_dict(query_res)
-    for row in cur.fetchall():
-        did = row[0]
-        for i, name in enumerate(args.req_metadata_fields):
-            # print("enumerate(required_metadata_fields): SSS")
-            # print(i, did, name, row[i+1])
-
-            # logging.debug("enumerate(required_metadata_fields): SSS")
-            # logging.debug(str(i)+' '+str(did)+' '+name+' '+str(row[i+1]))
-
-            value = row[i+1]
-            if value == '':
-                warnings.append('WARNING -- dataset '+str(did)+' is missing a value for REQUIRED field "'+name+'"')
-
-            if did in metadata_lookup:
-                    metadata_lookup[did][name] = str(value)
-            else:
-                metadata_lookup[did] = {}
-                metadata_lookup[did][name] = str(value)
-
-    pid_collection = {}
 
     print('running mysql for custom metadata', cust_pquery)
     logging.debug('running mysql for custom metadata: '+cust_pquery)
     cur.execute(cust_pquery)
     query_res = cur.fetchall()
-    # cust_metadata_lookup = {}
-    pid_collection = get_fields_per_pid_dict(query_res)
+
+    pid_collection = {}
+    pid_collection = make_fields_per_pid_dict(query_res)
 
     for pid in pid_collection:
         table = 'custom_metadata_' + pid
         fields = ['dataset_id']+pid_collection[pid]
-        q = "SELECT * FROM information_schema.tables WHERE table_schema = '"+args.NODE_DATABASE+"' AND table_name = '" + table + "' LIMIT 1;"
+        q = "SELECT * FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s' LIMIT 1;" % (args.NODE_DATABASE, table)
         print(q)
         cur.execute(q)
         if cur.rowcount > 0:
@@ -375,7 +354,7 @@ def make_req_metadata_per_did_dict(query_res):
 
     return metadata_lookup
 
-def get_fields_per_pid_dict(db_res):
+def make_fields_per_pid_dict(db_res):
     pid_collection = {}
 
     for row in db_res:
