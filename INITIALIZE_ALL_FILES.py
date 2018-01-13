@@ -273,7 +273,7 @@ def go_metadata():
 
     """
 
-    metadata_lookup = {}
+
 
     logging.debug("running mysql for required metadata")
     print("req_pquery")
@@ -282,6 +282,9 @@ def go_metadata():
     req_pquery_full = req_pquery % (', '.join(args.req_metadata_fields))
     print(req_pquery_full)
     cur.execute(req_pquery_full)
+    query_res = cur.fetchall()
+    metadata_lookup = {}
+    metadata_lookup = make_req_metadata_per_did_dict(query_res)
     for row in cur.fetchall():
         did = row[0]
         for i, name in enumerate(args.req_metadata_fields):
@@ -355,6 +358,22 @@ def go_metadata():
     db.commit()
     return metadata_lookup
 
+def make_req_metadata_per_did_dict(query_res):
+    metadata_lookup = {}
+    for row in query_res:
+        did = row[0]
+        for i, name in enumerate(args.req_metadata_fields):
+            value = row[i+1]
+            if value == '':
+                warnings.append('WARNING -- dataset '+str(did)+' is missing a value for REQUIRED field "'+name+'"')
+
+            if did in metadata_lookup:
+                    metadata_lookup[did][name] = str(value)
+            else:
+                metadata_lookup[did] = {}
+                metadata_lookup[did][name] = str(value)
+
+    return metadata_lookup
 
 def get_fields_per_pid_dict(db_res):
     pid_collection = {}
