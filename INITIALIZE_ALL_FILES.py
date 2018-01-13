@@ -118,20 +118,12 @@ def check_files(args):
         print_results(okay_count, did_count, missing, os.path.basename(args.taxcounts_file_original))
 
     ########## METADATA ##########################
-
     print("\nChecking Metadata File:\n", args.metadata_file_original)
     with open(args.metadata_file_original) as md_file:
         mdata = json.load(md_file)
 
-
-    missing, okay_count = ok_cnt(db_dids, mdata) #1145
-    if okay_count == did_count:
-        print('OK3 -- No missing metadata')
-    else:
-        print('Missing from', os.path.basename(args.metadata_file_original))
-        print ("('" + "', '".join(missing) + "')")
-        pass
-    print ('DID presence is NOT Required')
+    missing, okay_count = ok_cnt(db_dids, mdata)
+    print_results(okay_count, did_count, missing, os.path.basename(args.metadata_file_original))
 
 
 def print_results(okay_count, did_count, missing, f_name):
