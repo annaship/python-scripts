@@ -306,17 +306,19 @@ def go_metadata():
     print('running mysql for custom metadata', cust_pquery)
     logging.debug('running mysql for custom metadata: '+cust_pquery)
     cur.execute(cust_pquery)
+    query_res = cur.fetchall()
     # cust_metadata_lookup = {}
-    for row in cur.fetchall():
-
-        pid = str(row[0])
-        field = row[1]
-        # table = 'custom_metadata_' + pid
-        if pid in pid_collection:
-            pid_collection[pid].append(field)
-        else:
-            pid_collection[pid] = [field]
-    print()
+    pid_collection = get_fields_per_pid_dict(query_res)
+    # for row in cur.fetchall():
+    #
+    #     pid = str(row[0])
+    #     field = row[1]
+    #     # table = 'custom_metadata_' + pid
+    #     if pid in pid_collection:
+    #         pid_collection[pid].append(field)
+    #     else:
+    #         pid_collection[pid] = [field]
+    # print()
     for pid in pid_collection:
         table = 'custom_metadata_' + pid
         fields = ['dataset_id']+pid_collection[pid]
@@ -362,6 +364,21 @@ def go_metadata():
     db.commit()
     return metadata_lookup
 
+
+def get_fields_per_pid_dict(db_res):
+    pid_collection = {}
+
+    for row in db_res:
+
+        pid = str(row[0])
+        field = row[1]
+        # table = 'custom_metadata_' + pid
+        if pid in pid_collection:
+            pid_collection[pid].append(field)
+        else:
+            pid_collection[pid] = [field]
+
+    return pid_collection
 
 #
 #
