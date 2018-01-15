@@ -18,6 +18,7 @@ import json
 import logging
 import datetime
 import time
+from collections import defaultdict
 # import socket
 
 today = str(datetime.date.today())
@@ -182,7 +183,7 @@ def get_counts_per_tax():
 
 
 def make_counts_lookup(counts_per_tax_dict):
-    counts_lookup = {}
+    counts_lookup = defaultdict(dict)
     for rank, res in counts_per_tax_dict.items():
         for row in res:
             count = int(row[0])
@@ -192,14 +193,14 @@ def make_counts_lookup(counts_per_tax_dict):
                 tax_id_str += '_' + str(row[k])
             #print 'tax_id_str', tax_id_str
 
-            if ds_id in counts_lookup:
-                if tax_id_str in counts_lookup[ds_id]: #? Andy
+            # if ds_id in counts_lookup:
+            if tax_id_str in counts_lookup[ds_id]: #? Andy
                     sys.exit('We should not be here - Exiting')
-                else:
-                    counts_lookup[ds_id][tax_id_str] = count
-            else:
-                counts_lookup[ds_id] = {}
-                counts_lookup[ds_id][tax_id_str] = count
+                # else:
+                #     counts_lookup[ds_id][tax_id_str] = count
+            # else:
+                # counts_lookup[ds_id] = {}
+            counts_lookup[ds_id][tax_id_str] = count
 
     return counts_lookup
 
@@ -210,22 +211,6 @@ def go(args):
         count_lookup_per_dsid[dsid][tax_id_str] = count
 
     """
-
-
-    # try:
-
-    #     #shutil.rmtree(args.files_prefix)
-    #     shutil.move(args.files_prefix, os.path.join(args.json_file_path, args.NODE_DATABASE+'--datasets_'+args.units+today))
-    #     if args.taxcounts_file:
-    #         shutil.move(args.taxcounts_file, os.path.join(args.json_file_path, args.NODE_DATABASE+'--taxcounts_silva119'+today+'.json'))
-    #     shutil.move(args.metadata_file, os.path.join(args.json_file_path, args.NODE_DATABASE+'--metadata'+ today+'.json'))
-    #     logging.debug('Backed up old taxcounts and metadata files')
-
-    # except IOError:
-    #     print "Could not back up one of files directory, taxcounts or metadata files: "
-    # except:
-    #     raise
-    #     # sys.exit()
     if os.path.exists(args.files_prefix):
         start2 = time.time()
         shutil.rmtree(args.files_prefix)
@@ -245,46 +230,23 @@ def go(args):
     print "get_counts_per_tax() time: %s" % elapsed31
 
     start5 = time.time()
-    counts_lookup1 = make_counts_lookup(counts_per_tax_dict)
+    counts_lookup = make_counts_lookup(counts_per_tax_dict)
     elapsed5 = (time.time() - start5)
-    print "make_counts_lookup() time: %s" % elapsed5
-
-    counts_lookup = {}
-    start3 = time.time()
-    for rank, res in counts_per_tax_dict.items():
-        for row in res:
-            count = int(row[0])
-            ds_id = row[1]
-            tax_id_str = ''
-            for k in range(2, len(row)): #Andy, why do we need '_1' etc for tax ids?
-                tax_id_str += '_' + str(row[k])
-            #print 'tax_id_str', tax_id_str
-
-            if ds_id in counts_lookup:
-                if tax_id_str in counts_lookup[ds_id]:
-                    sys.exit('We should not be here - Exiting')
-                else:
-                    counts_lookup[ds_id][tax_id_str] = count
-            else:
-                counts_lookup[ds_id] = {}
-                counts_lookup[ds_id][tax_id_str] = count
-
-    elapsed3 = (time.time() - start3)
-    print "for q in queries time: %s" % elapsed3
+    print "5 make_counts_lookup() time: %s" % elapsed5
 
     print('gathering metadata from tables')
     logging.debug('gathering metadata from tables')
     start8 = time.time()
     metadata_lookup = go_metadata()
     elapsed8 = (time.time() - start8)
-    print "metadata_lookup = go_metadata() time: %s" % elapsed8
+    print "8 metadata_lookup = go_metadata() time: %s" % elapsed8
 
     print('writing to individual files')
     logging.debug('writing to individual files')
     start9 = time.time()
     write_data_to_files(args, metadata_lookup, counts_lookup)
     elapsed9 = (time.time() - start9)
-    print "metadata_lookup = go_metadata() time: %s" % elapsed9
+    print "9 metadata_lookup = go_metadata() time: %s" % elapsed9
 
 
     if args.units == 'silva119':
@@ -293,14 +255,14 @@ def go(args):
         start10 = time.time()
         write_all_metadata_file(args, metadata_lookup)
         elapsed10 = (time.time() - start10)
-        print "write_all_metadata_file(args, metadata_lookup) time: %s" % elapsed10
+        print "10 write_all_metadata_file(args, metadata_lookup) time: %s" % elapsed10
 
         print('writing taxcount file')
         logging.debug('writing taxcount file')
         start11 = time.time()
         write_all_taxcounts_file(args, counts_lookup)
         elapsed11 = (time.time() - start11)
-        print "write_all_taxcounts_file(args, counts_lookup) time: %s" % elapsed11
+        print "11 write_all_taxcounts_file(args, counts_lookup) time: %s" % elapsed11
 
 
 def write_data_to_files(args, metadata_lookup, counts_lookup):
