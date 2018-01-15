@@ -208,7 +208,6 @@ def make_counts_lookup(counts_per_tax_dict):
     return counts_lookup
 
 
-
 def go(args):
     """
         count_lookup_per_dsid[dsid][tax_id_str] = count
@@ -306,6 +305,14 @@ def write_all_taxcounts_file(args, counts_lookup):
     f.close()
 
 
+def check_if_tbl_exists(table):
+    q = "SELECT * FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s' LIMIT 1;" % (
+    args.NODE_DATABASE, table)
+    print(q)
+    return cur.execute(q)
+
+
+
 def go_metadata():
     """
         metadata_lookup_per_dsid[dsid][metadataName] = value
@@ -328,16 +335,14 @@ def go_metadata():
     cur.execute(cust_pquery)
     query_res = cur.fetchall()
 
-    pid_collection = {}
     pid_collection = make_fields_per_pid_dict(query_res)
 
     for pid in pid_collection:
         table = 'custom_metadata_' + pid
-        fields = ['dataset_id']+pid_collection[pid]
-        q = "SELECT * FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s' LIMIT 1;" % (args.NODE_DATABASE, table)
-        print(q)
-        cur.execute(q)
-        if cur.rowcount > 0:
+        tbl_exists = check_if_tbl_exists(table)
+        fields = ['dataset_id'] + pid_collection[pid]
+
+        if tbl_exists:
             cust_dquery = "SELECT `" + '`, `'.join(fields) + "` from " + table
             print('running other cust', cust_dquery)
             logging.debug('running other cust: ' + cust_dquery)
