@@ -181,12 +181,36 @@ def get_counts_per_tax():
     return counts_per_tax_dict
 
 
+def make_counts_lookup(counts_per_tax_dict):
+    counts_lookup = {}
+    for rank, res in counts_per_tax_dict.items():
+        for row in res:
+            count = int(row[0])
+            ds_id = row[1]
+            tax_id_str = ''
+            for k in range(2, len(row)): #Andy, why do we need '_1' etc for tax ids?
+                tax_id_str += '_' + str(row[k])
+            #print 'tax_id_str', tax_id_str
+
+            if ds_id in counts_lookup:
+                if tax_id_str in counts_lookup[ds_id]: #? Andy
+                    sys.exit('We should not be here - Exiting')
+                else:
+                    counts_lookup[ds_id][tax_id_str] = count
+            else:
+                counts_lookup[ds_id] = {}
+                counts_lookup[ds_id][tax_id_str] = count
+
+    return counts_lookup
+
+
+
 def go(args):
     """
         count_lookup_per_dsid[dsid][tax_id_str] = count
 
     """
-    counts_lookup = {}
+
 
     # try:
 
@@ -220,36 +244,13 @@ def go(args):
     elapsed31 = (time.time() - start31)
     print "get_counts_per_tax() time: %s" % elapsed31
 
-    start3 = time.time()
-    # for q in queries:
-        #print q["query"]
-        # dirs = []
-        # if args.units == 'rdp2.6':
-        #     query = q["query"] % query_core_rdp26
-        # else:
-        #     query = q["query"] % query_core_silva119
-        # try:
-        #     print()
-        #     print ("running mysql query for:", q['rank'])
-        #     logging.debug("running mysql query for: "+q['rank'])
-        #
-        #     print(query)
-        #     start4 = time.time()
-        #     cur.execute(query)
-        #     # cur._rows <type 'tuple'>: ((Decimal('107'), 20276L, 1L), (Decimal('43'), 20276L, 2L), ...
-        #     elapsed4 = (time.time() - start4)
-        #     print "1AAA cur.execute(query) time: %s" % elapsed4
-        # except:
-        #     print("Trying to query with:", query)
-        #     logging.debug("Failing to query with: "+query)
-        #     sys.exit("This Database Doesn't Look Right -- Exiting")
-        #
-        # for rank, res in counts_per_tax_dict.items():
-        #     for row in res:
-        #         count = int(row[0])
-        #         ds_id = row[1]
-
     start5 = time.time()
+    counts_lookup1 = make_counts_lookup(counts_per_tax_dict)
+    elapsed5 = (time.time() - start5)
+    print "make_counts_lookup() time: %s" % elapsed5
+
+    counts_lookup = {}
+    start3 = time.time()
     for rank, res in counts_per_tax_dict.items():
         for row in res:
             count = int(row[0])
@@ -268,8 +269,6 @@ def go(args):
                 counts_lookup[ds_id] = {}
                 counts_lookup[ds_id][tax_id_str] = count
 
-        elapsed5 = (time.time() - start5)
-        print "1AAA for row in cur.fetchall() time: %s" % elapsed5
     elapsed3 = (time.time() - start3)
     print "for q in queries time: %s" % elapsed3
 
