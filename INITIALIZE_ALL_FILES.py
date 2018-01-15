@@ -183,15 +183,18 @@ def get_counts_per_tax():
 
 
 def make_counts_lookup(counts_per_tax_dict):
+    # TODO: clean up
     counts_lookup = defaultdict(dict)
     for rank, res in counts_per_tax_dict.items():
         for row in res:
             count = int(row[0])
             ds_id = row[1]
             tax_id_str = ''
-            for k in range(2, len(row)): #Andy, why do we need '_1' etc for tax ids?
-                tax_id_str += '_' + str(row[k])
+            # for k in range(2, len(row)): #Andy, why do we need '_1' etc for tax ids?
+            #     tax_id_str += '_' + str(row[k])
             #print 'tax_id_str', tax_id_str
+
+            tax_id_str = '_' + "_".join([str(k) for k in row[2:]])
 
             # if ds_id in counts_lookup:
             if tax_id_str in counts_lookup[ds_id]: #? Andy
