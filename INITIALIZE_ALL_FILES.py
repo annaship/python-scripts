@@ -17,6 +17,7 @@ except:
 import json
 import logging
 import datetime
+import time
 # import socket
 
 today = str(datetime.date.today())
@@ -24,12 +25,12 @@ today = str(datetime.date.today())
 parser = argparse.ArgumentParser(description="")
 
 query_from = " FROM sequence_pdr_info"
-query_from += " JOIN sequence_uniq_info USING(sequence_id)"
+# query_from += " JOIN sequence_uniq_info USING(sequence_id)"
 
-query_core_silva119 = query_from+" JOIN silva_taxonomy_info_per_seq USING(silva_taxonomy_info_per_seq_id)"
+query_core_silva119 = " FROM sequence_pdr_info JOIN silva_taxonomy_info_per_seq USING(sequence_id)"
 query_core_silva119 += " JOIN silva_taxonomy USING(silva_taxonomy_id)"
 
-query_core_rdp26 = query_from+" JOIN rdp_taxonomy_info_per_seq USING(rdp_taxonomy_info_per_seq_id)"
+query_core_rdp26 = query_from+" JOIN rdp_taxonomy_info_per_seq USING(sequence_id)"
 query_core_rdp26 += " JOIN rdp_taxonomy USING(rdp_taxonomy_id)"
 
 
@@ -169,10 +170,18 @@ def go(args):
     #     raise
     #     # sys.exit()
     if os.path.exists(args.files_prefix):
+        start2 = time.time()
         shutil.rmtree(args.files_prefix)
+        elapsed2 = (time.time() - start2)
+        print "shutil.rmtree(args.files_prefix) time: %s" % elapsed2
+    
+    start0 = time.time()
     os.makedirs(args.files_prefix)
+    elapsed0 = (time.time() - start0)
+    print "os.makedirs(args.files_prefix) time: %s" % elapsed0
     #os.mkdir(args.files_prefix)
     logging.debug('Created Dir: '+args.files_prefix)
+    start3 = time.time()
     for q in queries:
         #print q["query"]
         # dirs = []
@@ -186,11 +195,16 @@ def go(args):
             logging.debug("running mysql query for: "+q['rank'])
 
             print(query)
+            start4 = time.time()
             cur.execute(query)
+            elapsed4 = (time.time() - start4)
+            print "1AAA cur.execute(query) time: %s" % elapsed4
         except:
             print("Trying to query with:", query)
             logging.debug("Failing to query with: "+query)
             sys.exit("This Database Doesn't Look Right -- Exiting")
+
+        start5 = time.time()
         for row in cur.fetchall():
             #print row
             count = int(row[0])
@@ -201,32 +215,50 @@ def go(args):
             for k in range(2, len(row)):
                 tax_id_str += '_' + str(row[k])
             #print 'tax_id_str', tax_id_str
+
             if ds_id in counts_lookup:
                 if tax_id_str in counts_lookup[ds_id]:
                     sys.exit('We should not be here - Exiting')
                 else:
                     counts_lookup[ds_id][tax_id_str] = count
-
             else:
                 counts_lookup[ds_id] = {}
                 counts_lookup[ds_id][tax_id_str] = count
 
+        elapsed5 = (time.time() - start5)
+        print "1AAA for row in cur.fetchall() time: %s" % elapsed5
+    elapsed3 = (time.time() - start3)
+    print "for q in queries time: %s" % elapsed3
+
     print('gathering metadata from tables')
     logging.debug('gathering metadata from tables')
+    start8 = time.time()
     metadata_lookup = go_metadata()
+    elapsed8 = (time.time() - start8)
+    print "metadata_lookup = go_metadata() time: %s" % elapsed8
 
     print('writing to individual files')
     logging.debug('writing to individual files')
+    start9 = time.time()
     write_data_to_files(args, metadata_lookup, counts_lookup)
+    elapsed9 = (time.time() - start9)
+    print "metadata_lookup = go_metadata() time: %s" % elapsed9
+
 
     if args.units == 'silva119':
         print('writing metadata file')
         logging.debug('writing metadata file')
+        start10 = time.time()
         write_all_metadata_file(args, metadata_lookup)
+        elapsed10 = (time.time() - start10)
+        print "write_all_metadata_file(args, metadata_lookup) time: %s" % elapsed10
 
         print('writing taxcount file')
         logging.debug('writing taxcount file')
+        start11 = time.time()
         write_all_taxcounts_file(args, counts_lookup)
+        elapsed11 = (time.time() - start11)
+        print "write_all_taxcounts_file(args, counts_lookup) time: %s" % elapsed11
 
 
 def write_data_to_files(args, metadata_lookup, counts_lookup):
@@ -315,21 +347,10 @@ def go_metadata():
                 n = 1
                 for field in pid_collection[pid]:
                     #print did, n, field, row[n]
-                    name = field
                     value = str(row[n])
                     if value == '':
-                        warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+name+'"')
-                    metadata_lookup[did][name] = value
-                    # if name == 'primer_suite_id' and value:
-#                         primer_query = "SELECT primer_id FROM ref_primer_suite_primer"
-#                         primer_query += " JOIN primer_suite USING(primer_suite_id)"
-#                         primer_query += " JOIN primer USING(primer_id)"
-#                         primer_query += " WHERE primer_suite_id='%s'"
-#                         query = primer_query % (value)
-#                         cur.execute(query)
-#                         rows = cur.fetchall()
-#                         for row in rows:
-#                             metadata_lookup[did]['primer_id'].append(row[0])
+                        warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+field+'"')
+                    metadata_lookup[did][field] = value
                     
                     n += 1
         else:
@@ -523,7 +544,10 @@ if __name__ == '__main__':
         check_files(args)
     else:
         print("This may take awhile.... Best to be running in a 'screen' session.")
+        start6 = time.time()
         go(args)
+        elapsed6 = (time.time() - start6)
+        print "go(args) time: %s" % elapsed6
         for w in warnings:
             print(w)
             logging.debug(w)
