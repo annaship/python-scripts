@@ -148,6 +148,39 @@ def ok_cnt(dids, data):
 
     return (missing, okay_count)
 
+def get_counts_per_tax():
+    counts_per_tax_dict = {}
+    for q in queries:
+        #print q["query"]
+        # dirs = []
+        if args.units == 'rdp2.6':
+            query = q["query"] % query_core_rdp26
+        else:
+            query = q["query"] % query_core_silva119
+        try:
+            print()
+            print ("running mysql query for:", q['rank'])
+            logging.debug("running mysql query for: "+q['rank'])
+
+            print(query)
+            start4 = time.time()
+            cur.execute(query)
+            # cur._rows <type 'tuple'>: ((Decimal('107'), 20276L, 1L), (Decimal('43'), 20276L, 2L), ...
+            elapsed4 = (time.time() - start4)
+            print "1AAA cur.execute(query) time: %s" % elapsed4
+
+            start41 = time.time()
+            rank = q['rank']
+            counts_per_tax_dict[rank] = cur._rows
+            elapsed41 = (time.time() - start4)
+            print "1AAA cur.execute(query) time: %s" % elapsed41
+        except:
+            print("Trying to query with:", query)
+            logging.debug("Failing to query with: "+query)
+            sys.exit("This Database Doesn't Look Right -- Exiting")
+    return counts_per_tax_dict
+
+
 def go(args):
     """
         count_lookup_per_dsid[dsid][tax_id_str] = count
@@ -181,38 +214,48 @@ def go(args):
     print "os.makedirs(args.files_prefix) time: %s" % elapsed0
     #os.mkdir(args.files_prefix)
     logging.debug('Created Dir: '+args.files_prefix)
+
+    start31 = time.time()
+    counts_per_tax_dict = get_counts_per_tax()
+    elapsed31 = (time.time() - start31)
+    print "get_counts_per_tax() time: %s" % elapsed31
+
     start3 = time.time()
-    for q in queries:
+    # for q in queries:
         #print q["query"]
         # dirs = []
-        if args.units == 'rdp2.6':
-            query = q["query"] % query_core_rdp26
-        else:
-            query = q["query"] % query_core_silva119
-        try:
-            print()
-            print ("running mysql query for:", q['rank'])
-            logging.debug("running mysql query for: "+q['rank'])
+        # if args.units == 'rdp2.6':
+        #     query = q["query"] % query_core_rdp26
+        # else:
+        #     query = q["query"] % query_core_silva119
+        # try:
+        #     print()
+        #     print ("running mysql query for:", q['rank'])
+        #     logging.debug("running mysql query for: "+q['rank'])
+        #
+        #     print(query)
+        #     start4 = time.time()
+        #     cur.execute(query)
+        #     # cur._rows <type 'tuple'>: ((Decimal('107'), 20276L, 1L), (Decimal('43'), 20276L, 2L), ...
+        #     elapsed4 = (time.time() - start4)
+        #     print "1AAA cur.execute(query) time: %s" % elapsed4
+        # except:
+        #     print("Trying to query with:", query)
+        #     logging.debug("Failing to query with: "+query)
+        #     sys.exit("This Database Doesn't Look Right -- Exiting")
+        #
+        # for rank, res in counts_per_tax_dict.items():
+        #     for row in res:
+        #         count = int(row[0])
+        #         ds_id = row[1]
 
-            print(query)
-            start4 = time.time()
-            cur.execute(query)
-            elapsed4 = (time.time() - start4)
-            print "1AAA cur.execute(query) time: %s" % elapsed4
-        except:
-            print("Trying to query with:", query)
-            logging.debug("Failing to query with: "+query)
-            sys.exit("This Database Doesn't Look Right -- Exiting")
-
-        start5 = time.time()
-        for row in cur.fetchall():
-            #print row
+    start5 = time.time()
+    for rank, res in counts_per_tax_dict.items():
+        for row in res:
             count = int(row[0])
             ds_id = row[1]
-            #if ds_id=='6189':
-            #    print "FOUND 6189"
             tax_id_str = ''
-            for k in range(2, len(row)):
+            for k in range(2, len(row)): #Andy, why do we need '_1' etc for tax ids?
                 tax_id_str += '_' + str(row[k])
             #print 'tax_id_str', tax_id_str
 
