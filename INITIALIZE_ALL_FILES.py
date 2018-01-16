@@ -160,24 +160,24 @@ def get_counts_per_tax():
         else:
             query = q["query"] % query_core_silva119 + end_group_query
         try:
-            print()
-            print ("running mysql query for:", q['rank'])
+            # print()
+            # print ("running mysql query for:", q['rank'])
             logging.debug("running mysql query for: "+q['rank'])
 
-            print(query)
-            start4 = time.time()
+            # print(query)
+            # start4 = time.time()
             cur.execute(query)
             # cur._rows <type 'tuple'>: ((Decimal('107'), 20276L, 1L), (Decimal('43'), 20276L, 2L), ...
-            elapsed4 = (time.time() - start4)
-            print "4 cur.execute(query) time: %s" % elapsed4
+            # elapsed4 = (time.time() - start4)
+            # print "4 cur.execute(query) time: %s" % elapsed4
 
-            start41 = time.time()
+            # start41 = time.time()
             rank = q['rank']
             counts_per_tax_dict[rank] = cur._rows
-            elapsed41 = (time.time() - start4)
-            print "41 counts_per_tax_dict[rank] = cur._rows time: %s" % elapsed41
+            # elapsed41 = (time.time() - start4)
+            # print "41 counts_per_tax_dict[rank] = cur._rows time: %s" % elapsed41
         except:
-            print("Trying to query with:", query)
+            # print("Trying to query with:", query)
             logging.debug("Failing to query with: "+query)
             sys.exit("This Database Doesn't Look Right -- Exiting")
     return counts_per_tax_dict
@@ -218,19 +218,19 @@ def go(args):
         start2 = time.time()
         shutil.rmtree(args.files_prefix)
         elapsed2 = (time.time() - start2)
-        print "shutil.rmtree(args.files_prefix) time: %s" % elapsed2
+        print "2 shutil.rmtree(args.files_prefix) time: %s" % elapsed2
     
     start0 = time.time()
     os.makedirs(args.files_prefix)
     elapsed0 = (time.time() - start0)
-    print "os.makedirs(args.files_prefix) time: %s" % elapsed0
+    print "0 os.makedirs(args.files_prefix) time: %s" % elapsed0
     #os.mkdir(args.files_prefix)
     logging.debug('Created Dir: '+args.files_prefix)
 
     start31 = time.time()
     counts_per_tax_dict = get_counts_per_tax()
     elapsed31 = (time.time() - start31)
-    print "get_counts_per_tax() time: %s" % elapsed31
+    print "31 get_counts_per_tax() time: %s" % elapsed31
 
     start5 = time.time()
     counts_lookup = make_counts_lookup(counts_per_tax_dict)
@@ -251,9 +251,8 @@ def go(args):
     elapsed9 = (time.time() - start9)
     print "9 metadata_lookup = go_metadata() time: %s" % elapsed9
 
-
     if args.units == 'silva119':
-        print('writing metadata file')
+        # print('writing metadata file')
         logging.debug('writing metadata file')
         start10 = time.time()
         write_all_metadata_file(args, metadata_lookup)
@@ -309,7 +308,7 @@ def write_all_taxcounts_file(args, counts_lookup):
 def check_if_tbl_exists(table):
     q = "SELECT * FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s' LIMIT 1;" % (
     args.NODE_DATABASE, table)
-    print(q)
+    # print(q)
     return cur.execute(q)
 
 
@@ -326,7 +325,7 @@ def go_metadata():
     logging.debug("running mysql for required metadata")
     req_metadata_fields = args.req_metadata_fields
     req_pquery_full = req_pquery % (', '.join(args.req_metadata_fields))
-    print(req_pquery_full)
+    # print(req_pquery_full)
     cur.execute(req_pquery_full)
     # query_res = cur.fetchall()
     metadata_lookup = defaultdict(dict)
@@ -350,7 +349,7 @@ def go_metadata():
 
         if tbl_exists:
             cust_dquery = "SELECT `" + '`, `'.join(fields) + "` from " + table
-            print('running other cust', cust_dquery)
+            # print('running other cust', cust_dquery)
             logging.debug('running other cust: ' + cust_dquery)
             cur_dict.execute(cust_dquery)
             data = cur_dict.fetchall()
