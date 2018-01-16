@@ -327,8 +327,8 @@ def go_metadata():
     print(req_pquery_full)
     cur.execute(req_pquery_full)
     query_res = cur.fetchall()
-    # metadata_lookup = defaultdict(dict)
-    metadata_lookup = make_req_metadata_per_did_dict(query_res)
+    metadata_lookup = defaultdict(dict)
+    metadata_lookup = make_req_metadata_per_did_dict(query_res, metadata_lookup)
 
     print('running mysql for custom metadata', cust_pquery)
     logging.debug('running mysql for custom metadata: '+cust_pquery)
@@ -348,42 +348,25 @@ def go_metadata():
             logging.debug('running other cust: ' + cust_dquery)
             cur_dict.execute(cust_dquery)
             data = cur_dict.fetchall()
-            for row in data:
-                did = row['dataset_id']
-
-                for field in fields[1:]:
-                    value = row[field]
-                    metadata_lookup[did][field] = value
-                    if value == '':
-                        warnings.append(
-                            'WARNING -- dataset' + str(did) + 'is missing value for metadata CUSTOM field "' + field + '"')
-
-            # cur.execute(cust_dquery)
-            #
-            # print()
-            # for row in cur.fetchall():
-            #     print(row)
-            #     did = row[0]
-            #     if did not in metadata_lookup:
-            #         metadata_lookup[did] = {}
-            #     #metadata_lookup[did]['primer_id'] = []
-            #     n = 1
-            #     for field in pid_collection[pid]:
-            #         #print did, n, field, row[n]
-            #         value = str(row[n])
-            #         if value == '':
-            #             warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+field+'"')
-            #         metadata_lookup[did][field] = value
-            #
-            #         n += 1
+            metadata_lookup = make_custom_metadata_per_did_dict(data, fields[1:], metadata_lookup)
         else:
             print('No "'+table+'" table found')
     db.commit()
     return metadata_lookup
 
-def make_req_metadata_per_did_dict(query_res):
-    metadata_lookup = defaultdict(dict)
+def make_custom_metadata_per_did_dict(query_res, fields, metadata_lookup):
+    for row in query_res:
+        did = row['dataset_id']
 
+        for field in fields:
+            value = row[field]
+            metadata_lookup[did][field] = str(value)
+            if value == '':
+                warnings.append('WARNING -- dataset' + str(did) + 'is missing value for metadata CUSTOM field "' + field + '"')
+    return metadata_lookup
+
+# TODO: make one with make_custom_metadata_per_did_dict
+def make_req_metadata_per_did_dict(query_res, metadata_lookup):
     for row in query_res:
         did = row[0]
         for i, name in enumerate(args.req_metadata_fields):
