@@ -168,13 +168,13 @@ def get_counts_per_tax():
             cur.execute(query)
             # cur._rows <type 'tuple'>: ((Decimal('107'), 20276L, 1L), (Decimal('43'), 20276L, 2L), ...
             elapsed4 = (time.time() - start4)
-            print "1AAA cur.execute(query) time: %s" % elapsed4
+            print "4 cur.execute(query) time: %s" % elapsed4
 
             start41 = time.time()
             rank = q['rank']
             counts_per_tax_dict[rank] = cur._rows
             elapsed41 = (time.time() - start4)
-            print "1AAA cur.execute(query) time: %s" % elapsed41
+            print "41 counts_per_tax_dict[rank] = cur._rows time: %s" % elapsed41
         except:
             print("Trying to query with:", query)
             logging.debug("Failing to query with: "+query)
@@ -327,7 +327,7 @@ def go_metadata():
     print(req_pquery_full)
     cur.execute(req_pquery_full)
     query_res = cur.fetchall()
-    metadata_lookup = {}
+    # metadata_lookup = defaultdict(dict)
     metadata_lookup = make_req_metadata_per_did_dict(query_res)
 
     print('running mysql for custom metadata', cust_pquery)
@@ -346,44 +346,51 @@ def go_metadata():
             cust_dquery = "SELECT `" + '`, `'.join(fields) + "` from " + table
             print('running other cust', cust_dquery)
             logging.debug('running other cust: ' + cust_dquery)
-            #try:
-            cur.execute(cust_dquery)
+            cur_dict.execute(cust_dquery)
+            data = cur_dict.fetchall()
+            for row in data:
+                did = row['dataset_id']
 
-            print()
-            for row in cur.fetchall():
-                print(row)
-                did = row[0]
-                if did not in metadata_lookup:
-                    metadata_lookup[did] = {}
-                #metadata_lookup[did]['primer_id'] = []
-                n = 1
-                for field in pid_collection[pid]:
-                    #print did, n, field, row[n]
-                    value = str(row[n])
-                    if value == '':
-                        warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+field+'"')
+                for field in fields[1:]:
+                    value = row[field]
                     metadata_lookup[did][field] = value
-                    
-                    n += 1
+                    if value == '':
+                        warnings.append(
+                            'WARNING -- dataset' + str(did) + 'is missing value for metadata CUSTOM field "' + field + '"')
+
+            # cur.execute(cust_dquery)
+            #
+            # print()
+            # for row in cur.fetchall():
+            #     print(row)
+            #     did = row[0]
+            #     if did not in metadata_lookup:
+            #         metadata_lookup[did] = {}
+            #     #metadata_lookup[did]['primer_id'] = []
+            #     n = 1
+            #     for field in pid_collection[pid]:
+            #         #print did, n, field, row[n]
+            #         value = str(row[n])
+            #         if value == '':
+            #             warnings.append('WARNING -- dataset'+str(did)+'is missing value for metadata CUSTOM field "'+field+'"')
+            #         metadata_lookup[did][field] = value
+            #
+            #         n += 1
         else:
             print('No "'+table+'" table found')
     db.commit()
     return metadata_lookup
 
 def make_req_metadata_per_did_dict(query_res):
-    metadata_lookup = {}
+    metadata_lookup = defaultdict(dict)
+
     for row in query_res:
         did = row[0]
         for i, name in enumerate(args.req_metadata_fields):
             value = row[i+1]
             if value == '':
                 warnings.append('WARNING -- dataset '+str(did)+' is missing a value for REQUIRED field "'+name+'"')
-
-            if did in metadata_lookup:
-                    metadata_lookup[did][name] = str(value)
-            else:
-                metadata_lookup[did] = {}
-                metadata_lookup[did][name] = str(value)
+            metadata_lookup[did][name] = str(value)
 
     return metadata_lookup
 
@@ -495,6 +502,7 @@ if __name__ == '__main__':
         print('Could not connect to mysql database')
         sys.exit()
     cur = db.cursor()
+    cur_dict = db.cursor(MySQLdb.cursors.DictCursor)
 
     #print db_str
     if args.NODE_DATABASE:
