@@ -58,8 +58,10 @@ species_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_
 
 strain_query = "SELECT sum(seq_count), dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
 strain_query += "%s GROUP BY dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id"
-dataset_query = "SELECT dataset_id from dataset"
 
+end_group_query = " ORDER BY NULL"
+
+dataset_query = "SELECT dataset_id from dataset"
 
 req_pquery = "SELECT dataset_id, %s from required_metadata_info"
 
@@ -127,7 +129,6 @@ def check_files(args):
     missing, okay_count = ok_cnt(db_dids, mdata)
     print_results(okay_count, did_count, missing, os.path.basename(args.metadata_file_original))
 
-
 def print_results(okay_count, did_count, missing, f_name):
     if okay_count == did_count:
         print 'OK -- No missing files for %s' % f_name
@@ -155,9 +156,9 @@ def get_counts_per_tax():
         #print q["query"]
         # dirs = []
         if args.units == 'rdp2.6':
-            query = q["query"] % query_core_rdp26
+            query = q["query"] % query_core_rdp26 + end_group_query
         else:
-            query = q["query"] % query_core_silva119
+            query = q["query"] % query_core_silva119 + end_group_query
         try:
             print()
             print ("running mysql query for:", q['rank'])
@@ -377,10 +378,6 @@ def make_fields_per_pid_dict(db_res):
 
         pid = str(row[0])
         field = row[1]
-        # table = 'custom_metadata_' + pid
-        # if pid in pid_collection:
-        #     pid_collection[pid].append(field)
-        # else:
         pid_collection[pid] = [field]
 
     return pid_collection
