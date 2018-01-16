@@ -323,12 +323,17 @@ def go_metadata():
     print("req_pquery")
 
     logging.debug("running mysql for required metadata")
+    req_metadata_fields = args.req_metadata_fields
     req_pquery_full = req_pquery % (', '.join(args.req_metadata_fields))
     print(req_pquery_full)
     cur.execute(req_pquery_full)
-    query_res = cur.fetchall()
+    # query_res = cur.fetchall()
     metadata_lookup = defaultdict(dict)
-    metadata_lookup = make_req_metadata_per_did_dict(query_res, metadata_lookup)
+    # metadata_lookup = make_req_metadata_per_did_dict(query_res, metadata_lookup)
+
+    cur_dict.execute(req_pquery_full)
+    data1 = cur_dict.fetchall()
+    metadata_lookup = make_custom_metadata_per_did_dict(data1, req_metadata_fields, metadata_lookup)
 
     print('running mysql for custom metadata', cust_pquery)
     logging.debug('running mysql for custom metadata: '+cust_pquery)
