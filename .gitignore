@@ -2,3 +2,7 @@
 *.gz
 RCS
 *.pyc
+
+# IDE #
+#######
+.idea/*
