@@ -63,7 +63,7 @@ class My_fasta:
     input = fa.SequenceSource(input_file_path)
     output = fa.FastaOutput(output_file_path)
 
-    while input.next():
+    while next(input):
       output.store(input, split = False)
     output.close()
 
@@ -109,50 +109,50 @@ if __name__ == '__main__':
           
   my_fasta = My_fasta(args)
   if not len(sys.argv) > 1:
-      print """Running 'unsplit' with default parameters: input ext='.fa', start_dir='.', """
+      print("""Running 'unsplit' with default parameters: input ext='.fa', start_dir='.', """)
       yes_no = my_fasta.query_yes_no("Do you want to proceed?")
-      # print "yes_no = "
-      # print yes_no
+      # print("yes_no = ")
+      # print(yes_no)
       if not yes_no:
           sys.exit()
   
   is_verbatim = args.is_verbatim
   
-  if is_verbatim: print "args = %s" % (args)
+  if is_verbatim: print("args = %s" % (args))
   
   start_dir = args.start_dir
   if is_verbatim:
-    print "Start from %s" % start_dir
-    print "Getting file names"
+    print("Start from %s" % start_dir)
+    print("Getting file names")
   
   my_fasta.get_files(start_dir, args.ext)
-  if is_verbatim: print "Found %s %s file(s)" % (len(my_fasta.all_files), args.ext)
+  if is_verbatim: print("Found %s %s file(s)" % (len(my_fasta.all_files), args.ext))
   
   out_file_names = []
   out_file_name = ""
   for in_file_name in my_fasta.all_files:
-    if is_verbatim: print in_file_name
+    if is_verbatim: print(in_file_name)
     try:
       if args.seq_concat_id_fa:
         out_file_suffix = ".concat.fa"
         out_file_name = my_fasta.get_out_file_name(out_file_suffix, in_file_name)        
         out_file_names.append(out_file_name)
         my_fasta.seq_concat_id_fa(in_file_name, out_file_name)
-        if is_verbatim: print "Running seq_concat_id_fa"
+        if is_verbatim: print("Running seq_concat_id_fa")
       else:
         out_file_suffix = ".unsplit.fa"
         out_file_name = my_fasta.get_out_file_name(out_file_suffix, in_file_name)
         out_file_names.append(out_file_name)
         my_fasta.unsplit_fa(in_file_name, out_file_name)
-        if is_verbatim: print "Running unsplit_fa"
+        if is_verbatim: print("Running unsplit_fa")
     except:
       raise
       next
 
   # if is_verbatim:
   for out_file_name in out_file_names:
-      print "Output file '%s' was created" % (out_file_name)
+      print("Output file '%s' was created" % (out_file_name))
 
-  if is_verbatim: print "Current directory: %s" % (start_dir)
+  if is_verbatim: print("Current directory: %s" % (start_dir))
   
   
