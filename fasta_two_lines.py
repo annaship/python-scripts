@@ -71,7 +71,7 @@ class My_fasta:
     input = fa.SequenceSource(input_file_path)
     output = open(output_file_path, "w")
 
-    while input.next():
+    while next(input):
       output.write(input.id + "#" + input.seq + "\n")
     output.close()
     
