@@ -289,22 +289,23 @@ class Utils:
     def transpose_mtrx(self, list_of_lists):
         return zip(*list_of_lists)
 
-    def write_to_csv_file_matrix(self, file_name, matrix_to_csv, headers = [], file_mode = "wb"):
+    def write_to_csv_file_matrix(self, file_name, matrix_to_csv, headers = [], file_mode = "w"):
       with open(file_name, file_mode) as csv_file:
         csv_writer = csv.writer(csv_file)
         if headers:
           csv_writer.writerows(headers)
         csv_writer.writerows(matrix_to_csv)
 
-    def write_to_csv_file_db_res(self, file_name, res, file_mode = "wb"):
+    def write_to_csv_file_db_res(self, file_name, res, file_mode = "w"):
       data_from_db, field_names = res
       # print("VVVV")
       # print(field_names)
 
       with open(file_name, file_mode) as csv_file:
         csv_writer = csv.writer(csv_file)
-        if file_mode == "wb":
-          csv_writer.writerow(field_names) # write headers
+        if file_mode == "w":
+          csv_writer.writerow(field_names) # write headers      TypeError: a bytes-like object is required, not 'str'
+          
         csv_writer.writerows(data_from_db)
 
     def get_csv_file_calls(self, query):
