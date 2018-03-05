@@ -28,7 +28,7 @@ class Mysql_util:
         if read_default_file == "":
           if self.utils.is_local():
             read_default_file = os.path.expanduser("~/.my.cnf_local")
-        # print "read_default_file = %s" % read_default_file
+        # print("read_default_file = %s" % read_default_file)
 
         try:
             self.utils.print_both("=" * 40)
@@ -37,12 +37,12 @@ class Mysql_util:
 
             # self.conn = MySQLdb.connect(host = host, db = db, read_default_file = read_default_file, port = port)
             self.conn    =  MySQLdb.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
-            # print "host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file)
+            # print("host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file))
 
             self.cursor = self.conn.cursor()
             self.dict_cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
 
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             self.utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
             raise
         except:                       # catch everything
@@ -51,8 +51,8 @@ class Mysql_util:
             raise                       # re-throw caught exception
 
     def execute_fetch_select(self, sql):
-      # print "+" * 20
-      # print sql
+      # print("+" * 20)
+      # print(sql)
       if self.cursor:
         try:
           self.cursor.execute(sql)
@@ -65,9 +65,9 @@ class Mysql_util:
 
 
     def execute_fetch_select_where(self, sql, values):
-      # print "+" * 20
-      # print sql
-      # print values
+      # print("+" * 20)
+      # print(sql)
+      # print(values)
       if self.cursor:
         try:
           self.cursor.execute(sql, values)
@@ -91,12 +91,12 @@ class Mysql_util:
 
     def execute_fetchmany(self, sql, arraysize=1000):
       if self.cursor:
-          print sql
+          print(sql)
           self.cursor.execute(sql)
-          # print "self.cursor.lastrowid"
-          # print self.cursor.lastrowid
-          print "self.cursor.rowcount"
-          print self.cursor.rowcount
+          # print("self.cursor.lastrowid")
+          # print(self.cursor.lastrowid)
+          print("self.cursor.rowcount")
+          print(self.cursor.rowcount)
 
           data_from_db = []
           for result in self.result_iter(self.cursor, arraysize):
@@ -115,7 +115,7 @@ class Mysql_util:
       if self.cursor:
           self.cursor.execute(sql)
           self.conn.commit()
-          # print self.cursor.lastrowid
+          # print(self.cursor.lastrowid)
           return (self.cursor.rowcount, self.cursor.lastrowid)
 
     def execute_no_fetch_w_values(self, sql, values):
@@ -123,7 +123,7 @@ class Mysql_util:
         try:
           self.cursor.execute(sql, values)
           self.conn.commit()
-          # print self.cursor.lastrowid
+          # print(self.cursor.lastrowid)
           return (self.cursor.rowcount, self.cursor.lastrowid)
         except:
           self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
@@ -133,8 +133,8 @@ class Mysql_util:
       if self.dict_cursor:
         try:
           self.dict_cursor.execute(sql)
-          # print "DDD"
-          # print self.dict_cursor.description
+          # print("DDD")
+          # print(self.dict_cursor.description)
           return self.dict_cursor.fetchall ()
         except:
           # self.utils.print_both(("ERROR: query = %s") % sql)
@@ -159,7 +159,7 @@ class Mysql_util:
       if (id_name == ""):
         id_name = table_name + '_id'
       my_sql  = """SELECT %s, %s FROM %s %s""" % (field_name, id_name, table_name, where_part)
-      self.utils.print_both(("my_sql from get_all_name_id = %s") % my_sql)
+      # self.utils.print_both(("my_sql from get_all_name_id = %s") % my_sql)
       res     = self.execute_fetch_select(my_sql)
       if res:
         return res[0]
@@ -193,7 +193,7 @@ class Mysql_util:
         WHERE TABLE_SCHEMA='%s'
             AND TABLE_NAME='%s';
       """ % (table_schema, table_name)
-      # print query
+      # print(query)
       return self.execute_fetch_select(query)
       
 
@@ -203,7 +203,7 @@ class Utils:
         pass
 
     def is_local(self):
-        print os.uname()[1]
+        print(os.uname()[1])
 
         dev_comps = ['ashipunova.mbl.edu', "as-macbook.home", "as-macbook.local", "Ashipunova.local", "Annas-MacBook-new.local", "Annas-MacBook.local",'Andrews-Mac-Pro.local']
 
@@ -213,7 +213,7 @@ class Utils:
             return False
 
     def is_vamps(self):
-        print os.uname()[1]
+        print(os.uname()[1])
         dev_comps = ['bpcweb8','bpcweb7','bpcweb7.bpcservers.private', 'bpcweb8.bpcservers.private']
         if os.uname()[1] in dev_comps:
             return True
@@ -221,7 +221,7 @@ class Utils:
             return False
 
     def is_vamps_prod(self):
-        print os.uname()[1]
+        print(os.uname()[1])
         dev_comps = ['bpcweb8', 'bpcweb8.bpcservers.private']
         if os.uname()[1] in dev_comps:
             return True
@@ -229,12 +229,12 @@ class Utils:
             return False
 
     def print_both(self, message):
-        print message
+        print(message)
         logging.debug(message)
 
     def print_array_w_title(self, message, title = 'message'):
-      print title
-      print message
+      print(title)
+      print(message)
 
     def read_csv_into_list(self, file_name, delimiter = ','):
       csv_file_content_all = list(csv.reader(open(file_name, 'rb'), delimiter = delimiter))
@@ -265,10 +265,10 @@ class Utils:
         return wrapped
 
     def benchmarking(self, func, func_name, *args, **kwargs):
-      print "START %s" % func_name
+      print("START %s" % func_name)
       wrapped  = self.wrapper(func, *args)
       time_res = timeit.timeit(wrapped, number = 1)
-      print 'time: %.2f s' % time_res
+      print('time: %.2f s' % time_res)
       # USE: utils.benchmarking(pr.parse_project_csv, "parse_project_csv", project_csv_file_name)
 
     def search_in_2d_list(self, search, data):
@@ -298,8 +298,8 @@ class Utils:
 
     def write_to_csv_file_db_res(self, file_name, res, file_mode = "wb"):
       data_from_db, field_names = res
-      # print "VVVV"
-      # print field_names
+      # print("VVVV")
+      # print(field_names)
 
       with open(file_name, file_mode) as csv_file:
         csv_writer = csv.writer(csv_file)
@@ -315,15 +315,15 @@ class Utils:
       return {k: v for k, v in my_dict.items() if k in key_list}
 
     def benchmark_w_return_1(self, message):
-      print  "\n"
-      print "-" * 10
-      print message
+      print( "\n")
+      print("-" * 10)
+      print(message)
       return time.time()
 
     def benchmark_w_return_2(self, t0, message = ""):
       t1 = time.time()
       total = float(t1-t0) / 60
-      print '%s time: %.2f m' % (message, total)
+      print('%s time: %.2f m' % (message, total))
 
 
     def chunks(self, arr, max_lines):
@@ -337,9 +337,9 @@ class Utils:
             yield arr[i:i + max_lines]
 
     def print_out_dict(self, dict_name):
-      print dict_name
+      print(dict_name)
       for k, v in dict_name.items():
-          print "%s: %s" % (k, v)
+          print("%s: %s" % (k, v))
 
     def initialize_dict_of_lists(self, list_of_keys):
       return {key: [] for key in list_of_keys}
