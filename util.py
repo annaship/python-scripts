@@ -5,7 +5,7 @@ import logging
 import timeit
 import time
 import csv
-# from itertools import izip_longest
+from itertools import izip_longest
 
 class Mysql_util:
     """
@@ -304,12 +304,7 @@ class Utils:
       with open(file_name, file_mode) as csv_file:
         csv_writer = csv.writer(csv_file)
         if file_mode == "w":
-<<<<<<< HEAD
           csv_writer.writerow(field_names) # write headers
-=======
-          csv_writer.writerow(field_names) # write headers      TypeError: a bytes-like object is required, not 'str'
-          
->>>>>>> 6cc5e0aab8f35185407887e827a48f5317540f28
         csv_writer.writerows(data_from_db)
 
     def get_csv_file_calls(self, query):
@@ -349,9 +344,9 @@ class Utils:
     def initialize_dict_of_lists(self, list_of_keys):
       return {key: [] for key in list_of_keys}
 
-    # def grouper(self, iterable, n, fillvalue=None):
-    #     args = [iter(iterable)] * n
-    #     return izip_longest(*args, fillvalue=fillvalue)
+    def grouper(self, iterable, n, fillvalue=None):
+        args = [iter(iterable)] * n
+        return izip_longest(*args, fillvalue=fillvalue)
 
     """
     >>> from collections import defaultdict
