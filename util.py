@@ -5,7 +5,7 @@ import logging
 import timeit
 import time
 import csv
-from itertools import izip_longest
+# from itertools import izip_longest
 
 class Mysql_util:
     """
@@ -346,7 +346,7 @@ class Utils:
 
     def grouper(self, iterable, n, fillvalue=None):
         args = [iter(iterable)] * n
-        return izip_longest(*args, fillvalue=fillvalue)
+        return zip_longest(*args, fillvalue=fillvalue)
 
     """
     >>> from collections import defaultdict
