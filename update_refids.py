@@ -18,7 +18,7 @@ class Update_refhvr_ids:
 
   def drop_table(self, table_name):
     query = "DROP TABLE IF EXISTS %s;" % (table_name)
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def create_table_refids_per_dataset_temp(self):
@@ -41,7 +41,7 @@ class Update_refhvr_ids:
     );
 
     """
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def insert_refids_per_dataset_temp(self):
@@ -52,7 +52,7 @@ class Update_refhvr_ids:
     """
     # real  57m45.418s
 
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def get_dataset_id(self):
@@ -60,7 +60,7 @@ class Update_refhvr_ids:
         JOIN new_dataset using(dataset)
         SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
     """
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def get_project_id(self):
@@ -68,7 +68,7 @@ class Update_refhvr_ids:
         JOIN new_project using(project)
         SET refids_per_dataset_temp.project_id = new_project.project_id;
     """
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def foreign_key_refids_per_dataset_temp(self):
@@ -77,21 +77,21 @@ class Update_refhvr_ids:
       ADD  FOREIGN KEY (`dataset_id`) REFERENCES `new_dataset` (`dataset_id`)
       ;
       """
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
     
   def get_all_counts(self):
     query0 = "SELECT count(refids_per_dataset_id) FROM refids_per_dataset_temp"
     res = mysql_utils.execute_fetch_select(query0)
     counts = int(res[0][0][0])
-    print "count(refids_per_dataset_id)"
-    print counts
+    print("count(refids_per_dataset_id)")
+    print(counts)
     return counts
     
   def create_file_names(self):
     nn = math.ceil(float(self.all_ref_counts) / self.chunk_size)
-    print "total chuncks"
-    print nn
+    print("total chuncks")
+    print(nn)
     for n in range(1, int(nn)+1): 
       self.in_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + file_extension))
       self.out_file_names.append(os.path.join(csv_dir, in_filename + "." + str(n) + out_file_extension + file_extension))
@@ -122,21 +122,21 @@ class Update_refhvr_ids:
         out_file_name = self.out_file_names[n]
         self.clear_file(in_file_name)
         self.clear_file(out_file_name)
-        print in_file_name
+        print(in_file_name)
         
         n += 1
-        print "%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here)
+        print("%s) rows_left = %s, from_here = %s" % (n, rows_left, from_here))
         rows_left -= self.chunk_size;
         from_here += self.chunk_size;
         
 
         # step 1
-        utils.write_to_csv_file_db_res(in_file_name, res, file_mode = 'wb')
+        utils.write_to_csv_file_db_res(in_file_name, res, file_mode = 'w')
         # step 2
         self.process_file(in_file_name, out_file_name)
         # step 3
         rowcount, lastrowid = self.load_into_rep_id_refhvr_id_temp(out_file_name)
-        print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+        print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
         
         self.clear_file(in_file_name)
         self.clear_file(out_file_name)
@@ -145,8 +145,8 @@ class Update_refhvr_ids:
 
   # step 2
   def process_file(self, in_file_path_name, out_file_path_name):
-    with open(in_file_path_name, 'rb') as in_f:
-      with open(out_file_path_name, 'wb') as out_file:
+    with open(in_file_path_name, 'r') as in_f:
+      with open(out_file_path_name, 'w') as out_file:
         reader = csv.reader(in_f)
         for line in reader:
           self.write_separate_refid(line, out_file)
@@ -166,7 +166,7 @@ class Update_refhvr_ids:
       )
 
       """
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   # step 3
@@ -183,10 +183,10 @@ class Update_refhvr_ids:
     #   """
     l = len(column_names_arr)
     query = "ALTER TABLE refids_per_dataset_temp drop column %s" % column_names_arr[0]
-    if len > 1:
+    if l > 1:
       for x in range(1, l):
         query += ", drop column %s" % (column_names_arr[x])
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
 
@@ -194,25 +194,25 @@ class Update_refhvr_ids:
     query = """ALTER TABLE rep_id_refhvr_id_temp
       ADD FOREIGN KEY (rep_id) REFERENCES refids_per_dataset_temp (rep_id);
       """
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def rename_table(self, table_name_from, table_name_to):
     query = "RENAME TABLE %s TO %s;" % (table_name_from, table_name_to)
-    print query
+    print(query)
     return mysql_utils.execute_no_fetch(query)
 
   def benchmark_w_return_1(self):
-    print  "\n"
-    print "-" * 10
+    print("\n")
+    print("-" * 10)
     return time.time()
 
   def benchmark_w_return_2(self, t0):
     t1 = time.time()
     total = float(t1-t0) / 60
-    print 'time: %.2f m' % total
+    print('time: %.2f m' % total)
     #
-    # print "time_res = %s s" % total
+    # print("time_res = %s s" % total)
 
 
 if __name__ == '__main__':
@@ -233,7 +233,7 @@ if __name__ == '__main__':
   # a = mysql_utils.execute_fetch_select(query)
 
   update_refhvr_ids = Update_refhvr_ids()
-  # print "AAA"
+  # print("AAA")
   # !!! Uncomment !!!
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
@@ -241,51 +241,51 @@ if __name__ == '__main__':
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "create_table_refids_per_dataset_temp"
+  print("create_table_refids_per_dataset_temp")
   update_refhvr_ids.create_table_refids_per_dataset_temp()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "insert_refids_per_dataset_temp"
+  print("insert_refids_per_dataset_temp")
   
   rowcount, lastrowid = update_refhvr_ids.insert_refids_per_dataset_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "get_dataset_id"
+  print("get_dataset_id")
   rowcount, lastrowid = update_refhvr_ids.get_dataset_id()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "get_project_id"
+  print("get_project_id")
   rowcount, lastrowid = update_refhvr_ids.get_project_id()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "foreign_key_refids_per_dataset_temp"
+  print("foreign_key_refids_per_dataset_temp")
   rowcount, lastrowid = update_refhvr_ids.foreign_key_refids_per_dataset_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "drop_col_refids_per_dataset_temp"
+  print("drop_col_refids_per_dataset_temp")
   rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["project", "dataset"])
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "get_all_counts"
+  print("get_all_counts")
   update_refhvr_ids.all_ref_counts = update_refhvr_ids.get_all_counts()
   update_refhvr_ids.benchmark_w_return_2(t0)
   
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "create_file_names"
+  print("create_file_names")
   update_refhvr_ids.create_file_names()
-  print update_refhvr_ids.in_file_names
-  print update_refhvr_ids.out_file_names
+  print(update_refhvr_ids.in_file_names)
+  print(update_refhvr_ids.out_file_names)
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   """  rep_id_refhvr_id  """
@@ -296,22 +296,22 @@ if __name__ == '__main__':
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.create_rep_id_refhvr_id_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
-  print "process_data"
+  print("process_data")
   update_refhvr_ids.process_data()
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.drop_col_refids_per_dataset_temp(["refhvr_ids"])
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
   rowcount, lastrowid = update_refhvr_ids.foreign_key_rep_id_refhvr_id_temp()
-  print "rowcount = %s, lastrowid = %s" % (rowcount, lastrowid)
+  print("rowcount = %s, lastrowid = %s" % (rowcount, lastrowid))
   update_refhvr_ids.benchmark_w_return_2(t0)
 
   t0 = update_refhvr_ids.benchmark_w_return_1()
