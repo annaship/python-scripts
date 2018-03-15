@@ -64,18 +64,15 @@ for file_name in fq_files:
         print("WARNING, sequence and qual_scores_line have different length in %s" % file_name)
         all_dirs.add(fq_files[file_name][0])
       e.sequence = revcomp(e.sequence)
-      print(e.qual_scores)
-      print("BEFORE")
       e.qual_scores = str(e.qual_scores[::-1])
-      print(e.qual_scores)
-      print("AFTER")
-      f_output.store_entry(input.entry)
+      f_output.store_entry(e)
       
   except RuntimeError:
     if (check_if_verb):
       print(sys.exc_info()[0])
   except:
-    print("Unexpected error:", sys.exc_info()[0])
+    print("Unexpected error:", sys.exc_info())
+    print(e)
     next
 
 print(all_dirs)
