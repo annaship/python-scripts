@@ -17,7 +17,7 @@ def get_files(walk_dir_name, ext = ""):
 
 def check_if_verb():
   try: 
-    if sys.argv[2] == "-v":
+    if sys.argv[2] == "-ver":
       return True
   except IndexError:
     return False
@@ -32,6 +32,11 @@ print("Start from %s" % start_dir)
 print("Getting file names")
 
 all_dirs = set()
+base_complement_translator = bytes.maketrans(b"ACGTRYMK", b"TGCAYRKM")
+
+def revcomp(sequence):
+    reversed = str(sequence[::-1])
+    return reversed.translate(base_complement_translator)
 
 #fq_files = get_files("/xraid2-2/sequencing/Illumina", ".fastq.gz")
 # "/xraid2-2/sequencing/Illumina/20151014ns"
@@ -46,6 +51,8 @@ for file_name in fq_files:
 
   try:
     f_input  = fq.FastQSource(file_name, True)
+    f_output = fq.FastQOutput(file_name + ".out")
+    
     for _ in range(5000):
     #while f_input.next():
       f_input.next()
@@ -56,6 +63,14 @@ for file_name in fq_files:
       if (seq_len != qual_scores_len):
         print("WARNING, sequence and qual_scores_line have different length in %s" % file_name)
         all_dirs.add(fq_files[file_name][0])
+      e.sequence = revcomp(e.sequence)
+      print(e.qual_scores)
+      print("BEFORE")
+      e.qual_scores = str(e.qual_scores[::-1])
+      print(e.qual_scores)
+      print("AFTER")
+      f_output.store_entry(input.entry)
+      
   except RuntimeError:
     if (check_if_verb):
       print(sys.exc_info()[0])
