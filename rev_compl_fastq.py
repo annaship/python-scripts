@@ -52,10 +52,10 @@ for file_name in fq_files:
   try:
     f_input  = fq.FastQSource(file_name, True)
     f_output = fq.FastQOutput(file_name + ".out")
-    
-    for _ in range(5000):
+    print("len(f_input)")
+    for _ in range(12048491):
     #while f_input.next():
-      f_input.next()
+      f_input.next(raw = True)
       e = f_input.entry
       seq_len = len(e.sequence)
       qual_scores_len = len(e.qual_scores)
