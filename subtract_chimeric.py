@@ -17,17 +17,20 @@ class Chimeras:
       self.dir_name               = ""
       
   def usage(self):
-      print """Subtracts reads provided in *txt.chimeric.fa and db.chimeric.fa from *unique.chg.
+      print("""Subtracts reads provided in *txt.chimeric.fa and db.chimeric.fa from *unique.chg.
       Files should be in the same directory.
       Command line: python /xraid/bioware/linux/seqinfo/bin/subtract_chimeric.py -i FILENAME.unique.chg
-      """
+      """)
 
-  def get_file_name_parts(self, input_file_arg):
+  def get_file_name_parts(self, input_file_arg, args_start_dir = ""):
       self.dir_name = os.path.dirname(input_file_arg)
+      if self.dir_name == "":
+          self.dir_name = args.start_dir
+
       
       file_prefix = os.path.basename(input_file_arg).split(".")[0]
-      print "file_prefix = "
-      print file_prefix
+      print("file_prefix = ")
+      print(file_prefix)
       
       self.unique_file            = file_prefix + ".unique"
       self.chimeric_file_name_txt = file_prefix + ".unique.chimeras.txt.chimeric.fa"
@@ -37,7 +40,7 @@ class Chimeras:
     
   def get_chimeric_ids(self, file_name):
       ids = set()
-      print "Get ids from %s" % file_name
+      print("Get ids from %s" % file_name)
       # todo: benchmark
       # read_fasta     = fa.ReadFasta(file_name)
       # # ids.update(set(read_fasta.ids))
@@ -53,8 +56,8 @@ class Chimeras:
       txt_ids = self.get_chimeric_ids(os.path.join(self.dir_name, self.chimeric_file_name_txt))
       db_ids  = self.get_chimeric_ids(os.path.join(self.dir_name, self.chimeric_file_name_db))
       all_chimeric_ids = set(txt_ids) | set(db_ids)
-      print "len(all_chimeric_ids) = "
-      print len(all_chimeric_ids)
+      print("len(all_chimeric_ids) = ")
+      print(len(all_chimeric_ids))
       
       non_chimeric_fasta = fa.FastaOutput(os.path.join(self.dir_name, self.output_file_name))
       orig_fasta         = fa.SequenceSource(os.path.join(self.dir_name, self.chg_file), lazy_init = False) 
@@ -78,10 +81,10 @@ if __name__ == '__main__':
         help = """Input file name""")
 
     args = parser.parse_args()
-    print "args = "
-    print args
+    print("args = ")
+    print(args)
 
     
-    chimeras.get_file_name_parts(args.input_file)
+    chimeras.get_file_name_parts(args.input_file, args.start_dir)
     chimeras.move_out_chimeric()
     
