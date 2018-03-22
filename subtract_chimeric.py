@@ -47,7 +47,7 @@ class Chimeras:
       # ids = set(read_fasta.ids)
       chimeric_fasta = fa.SequenceSource(file_name, lazy_init = False) 
       
-      while chimeric_fasta.next():
+      while next(chimeric_fasta):
           ids.add(chimeric_fasta.id)
       chimeric_fasta.close()
       return ids
@@ -62,7 +62,7 @@ class Chimeras:
       non_chimeric_fasta = fa.FastaOutput(os.path.join(self.dir_name, self.output_file_name))
       orig_fasta         = fa.SequenceSource(os.path.join(self.dir_name, self.chg_file), lazy_init = False) 
 
-      while orig_fasta.next():
+      while next(orig_fasta):
           if not orig_fasta.id in all_chimeric_ids:
               non_chimeric_fasta.store(orig_fasta, store_frequencies = False)
       non_chimeric_fasta.close()
