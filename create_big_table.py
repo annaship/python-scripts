@@ -20,16 +20,22 @@ class Query():
       SELECT seq_count, dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id, sequence_id, run_info_ill_id FROM sequence_pdr_info JOIN silva_taxonomy_info_per_seq USING(sequence_id) JOIN silva_taxonomy USING(silva_taxonomy_id) limit 1"""
   
   def alter_table_look_up_tax(self):
-    q = """ALTER TABLE look_up_tax
-    ADD COLUMN look_up_tax_id int(11) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST,
-ADD UNIQUE KEY seq_dat (sequence_id, run_info_ill_id),
-ADD KEY all_fields (dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id);"""
+    q1 = """ALTER TABLE look_up_tax
+        ADD COLUMN look_up_tax_id int(11) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;"""
+    q2 = """ALTER TABLE look_up_tax        
+      ADD UNIQUE KEY seq_dat (sequence_id, run_info_ill_id),
+      ADD KEY all_fields (dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id);"""
     try:
-      res = mysql_utils.execute_no_fetch_w_info(q)
-      print(q, res)
+      res = mysql_utils.execute_no_fetch_w_info(q1)
+      print(q1, res)
     except MySQLdb.OperationalError as e:
       print(e)
-      pass
+      try:
+        res = mysql_utils.execute_no_fetch_w_info(q2)
+        print(q2, res)
+      except MySQLdb.OperationalError as e:
+        print(e)
+        pass
 
 
   def update_table_look_up_tax(self):
