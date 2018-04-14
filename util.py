@@ -111,7 +111,7 @@ class Mysql_util:
             try:
                 return self.cursor._info
             except AttributeError as e:
-                print(e)
+                pass
 
 
 

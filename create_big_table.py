@@ -37,7 +37,7 @@ class Query():
         print(e)
 
   def get_max_id(self):
-      return mysql_utils.execute_fetch_select("SELECT max(look_up_tax_id) FROM look_up_tax")
+      return mysql_utils.execute_fetch_select("SELECT max(sequence_pdr_info_id) FROM sequence_pdr_info")
 
   def update_table_look_up_tax(self):
       chunk_size = 30
@@ -59,7 +59,10 @@ class Query():
         run_info_ill_id = VALUES(run_info_ill_id)
         """
 
-      for counter in range(1, int(self.get_max_id()[0][0][0]), chunk_size):
+      print("IN update_table_look_up_tax")
+      max_id = self.get_max_id()[0][0][0]
+      print("max_id = %s" % max_id)
+      for counter in range(1, int(max_id), chunk_size):
           mysql_utils.execute_no_fetch_w_info(q_update_table_look_up_tax % (counter, chunk_size))
 
 
@@ -76,6 +79,7 @@ if __name__ == '__main__':
   print(q.create_table_look_up_tax_query, res)
 
   q.alter_table_look_up_tax()
+  print("update_table_look_up_tax")
   q.update_table_look_up_tax()
   
   """TODO: args - create, update"""
