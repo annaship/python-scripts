@@ -35,13 +35,32 @@ class Query():
         print(q2, res)
       except MySQLdb.OperationalError as e:
         print(e)
-        pass
 
+  def get_max_id(self):
+      return mysql_utils.execute_fetch_select("SELECT max(look_up_tax_id) FROM look_up_tax")
 
   def update_table_look_up_tax(self):
-    pass
+      chunk_size = 30
+      q_update_table_look_up_tax = """INSERT INTO look_up_tax (seq_count, dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id, sequence_id, run_info_ill_id)
+      SELECT seq_count, dataset_id, domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id, sequence_id, run_info_ill_id FROM sequence_pdr_info JOIN silva_taxonomy_info_per_seq USING(sequence_id) JOIN silva_taxonomy USING(silva_taxonomy_id)
+      LIMIT %s, %s
+      ON DUPLICATE KEY UPDATE
+        seq_count = VALUES(seq_count), 
+        dataset_id = VALUES(dataset_id), 
+        domain_id = VALUES(domain_id), 
+        phylum_id = VALUES(phylum_id), 
+        klass_id = VALUES(klass_id), 
+        order_id = VALUES(order_id), 
+        family_id = VALUES(family_id), 
+        genus_id = VALUES(genus_id), 
+        species_id = VALUES(species_id), 
+        strain_id = VALUES(strain_id), 
+        sequence_id = VALUES(sequence_id), 
+        run_info_ill_id = VALUES(run_info_ill_id)
+        """
 
-
+      for counter in range(1, int(self.get_max_id()[0][0][0]), chunk_size):
+          mysql_utils.execute_no_fetch_w_info(q_update_table_look_up_tax % (counter, chunk_size))
 
 
 if __name__ == '__main__':
@@ -52,12 +71,12 @@ if __name__ == '__main__':
   else:
     mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps2", read_default_group = "client")
 
-  # project_name_startswith = sys.argv[1] if len(sys.argv) == 2 else 'DCO'
   q = Query()
   res = mysql_utils.execute_no_fetch_w_info(q.create_table_look_up_tax_query)
   print(q.create_table_look_up_tax_query, res)
 
   q.alter_table_look_up_tax()
+  q.update_table_look_up_tax()
   
   """TODO: args - create, update"""
 

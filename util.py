@@ -108,7 +108,11 @@ class Mysql_util:
         if self.cursor:
             self.cursor.execute(sql)
             self.conn.commit()
-            return self.cursor._info
+            try:
+                return self.cursor._info
+            except AttributeError as e:
+                print(e)
+
 
 
     def execute_no_fetch(self, sql):
