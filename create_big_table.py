@@ -8,11 +8,14 @@ from collections import defaultdict
 
 class Query():
   """
-  Get data from
-  project
-  dataset
-  custom_fields
-  custom and required metadata
+  create the table on vampsdev
+  add foreign keys
+  add code to rebuild_vamps_files.py to use look_up_tax
+  test rebuild_vamps_files.py on vampsdev
+  remove foreign keys
+  move to vamps prod
+  add foreign keys
+  test rebuild_vamps_files.py on vampsdb
   """
   def __init__(self):
     self.create_table_look_up_tax_query = """CREATE TABLE IF NOT EXISTS look_up_tax
@@ -72,7 +75,7 @@ if __name__ == '__main__':
   if (utils.is_local() == True):
     mysql_utils = util.Mysql_util(host = "localhost", db = "vamps2", read_default_group = "clienthome")
   else:
-    mysql_utils = util.Mysql_util(host = "vampsdb", db = "vamps2", read_default_group = "client")
+    mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps2", read_default_group = "client")
 
   q = Query()
   res = mysql_utils.execute_no_fetch_w_info(q.create_table_look_up_tax_query)
