@@ -1,7 +1,7 @@
 # from collections import defaultdict
 # import time
 import util
-import mysqlclient
+import MySQLdb
 import csv
 import sys
 from collections import defaultdict

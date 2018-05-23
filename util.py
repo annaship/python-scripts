@@ -1,6 +1,6 @@
 from __future__ import generators    # needs to be at the top of your module
 import os
-import mysqlclient
+import MySQLdb
 import logging
 import timeit
 import time
