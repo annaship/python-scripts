@@ -19,6 +19,7 @@ import traceback
 #
 # findprimers: finds primer locations in RefSSU
 #
+# Author: Susan Huse, shuse@mbl.edu
 #
 # Date: Sun Oct 14 19:56:25 EDT 2007
 #
@@ -49,6 +50,7 @@ import traceback
 #            Search for both primers (Ash) Oct 13 2015
 #
 # Programming Notes:
+# Rewritten in python Oct 13 2015. Anna Shipunova (ashipunova@mbl.edu)
 # Search for primers in db, then for both or one in an alingned result (convert primer_seq to "-*" first)
 # See https://github.com/annaship/BPC-scripts
 
