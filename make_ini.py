@@ -15,7 +15,7 @@ def create_inis():
     output_directory = "/groups/vampsweb/new_vamps_maintenance_scripts/data/processing/results/reads_overlap"
     # input_directory = "/Users/ashipunova/BPC/today/stefan_linda/results"
     # output_directory = "/Users/ashipunova/BPC/today/stefan_linda/results/reads_overlap"
-    email = "ashipunova@mbl.edu"
+    email = "test@mbl.edu"
 
     for r_key in r_keys:
         text = """[general]
