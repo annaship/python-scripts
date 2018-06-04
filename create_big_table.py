@@ -103,7 +103,7 @@ class Query():
       max_id = self.get_max_id()[0][0][0]
       print("max_id = %s" % max_id)
       # for counter in range(1, int(max_id), chunk_size):        
-      for counter in range(21436000, int(max_id), chunk_size):                  
+      for counter in range(1204536000, int(max_id)+chunk_size, chunk_size):                  
           print("counter = %s" % counter)
           mysql_utils.execute_no_fetch_w_info(q_update_table_look_up_tax % (counter, chunk_size))
 
