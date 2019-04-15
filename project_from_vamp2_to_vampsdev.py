@@ -188,16 +188,19 @@ if __name__ == '__main__':
     tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id(dataset_ids_list)
 
     """TODO: args - project name"""
-    """
+    """insert with select to find what's behind ids
+    
+    
 user
 project
 access
+dataset
 custom_metadata_#
 custom_metadata_fields
-dataset
 project_notes
 user_project_status
 
+In full:
 dna_region
 domain
 env_package
@@ -208,6 +211,7 @@ run_key
 sequencing_platform
 target_gene
 
+Used only:
 ontology
 term
 
@@ -236,6 +240,83 @@ required_metadata_info
 run_info_ill
 sequence_pdr_info
 sequence_uniq_info
+    """
+
+    """
+    pipeline upload methods:
+    
+    dbUpload
+__init__
+get_conn
+reset_auto_increment
+convert_samples_to_dict
+check_files_csv
+collect_project_ids
+get_projects_and_ids
+get_fasta_file_names
+send_message
+get_run_info_ill_id
+get_project_id_per_dataset_id
+get_dataset_per_run_info_id
+get_id
+make_gast_files_dict
+gast_filename
+get_gast_result
+put_run_info
+insert_test_contact
+get_contact_id
+insert_rundate
+insert_project
+insert_dataset
+convert_env_sample_source
+get_all_metadata_info
+get_env_sample_source
+insert_metadata
+insert_run_info
+put_required_metadata
+del_sequence_pdr_info_by_project_dataset
+count_sequence_pdr_info
+get_primer_suite_name
+get_lane
+count_seq_from_files_grep
+check_seq_upload
+put_seq_statistics_in_file
+insert_taxonomy
+insert_pdr_info
+insert_sequence_uniq_info
+insert_silva_taxonomy_info_per_seq
+
+Taxonomy
+__init__
+get_taxonomy_from_gast
+get_taxonomy_id_dict
+insert_whole_taxonomy
+insert_split_taxonomy
+parse_taxonomy
+get_taxa_by_rank
+make_uniqued_taxa_by_rank_dict
+insert_taxa
+shield_rank_name
+get_all_rank_w_id
+make_uniqued_taxa_by_rank_w_id_dict
+insert_silva_taxonomy
+silva_taxonomy
+make_silva_taxonomy_rank_list_w_ids_dict
+make_rank_name_id_t_id_str
+make_silva_taxonomy_ids_dict
+get_silva_taxonomy_ids
+make_silva_taxonomy_id_per_taxonomy_dict
+
+Seq
+__init__
+prepare_fasta_dict
+make_seq_upper
+insert_seq
+get_seq_id_dict
+prepare_pdr_info_values
+get_seq_id_w_silva_taxonomy_info_per_seq_id
+insert_sequence_uniq_info2
+insert_sequence_uniq_info_ill
     """
 
 
