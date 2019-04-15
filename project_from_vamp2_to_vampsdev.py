@@ -140,6 +140,21 @@ class Project:
         project_info = mysql_utils.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
+class User:
+
+    def __init__(self, user_id = None):
+        self.user_id = user_id
+
+    def get_user_info(self):
+        """
+        UNIQUE KEY `contact_email_inst` (`first_name`,`last_name`,`email`,`institution`),
+        UNIQUE KEY `username` (`username`),
+
+        """
+        user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
+        user_info = mysql_utils.execute_fetch_select_to_dict(user_sql)
+        return user_info[0]
+
 
 
 if __name__ == '__main__':
@@ -158,7 +173,7 @@ if __name__ == '__main__':
 
     upl = dbUpload(project)
 
-    insert_sql_template = "INSERT IGNORE INTO %s WHERE %s"
+    insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
     user_id = pr_info['owner_user_id']
     insert_user_sql = insert_sql_template % ("user", user_id)
