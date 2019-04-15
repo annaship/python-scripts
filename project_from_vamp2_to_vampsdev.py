@@ -115,15 +115,12 @@ if __name__ == '__main__':
     else:
         mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps2", read_default_group = "client")
 
-    upl = dbUpload("JG_NPO_Bv4v5")
-    # res = mysql_utils.execute_no_fetch_w_info(q.create_table_look_up_tax_query)
-    # print(q.create_table_look_up_tax_query, res)
+    # TODO: get from args
+    project = "JG_NPO_Bv4v5"
+    upl = dbUpload(project)
 
-    # q.alter_table_look_up_tax()
-    # print("update_table_look_up_tax")
     dataset_ids_list = upl.get_dataset_ids_for_project_id()
     print(upl.project_id)
-
     print(dataset_ids_list)
 
     """TODO: args - create, update"""
