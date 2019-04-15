@@ -381,3 +381,8 @@ class Utils:
     >>> foo['bar']['baz'] = 123
 
     """
+
+class Dirs:
+
+    def __init__(self):
+        pass
