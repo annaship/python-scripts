@@ -100,7 +100,7 @@ class dbUpload:
                                             """ % (self.table_names["connect_pr_dat_table"], where_part)
 
         rows = mysql_utils.execute_fetch_select(dataset_ids_for_project_id)
-        dataset_ids_list = [y[0] for x in rows for y in x]
+        dataset_ids_list = [x[0] for x in rows[0]]
         return dataset_ids_list
 
 
