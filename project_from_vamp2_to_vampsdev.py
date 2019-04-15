@@ -171,11 +171,14 @@ if __name__ == '__main__':
     pr_obj = Project(project)
     pr_info = pr_obj.get_project_info()
 
+    user_id = pr_info['owner_user_id']
+    user_obj = User(user_id)
+    user_info = user_obj.get_user_info()
+    
     upl = dbUpload(project)
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
-    user_id = pr_info['owner_user_id']
     insert_user_sql = insert_sql_template % ("user", user_id)
 
     dataset_ids_list = upl.get_dataset_ids_for_project_id()
