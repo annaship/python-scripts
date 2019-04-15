@@ -103,9 +103,44 @@ class dbUpload:
         dataset_ids_list = [x[0] for x in rows[0]]
         return dataset_ids_list
 
+    def get_dataset_per_run_info_id(self, dataset_ids_list):
+        dataset_ids_string = "', '".join(str(x) for x in dataset_ids_list)
+
+        all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill 
+                                    WHERE dataset_id in ('%s') """ % (dataset_ids_string)
+        res = mysql_utils.execute_fetch_select_to_dict(all_dataset_run_info_sql)
+        # {t['dataset_id']: t["run_info_ill_id"] for t in res}
+        return res
+
+
+    def get_run_info_ill_id(self, dataset_ids_list):
+        dataset_ids_string = "', '".join(str(x) for x in dataset_ids_list)
+        my_sql = """SELECT run_info_ill_id FROM run_info_ill
+                    WHERE dataset_id in ('%s')
+                    ;
+        """ % (dataset_ids_string)
+
+        rows = mysql_utils.execute_fetch_select(my_sql)
+        if rows:
+            return [x[0] for x in rows[0]]
+
 
     def put_project_info(self):
         pass
+
+
+class Project:
+
+    def __init__(self, project = None):
+        self.project = project
+
+    def get_project_info(self):
+        # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
+        project_sql = "SELECT distinct * FROM project where project = '%s' limit 1" % (self.project)
+        project_info = mysql_utils.execute_fetch_select_to_dict(project_sql)
+        return project_info[0]
+
+
 
 if __name__ == '__main__':
     utils = util.Utils()
@@ -117,16 +152,72 @@ if __name__ == '__main__':
 
     # TODO: get from args
     project = "JG_NPO_Bv4v5"
+
+    pr_obj = Project(project)
+    pr_info = pr_obj.get_project_info()
+
     upl = dbUpload(project)
+
+    insert_sql_template = "INSERT IGNORE INTO %s WHERE %s"
+
+    user_id = pr_info['owner_user_id']
+    insert_user_sql = insert_sql_template % ("user", user_id)
 
     dataset_ids_list = upl.get_dataset_ids_for_project_id()
     print(upl.project_id)
     print(dataset_ids_list)
 
-    """TODO: args - create, update"""
+    tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id(dataset_ids_list)
 
-    #
-    # t = utils.benchmark_w_return_1("get_metadata_info")
-    # metadata.get_metadata_info()
-    # utils.benchmark_w_return_2(t, "get_metadata_info")
-    #
+    """TODO: args - project name"""
+    """
+user
+project
+access
+custom_metadata_#
+custom_metadata_fields
+dataset
+project_notes
+user_project_status
+
+dna_region
+domain
+env_package
+illumina_index
+primer_suite
+run
+run_key
+sequencing_platform
+target_gene
+
+ontology
+term
+
+run
+run_key
+
+sequence
+classifier
+
+rank
+strain
+genus
+domain
+family
+klass
+order
+phylum
+species
+silva_taxonomy
+rdp_taxonomy
+
+silva_taxonomy_info_per_seq
+rdp_taxonomy_info_per_seq
+
+required_metadata_info
+run_info_ill
+sequence_pdr_info
+sequence_uniq_info
+    """
+
+
