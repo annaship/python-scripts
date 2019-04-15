@@ -199,7 +199,6 @@ class Mysql_util:
       """ % (table_schema, table_name)
       # print(query)
       return self.execute_fetch_select(query)
-      
 
 
 class Utils:
@@ -351,6 +350,27 @@ class Utils:
     def grouper(self, iterable, n, fillvalue=None):
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
+
+    def find_in_nested_dict(self, nested_dict, to_find):
+        reverse_linked_q = list()
+        reverse_linked_q.append((list(), nested_dict))
+        while reverse_linked_q:
+            this_key_chain, this_v = reverse_linked_q.pop()
+            # finish search if found the mime type
+            if this_v == to_find:
+                return this_key_chain
+            # not found. keep searching
+            # queue dicts for checking / ignore anything that's not a dict
+            try:
+                items = this_v.items()
+            except AttributeError:
+                continue  # this was not a nested dict. ignore it
+            for k, v in items:
+                reverse_linked_q.append((this_key_chain + [k], v))
+        # if we haven't returned by this point, we've exhausted all the contents
+
+        return False
+
 
     """
     >>> from collections import defaultdict
