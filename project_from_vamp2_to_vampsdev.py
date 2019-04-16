@@ -1,6 +1,8 @@
 import sys
 import os
 
+"""TODO: get all info from vamps2, put into vampsdev"""
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 
 from subprocess import Popen, PIPE
@@ -31,42 +33,17 @@ class dbUpload:
 
     """
 
-    def __init__(self, project = None, db_name = None):
+    def __init__(self, project_obj = None, db_name = None):
 
         self.db_name = db_name
         self.utils = util.Utils()
-        self.project = project
-        self.get_project_id()
+        self.project_obj = project_obj
+        self.project_id = self.project_obj.project_id
 
-
-        self.db_cnf = {
-            "vamps2": {
-                "local"      : {"host": "localhost", "db": "vamps2"},
-                "production" : {"host": "vampsdb", "db": "vamps2"},
-                "development": {"host": "vampsdev", "db": "vamps2"}
-            },
-            "env454": {
-                "local"      : {"host": "localhost", "db": "test_env454"},
-                "production" : {"host": "bpcdb1", "db": "env454"},
-                "development": {"host": "vampsdev", "db": "test"}
-            }
-        }
         # mysql_utils = self.get_conn()
 
-        self.table_names_dict = {
-            "vamps2": {
-                "sequence_field_name"         : "sequence_comp", "sequence_table_name": "sequence",
-                "sequence_pdr_info_table_name": "sequence_pdr_info", "contact": "user", "username": "username",
-                "connect_pr_dat_table"        : "dataset"
-            },
-            "env454": {
-                "sequence_field_name"         : "sequence_comp", "sequence_table_name": "sequence_ill",
-                "sequence_pdr_info_table_name": "sequence_pdr_info_ill", "contact": "contact", "username": "vamps_name",
-                "connect_pr_dat_table"        : "run_info_ill"
-            }
-        }
         self.db_marker = "vamps2"
-        self.table_names = self.table_names_dict[self.db_marker]
+        self.table_names = const.table_names_dict[self.db_marker]
 
     def get_conn(self):
 
@@ -76,23 +53,92 @@ class dbUpload:
             is_local = "development"
 
         try:
-            host = self.db_cnf['vamps2']['local']['host']
+            host = const.db_cnf['vamps2']['local']['host']
             db = "vamps2"
         except Exception:
             self.db_marker = "vamps2"
-            host = self.db_cnf['vamps2']['development']['host']
-            db = self.db_cnf['vamps2']['development']['db']
+            host = const.db_cnf['vamps2']['development']['host']
+            db = const.db_cnf['vamps2']['development']['db']
 
         # mysql_utils = MyConnection(host, db)
 
             # host = C.db_cnf[self.db_marker][is_local]["host"]
             # db = C.db_cnf[self.db_marker][is_local]["db"]
 
+    def put_run_info(self):
+        """TODO: get all info from vamps2, put into vampsdev"""
 
-    def get_project_id(self):
-        project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
-        res = mysql_utils.execute_fetch_select_to_dict(project_sql)
-        self.project_id = res[0]['project_id']
+
+        self.get_all_metadata_info()
+        self.insert_run_info()
+
+    def get_all_metadata_info(self):
+        missing_terms = []
+        unknown_term_id = []
+        if self.db_marker == "vamps2":
+            missing_terms = ["env_biome_id", "env_feature_id", "env_material_id", "geo_loc_name_id"]
+            # and ontology_id = 1
+            my_sql = "SELECT %s FROM %s WHERE %s = '%s';" % ("term_id", "term", "term_name", "unknown")
+            # logger.debug("my_sql from get_all_metadata_info: %s" % my_sql)
+            rows = mysql_utils.execute_fetch_select(my_sql)
+            unknown_term_id = [x[0] for x in rows[0]]
+
+        domain_by_adj = dict(zip(const.domain_adj, const.domains))
+        domain_by_adj['Fungal'] = 'Eukarya'
+        # ,  'Fungal'
+        for key, d_val in self.samples_dict.items():
+            metadata_info = {k: v for k, v in d_val.items()}
+
+            # add ids
+            content_row = self.runobj.samples[key]
+            metadata_info['contact_id'] = self.get_contact_id(content_row.data_owner)
+            if not metadata_info['contact_id']:
+                err_msg = """ERROR: There is no such contact info on %s,
+                    please check if the user %s has an account on VAMPS""" % (self.db_marker, content_row.data_owner)
+                self.all_errors.append(err_msg)
+                logger.error(err_msg)
+                sys.exit(err_msg)
+
+            metadata_info['dataset_id'] = self.get_id('dataset', content_row.dataset)
+            metadata_info['dna_region_id'] = self.get_id('dna_region', content_row.dna_region)
+            metadata_info[
+                'file_prefix'] = content_row.barcode_index + "_" + content_row.run_key + "_" + content_row.lane  # use self.runobj.idx_keys?
+            metadata_info['illumina_index_id'] = self.get_id('illumina_index', content_row.barcode_index)
+            if '_' in metadata_info['overlap']:
+                metadata_info['overlap'] = metadata_info['overlap'].split("_")[1]  # hs_compete, ms_partial
+            metadata_info['platform'] = self.runobj.platform
+            metadata_info['primer_suite_id'] = self.get_id('primer_suite', content_row.primer_suite)
+            metadata_info['project_id'] = self.get_id('project', content_row.project)
+            metadata_info['run'] = self.rundate
+            metadata_info['run_id'] = self.run_id
+            if not self.run_id:
+                metadata_info['run_id'] = self.get_id('run', self.rundate)
+            metadata_info['run_key_id'] = self.get_id('run_key', content_row.run_key)
+
+            if self.db_marker == "vamps2":
+                metadata_info['adapter_sequence_id'] = metadata_info['run_key_id']
+
+                and_part = ' and project_id = %s' % metadata_info['project_id']
+                metadata_info['dataset_id'] = self.get_id('dataset', content_row.dataset, and_part = and_part)
+
+                metadata_info['domain_id'] = self.get_id('domain', domain_by_adj[content_row.taxonomic_domain])
+                env_sample_source = self.get_env_sample_source(content_row)
+                converted_env_sample_source = self.convert_env_sample_source(env_sample_source)
+                metadata_info['env_package_id'] = self.get_id("env_package", converted_env_sample_source)
+
+                platform = self.runobj.platform
+                if self.runobj.platform in const.illumina_list:
+                    platform = 'Illumina'
+                metadata_info['sequencing_platform_id'] = self.get_id('sequencing_platform', platform)
+                target_gene = '16s'
+                if content_row.taxonomic_domain.lower().startswith(("euk", "its", "fung")):
+                    target_gene = '18s'
+                metadata_info['target_gene_id'] = self.get_id('target_gene', target_gene)
+                metadata_info['updated_at'] = self.runobj.configPath['general']['date']
+                for term_name in missing_terms:
+                    metadata_info[term_name] = unknown_term_id[0][0]
+
+            self.metadata_info_all[key] = metadata_info
 
     def get_dataset_ids_for_project_id(self):
         where_part = "WHERE project_id = '%s'" % (self.project_id)
@@ -112,7 +158,6 @@ class dbUpload:
         # {t['dataset_id']: t["run_info_ill_id"] for t in res}
         return res
 
-
     def get_run_info_ill_id(self, dataset_ids_list):
         dataset_ids_string = "', '".join(str(x) for x in dataset_ids_list)
         my_sql = """SELECT run_info_ill_id FROM run_info_ill
@@ -128,11 +173,16 @@ class dbUpload:
     def put_project_info(self):
         pass
 
-
 class Project:
 
     def __init__(self, project = None):
         self.project = project
+        self.get_project_id()
+
+    def get_project_id(self):
+        project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
+        res = mysql_utils.execute_fetch_select_to_dict(project_sql)
+        self.project_id = res[0]['project_id']
 
     def get_project_info(self):
         # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
@@ -155,6 +205,35 @@ class User:
         user_info = mysql_utils.execute_fetch_select_to_dict(user_sql)
         return user_info[0]
 
+class Constant:
+    def __init__(self):
+        self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
+        self.domains = ('Archaea', 'Bacteria', 'Eukarya', 'Organelle', 'Unknown')
+        self.domain_adj = ('Archaeal', 'Bacterial', 'Eukaryal', 'Organelle', 'Unknown')  # Fungal
+        self.db_cnf = {
+            "vamps2": {
+                "local"      : {"host": "localhost", "db": "vamps2"},
+                "production" : {"host": "vampsdb", "db": "vamps2"},
+                "development": {"host": "vampsdev", "db": "vamps2"}
+            },
+            "env454": {
+                "local"      : {"host": "localhost", "db": "test_env454"},
+                "production" : {"host": "bpcdb1", "db": "env454"},
+                "development": {"host": "vampsdev", "db": "test"}
+            }
+        }
+        self.table_names_dict = {
+            "vamps2": {
+                "sequence_field_name"         : "sequence_comp", "sequence_table_name": "sequence",
+                "sequence_pdr_info_table_name": "sequence_pdr_info", "contact": "user", "username": "username",
+                "connect_pr_dat_table"        : "dataset"
+            },
+            "env454": {
+                "sequence_field_name"         : "sequence_comp", "sequence_table_name": "sequence_ill",
+                "sequence_pdr_info_table_name": "sequence_pdr_info_ill", "contact": "contact", "username": "vamps_name",
+                "connect_pr_dat_table"        : "run_info_ill"
+            }
+        }
 
 
 if __name__ == '__main__':
@@ -164,6 +243,8 @@ if __name__ == '__main__':
         mysql_utils = util.Mysql_util(host = "localhost", db = "vamps2", read_default_group = "clienthome")
     else:
         mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps2", read_default_group = "client")
+
+    const = Constant()
 
     # TODO: get from args
     project = "JG_NPO_Bv4v5"
@@ -175,7 +256,8 @@ if __name__ == '__main__':
     user_obj = User(user_id)
     user_info = user_obj.get_user_info()
     
-    upl = dbUpload(project)
+    upl = dbUpload(pr_obj) #don't send, it's available already. Make it clear
+    upl.get_all_metadata_info()
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
