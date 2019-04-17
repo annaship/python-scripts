@@ -137,18 +137,6 @@ class dbUpload:
     #     # metadata_info['tubelabel'] =
     #     # metadata_info['use_mbl_primers'] =
 
-    def get_user_id(self):
-        try:
-            # self.metadata_info['data_owner'] = user_info.user_id
-            return user_obj.user_info['user_id']
-        except:
-            err_msg = """ERROR: There is no such contact info on %s,
-                please check if the user %s has an account on VAMPS""" % (self.db_marker, user_obj.user_info.user_id)
-            self.all_errors.append(err_msg)
-            # logger.error(err_msg)
-            self.utils.print_both(err_msg)
-            sys.exit(err_msg)
-
     def get_all_metadata_info(self, run_info_obj):
         # missing_terms = []
         # if self.db_marker == "vamps2":
@@ -221,15 +209,15 @@ class dbUpload:
         # {t['dataset_id']: t["run_info_ill_id"] for t in res}
         return res
 
-    def get_run_info_ill_id(self):
-        my_sql = """SELECT run_info_ill_id FROM run_info_ill
-                    WHERE dataset_id in ('%s')
-                    ;
-        """ % (self.dataset_ids_string)
-
-        rows = mysql_utils.execute_fetch_select(my_sql)
-        if rows:
-            return [x[0] for x in rows[0]]
+    # def get_run_info_ill_id(self):
+    #     my_sql = """SELECT run_info_ill_id FROM run_info_ill
+    #                 WHERE dataset_id in ('%s')
+    #                 ;
+    #     """ % (self.dataset_ids_string)
+    #
+    #     rows = mysql_utils.execute_fetch_select(my_sql)
+    #     if rows:
+    #         return [x[0] for x in rows[0]]
 
     def make_insert_template(self, table_name, fields_str, values_str):
         my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
@@ -239,17 +227,16 @@ class dbUpload:
         for field_name in field_list[:-1]:
             my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
         my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
-        # return my_sql_1 + " %s " + my_sql_2
 
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
-    def get_run(self):
+    def get_run(self, run_info_obj):
         return set([(entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
-    def insert_rundate(self):
+    def insert_rundate(self, run_info_obj):
         run_vals = []
-        run_rows = self.get_run()
+        run_rows = self.get_run(run_info_obj)
         for row in run_rows:
             run_str = '", "'.join(str(v) for v in row)
             run_vals.append('("%s")' % run_str)
@@ -259,14 +246,20 @@ class dbUpload:
         my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
         mysql_utils.execute_no_fetch(my_sql)
 
-    def insert_contact(self):
-        my_sql = '''INSERT IGNORE INTO contact (contact, email, institution, vamps_name, first_name, last_name)
-                VALUES ("guest user", "guest@guest.com", "guest institution", "guest", "guest", "user");'''
+    def insert_contact(self, user_obj):
+        # TODO: check what happens if this user_id exists
+        fields = user_obj.user_info.keys()
+        field_list = ", ".join(fields)
+        user_values = user_obj.user_info.values()
+        user_values_list = "', '".join(str(v) for v in user_values)
+        my_sql = '''INSERT IGNORE INTO %s (%s)
+                VALUES ('%s');''' % (self.table_names["contact"], field_list, user_values_list)
+
         return mysql_utils.execute_no_fetch(my_sql)
 
-    def get_contact_id(self, data_owner):
+    def get_new_contact_id(self, username):
         my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
-            self.table_names["contact"], self.table_names["contact"], self.table_names["username"], data_owner)
+            self.table_names["contact"], self.table_names["contact"], self.table_names["username"], username)
 
         res = mysql_utils.execute_fetch_select(my_sql)
         if res:
@@ -278,8 +271,11 @@ class dbUpload:
         all_templ = set()
         all_project_names = set()
         vals = ""
+
+        contact_id = self.get_new_contact_id(user_obj.user_info['username'])
+
         for key, content_row in self.runobj.samples.items():
-            contact_id = self.get_contact_id(content_row.data_owner)
+            contact_id = self.get_new_contact_id(content_row.data_owner)
             if not contact_id:
                 err_msg = """ERROR: There is no such contact info on %s,
                     please check if the user %s has an account on VAMPS""" % (self.db_marker, content_row.data_owner)
@@ -346,23 +342,22 @@ class dbUpload:
             env_sample_source_replaced = env_sample_source.replace("_", " ")
         return env_sample_source_replaced
 
-    def insert_run_keys(self):
+    def insert_run_keys(self, run_info_obj):
         run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
         self.insert_bulk_data('run_key', run_keys)
 
-    def insert_metadata_info(self, run_info_obj):
-        self.insert_run_keys()
-        # run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
-        #
-        # self.insert_bulk_data('run_key', run_keys)
-        
-        dna_regions = list(set([self.runobj.samples[key].dna_region for key in self.runobj.samples]))
+    def insert_dna_regions(self, run_info_obj):
+        dna_regions = set([entry['dna_region'] for entry in run_info_obj.run_info_t_dict])
         self.insert_bulk_data('dna_region', dna_regions)
-        self.insert_rundate()
+
+    def insert_metadata_info(self, run_info_obj, user_obj):
+        self.insert_run_keys(run_info_obj)
+        self.insert_dna_regions(run_info_obj)
+        self.insert_rundate(run_info_obj)
+        self.insert_contact(user_obj)
         self.used_project_names = self.insert_project()
-        for key, value in self.runobj.samples.items():
-            self.insert_dataset(value)
-        self.get_all_metadata_info()
+        self.insert_dataset()
+        self.get_all_metadata_info_with_new_ids()
         self.insert_run_info()
 
 
@@ -398,6 +393,19 @@ class User:
         user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
         res = mysql_utils.execute_fetch_select_to_dict(user_sql)
         return res[0]
+
+    # def get_user_id(self):
+    #     try:
+    #         # self.metadata_info['data_owner'] = user_info.user_id
+    #         return user_obj.user_info['user_id']
+    #     except:
+    #         err_msg = """ERROR: There is no such contact info on %s,
+    #             please check if the user %s has an account on VAMPS""" % (self.db_marker, user_obj.user_info.user_id)
+    #         self.all_errors.append(err_msg)
+    #         # logger.error(err_msg)
+    #         self.utils.print_both(err_msg)
+    #         sys.exit(err_msg)
+
 
 class Run_info:
     def __init__(self):
@@ -484,7 +492,7 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info()
     upl.get_all_metadata_info(run_info_obj)
-    upl.insert_metadata_info(run_info_obj)
+    upl.insert_metadata_info(run_info_obj, user_obj)
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
