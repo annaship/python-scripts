@@ -224,53 +224,33 @@ class dbUpload:
         if rows:
             return [x[0] for x in rows[0]]
 
-    def make_insert_template(table_name, fields_str, values_mtrx):
+    def make_insert_template(self, table_name, fields_str, values_str):
         my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
         my_sql_2 = " ON DUPLICATE KEY UPDATE "
-        all_vals = set()
 
-        for row in values_mtrx:
-            val_str = '", "'.join(str(v) for v in row)
+        field_list = fields_str.split(",")
+        for field_name in field_list[:-1]:
+            my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
+        my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
+        # return my_sql_1 + " %s " + my_sql_2
 
-            all_vals.add(val_str)
-
-
-        # for field_name in field_list[:-1]:
-        #     my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
-        # my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
-        return my_sql_1 + " %s " + my_sql_2
+        my_sql_tmpl = my_sql_1 + values_str + my_sql_2
+        return my_sql_tmpl
 
     def get_run(self):
         return set([(entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
     def insert_rundate(self):
-        """
-        INSERT INTO `run` (`run_id`, `run`, `run_prefix`, `date_trimmed`, `platform`)
-        VALUES
-            (1, '20090625', 'FX18VMI', '2009-07-23 00:00:00', '');
-def make_sql_for_groups(table_name, fields_str):
-    field_list = fields_str.split(",")
-    my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
-    my_sql_2 = " ON DUPLICATE KEY UPDATE "
-    for field_name in field_list[:-1]:
-        my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
-    my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
-    return my_sql_1 + " %s " + my_sql_2
-        """
-
-
         run_vals = []
-        for row in self.get_run():
-
+        run_rows = self.get_run()
+        for row in run_rows:
             run_str = '", "'.join(str(v) for v in row)
-            run_vals.append([run_str])
+            run_vals.append('("%s")' % run_str)
 
-        my_sql = """INSERT IGNORE INTO run (run, run_prefix, date_trimmed, platform) VALUES
-            (%s);""" % ('", "'.join(run_vals))
-
+        table_name = "run"
         fields_str = 'run, run_prefix, date_trimmed, platform'
-        self.make_insert_template("run", fields_str, run_vals)
-        return self.my_conn.execute_no_fetch(my_sql)
+        my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
+        mysql_utils.execute_no_fetch(my_sql)
 
     # Needs refactoring!
     def insert_project(self):
@@ -319,7 +299,7 @@ def make_sql_for_groups(table_name, fields_str):
 
         for v in set(all_vals):
             query_tmpl = list(all_templ)[0]
-            self.my_conn.execute_no_fetch(query_tmpl % v)
+            mysql_utils.execute_no_fetch(query_tmpl % v)
 
         return list(all_project_names)
 
@@ -337,7 +317,7 @@ def make_sql_for_groups(table_name, fields_str):
             # uniq_fields = ['dataset', 'dataset_description']
         my_sql = make_sql_for_groups("dataset", fields) % dataset_values
         # self.utils.print_both(my_sql)
-        return self.my_conn.execute_no_fetch(my_sql)
+        return mysql_utils.execute_no_fetch(my_sql)
 
     def convert_env_sample_source(self, env_sample_source):
         if (env_sample_source == "miscellaneous_natural_or_artificial_environment"):
