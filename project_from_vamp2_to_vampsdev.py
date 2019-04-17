@@ -117,27 +117,30 @@ class dbUpload:
         # metadata_info['tubelabel'] =
         # metadata_info['use_mbl_primers'] =
 
+    def get_user_id(self):
+        try:
+            # self.metadata_info['data_owner'] = user_info.user_id
+            self.metadata_info['contact_id'] = user_info['user_id']
+        except:
+            err_msg = """ERROR: There is no such contact info on %s,
+                please check if the user %s has an account on VAMPS""" % (self.db_marker, user_info.user_id)
+            self.all_errors.append(err_msg)
+            # logger.error(err_msg)
+            self.utils.print_both(err_msg)
+            sys.exit(err_msg)
+
     def get_all_metadata_info(self):
-        missing_terms = []
+        # missing_terms = []
         # if self.db_marker == "vamps2":
-        missing_terms = ["env_biome_id", "env_feature_id", "env_material_id", "geo_loc_name_id"]
+        # missing_terms = ["env_biome_id", "env_feature_id", "env_material_id", "geo_loc_name_id"]
         unknown_term_id = self.get_unknown_term_id()
 
         domain_by_adj = dict(zip(const.domain_adj, const.domains))
         domain_by_adj['Fungal'] = 'Eukarya'
 
-        self.metadata_info['data_owner'] = user_info.user_id
+        self.get_user_id()
+        # self.metadata_info['data_owner'] = user_info.user_id
 
-            #
-            #
-            # content_row = self.runobj.samples[key]
-            # metadata_info['contact_id'] = self.get_contact_id(content_row.data_owner)
-            # if not metadata_info['contact_id']:
-            #     err_msg = """ERROR: There is no such contact info on %s,
-            #         please check if the user %s has an account on VAMPS""" % (self.db_marker, content_row.data_owner)
-            #     self.all_errors.append(err_msg)
-            #     logger.error(err_msg)
-            #     sys.exit(err_msg)
             #
             # metadata_info['dataset_id'] = self.get_id('dataset', content_row.dataset)
             # metadata_info['dna_region_id'] = self.get_id('dna_region', content_row.dna_region)
@@ -323,7 +326,7 @@ if __name__ == '__main__':
     upl = dbUpload(pr_obj) #don't send, it's available already. Make it clear
 
     run_info_obj = Run_info()
-
+    upl.get_all_metadata_info()
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
@@ -332,7 +335,7 @@ if __name__ == '__main__':
     print(upl.project_id)
     print(upl.dataset_ids_list)
 
-    tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id(upl.dataset_ids_list)
+    tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id()
 
     """TODO: args - project name"""
     """insert with select to find what's behind ids
