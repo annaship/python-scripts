@@ -254,36 +254,16 @@ class Run_info:
         """ % (upl.dataset_ids_string)
 
         rows = mysql_utils.execute_fetch_select_to_dict(my_sql)
-        """
-        rows = {tuple} <class 'tuple'>: (
-                00 = {dict} {'dataset_id': 422708, 'illumina_index_id': 31, 'primer_suite_id': 6, 'dna_region_id': 8, 'run_key_id': 95, 'run_id': 6164, 'run_info_ill_id': 40354, 'lane': 1, 'tubelabel': '2', 'barcode': '', 'adaptor': 'B01', 'amp_operator': 'AM', 'seq_operator': 'AM', 
-        """
-
         return rows
-        # if rows:
-        #     return [x[0] for x in rows[0]]
 
     def convert_run_info_to_dict_by_dataset_id(self):
         run_info_by_dataset_id = defaultdict(dict)
 
-        # start1 = time.time()
         for entry in self.run_info_t_dict:
             d_id = entry['dataset_id']
             run_info_by_dataset_id[d_id] = entry
-        # elapsed1 = (time.time() - start1)
-        # print("QQQ1 for1 time: %s s" % elapsed1)
-
-        # d1 = defaultdict(dict)
-        # start2 = time.time()
-        # d1 = {e['dataset_id']: e for e in self.run_info_t_dict}
-        # elapsed2 = (time.time() - start2)
-        # print("QQQ2 for2 time: %s s" % elapsed2)
 
         return run_info_by_dataset_id
-
-
-
-
 
 
 class Constant:
