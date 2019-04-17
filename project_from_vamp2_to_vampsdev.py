@@ -56,6 +56,13 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
+    def insert_bulk_data(self, key, values):
+        query_tmpl = "INSERT IGNORE INTO %s (%s) VALUES (%s)"
+        val_tmpl = "'%s'"
+        my_sql = query_tmpl % (key, key, '), ('.join([val_tmpl % v for v in values]))
+        my_sql = my_sql + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (key, key)
+        mysql_utils.execute_no_fetch(my_sql)
+
     def make_sql_for_groups(self, table_name, fields_str):
         field_list = fields_str.split(",")
         my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
@@ -339,6 +346,21 @@ class dbUpload:
             env_sample_source_replaced = env_sample_source.replace("_", " ")
         return env_sample_source_replaced
 
+    def insert_metadata_info(self, run_info_obj):
+        run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
+
+        self.insert_bulk_data('run_key', run_keys)
+        
+        dna_regions = list(set([self.runobj.samples[key].dna_region for key in self.runobj.samples]))
+        self.insert_bulk_data('dna_region', dna_regions)
+        self.insert_rundate()
+        self.used_project_names = self.insert_project()
+        for key, value in self.runobj.samples.items():
+            self.insert_dataset(value)
+        self.get_all_metadata_info()
+        self.insert_run_info()
+
+
 class Project:
 
     def __init__(self, project = None):
@@ -457,7 +479,7 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info()
     upl.get_all_metadata_info(run_info_obj)
-    upl.insert_rundate()
+    upl.insert_metadata_info(run_info_obj)
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
