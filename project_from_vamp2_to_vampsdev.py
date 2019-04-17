@@ -49,6 +49,8 @@ class dbUpload:
         self.dataset_ids_list = self.get_dataset_ids_for_project_id()
         self.dataset_ids_string = "', '".join(str(x) for x in self.dataset_ids_list)
 
+        self.metadata_info = defaultdict(dict)
+
 
     def get_conn(self):
 
@@ -79,7 +81,7 @@ class dbUpload:
         return [x[0] for x in rows[0]]
 
     def empty_metadata_info(self):
-        metadata_info = defaultdict()
+        metadata_info = defaultdict(dict)
         keys = []
         # metadata_info['adaptor'] =
         # metadata_info['amp_operator'] =
@@ -123,6 +125,8 @@ class dbUpload:
 
         domain_by_adj = dict(zip(const.domain_adj, const.domains))
         domain_by_adj['Fungal'] = 'Eukarya'
+
+        self.metadata_info['data_owner'] = user_info.user_id
 
             #
             #
@@ -238,8 +242,7 @@ class Run_info:
     def __init__(self):
         # upl
         self.run_info_t_dict = self.get_run_info()
-        self.convert_run_info_to_dict_by_dataset_id()
-        # self.insert_run_info()
+        self.run_info_by_dataset_id = self.convert_run_info_to_dict_by_dataset_id()
 
     def get_run_info(self):
         my_sql = """SELECT * FROM run_info_ill
