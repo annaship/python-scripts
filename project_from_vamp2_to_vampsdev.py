@@ -346,10 +346,15 @@ class dbUpload:
             env_sample_source_replaced = env_sample_source.replace("_", " ")
         return env_sample_source_replaced
 
-    def insert_metadata_info(self, run_info_obj):
+    def insert_run_keys(self):
         run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
-
         self.insert_bulk_data('run_key', run_keys)
+
+    def insert_metadata_info(self, run_info_obj):
+        self.insert_run_keys()
+        # run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
+        #
+        # self.insert_bulk_data('run_key', run_keys)
         
         dna_regions = list(set([self.runobj.samples[key].dna_region for key in self.runobj.samples]))
         self.insert_bulk_data('dna_region', dna_regions)
