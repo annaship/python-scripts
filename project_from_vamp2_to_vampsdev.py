@@ -1,6 +1,11 @@
 import sys
 import os
 import time
+import logging
+
+logger = logging.getLogger('')
+FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
 """TODO: get all info from vamps2, put into vampsdev"""
 
@@ -51,6 +56,14 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
+    def make_sql_for_groups(self, table_name, fields_str):
+        field_list = fields_str.split(",")
+        my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
+        my_sql_2 = " ON DUPLICATE KEY UPDATE "
+        for field_name in field_list[:-1]:
+            my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
+        my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
+        return my_sql_1 + " %s " + my_sql_2
 
     def get_conn(self):
 
@@ -211,6 +224,127 @@ class dbUpload:
         if rows:
             return [x[0] for x in rows[0]]
 
+    def make_insert_template(table_name, fields_str, values_mtrx):
+        my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
+        my_sql_2 = " ON DUPLICATE KEY UPDATE "
+        all_vals = set()
+
+        for row in values_mtrx:
+            val_str = '", "'.join(str(v) for v in row)
+
+            all_vals.add(val_str)
+
+
+        # for field_name in field_list[:-1]:
+        #     my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
+        # my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
+        return my_sql_1 + " %s " + my_sql_2
+
+    def get_run(self):
+        return set([(entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
+
+    def insert_rundate(self):
+        """
+        INSERT INTO `run` (`run_id`, `run`, `run_prefix`, `date_trimmed`, `platform`)
+        VALUES
+            (1, '20090625', 'FX18VMI', '2009-07-23 00:00:00', '');
+def make_sql_for_groups(table_name, fields_str):
+    field_list = fields_str.split(",")
+    my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
+    my_sql_2 = " ON DUPLICATE KEY UPDATE "
+    for field_name in field_list[:-1]:
+        my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
+    my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
+    return my_sql_1 + " %s " + my_sql_2
+        """
+
+
+        run_vals = []
+        for row in self.get_run():
+
+            run_str = '", "'.join(str(v) for v in row)
+            run_vals.append([run_str])
+
+        my_sql = """INSERT IGNORE INTO run (run, run_prefix, date_trimmed, platform) VALUES
+            (%s);""" % ('", "'.join(run_vals))
+
+        fields_str = 'run, run_prefix, date_trimmed, platform'
+        self.make_insert_template("run", fields_str, run_vals)
+        return self.my_conn.execute_no_fetch(my_sql)
+
+    # Needs refactoring!
+    def insert_project(self):
+        all_vals = set()
+        all_templ = set()
+        all_project_names = set()
+        vals = ""
+        for key, content_row in self.runobj.samples.items():
+            contact_id = self.get_contact_id(content_row.data_owner)
+            if not contact_id:
+                err_msg = """ERROR: There is no such contact info on %s,
+                    please check if the user %s has an account on VAMPS""" % (self.db_marker, content_row.data_owner)
+                self.all_errors.append(err_msg)
+                logger.error(err_msg)
+                sys.exit(err_msg)
+
+            all_project_names.add(content_row.project)
+            fields = "project, title, project_description, rev_project_name, funding"
+            if self.db_marker == "vamps2":
+                is_permanent = 1
+                fields += ", owner_user_id, updated_at, permanent"
+                vals = """('%s', '%s', '%s', reverse('%s'), '%s', '%s', NOW(), %s)
+                """ % (
+                    content_row.project, content_row.project_title, content_row.project_description, content_row.project,
+                    content_row.funding, contact_id, is_permanent)
+
+            elif self.db_marker == "env454":
+                fields += ", env_sample_source_id, contact_id"
+                vals = """('%s', '%s', '%s', reverse('%s'), '%s', '%s', %s)
+                    """ % (
+                    content_row.project, content_row.project_title, content_row.project_description,
+                    content_row.project,
+                    content_row.funding, content_row.env_sample_source_id, contact_id)
+                #         TODO: change! what if we have more self.db_marker?
+
+            all_vals.add(vals)
+            all_templ.add(self.make_sql_for_groups("project", fields))
+
+        logger.debug("projects: %s" % all_project_names)
+
+        if len(all_templ) > 1:
+            err_msg = "WHY many templates? %s" % all_templ
+            self.all_errors.append(err_msg)
+            logger.error(err_msg)
+            sys.exit(err_msg)
+
+        for v in set(all_vals):
+            query_tmpl = list(all_templ)[0]
+            self.my_conn.execute_no_fetch(query_tmpl % v)
+
+        return list(all_project_names)
+
+    def insert_dataset(self, content_row):
+        fields = "dataset, dataset_description"
+        dataset_values = ""
+        if self.db_marker == "vamps2":
+            project_id = self.get_id('project', content_row.project)
+            fields += ", project_id, updated_at"
+            dataset_values = "('%s', '%s', %s, NOW())" % (
+                content_row.dataset, content_row.dataset_description, project_id)
+            # uniq_fields = ['dataset', 'project_id']
+        elif self.db_marker == "env454":
+            dataset_values = "('%s', '%s')" % (content_row.dataset, content_row.dataset_description)
+            # uniq_fields = ['dataset', 'dataset_description']
+        my_sql = make_sql_for_groups("dataset", fields) % dataset_values
+        # self.utils.print_both(my_sql)
+        return self.my_conn.execute_no_fetch(my_sql)
+
+    def convert_env_sample_source(self, env_sample_source):
+        if (env_sample_source == "miscellaneous_natural_or_artificial_environment"):
+            env_sample_source_replaced = "miscellaneous"
+        else:
+            env_sample_source_replaced = env_sample_source.replace("_", " ")
+        return env_sample_source_replaced
 
 class Project:
 
@@ -330,6 +464,7 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info()
     upl.get_all_metadata_info(run_info_obj)
+    upl.insert_rundate()
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
