@@ -93,50 +93,50 @@ class dbUpload:
         rows = mysql_utils.execute_fetch_select(my_sql)
         return [x[0] for x in rows[0]]
 
-    def empty_metadata_info(self):
-        metadata_info = defaultdict(dict)
-        keys = []
-        # metadata_info['adaptor'] =
-        # metadata_info['amp_operator'] =
-        # metadata_info['anchor'] =
-        # metadata_info['barcode'] =
-        # metadata_info['barcode_index'] =
-        metadata_info['data_owner'] = user_info.user_id
-        # metadata_info['dataset'] =
-        # metadata_info['dataset_description'] =
-        # metadata_info['direction'] =
-        # metadata_info['dna_region'] =
-        # metadata_info['email'] =
-        # metadata_info['env_sample_source_id'] =
-        # metadata_info['first_name'] =
-        # metadata_info['forward_primers'] =
-        # metadata_info['funding'] =
-        # metadata_info['insert_size'] =
-        # metadata_info['institution'] =
-        # metadata_info['lane'] =
-        # metadata_info['last_name'] =
-        # metadata_info['overlap'] =
-        # metadata_info['pool'] =
-        # metadata_info['primer_suite'] =
-        # metadata_info['project'] =
-        # metadata_info['project_description'] =
-        # metadata_info['project_title'] =
-        # metadata_info['read_length'] =
-        # metadata_info['reverse_primers'] =
-        # metadata_info['run_key'] =
-        # metadata_info['seq_operator'] =
-        # metadata_info['stop_sequences'] =
-        # metadata_info['taxonomic_domain'] =
-        # metadata_info['tubelabel'] =
-        # metadata_info['use_mbl_primers'] =
+    # def empty_metadata_info(self):
+    #     metadata_info = defaultdict(dict)
+    #     keys = []
+    #     # metadata_info['adaptor'] =
+    #     # metadata_info['amp_operator'] =
+    #     # metadata_info['anchor'] =
+    #     # metadata_info['barcode'] =
+    #     # metadata_info['barcode_index'] =
+    #     metadata_info['data_owner'] = user_info.user_id
+    #     # metadata_info['dataset'] =
+    #     # metadata_info['dataset_description'] =
+    #     # metadata_info['direction'] =
+    #     # metadata_info['dna_region'] =
+    #     # metadata_info['email'] =
+    #     # metadata_info['env_sample_source_id'] =
+    #     # metadata_info['first_name'] =
+    #     # metadata_info['forward_primers'] =
+    #     # metadata_info['funding'] =
+    #     # metadata_info['insert_size'] =
+    #     # metadata_info['institution'] =
+    #     # metadata_info['lane'] =
+    #     # metadata_info['last_name'] =
+    #     # metadata_info['overlap'] =
+    #     # metadata_info['pool'] =
+    #     # metadata_info['primer_suite'] =
+    #     # metadata_info['project'] =
+    #     # metadata_info['project_description'] =
+    #     # metadata_info['project_title'] =
+    #     # metadata_info['read_length'] =
+    #     # metadata_info['reverse_primers'] =
+    #     # metadata_info['run_key'] =
+    #     # metadata_info['seq_operator'] =
+    #     # metadata_info['stop_sequences'] =
+    #     # metadata_info['taxonomic_domain'] =
+    #     # metadata_info['tubelabel'] =
+    #     # metadata_info['use_mbl_primers'] =
 
     def get_user_id(self):
         try:
             # self.metadata_info['data_owner'] = user_info.user_id
-            return user_info['user_id']
+            return user_obj.user_info['user_id']
         except:
             err_msg = """ERROR: There is no such contact info on %s,
-                please check if the user %s has an account on VAMPS""" % (self.db_marker, user_info.user_id)
+                please check if the user %s has an account on VAMPS""" % (self.db_marker, user_obj.user_info.user_id)
             self.all_errors.append(err_msg)
             # logger.error(err_msg)
             self.utils.print_both(err_msg)
@@ -252,6 +252,19 @@ class dbUpload:
         my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
         mysql_utils.execute_no_fetch(my_sql)
 
+    def insert_contact(self):
+        my_sql = '''INSERT IGNORE INTO contact (contact, email, institution, vamps_name, first_name, last_name)
+                VALUES ("guest user", "guest@guest.com", "guest institution", "guest", "guest", "user");'''
+        return mysql_utils.execute_no_fetch(my_sql)
+
+    def get_contact_id(self, data_owner):
+        my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
+            self.table_names["contact"], self.table_names["contact"], self.table_names["username"], data_owner)
+
+        res = mysql_utils.execute_fetch_select(my_sql)
+        if res:
+            return int(res[0][0])
+
     # Needs refactoring!
     def insert_project(self):
         all_vals = set()
@@ -347,6 +360,7 @@ class User:
 
     def __init__(self, user_id = None):
         self.user_id = user_id
+        self.user_info = self.get_user_info()
 
     def get_user_info(self):
         """
@@ -355,8 +369,8 @@ class User:
 
         """
         user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
-        user_info = mysql_utils.execute_fetch_select_to_dict(user_sql)
-        return user_info[0]
+        res = mysql_utils.execute_fetch_select_to_dict(user_sql)
+        return res[0]
 
 class Run_info:
     def __init__(self):
@@ -438,7 +452,6 @@ if __name__ == '__main__':
 
     user_id = pr_info['owner_user_id']
     user_obj = User(user_id)
-    user_info = user_obj.get_user_info()
 
     upl = dbUpload(pr_obj) #don't send, it's available already. Make it clear
 
