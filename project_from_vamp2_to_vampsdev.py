@@ -120,7 +120,7 @@ class dbUpload:
     def get_user_id(self):
         try:
             # self.metadata_info['data_owner'] = user_info.user_id
-            self.metadata_info['contact_id'] = user_info['user_id']
+            return user_info['user_id']
         except:
             err_msg = """ERROR: There is no such contact info on %s,
                 please check if the user %s has an account on VAMPS""" % (self.db_marker, user_info.user_id)
@@ -129,7 +129,7 @@ class dbUpload:
             self.utils.print_both(err_msg)
             sys.exit(err_msg)
 
-    def get_all_metadata_info(self):
+    def get_all_metadata_info(self, run_info_obj):
         # missing_terms = []
         # if self.db_marker == "vamps2":
         # missing_terms = ["env_biome_id", "env_feature_id", "env_material_id", "geo_loc_name_id"]
@@ -138,7 +138,10 @@ class dbUpload:
         domain_by_adj = dict(zip(const.domain_adj, const.domains))
         domain_by_adj['Fungal'] = 'Eukarya'
 
-        self.get_user_id()
+        self.metadata_info = run_info_obj.run_info_by_dataset_id
+
+        # for d_id, run_inf_entry in run_info_obj.items:
+        # self.metadata_info['contact_id'] = self.get_user_id()
         # self.metadata_info['data_owner'] = user_info.user_id
 
             #
@@ -326,7 +329,7 @@ if __name__ == '__main__':
     upl = dbUpload(pr_obj) #don't send, it's available already. Make it clear
 
     run_info_obj = Run_info()
-    upl.get_all_metadata_info()
+    upl.get_all_metadata_info(run_info_obj)
 
     insert_sql_template = "INSERT IGNORE INTO %s VALUES (%s)"
 
