@@ -51,9 +51,6 @@ class dbUpload:
         self.db_marker = "vamps2"
         self.table_names = const.table_names_dict[self.db_marker]
 
-        self.dataset_ids_list = self.get_dataset_ids_for_project_id()
-        self.dataset_ids_string = "', '".join(str(x) for x in self.dataset_ids_list)
-
         self.metadata_info = defaultdict(dict)
 
     def insert_bulk_data(self, key, values):
@@ -198,30 +195,6 @@ class dbUpload:
             #
             # self.metadata_info_all[key] = metadata_info
 
-    def get_dataset_ids_for_project_id(self):
-        where_part = "WHERE project_id = '%s'" % (self.project_id)
-        dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
-                                            """ % (self.table_names["connect_pr_dat_table"], where_part)
-
-        rows = mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
-        return [x[0] for x in rows[0]]
-
-    def get_dataset_per_run_info_id(self):
-        all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill 
-                                    WHERE dataset_id in ('%s') """ % (self.dataset_ids_string)
-        res = mysql_utils_in.execute_fetch_select_to_dict(all_dataset_run_info_sql)
-        # {t['dataset_id']: t["run_info_ill_id"] for t in res}
-        return res
-
-    # def get_run_info_ill_id(self):
-    #     my_sql = """SELECT run_info_ill_id FROM run_info_ill
-    #                 WHERE dataset_id in ('%s')
-    #                 ;
-    #     """ % (self.dataset_ids_string)
-    #
-    #     rows = mysql_utils_in.execute_fetch_select(my_sql)
-    #     if rows:
-    #         return [x[0] for x in rows[0]]
 
     def make_insert_template(self, table_name, fields_str, values_str):
         my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
@@ -314,6 +287,26 @@ class dbUpload:
         self.get_all_metadata_info_with_new_ids()
         self.insert_run_info()
 
+class Dataset:
+
+    def __init__(self, project_id = None):
+        self.project_id = project_id
+        self.dataset_ids_list = self.get_dataset_ids_for_project_id()
+        self.dataset_ids_string = "', '".join(str(x) for x in self.dataset_ids_list)
+
+    def get_dataset_ids_for_project_id(self):
+        where_part = "WHERE project_id = '%s'" % (self.project_id)
+        dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
+                                            """ % (self.table_names["connect_pr_dat_table"], where_part)
+
+        rows = mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
+        return [x[0] for x in rows[0]]
+
+    def get_dataset_per_run_info_id(self):
+        all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill 
+                                    WHERE dataset_id in ('%s') """ % (self.dataset_ids_string)
+        res = mysql_utils_in.execute_fetch_select_to_dict(all_dataset_run_info_sql)
+        return res
 
 class Project:
 
@@ -348,17 +341,6 @@ class User:
         res = mysql_utils_in.execute_fetch_select_to_dict(user_sql)
         return res[0]
 
-    # def get_user_id(self):
-    #     try:
-    #         # self.metadata_info['data_owner'] = user_info.user_id
-    #         return user_obj.user_info['user_id']
-    #     except:
-    #         err_msg = """ERROR: There is no such contact info on %s,
-    #             please check if the user %s has an account on VAMPS""" % (self.db_marker, user_obj.user_info.user_id)
-    #         self.all_errors.append(err_msg)
-    #         # logger.error(err_msg)
-    #         self.utils.print_both(err_msg)
-    #         sys.exit(err_msg)
 
 
 class Run_info:
