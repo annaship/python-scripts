@@ -453,7 +453,14 @@ class Constant:
                 "local"      : {"host": "localhost", "db": "test_env454"},
                 "production" : {"host": "bpcdb1", "db": "env454"},
                 "development": {"host": "vampsdev", "db": "test"}
+            },
+            "all_local": {
+                "env454"   : {"host": "localhost", "db": "test_env454"},
+                "vamps2"   : {"host": "localhost", "db": "vamps2"},
+                "vampsdev" : {"host": "localhost", "db": "vampsdev_testing"},
+                "old_vamps": {"host": "localhost", "db": "test_vamps"}
             }
+
         }
         self.table_names_dict = {
             "vamps2": {
