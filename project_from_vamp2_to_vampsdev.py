@@ -261,69 +261,31 @@ class dbUpload:
 
         return mysql_utils_out.execute_no_fetch(my_sql)
 
-    def get_new_contact_id(self, username):
-        my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
-            self.table_names["contact"], self.table_names["contact"], self.table_names["username"], username)
+    # def get_new_contact_id(self, username):
+    #     my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
+    #         self.table_names["contact"], self.table_names["contact"], self.table_names["username"], username)
+    #
+    #     res = mysql_utils_out.execute_fetch_select(my_sql)
+    #     if res:
+    #         int_res = self.utils.flatten_single_mysql_res_tuple_to_int(res, {'user_id'})
+    #         return int_res
 
-        res = mysql_utils_out.execute_fetch_select(my_sql)
-        if res:
-            int_res = self.utils.flatten_single_mysql_res_tuple_to_int(res, {'user_id'})
-            return int_res
-                # int(list(self.utils.extract(res, exclude={'user_id'}))[0])
-
-    # Needs refactoring!
     def insert_project(self):
-        all_vals = set()
-        all_templ = set()
-        all_project_names = set()
-        vals = ""
 
-        contact_id = self.get_new_contact_id(user_obj.user_info['username'])
+        # contact_id = self.get_new_contact_id(user_obj.user_info['username'])
+        fields_str = "%s" % (", ".join(str(x) for x in pr_info.keys()))
 
-        for key, content_row in self.runobj.samples.items():
-            contact_id = self.get_new_contact_id(content_row.data_owner)
-            if not contact_id:
-                err_msg = """ERROR: There is no such contact info on %s,
-                    please check if the user %s has an account on VAMPS""" % (self.db_marker, content_row.data_owner)
-                self.all_errors.append(err_msg)
-                logger.error(err_msg)
-                sys.exit(err_msg)
+            # "project, title, project_description, rev_project_name, funding, owner_user_id, updated_at, permanent"
+        vals_list = [str(x) for x in pr_info.values()]
+        vals_str = "('%s')" % ("', '".join(vals_list))
 
-            all_project_names.add(content_row.project)
-            fields = "project, title, project_description, rev_project_name, funding"
-            if self.db_marker == "vamps2":
-                is_permanent = 1
-                fields += ", owner_user_id, updated_at, permanent"
-                vals = """('%s', '%s', '%s', reverse('%s'), '%s', '%s', NOW(), %s)
-                """ % (
-                    content_row.project, content_row.project_title, content_row.project_description, content_row.project,
-                    content_row.funding, contact_id, is_permanent)
+        templ = self.make_sql_for_groups("project", fields_str)
 
-            elif self.db_marker == "env454":
-                fields += ", env_sample_source_id, contact_id"
-                vals = """('%s', '%s', '%s', reverse('%s'), '%s', '%s', %s)
-                    """ % (
-                    content_row.project, content_row.project_title, content_row.project_description,
-                    content_row.project,
-                    content_row.funding, content_row.env_sample_source_id, contact_id)
-                #         TODO: change! what if we have more self.db_marker?
+        logger.debug("projects: %s" % pr_info['project'])
 
-            all_vals.add(vals)
-            all_templ.add(self.make_sql_for_groups("project", fields))
+        mysql_utils_out.execute_no_fetch(templ % vals_str)
 
-        logger.debug("projects: %s" % all_project_names)
-
-        if len(all_templ) > 1:
-            err_msg = "WHY many templates? %s" % all_templ
-            self.all_errors.append(err_msg)
-            logger.error(err_msg)
-            sys.exit(err_msg)
-
-        for v in set(all_vals):
-            query_tmpl = list(all_templ)[0]
-            mysql_utils_in.execute_no_fetch(query_tmpl % v)
-
-        return list(all_project_names)
+        return pr_info['project']
 
     def insert_dataset(self, content_row):
         fields = "dataset, dataset_description"
