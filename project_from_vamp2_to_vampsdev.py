@@ -72,25 +72,29 @@ class dbUpload:
         my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
         return my_sql_1 + " %s " + my_sql_2
 
-    def get_conn(self):
-
-        if self.utils.is_local():
-            is_local = "local"
-        else:
-            is_local = "development"
-
-        try:
-            host = const.db_cnf['vamps2']['local']['host']
-            db = "vamps2"
-        except Exception:
-            self.db_marker = "vamps2"
-            host = const.db_cnf['vamps2']['development']['host']
-            db = const.db_cnf['vamps2']['development']['db']
-
-        # mysql_utils = MyConnection(host, db)
-
-            # host = C.db_cnf[self.db_marker][is_local]["host"]
-            # db = C.db_cnf[self.db_marker][is_local]["db"]
+    # def get_conn(self):
+    #
+    #     if self.utils.is_local():
+    #         is_local = "local"
+    #     else:
+    #         is_local = "development"
+    #
+    #     try:
+    #         in_marker = "vamps2"
+    #         out_marker = "vampsdev"
+    #         host  = const.db_cnf['all_local'][in_marker]['host']
+    #         db  = const.db_cnf['all_local'][in_marker]['db']
+    #     except Exception:
+    #         self.db_marker = "vamps2"
+    #         host = const.db_cnf['vamps2']['development']['host']
+    #         db = const.db_cnf['vamps2']['development']['db']
+    #
+    #     """            "all_local": {
+    #             "env454"   : {"host": "localhost", "db": "test_env454"},
+    #             "vamps2"   : {"host": "localhost", "db": "vamps2"},
+    #             "vampsdev" : {"host": "localhost", "db": "vampsdev_testing"},
+    #             "old_vamps": {"host": "localhost", "db": "test_vamps"}
+    #         }"""
 
 
     def get_unknown_term_id(self):
@@ -479,12 +483,21 @@ class Constant:
 if __name__ == '__main__':
     utils = util.Utils()
 
+    const = Constant()
+
+    in_marker = "vamps2"
+    out_marker = "vampsdev"
+    local_marker = "all_local"
+
     if (utils.is_local() == True):
-        mysql_utils = util.Mysql_util(host = "localhost", db = "vamps2", read_default_group = "clienthome")
+        db_in  = const.db_cnf['all_local'][in_marker]['db']
+        db_out = const.db_cnf['all_local'][out_marker]['db']
+
+        mysql_utils_in  = util.Mysql_util(host = "localhost", db = db_in,  read_default_group = "clienthome")
+        mysql_utils_out = util.Mysql_util(host = "localhost", db = db_out, read_default_group = "clienthome")
     else:
         mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps2", read_default_group = "client")
 
-    const = Constant()
 
     # TODO: get from args
     project = "JG_NPO_Bv4v5"
