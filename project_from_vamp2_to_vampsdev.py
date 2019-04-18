@@ -261,27 +261,13 @@ class dbUpload:
 
         return mysql_utils_out.execute_no_fetch(my_sql)
 
-    # def get_new_contact_id(self, username):
-    #     my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
-    #         self.table_names["contact"], self.table_names["contact"], self.table_names["username"], username)
-    #
-    #     res = mysql_utils_out.execute_fetch_select(my_sql)
-    #     if res:
-    #         int_res = self.utils.flatten_single_mysql_res_tuple_to_int(res, {'user_id'})
-    #         return int_res
-
     def insert_project(self):
-
-        # contact_id = self.get_new_contact_id(user_obj.user_info['username'])
         fields_str = "%s" % (", ".join(str(x) for x in pr_info.keys()))
 
-            # "project, title, project_description, rev_project_name, funding, owner_user_id, updated_at, permanent"
         vals_list = [str(x) for x in pr_info.values()]
         vals_str = "('%s')" % ("', '".join(vals_list))
 
         templ = self.make_sql_for_groups("project", fields_str)
-
-        logger.debug("projects: %s" % pr_info['project'])
 
         mysql_utils_out.execute_no_fetch(templ % vals_str)
 
