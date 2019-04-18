@@ -5,6 +5,8 @@ import logging
 import timeit
 import time
 import csv
+from collections import Iterable
+
 # from itertools import izip_longest
 
 class Mysql_util:
@@ -251,6 +253,22 @@ class Utils:
 
     def flatten_2d_list(self, list):
       return [item for sublist in list for item in sublist]
+
+    """
+    https://stackoverflow.com/questions/49247894/recursive-function-for-extract-elements-from-deep-nested-lists-tuples/49247980#49247980
+    """
+    def flatten(self, collection):
+        for x in collection:
+            if isinstance(x, Iterable) and not isinstance(x, str):
+                yield from self.flatten(x)
+            else:
+                yield x
+
+    def extract(self, data, exclude = ()):
+        yield from (x for x in self.flatten(data) if x not in exclude)
+
+    def flatten_single_mysql_res_tuple_to_int(self, data, exclude = ()):
+        return int(list(self.extract(data, exclude = exclude))[0])
 
     def sort_case_insesitive(self, unsorted_list):
       try:

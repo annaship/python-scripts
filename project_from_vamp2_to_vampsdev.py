@@ -101,7 +101,7 @@ class dbUpload:
         my_sql = "SELECT %s FROM %s WHERE %s = '%s';" % ("term_id", "term", "term_name", "unknown")
         # and ontology_id = 1
         # logger.debug("my_sql from get_all_metadata_info: %s" % my_sql)
-        rows = mysql_utils.execute_fetch_select(my_sql)
+        rows = mysql_utils_in.execute_fetch_select(my_sql)
         return [x[0] for x in rows[0]]
 
     # def empty_metadata_info(self):
@@ -203,13 +203,13 @@ class dbUpload:
         dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
                                             """ % (self.table_names["connect_pr_dat_table"], where_part)
 
-        rows = mysql_utils.execute_fetch_select(dataset_ids_for_project_id_sql)
+        rows = mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
         return [x[0] for x in rows[0]]
 
     def get_dataset_per_run_info_id(self):
         all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill 
                                     WHERE dataset_id in ('%s') """ % (self.dataset_ids_string)
-        res = mysql_utils.execute_fetch_select_to_dict(all_dataset_run_info_sql)
+        res = mysql_utils_in.execute_fetch_select_to_dict(all_dataset_run_info_sql)
         # {t['dataset_id']: t["run_info_ill_id"] for t in res}
         return res
 
@@ -219,7 +219,7 @@ class dbUpload:
     #                 ;
     #     """ % (self.dataset_ids_string)
     #
-    #     rows = mysql_utils.execute_fetch_select(my_sql)
+    #     rows = mysql_utils_in.execute_fetch_select(my_sql)
     #     if rows:
     #         return [x[0] for x in rows[0]]
 
@@ -265,9 +265,11 @@ class dbUpload:
         my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
             self.table_names["contact"], self.table_names["contact"], self.table_names["username"], username)
 
-        res = mysql_utils.execute_fetch_select(my_sql)
+        res = mysql_utils_out.execute_fetch_select(my_sql)
         if res:
-            return int(res[0][0])
+            int_res = self.utils.flatten_single_mysql_res_tuple_to_int(res, {'user_id'})
+            return int_res
+                # int(list(self.utils.extract(res, exclude={'user_id'}))[0])
 
     # Needs refactoring!
     def insert_project(self):
