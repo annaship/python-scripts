@@ -61,7 +61,7 @@ class dbUpload:
         val_tmpl = "'%s'"
         my_sql = query_tmpl % (key, key, '), ('.join([val_tmpl % v for v in values]))
         my_sql = my_sql + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (key, key)
-        mysql_utils.execute_no_fetch(my_sql)
+        mysql_utils_out.execute_no_fetch(my_sql)
 
     def make_sql_for_groups(self, table_name, fields_str):
         field_list = fields_str.split(",")
@@ -248,7 +248,7 @@ class dbUpload:
         table_name = "run"
         fields_str = 'run, run_prefix, date_trimmed, platform'
         my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
-        mysql_utils.execute_no_fetch(my_sql)
+        mysql_utils_out.execute_no_fetch(my_sql)
 
     def insert_contact(self, user_obj):
         # TODO: check what happens if this user_id exists
@@ -259,7 +259,7 @@ class dbUpload:
         my_sql = '''INSERT IGNORE INTO %s (%s)
                 VALUES ('%s');''' % (self.table_names["contact"], field_list, user_values_list)
 
-        return mysql_utils.execute_no_fetch(my_sql)
+        return mysql_utils_out.execute_no_fetch(my_sql)
 
     def get_new_contact_id(self, username):
         my_sql = """SELECT %s_id FROM %s WHERE %s = '%s';""" % (
@@ -319,7 +319,7 @@ class dbUpload:
 
         for v in set(all_vals):
             query_tmpl = list(all_templ)[0]
-            mysql_utils.execute_no_fetch(query_tmpl % v)
+            mysql_utils_in.execute_no_fetch(query_tmpl % v)
 
         return list(all_project_names)
 
@@ -337,7 +337,7 @@ class dbUpload:
             # uniq_fields = ['dataset', 'dataset_description']
         my_sql = make_sql_for_groups("dataset", fields) % dataset_values
         # self.utils.print_both(my_sql)
-        return mysql_utils.execute_no_fetch(my_sql)
+        return mysql_utils_out.execute_no_fetch(my_sql)
 
     def convert_env_sample_source(self, env_sample_source):
         if (env_sample_source == "miscellaneous_natural_or_artificial_environment"):
@@ -373,13 +373,13 @@ class Project:
 
     def get_project_id(self):
         project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
-        res = mysql_utils.execute_fetch_select_to_dict(project_sql)
+        res = mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         self.project_id = res[0]['project_id']
 
     def get_project_info(self):
         # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
         project_sql = "SELECT distinct * FROM project where project = '%s' limit 1" % (self.project)
-        project_info = mysql_utils.execute_fetch_select_to_dict(project_sql)
+        project_info = mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
 class User:
@@ -395,7 +395,7 @@ class User:
 
         """
         user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
-        res = mysql_utils.execute_fetch_select_to_dict(user_sql)
+        res = mysql_utils_in.execute_fetch_select_to_dict(user_sql)
         return res[0]
 
     # def get_user_id(self):
@@ -429,7 +429,7 @@ class Run_info:
                     ;
         """ % (upl.dataset_ids_string)
 
-        rows = mysql_utils.execute_fetch_select_to_dict(my_sql)
+        rows = mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
 
     def convert_run_info_to_dict_by_dataset_id(self):
