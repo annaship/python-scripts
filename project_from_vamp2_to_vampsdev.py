@@ -234,6 +234,7 @@ class dbUpload:
 
         return mysql_utils_out.execute_no_fetch(my_sql)
 
+    # TODO: use for all? Separately for one liner and more
     def insert_project(self):
         fields_str = "%s" % (", ".join(str(x) for x in pr_info.keys()))
 
@@ -246,7 +247,7 @@ class dbUpload:
 
         return pr_info['project']
 
-    def insert_dataset(self, content_row):
+    def insert_dataset(self):
         fields = "dataset, dataset_description"
         dataset_values = ""
         if self.db_marker == "vamps2":
@@ -291,8 +292,20 @@ class Dataset:
 
     def __init__(self, project_id = None):
         self.project_id = project_id
-        self.dataset_ids_list = self.get_dataset_ids_for_project_id()
-        self.dataset_ids_string = "', '".join(str(x) for x in self.dataset_ids_list)
+        self.db_marker = "vamps2"
+        self.table_names = const.table_names_dict[self.db_marker]
+        self.dataset_info = self.get_dataset_info()
+        self.dataset_fields_list = self.dataset_info[1]
+        print("HERE!")
+        print(*utils.extract(self.dataset_info[0]))
+
+        ", ".join(utils.extract(self.dataset_info[0]))
+        flat_dat_info = utils.extract(self.dataset_info[0])
+        # "', '".join(str(x) for x in utils.extract(self.dataset_info[0]))
+
+
+        # self.dataset_ids_list = self.get_dataset_ids_for_project_id()
+        # self.dataset_ids_string = "', '".join(str(x) for x in self.dataset_ids_list)
 
     def get_dataset_ids_for_project_id(self):
         where_part = "WHERE project_id = '%s'" % (self.project_id)
@@ -301,12 +314,17 @@ class Dataset:
 
         rows = mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
         return [x[0] for x in rows[0]]
+    
+    def get_dataset_info(self):
+        dataset_sql = "SELECT distinct * FROM dataset where project_id = '%s'" % (self.project_id)
+        dataset_info = mysql_utils_in.execute_fetch_select(dataset_sql)
+        return dataset_info
 
-    def get_dataset_per_run_info_id(self):
-        all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill 
-                                    WHERE dataset_id in ('%s') """ % (self.dataset_ids_string)
-        res = mysql_utils_in.execute_fetch_select_to_dict(all_dataset_run_info_sql)
-        return res
+    # def get_dataset_per_run_info_id(self):
+    #     all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill
+    #                                 WHERE dataset_id in ('%s') """ % (self.dataset_ids_string)
+    #     res = mysql_utils_in.execute_fetch_select_to_dict(all_dataset_run_info_sql)
+    #     return res
 
 class Project:
 
@@ -359,7 +377,7 @@ class Run_info:
                     JOIN dataset using(dataset_id)
                     WHERE dataset_id in ('%s')
                     ;
-        """ % (upl.dataset_ids_string)
+        """ % (dat_obj.dataset_ids_string)
 
         rows = mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
@@ -436,6 +454,9 @@ if __name__ == '__main__':
 
     pr_obj = Project(project)
     pr_info = pr_obj.get_project_info()
+    
+    dat_obj = Dataset(pr_obj.project_id)
+    dat_info = dat_obj.get_dataset_info()
 
     user_id = pr_info['owner_user_id']
     user_obj = User(user_id)
@@ -451,9 +472,8 @@ if __name__ == '__main__':
     insert_user_sql = insert_sql_template % ("user", user_id)
 
     print(upl.project_id)
-    print(upl.dataset_ids_list)
 
-    tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id()
+    # tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id()
 
     """TODO: args - project name"""
     """insert with select to find what's behind ids
