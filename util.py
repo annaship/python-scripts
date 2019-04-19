@@ -268,6 +268,7 @@ class Utils:
                 yield x
 
     def extract(self, data, exclude = ()):
+        # use list(data)
         yield from (x for x in self.flatten(data) if x not in exclude)
 
     def flatten_single_mysql_res_tuple_to_int(self, data, exclude = ()):
