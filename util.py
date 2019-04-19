@@ -251,8 +251,11 @@ class Utils:
       csv_file_content_all = csv.DictReader(open(file_name, 'rb'), delimiter = delimiter)
       return [row for row in csv_file_content_all]
 
-    def flatten_2d_list(self, list):
-      return [item for sublist in list for item in sublist]
+    def convert_each_to_str(self, my_list):
+        return [str(val) for val in my_list]
+
+    def flatten_2d_list(self, my_list):
+      return [item for sublist in my_list for item in sublist]
 
     """
     https://stackoverflow.com/questions/49247894/recursive-function-for-extract-elements-from-deep-nested-lists-tuples/49247980#49247980
@@ -399,8 +402,3 @@ class Utils:
     >>> foo['bar']['baz'] = 123
 
     """
-
-class Dirs:
-
-    def __init__(self):
-        pass
