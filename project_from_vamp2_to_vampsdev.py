@@ -69,132 +69,12 @@ class dbUpload:
         my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
         return my_sql_1 + " %s " + my_sql_2
 
-    # def get_conn(self):
-    #
-    #     if self.utils.is_local():
-    #         is_local = "local"
-    #     else:
-    #         is_local = "development"
-    #
-    #     try:
-    #         in_marker = "vamps2"
-    #         out_marker = "vampsdev"
-    #         host  = const.db_cnf['all_local'][in_marker]['host']
-    #         db  = const.db_cnf['all_local'][in_marker]['db']
-    #     except Exception:
-    #         self.db_marker = "vamps2"
-    #         host = const.db_cnf['vamps2']['development']['host']
-    #         db = const.db_cnf['vamps2']['development']['db']
-    #
-    #     """            "all_local": {
-    #             "env454"   : {"host": "localhost", "db": "test_env454"},
-    #             "vamps2"   : {"host": "localhost", "db": "vamps2"},
-    #             "vampsdev" : {"host": "localhost", "db": "vampsdev_testing"},
-    #             "old_vamps": {"host": "localhost", "db": "test_vamps"}
-    #         }"""
-
-
     def get_unknown_term_id(self):
         my_sql = "SELECT %s FROM %s WHERE %s = '%s';" % ("term_id", "term", "term_name", "unknown")
         # and ontology_id = 1
         # logger.debug("my_sql from get_all_metadata_info: %s" % my_sql)
         rows = mysql_utils_in.execute_fetch_select(my_sql)
         return [x[0] for x in rows[0]]
-
-    # def empty_metadata_info(self):
-    #     metadata_info = defaultdict(dict)
-    #     keys = []
-    #     # metadata_info['adaptor'] =
-    #     # metadata_info['amp_operator'] =
-    #     # metadata_info['anchor'] =
-    #     # metadata_info['barcode'] =
-    #     # metadata_info['barcode_index'] =
-    #     metadata_info['data_owner'] = user_info.user_id
-    #     # metadata_info['dataset'] =
-    #     # metadata_info['dataset_description'] =
-    #     # metadata_info['direction'] =
-    #     # metadata_info['dna_region'] =
-    #     # metadata_info['email'] =
-    #     # metadata_info['env_sample_source_id'] =
-    #     # metadata_info['first_name'] =
-    #     # metadata_info['forward_primers'] =
-    #     # metadata_info['funding'] =
-    #     # metadata_info['insert_size'] =
-    #     # metadata_info['institution'] =
-    #     # metadata_info['lane'] =
-    #     # metadata_info['last_name'] =
-    #     # metadata_info['overlap'] =
-    #     # metadata_info['pool'] =
-    #     # metadata_info['primer_suite'] =
-    #     # metadata_info['project'] =
-    #     # metadata_info['project_description'] =
-    #     # metadata_info['project_title'] =
-    #     # metadata_info['read_length'] =
-    #     # metadata_info['reverse_primers'] =
-    #     # metadata_info['run_key'] =
-    #     # metadata_info['seq_operator'] =
-    #     # metadata_info['stop_sequences'] =
-    #     # metadata_info['taxonomic_domain'] =
-    #     # metadata_info['tubelabel'] =
-    #     # metadata_info['use_mbl_primers'] =
-
-    # def get_all_metadata_info(self, run_info_obj):
-    #     # missing_terms = []
-    #     # if self.db_marker == "vamps2":
-    #     # missing_terms = ["env_biome_id", "env_feature_id", "env_material_id", "geo_loc_name_id"]
-    #     unknown_term_id = self.get_unknown_term_id()
-    #
-    #     domain_by_adj = dict(zip(const.domain_adj, const.domains))
-    #     domain_by_adj['Fungal'] = 'Eukarya'
-    #
-    #     self.metadata_info = run_info_obj.run_info_by_dataset_id
-    #
-    #     # for d_id, run_inf_entry in run_info_obj.items:
-    #     # self.metadata_info['contact_id'] = self.get_user_id()
-    #     # self.metadata_info['data_owner'] = user_info.user_id
-    #
-    #         #
-    #         # metadata_info['dataset_id'] = self.get_id('dataset', content_row.dataset)
-    #         # metadata_info['dna_region_id'] = self.get_id('dna_region', content_row.dna_region)
-    #         # metadata_info[
-    #         #     'file_prefix'] = content_row.barcode_index + "_" + content_row.run_key + "_" + content_row.lane  # use self.runobj.idx_keys?
-    #         # metadata_info['illumina_index_id'] = self.get_id('illumina_index', content_row.barcode_index)
-    #         # if '_' in metadata_info['overlap']:
-    #         #     metadata_info['overlap'] = metadata_info['overlap'].split("_")[1]  # hs_compete, ms_partial
-    #         # metadata_info['platform'] = self.runobj.platform
-    #         # metadata_info['primer_suite_id'] = self.get_id('primer_suite', content_row.primer_suite)
-    #         # metadata_info['project_id'] = self.get_id('project', content_row.project)
-    #         # metadata_info['run'] = self.rundate
-    #         # metadata_info['run_id'] = self.run_id
-    #         # if not self.run_id:
-    #         #     metadata_info['run_id'] = self.get_id('run', self.rundate)
-    #         # metadata_info['run_key_id'] = self.get_id('run_key', content_row.run_key)
-    #         #
-    #         # if self.db_marker == "vamps2":
-    #         #     metadata_info['adapter_sequence_id'] = metadata_info['run_key_id']
-    #         #
-    #         #     and_part = ' and project_id = %s' % metadata_info['project_id']
-    #         #     metadata_info['dataset_id'] = self.get_id('dataset', content_row.dataset, and_part = and_part)
-    #         #
-    #         #     metadata_info['domain_id'] = self.get_id('domain', domain_by_adj[content_row.taxonomic_domain])
-    #         #     env_sample_source = self.get_env_sample_source(content_row)
-    #         #     converted_env_sample_source = self.convert_env_sample_source(env_sample_source)
-    #         #     metadata_info['env_package_id'] = self.get_id("env_package", converted_env_sample_source)
-    #         #
-    #         #     platform = self.runobj.platform
-    #         #     if self.runobj.platform in const.illumina_list:
-    #         #         platform = 'Illumina'
-    #         #     metadata_info['sequencing_platform_id'] = self.get_id('sequencing_platform', platform)
-    #         #     target_gene = '16s'
-    #         #     if content_row.taxonomic_domain.lower().startswith(("euk", "its", "fung")):
-    #         #         target_gene = '18s'
-    #         #     metadata_info['target_gene_id'] = self.get_id('target_gene', target_gene)
-    #         #     metadata_info['updated_at'] = self.runobj.configPath['general']['date']
-    #         #     for term_name in missing_terms:
-    #         #         metadata_info[term_name] = unknown_term_id[0][0]
-    #         #
-    #         # self.metadata_info_all[key] = metadata_info
-
 
     def make_insert_template(self, table_name, fields_str, values_str):
         my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
@@ -208,8 +88,10 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
+
+
     def get_run(self, run_info_obj):
-        return set([(entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
+        return set([(entry['run_id'], (entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
     def insert_rundate(self, run_info_obj):
         # TODO: do like project, all at once
