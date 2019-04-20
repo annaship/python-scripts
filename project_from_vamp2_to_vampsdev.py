@@ -96,8 +96,8 @@ class dbUpload:
 
         templ = self.make_sql_for_groups(table_name, fields_str)
 
-        mysql_utils_out.execute_no_fetch(templ % vals_str)
-
+        res = mysql_utils_out.execute_no_fetch(templ % vals_str)
+        return res
 
 
     def get_run(self, run_info_obj):
@@ -115,30 +115,6 @@ class dbUpload:
         fields_str = 'run_id, run, run_prefix, date_trimmed, platform'
         my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
         mysql_utils_out.execute_no_fetch(my_sql)
-
-    def insert_contact(self, user_obj):
-        # TODO: check what happens if this user_id exists
-        fields = user_obj.user_info.keys()
-        field_list = ", ".join(fields)
-        user_values = user_obj.user_info.values()
-        user_values_list = "', '".join(utils.convert_each_to_str(user_values))
-        my_sql = '''INSERT IGNORE INTO %s (%s)
-                VALUES ('%s');''' % (self.table_names["contact"], field_list, user_values_list)
-
-        return mysql_utils_out.execute_no_fetch(my_sql)
-
-    # TODO: use for all? Separately for one liner and more
-    def insert_project(self):
-        fields_str = "%s" % (", ".join(utils.convert_each_to_str(pr_info.keys())))
-
-        vals_list = utils.convert_each_to_str(pr_info.values())
-        vals_str = "('%s')" % ("', '".join(vals_list))
-
-        templ = self.make_sql_for_groups("project", fields_str)
-
-        mysql_utils_out.execute_no_fetch(templ % vals_str)
-
-        return pr_info['project']
 
     def insert_dataset(self):
         fields = "dataset, dataset_description"
@@ -175,12 +151,10 @@ class dbUpload:
         self.insert_run_keys(run_info_obj)
         self.insert_dna_regions(run_info_obj)
         self.insert_rundate(run_info_obj)
-        self.insert_contact(user_obj)
+        self.insert_one_full_value("user", user_obj.user_info)
         self.insert_one_full_value("project", pr_info)
             # self.insert_project()
         self.insert_dataset()
-        self.get_all_metadata_info_with_new_ids()
-        self.insert_run_info()
 
 class Dataset:
 
@@ -211,11 +185,6 @@ class Dataset:
         dataset_info = mysql_utils_in.execute_fetch_select(dataset_sql)
         return dataset_info
 
-    # def get_dataset_per_run_info_id(self):
-    #     all_dataset_run_info_sql = """SELECT run_info_ill_id, dataset_id FROM run_info_ill
-    #                                 WHERE dataset_id in ('%s') """ % (self.dataset_ids_string)
-    #     res = mysql_utils_in.execute_fetch_select_to_dict(all_dataset_run_info_sql)
-    #     return res
 
 class Project:
 
