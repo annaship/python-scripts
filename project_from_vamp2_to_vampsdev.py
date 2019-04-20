@@ -88,10 +88,20 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
+    def insert_one_full_value(self, table_name, info_data):
+        fields_str = "%s" % (", ".join(utils.convert_each_to_str(info_data.keys())))
+
+        vals_list = utils.convert_each_to_str(info_data.values())
+        vals_str = "('%s')" % ("', '".join(vals_list))
+
+        templ = self.make_sql_for_groups(table_name, fields_str)
+
+        mysql_utils_out.execute_no_fetch(templ % vals_str)
+
 
 
     def get_run(self, run_info_obj):
-        return set([(entry['run_id'], (entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
+        return set([(entry['run_id'], entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
     def insert_rundate(self, run_info_obj):
         # TODO: do like project, all at once
@@ -102,7 +112,7 @@ class dbUpload:
             run_vals.append('("%s")' % run_str)
 
         table_name = "run"
-        fields_str = 'run, run_prefix, date_trimmed, platform'
+        fields_str = 'run_id, run, run_prefix, date_trimmed, platform'
         my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
         mysql_utils_out.execute_no_fetch(my_sql)
 
@@ -166,7 +176,8 @@ class dbUpload:
         self.insert_dna_regions(run_info_obj)
         self.insert_rundate(run_info_obj)
         self.insert_contact(user_obj)
-        self.used_project_names = self.insert_project()
+        self.insert_one_full_value("project", pr_info)
+            # self.insert_project()
         self.insert_dataset()
         self.get_all_metadata_info_with_new_ids()
         self.insert_run_info()
