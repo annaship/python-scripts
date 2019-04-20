@@ -99,7 +99,6 @@ class dbUpload:
         res = mysql_utils_out.execute_no_fetch(templ % vals_str)
         return res
 
-
     def get_run(self, run_info_obj):
         return set([(entry['run_id'], entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
@@ -152,9 +151,10 @@ class dbUpload:
         self.insert_dna_regions(run_info_obj)
         self.insert_rundate(run_info_obj)
         self.insert_one_full_value("user", user_obj.user_info)
-        self.insert_one_full_value("project", pr_info)
+        self.insert_one_full_value("project", project_info)
             # self.insert_project()
-        self.insert_dataset()
+        self.insert_one_full_value("user", dataset_obj.dataset_info)
+        # self.insert_dataset()
 
 class Dataset:
 
@@ -168,10 +168,6 @@ class Dataset:
         self.dataset_ids_list = self.get_dataset_ids_for_project_id()
         self.dataset_ids_string = "'%s'" % "', '".join(utils.convert_each_to_str(self.dataset_ids_list))
 
-
-        print("HERE!")
-        # print(*utils.extract(self.dataset_info[0]))
-
     def get_dataset_ids_for_project_id(self):
         where_part = "WHERE project_id = '%s'" % (self.project_id)
         dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
@@ -183,8 +179,9 @@ class Dataset:
     def get_dataset_info(self):
         dataset_sql = "SELECT distinct * FROM dataset where project_id = '%s'" % (self.project_id)
         dataset_info = mysql_utils_in.execute_fetch_select(dataset_sql)
+        # self.dataset_info_dict = mysql_utils_in.execute_fetch_select_to_dict(dataset_sql)
+        # print("HERE!")
         return dataset_info
-
 
 class Project:
 
@@ -312,15 +309,15 @@ if __name__ == '__main__':
     # TODO: get from args
     project = "JG_NPO_Bv4v5"
 
-    pr_obj = Project(project)
-    pr_info = pr_obj.get_project_info()
+    project_obj = Project(project)
+    project_info = project_obj.get_project_info()
     
-    dat_obj = Dataset(pr_obj.project_id)
+    dataset_obj = Dataset(project_obj.project_id)
 
-    user_id = pr_info['owner_user_id']
+    user_id = project_info['owner_user_id']
     user_obj = User(user_id)
 
-    upl = dbUpload(pr_obj) #don't send, it's available already. Make it clear
+    upl = dbUpload(project_obj) #TODO: don't send, it's available already. Make it clear
 
     run_info_obj = Run_info()
     # upl.get_all_metadata_info(run_info_obj)
