@@ -97,15 +97,12 @@ class dbUpload:
         return res
 
     def insert_multiple_values(self, table_name, fields_str, values_matrix):
-        # fields_str = ", ".join(dataset_obj.dataset_fields_list)
         all_vals = []
         for row in values_matrix:
-                # dataset_obj.dataset_info[0]:
             vals_list = utils.convert_each_to_str(row)
             vals_str = "('%s')" % ("', '".join(vals_list))
             all_vals.append(vals_str)
 
-        # table_name = "dataset"
         dataset_values = ", ".join(all_vals)
         my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
 
