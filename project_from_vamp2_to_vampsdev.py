@@ -116,19 +116,19 @@ class dbUpload:
         mysql_utils_out.execute_no_fetch(my_sql)
 
     def insert_dataset(self):
-        fields = "dataset, dataset_description"
-        dataset_values = ""
-        if self.db_marker == "vamps2":
-            project_id = self.get_id('project', content_row.project)
-            fields += ", project_id, updated_at"
-            dataset_values = "('%s', '%s', %s, NOW())" % (
-                content_row.dataset, content_row.dataset_description, project_id)
-            # uniq_fields = ['dataset', 'project_id']
-        elif self.db_marker == "env454":
-            dataset_values = "('%s', '%s')" % (content_row.dataset, content_row.dataset_description)
-            # uniq_fields = ['dataset', 'dataset_description']
-        my_sql = make_sql_for_groups("dataset", fields) % dataset_values
-        # self.utils.print_both(my_sql)
+        dataset_obj.dataset_info[0]
+        fields_str = ", ".join(dataset_obj.dataset_fields_list)
+        all_vals = []
+        for row in dataset_obj.dataset_info[0]:
+            vals_list = utils.convert_each_to_str(row)
+            vals_str = "('%s')" % ("', '".join(vals_list))
+            all_vals.append(vals_str)
+
+        table_name = "dataset"
+        dataset_values = ", ".join(all_vals)
+        my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
+        # return mysql_utils_out.execute_no_fetch(my_sql)
+
         return mysql_utils_out.execute_no_fetch(my_sql)
 
     def convert_env_sample_source(self, env_sample_source):
@@ -152,9 +152,7 @@ class dbUpload:
         self.insert_rundate(run_info_obj)
         self.insert_one_full_value("user", user_obj.user_info)
         self.insert_one_full_value("project", project_info)
-            # self.insert_project()
-        self.insert_one_full_value("user", dataset_obj.dataset_info)
-        # self.insert_dataset()
+        self.insert_dataset()
 
 class Dataset:
 
@@ -234,7 +232,7 @@ class Run_info:
                     JOIN dataset using(dataset_id)
                     WHERE dataset_id in (%s)
                     ;
-        """ % (dat_obj.dataset_ids_string)
+        """ % (dataset_obj.dataset_ids_string)
 
         rows = mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
