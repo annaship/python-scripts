@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import logging
+import subprocess
 
 logger = logging.getLogger('')
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
@@ -11,7 +12,6 @@ logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 
-from subprocess import Popen, PIPE
 import util
 import IlluminaUtils.lib.fastalib as fastalib
 from collections import defaultdict
@@ -49,6 +49,24 @@ class dbUpload:
         self.table_names = const.table_names_dict[self.db_marker]
 
         self.metadata_info = defaultdict(dict)
+
+    def table_dump(self, table_name, host_names, db_names):
+        :param table_name: "run"
+        :param host_names: [in, out]
+        :param db_names: [in, out]
+        :return:
+
+        host = "localhost", db = db_in
+
+        subprocess.Popen('mysqldump -h localhost -P 3306 -u -root mydb | mysql -h localhost -P 3306 -u root mydb2',
+                         shell = True)
+
+        """
+        dump_command = 'mysqldump -h %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, host_names[1], db_names[1])
+        subprocess.Popen(dump_command,
+                         shell = True)
+
+
 
     def run_groups(self, group_vals, query_tmpl, join_xpr = ', '):
         for group in group_vals:
@@ -164,19 +182,50 @@ class dbUpload:
     def insert_run_info(self):
         run_info_obj.run_info_t_dict[0].values()
 
-
     def insert_metadata_info(self, run_info_obj, user_obj):
-        self.insert_run_keys(run_info_obj)
-        self.insert_dna_regions(run_info_obj)
+        # self.insert_run_keys(run_info_obj)
+        self.table_dump("run_key", ["localhost", "localhost"], [db_in, db_out])
+
+        # self.insert_dna_regions(run_info_obj)
+        self.table_dump("dna_region", ["localhost", "localhost"], [db_in, db_out])
+
         self.insert_rundate(run_info_obj)
         self.insert_one_full_value("user", user_obj.user_info)
         self.insert_one_full_value("project", project_info)
 
         self.insert_multiple_values("dataset", dataset_obj.dataset_fields_str, dataset_obj.dataset_values_matrix)
 
-        # self.insert_dataset()
-        # self.get_all_metadata_info()
         self.insert_run_info()
+
+
+    def insert_pdr_info(self, run_info_ill_id):
+        # prepare_pdr_info_values in an obj
+        all_insert_pdr_info_vals = self.seq.prepare_pdr_info_values(run_info_ill_id, self.all_dataset_run_info_dict,
+                                                                    self.db_name, self.db_marker)
+
+        group_vals = self.utils.grouper(all_insert_pdr_info_vals, len(all_insert_pdr_info_vals))
+        sequence_table_name = self.table_names["sequence_table_name"]
+        # get fields in the object
+        fields = ""
+        if self.db_marker == "vamps2":
+            fields = "dataset_id, run_info_ill_id, %s_id, seq_count, classifier_id" % sequence_table_name
+        elif self.db_marker == "env454":
+            fields = "run_info_ill_id, %s_id, seq_count" % sequence_table_name
+        table_name = self.table_names["sequence_pdr_info_table_name"]
+        # query_tmpl = make_sql_for_groups(table_name, fields)
+        # print("q1: insert_pdr_info")
+        # print(query_tmpl)
+        unique_fields = ['dataset_id', 'run_info_ill_id', 'seq_count', 'sequence_id']
+        if self.db_marker == "env454":
+            unique_fields = ['run_info_ill_id', 'sequence_ill_id']
+        query_tmpl1 = self.make_sql_for_groups1(table_name, fields, unique_fields)
+        # print("q1a: insert_pdr_info")
+        # print(query_tmpl1)
+
+        logger.debug("insert sequence_pdr_info:")
+        join_xpr = ' UNION ALL SELECT '
+        self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
+
 
 class Dataset:
 
@@ -654,12 +703,12 @@ class Constant:
             "vamps2": {
                 "local"      : {"host": "localhost", "db": "vamps2"},
                 "production" : {"host": "vampsdb", "db": "vamps2"},
-                "development": {"host": "vampsdev", "db": "vamps2"}
+                "development": {"host": "bpcweb7", "db": "vamps2"}
             },
             "env454": {
                 "local"      : {"host": "localhost", "db": "test_env454"},
                 "production" : {"host": "bpcdb1", "db": "env454"},
-                "development": {"host": "vampsdev", "db": "test"}
+                "development": {"host": "bpcweb7.bpcservers.private", "db": "test"}
             },
             "all_local": {
                 "env454"   : {"host": "localhost", "db": "test_env454"},
@@ -695,11 +744,21 @@ if __name__ == '__main__':
     if (utils.is_local() == True):
         db_in  = const.db_cnf['all_local'][in_marker]['db']
         db_out = const.db_cnf['all_local'][out_marker]['db']
+        host_in  = const.db_cnf['all_local'][in_marker]['host']
+            # "localhost"
+        host_out = const.db_cnf['all_local'][out_marker]['host']
 
-        mysql_utils_in  = util.Mysql_util(host = "localhost", db = db_in,  read_default_group = "clienthome")
-        mysql_utils_out = util.Mysql_util(host = "localhost", db = db_out, read_default_group = "clienthome")
+        mysql_utils_in  = util.Mysql_util(host = host_in, db = db_in,  read_default_group = "clienthome")
+        mysql_utils_out = util.Mysql_util(host = host_out, db = db_out, read_default_group = "clienthome")
     else:
-        mysql_utils = util.Mysql_util(host = "vampsdev", db = "vamps2", read_default_group = "client")
+        host_in = const.db_cnf['vamps2']['production']['host'] # "vampsdb"
+        host_out = const.db_cnf['vamps2']['development']['host'] # "vampsdev"
+
+        db_in  = "vamps2"
+        db_out = "vamps2"
+
+        mysql_utils_in = util.Mysql_util(host = host_in, db = db_in, read_default_group = "client")
+        mysql_utils_in = util.Mysql_util(host = host_out, db = db_out, read_default_group = "client")
 
 
     # TODO: get from args
