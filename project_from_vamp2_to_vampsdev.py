@@ -96,6 +96,22 @@ class dbUpload:
         res = mysql_utils_out.execute_no_fetch(templ % vals_str)
         return res
 
+    def insert_multiple_values(self, table_name, fields_str, values_matrix):
+        # fields_str = ", ".join(dataset_obj.dataset_fields_list)
+        all_vals = []
+        for row in values_matrix:
+                # dataset_obj.dataset_info[0]:
+            vals_list = utils.convert_each_to_str(row)
+            vals_str = "('%s')" % ("', '".join(vals_list))
+            all_vals.append(vals_str)
+
+        # table_name = "dataset"
+        dataset_values = ", ".join(all_vals)
+        my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
+
+        return mysql_utils_out.execute_no_fetch(my_sql)
+
+
     def get_run(self, run_info_obj):
         return set([(entry['run_id'], entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
@@ -113,7 +129,6 @@ class dbUpload:
         mysql_utils_out.execute_no_fetch(my_sql)
 
     def insert_dataset(self):
-        dataset_obj.dataset_info[0]
         fields_str = ", ".join(dataset_obj.dataset_fields_list)
         all_vals = []
         for row in dataset_obj.dataset_info[0]:
@@ -124,7 +139,6 @@ class dbUpload:
         table_name = "dataset"
         dataset_values = ", ".join(all_vals)
         my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
-        # return mysql_utils_out.execute_no_fetch(my_sql)
 
         return mysql_utils_out.execute_no_fetch(my_sql)
 
@@ -143,13 +157,20 @@ class dbUpload:
         dna_regions = set([entry['dna_region'] for entry in run_info_obj.run_info_t_dict])
         self.insert_bulk_data('dna_region', dna_regions)
 
+    def insert_run_info(self):
+        run_info_obj.run_info_t_dict[0].values()
+
+
     def insert_metadata_info(self, run_info_obj, user_obj):
         self.insert_run_keys(run_info_obj)
         self.insert_dna_regions(run_info_obj)
         self.insert_rundate(run_info_obj)
         self.insert_one_full_value("user", user_obj.user_info)
         self.insert_one_full_value("project", project_info)
-        self.insert_dataset()
+
+        self.insert_multiple_values("dataset", dataset_obj.dataset_fields_str, dataset_obj.dataset_values_matrix)
+
+        # self.insert_dataset()
         # self.get_all_metadata_info()
         self.insert_run_info()
 
@@ -162,6 +183,10 @@ class Dataset:
 
         self.dataset_info = self.get_dataset_info()
         self.dataset_fields_list = self.dataset_info[1]
+        self.dataset_fields_str = ", ".join(self.dataset_fields_list)
+
+        self.dataset_values_matrix = self.dataset_info[0]
+
         self.dataset_ids_list = self.get_dataset_ids_for_project_id()
         self.dataset_ids_string = "'%s'" % "', '".join(utils.convert_each_to_str(self.dataset_ids_list))
 
