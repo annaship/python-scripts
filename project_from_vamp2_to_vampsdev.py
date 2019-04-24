@@ -50,6 +50,13 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
+    def run_groups(self, group_vals, query_tmpl, join_xpr = ', '):
+        for group in group_vals:
+            val_part = join_xpr.join([key for key in group if key is not None])
+            my_sql = query_tmpl % val_part
+            insert_info = self.execute_no_fetch(my_sql)
+            print(insert_info)
+
     def insert_bulk_data(self, key, values):
         query_tmpl = "INSERT IGNORE INTO %s (%s) VALUES (%s)"
         val_tmpl = "'%s'"
