@@ -543,8 +543,9 @@ class Seq:
 
         pdr_id_seq_id = self.get_pdr_info()
 
-        self.sequence_id_list = self.get_sequence_id(pdr_id_seq_id)
-        self.pdr_id_list = self.get_pdr_id(pdr_id_seq_id)
+        self.sequence_id_list = [x[0] for x in pdr_id_seq_id[0]]
+        self.pdr_id_list = [x[1] for x in pdr_id_seq_id[0]]
+        # print(self.sequence_id_list == self.pdr_id_list)
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id
@@ -554,66 +555,8 @@ class Seq:
                                                              dataset_obj.dataset_ids_string,
                                                              run_info_obj.used_run_info_id_str)
 
-        # print(all_seq_ids_sql)
-
-
         rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
         return rows
-            # list(utils.extract(rows[0]))
-
-    def get_sequence_id(self):
-        all_seq_ids_sql = """SELECT DISTINCT %s FROM %s
-                             WHERE dataset_id IN (%s)
-                             AND run_info_ill_id IN (%s)""" % (self.sequence_id_name, self.sequence_pdr_info_table_name,
-                                                             dataset_obj.dataset_ids_string,
-                                                             run_info_obj.used_run_info_id_str)
-
-        # print(all_seq_ids_sql)
-
-        rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
-        return list(utils.extract(rows[0]))
-
-    # def get_all_cnt_orig(self):
-    #     my_sql = "SELECT COUNT(*) FROM sequence;"
-    #     return mysql_utils_in.execute_fetch_select(my_sql)
-
-    # def uncompress_all(self):
-    #     chunk_size = 10000
-    #     cnt = 1
-    #     # range(begin,end, step)
-    #     print
-    #     "total seq originally: "
-    #     print
-    #     self.all_cnt_orig
-    #     for counter in range(1, int(self.all_cnt_orig[0][0][0]), chunk_size):
-    #         my_sql = """insert ignore into sequence (sequence)
-    #             select distinct uncompress(sequence_comp) as sequence
-    #             from sequence_ill limit %s, %s
-    #             ON DUPLICATE KEY UPDATE sequence = VALUES(sequence)
-    #             """ % (counter, chunk_size)
-    #         print
-    #         my_sql
-    #         print
-    #         mysql_utils.execute_no_fetch_w_info(my_sql)
-    #
-    #     # self.taxonomy = taxonomy
-    #     # self.my_conn = self.taxonomy.my_conn
-    #     # self.table_names = table_names
-    #     # self.fasta_dir = fasta_dir
-    #     # self.seq_id_dict = {}
-    #     # self.fasta_dict = {}
-    #     # self.seq_id_w_silva_taxonomy_info_per_seq_id = []
-    #
-    #     self.sequences = ""
-    #
-    #     self.seq_errors = []
-
-    # def prepare_fasta_dict(self, filename):
-    #     read_fasta = fastalib.ReadFasta(filename)
-    #     seq_list = self.make_seq_upper(read_fasta.sequences)
-    #     self.fasta_dict = dict(zip(read_fasta.ids, seq_list))
-    #     read_fasta.close()
-    #     return seq_list
 
     @staticmethod
     def make_seq_upper(seq_list):
