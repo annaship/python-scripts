@@ -536,21 +536,39 @@ class Seq:
         # self.all_cnt_orig = self.get_all_cnt_orig()
         # self.where_part = "WHERE project_id = '%s'" % (project_id)
         self.sequence_name = table_names["sequence_table_name"]
+        self.sequence_id_name = self.sequence_name + "_id"
+
         self.sequence_pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
+        self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
 
+        pdr_id_seq_id = self.get_pdr_info()
 
-        self.sequence_ids = self.get_sequence_id()
+        self.sequence_id_list = self.get_sequence_id(pdr_id_seq_id)
+        self.pdr_id_list = self.get_pdr_id(pdr_id_seq_id)
 
-    def get_sequence_id(self):
-        all_seq_ids_sql = """select distinct %s from %s
-                             where dataset_id in (%s)
-                             and run_info_ill_id in (%s)""" % (self.sequence_name, self.sequence_pdr_info_table_name,
+    def get_pdr_info(self):
+        # SELECT sequence_pdr_info_id, sequence_id
+        all_seq_ids_sql = """SELECT DISTINCT %s, %s FROM %s
+                             WHERE dataset_id IN (%s)
+                             AND run_info_ill_id IN (%s)""" % (self.sequence_pdr_info_id_name, self.sequence_id_name, self.sequence_pdr_info_table_name,
                                                              dataset_obj.dataset_ids_string,
                                                              run_info_obj.used_run_info_id_str)
 
-        print(all_seq_ids_sql)
-        #                 "sequence_field_name"         : "sequence_comp", "sequence_table_name": "sequence",
-        #                 "sequence_pdr_info_table_name": "sequence_pdr_info", "contact": "user", "username": "username",
+        # print(all_seq_ids_sql)
+
+
+        rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
+        return rows
+            # list(utils.extract(rows[0]))
+
+    def get_sequence_id(self):
+        all_seq_ids_sql = """SELECT DISTINCT %s FROM %s
+                             WHERE dataset_id IN (%s)
+                             AND run_info_ill_id IN (%s)""" % (self.sequence_id_name, self.sequence_pdr_info_table_name,
+                                                             dataset_obj.dataset_ids_string,
+                                                             run_info_obj.used_run_info_id_str)
+
+        # print(all_seq_ids_sql)
 
         rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
         return list(utils.extract(rows[0]))
@@ -815,7 +833,7 @@ if __name__ == '__main__':
 
 
     # TODO: get from args
-    project = "JG_NPO_Bv4v5"
+    project = "SLM_CITY_Bv4v5"
 
     project_obj = Project(project)
     project_info = project_obj.get_project_info()
