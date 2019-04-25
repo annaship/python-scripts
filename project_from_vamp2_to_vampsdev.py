@@ -63,11 +63,19 @@ class dbUpload:
                          shell = True)
 
         """
+
         dump_command = 'mysqldump -h %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, host_names[1], db_names[1])
-        subprocess.Popen(dump_command,
-                         shell = True)
+        # a = subprocess.Popen(dump_command,
+        #                  shell = True)
 
+        res = subprocess.check_output(dump_command,
+                                    stderr = subprocess.STDOUT,
+                                    shell = True)
+        self.test_dump_result(res)
 
+    def test_dump_result(self, res):
+        if (res):
+            utils.print_both("Mysqldump error: %s" % res)
 
     def run_groups(self, group_vals, query_tmpl, join_xpr = ', '):
         for group in group_vals:
@@ -183,18 +191,26 @@ class dbUpload:
     def insert_run_info(self):
         run_info_obj.run_info_t_dict[0].values()
 
-    def insert_metadata_info(self, run_info_obj, user_obj):
-        self.table_dump("run_key", [host_in, host_out], [db_in, db_out])
-        self.table_dump("dna_region", [host_in, host_out], [db_in, db_out])
-        self.table_dump("run", [host_in, host_out], [db_in, db_out])
-        self.table_dump("user", [host_in, host_out], [db_in, db_out])
-        self.table_dump("project", [host_in, host_out], [db_in, db_out])
-        self.table_dump("dataset", [host_in, host_out], [db_in, db_out])
-        self.table_dump("run_info_ill ", [host_in, host_out], [db_in, db_out])
-        self.table_dump("required_metadata_info ", [host_in, host_out], [db_in, db_out])
-        self.table_dump("custom_metadata_fields ", [host_in, host_out], [db_in, db_out])
+    def insert_metadata_info(self):
+        # self.table_dump("run_key", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("dna_region", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("run", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("user", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("project", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("dataset", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("run_info_ill ", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("required_metadata_info ", [host_in, host_out], [db_in, db_out])
+        # self.table_dump("custom_metadata_fields ", [host_in, host_out], [db_in, db_out])
+
+        for table_name in const.full_short_ordered_tables:
+            utils.print_both("Dump %s" % table_name)
+            self.table_dump(table_name, [host_in, host_out], [db_in, db_out])
+
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
+        utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
+
+        utils.print_both("Success %s" % custom_metadata_table_name)
 
 
 
@@ -693,9 +709,11 @@ class Seq:
         self.my_conn.run_groups(group_vals, query_tmpl)
 
 
-
 class Constant:
     def __init__(self):
+
+        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_index", "illumina_run_key", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene", "primer_suite"
+                                         , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields"]
         self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
         self.domains = ('Archaea', 'Bacteria', 'Eukarya', 'Organelle', 'Unknown')
         self.domain_adj = ('Archaeal', 'Bacterial', 'Eukaryal', 'Organelle', 'Unknown')  # Fungal
@@ -776,12 +794,9 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info()
     # upl.get_all_metadata_info(run_info_obj)
-    upl.insert_metadata_info(run_info_obj, user_obj)
+    upl.insert_metadata_info()
 
-
-    print(upl.project_id)
-
-    # tuple_of_dataset_and_run_info_ids = upl.get_dataset_per_run_info_id()
+    utils.print_both("project_id = %s" % upl.project_id)
 
     """TODO: args - project name"""
     """insert with select to find what's behind ids
