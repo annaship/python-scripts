@@ -51,6 +51,7 @@ class dbUpload:
         self.metadata_info = defaultdict(dict)
 
     def table_dump(self, table_name, host_names, db_names):
+        """
         :param table_name: "run"
         :param host_names: [in, out]
         :param db_names: [in, out]
@@ -184,18 +185,23 @@ class dbUpload:
 
     def insert_metadata_info(self, run_info_obj, user_obj):
         # self.insert_run_keys(run_info_obj)
-        self.table_dump("run_key", ["localhost", "localhost"], [db_in, db_out])
+        self.table_dump("run_key", [host_in, host_out], [db_in, db_out])
 
         # self.insert_dna_regions(run_info_obj)
-        self.table_dump("dna_region", ["localhost", "localhost"], [db_in, db_out])
+        self.table_dump("dna_region", [host_in, host_out], [db_in, db_out])
+        self.table_dump("run", [host_in, host_out], [db_in, db_out])
+        self.table_dump("user", [host_in, host_out], [db_in, db_out])
+        self.table_dump("project", [host_in, host_out], [db_in, db_out])
+        self.table_dump("dataset", [host_in, host_out], [db_in, db_out])
+        self.table_dump("run_info_ill ", [host_in, host_out], [db_in, db_out])
 
-        self.insert_rundate(run_info_obj)
-        self.insert_one_full_value("user", user_obj.user_info)
-        self.insert_one_full_value("project", project_info)
+        # self.insert_rundate(run_info_obj)
+        # self.insert_one_full_value("user", user_obj.user_info)
+        # self.insert_one_full_value("project", project_info)
 
-        self.insert_multiple_values("dataset", dataset_obj.dataset_fields_str, dataset_obj.dataset_values_matrix)
+        # self.insert_multiple_values("dataset", dataset_obj.dataset_fields_str, dataset_obj.dataset_values_matrix)
 
-        self.insert_run_info()
+        # self.insert_run_info()
 
 
     def insert_pdr_info(self, run_info_ill_id):
