@@ -55,19 +55,9 @@ class dbUpload:
         :param table_name: "run"
         :param host_names: [in, out]
         :param db_names: [in, out]
-        :return:
-
-        host = "localhost", db = db_in
-
-        subprocess.Popen('mysqldump -h localhost -P 3306 -u -root mydb | mysql -h localhost -P 3306 -u root mydb2',
-                         shell = True)
-
         """
 
         dump_command = 'mysqldump -h %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, host_names[1], db_names[1])
-        # a = subprocess.Popen(dump_command,
-        #                  shell = True)
-
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
@@ -119,89 +109,79 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
-    def insert_one_full_value(self, table_name, info_data):
-        fields_str = "%s" % (", ".join(utils.convert_each_to_str(info_data.keys())))
+    # def insert_one_full_value(self, table_name, info_data):
+    #     fields_str = "%s" % (", ".join(utils.convert_each_to_str(info_data.keys())))
+    #
+    #     vals_list = utils.convert_each_to_str(info_data.values())
+    #     vals_str = "('%s')" % ("', '".join(vals_list))
+    #
+    #     templ = self.make_sql_for_groups(table_name, fields_str)
+    #
+    #     res = mysql_utils_out.execute_no_fetch(templ % vals_str)
+    #     return res
 
-        vals_list = utils.convert_each_to_str(info_data.values())
-        vals_str = "('%s')" % ("', '".join(vals_list))
-
-        templ = self.make_sql_for_groups(table_name, fields_str)
-
-        res = mysql_utils_out.execute_no_fetch(templ % vals_str)
-        return res
-
-    def insert_multiple_values(self, table_name, fields_str, values_matrix):
-        all_vals = []
-        for row in values_matrix:
-            vals_list = utils.convert_each_to_str(row)
-            vals_str = "('%s')" % ("', '".join(vals_list))
-            all_vals.append(vals_str)
-
-        dataset_values = ", ".join(all_vals)
-        my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
-
-        return mysql_utils_out.execute_no_fetch(my_sql)
+    # def insert_multiple_values(self, table_name, fields_str, values_matrix):
+    #     all_vals = []
+    #     for row in values_matrix:
+    #         vals_list = utils.convert_each_to_str(row)
+    #         vals_str = "('%s')" % ("', '".join(vals_list))
+    #         all_vals.append(vals_str)
+    #
+    #     dataset_values = ", ".join(all_vals)
+    #     my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
+    #
+    #     return mysql_utils_out.execute_no_fetch(my_sql)
 
 
-    def get_run(self, run_info_obj):
-        return set([(entry['run_id'], entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
+    # def get_run(self, run_info_obj):
+    #     return set([(entry['run_id'], entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
 
-    def insert_rundate(self, run_info_obj):
-        # TODO: do like project, all at once
-        run_vals = []
-        run_rows = self.get_run(run_info_obj)
-        for row in run_rows:
-            run_str = '", "'.join(utils.convert_each_to_str(row))
-            run_vals.append('("%s")' % run_str)
+    # def insert_rundate(self, run_info_obj):
+    #     # TODO: do like project, all at once
+    #     run_vals = []
+    #     run_rows = self.get_run(run_info_obj)
+    #     for row in run_rows:
+    #         run_str = '", "'.join(utils.convert_each_to_str(row))
+    #         run_vals.append('("%s")' % run_str)
+    #
+    #     table_name = "run"
+    #     fields_str = 'run_id, run, run_prefix, date_trimmed, platform'
+    #     my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
+    #     mysql_utils_out.execute_no_fetch(my_sql)
+    #
+    # def insert_dataset(self):
+    #     fields_str = ", ".join(dataset_obj.dataset_fields_list)
+    #     all_vals = []
+    #     for row in dataset_obj.dataset_info[0]:
+    #         vals_list = utils.convert_each_to_str(row)
+    #         vals_str = "('%s')" % ("', '".join(vals_list))
+    #         all_vals.append(vals_str)
+    #
+    #     table_name = "dataset"
+    #     dataset_values = ", ".join(all_vals)
+    #     my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
+    #
+    #     return mysql_utils_out.execute_no_fetch(my_sql)
 
-        table_name = "run"
-        fields_str = 'run_id, run, run_prefix, date_trimmed, platform'
-        my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
-        mysql_utils_out.execute_no_fetch(my_sql)
+    # def convert_env_sample_source(self, env_sample_source):
+    #     if (env_sample_source == "miscellaneous_natural_or_artificial_environment"):
+    #         env_sample_source_replaced = "miscellaneous"
+    #     else:
+    #         env_sample_source_replaced = env_sample_source.replace("_", " ")
+    #     return env_sample_source_replaced
+    #
+    # def insert_run_keys(self, run_info_obj):
+    #     run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
+    #     self.insert_bulk_data('run_key', run_keys)
 
-    def insert_dataset(self):
-        fields_str = ", ".join(dataset_obj.dataset_fields_list)
-        all_vals = []
-        for row in dataset_obj.dataset_info[0]:
-            vals_list = utils.convert_each_to_str(row)
-            vals_str = "('%s')" % ("', '".join(vals_list))
-            all_vals.append(vals_str)
+    # def insert_dna_regions(self, run_info_obj):
+    #     dna_regions = set([entry['dna_region'] for entry in run_info_obj.run_info_t_dict])
+    #     self.insert_bulk_data('dna_region', dna_regions)
 
-        table_name = "dataset"
-        dataset_values = ", ".join(all_vals)
-        my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
-
-        return mysql_utils_out.execute_no_fetch(my_sql)
-
-    def convert_env_sample_source(self, env_sample_source):
-        if (env_sample_source == "miscellaneous_natural_or_artificial_environment"):
-            env_sample_source_replaced = "miscellaneous"
-        else:
-            env_sample_source_replaced = env_sample_source.replace("_", " ")
-        return env_sample_source_replaced
-
-    def insert_run_keys(self, run_info_obj):
-        run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
-        self.insert_bulk_data('run_key', run_keys)
-
-    def insert_dna_regions(self, run_info_obj):
-        dna_regions = set([entry['dna_region'] for entry in run_info_obj.run_info_t_dict])
-        self.insert_bulk_data('dna_region', dna_regions)
-
-    def insert_run_info(self):
-        run_info_obj.run_info_t_dict[0].values()
+    # def insert_run_info(self):
+    #     run_info_obj.run_info_t_dict[0].values()
 
     def insert_metadata_info(self):
-        # self.table_dump("run_key", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("dna_region", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("run", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("user", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("project", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("dataset", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("run_info_ill ", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("required_metadata_info ", [host_in, host_out], [db_in, db_out])
-        # self.table_dump("custom_metadata_fields ", [host_in, host_out], [db_in, db_out])
-
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
             self.table_dump(table_name, [host_in, host_out], [db_in, db_out])
@@ -209,10 +189,6 @@ class dbUpload:
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
-
-        utils.print_both("Success %s" % custom_metadata_table_name)
-
-
 
     def insert_pdr_info(self, run_info_ill_id):
         # prepare_pdr_info_values in an obj
@@ -291,21 +267,21 @@ class Project:
         project_info = mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
-class User:
-
-    def __init__(self, user_id = None):
-        self.user_id = user_id
-        self.user_info = self.get_user_info()
-
-    def get_user_info(self):
-        """
-        UNIQUE KEY `contact_email_inst` (`first_name`,`last_name`,`email`,`institution`),
-        UNIQUE KEY `username` (`username`),
-
-        """
-        user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
-        res = mysql_utils_in.execute_fetch_select_to_dict(user_sql)
-        return res[0]
+# class User:
+#
+#     def __init__(self, user_id = None):
+#         self.user_id = user_id
+#         self.user_info = self.get_user_info()
+#
+#     def get_user_info(self):
+#         """
+#         UNIQUE KEY `contact_email_inst` (`first_name`,`last_name`,`email`,`institution`),
+#         UNIQUE KEY `username` (`username`),
+#
+#         """
+#         user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
+#         res = mysql_utils_in.execute_fetch_select_to_dict(user_sql)
+#         return res[0]
 
 
 
@@ -314,6 +290,9 @@ class Run_info:
         # upl
         self.run_info_t_dict = self.get_run_info()
         self.run_info_by_dataset_id = self.convert_run_info_to_dict_by_dataset_id()
+        self.used_run_info_id_list = self.get_used_run_info_ids()
+        self.used_run_info_id_str = "'%s'" % "', '".join(utils.convert_each_to_str(self.used_run_info_id_list))
+
 
     def get_run_info(self):
         my_sql = """SELECT * FROM run_info_ill
@@ -339,6 +318,8 @@ class Run_info:
 
         return run_info_by_dataset_id
 
+    def get_used_run_info_ids(self):
+        return [entry['run_info_ill_id'] for entry in self.run_info_t_dict]
 
 class Taxonomy:
     def __init__(self, my_conn):
@@ -543,27 +524,78 @@ class Taxonomy:
 
 
 class Seq:
-    def __init__(self, taxonomy, table_names, fasta_dir):
+    """
+    get sequence ids
+    get their amount
+    upload by chunks (in upload class):
+             mysql_utils.execute_no_fetch_w_info(q_update_table_look_up_tax % (counter, chunk_size))
 
-        self.utils = PipelneUtils()
-        self.taxonomy = taxonomy
-        self.my_conn = self.taxonomy.my_conn
-        self.table_names = table_names
-        self.fasta_dir = fasta_dir
-        self.seq_id_dict = {}
-        self.fasta_dict = {}
-        self.seq_id_w_silva_taxonomy_info_per_seq_id = []
+    """
+    def __init__(self, project_id):
+        self.utils = util.Utils()
+        # self.all_cnt_orig = self.get_all_cnt_orig()
+        # self.where_part = "WHERE project_id = '%s'" % (project_id)
+        self.sequence_name = table_names["sequence_table_name"]
+        self.sequence_pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
 
-        self.sequences = ""
 
-        self.seq_errors = []
+        self.sequence_ids = self.get_sequence_id()
 
-    def prepare_fasta_dict(self, filename):
-        read_fasta = fastalib.ReadFasta(filename)
-        seq_list = self.make_seq_upper(read_fasta.sequences)
-        self.fasta_dict = dict(zip(read_fasta.ids, seq_list))
-        read_fasta.close()
-        return seq_list
+    def get_sequence_id(self):
+        all_seq_ids_sql = """select distinct %s from %s
+                             where dataset_id in (%s)
+                             and run_info_ill_id in (%s)""" % (self.sequence_name, self.sequence_pdr_info_table_name,
+                                                             dataset_obj.dataset_ids_string,
+                                                             run_info_obj.used_run_info_id_str)
+
+        print(all_seq_ids_sql)
+        #                 "sequence_field_name"         : "sequence_comp", "sequence_table_name": "sequence",
+        #                 "sequence_pdr_info_table_name": "sequence_pdr_info", "contact": "user", "username": "username",
+
+        rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
+        return list(utils.extract(rows[0]))
+
+    # def get_all_cnt_orig(self):
+    #     my_sql = "SELECT COUNT(*) FROM sequence;"
+    #     return mysql_utils_in.execute_fetch_select(my_sql)
+
+    # def uncompress_all(self):
+    #     chunk_size = 10000
+    #     cnt = 1
+    #     # range(begin,end, step)
+    #     print
+    #     "total seq originally: "
+    #     print
+    #     self.all_cnt_orig
+    #     for counter in range(1, int(self.all_cnt_orig[0][0][0]), chunk_size):
+    #         my_sql = """insert ignore into sequence (sequence)
+    #             select distinct uncompress(sequence_comp) as sequence
+    #             from sequence_ill limit %s, %s
+    #             ON DUPLICATE KEY UPDATE sequence = VALUES(sequence)
+    #             """ % (counter, chunk_size)
+    #         print
+    #         my_sql
+    #         print
+    #         mysql_utils.execute_no_fetch_w_info(my_sql)
+    #
+    #     # self.taxonomy = taxonomy
+    #     # self.my_conn = self.taxonomy.my_conn
+    #     # self.table_names = table_names
+    #     # self.fasta_dir = fasta_dir
+    #     # self.seq_id_dict = {}
+    #     # self.fasta_dict = {}
+    #     # self.seq_id_w_silva_taxonomy_info_per_seq_id = []
+    #
+    #     self.sequences = ""
+    #
+    #     self.seq_errors = []
+
+    # def prepare_fasta_dict(self, filename):
+    #     read_fasta = fastalib.ReadFasta(filename)
+    #     seq_list = self.make_seq_upper(read_fasta.sequences)
+    #     self.fasta_dict = dict(zip(read_fasta.ids, seq_list))
+    #     read_fasta.close()
+    #     return seq_list
 
     @staticmethod
     def make_seq_upper(seq_list):
@@ -759,6 +791,9 @@ if __name__ == '__main__':
     out_marker = "vampsdev"
     local_marker = "all_local"
 
+    # TODO: change in dbUpload class to use this
+    table_names = const.table_names_dict[in_marker]
+
     if (utils.is_local() == True):
         db_in  = const.db_cnf['all_local'][in_marker]['db']
         db_out = const.db_cnf['all_local'][out_marker]['db']
@@ -788,13 +823,14 @@ if __name__ == '__main__':
     dataset_obj = Dataset(project_obj.project_id)
 
     user_id = project_info['owner_user_id']
-    user_obj = User(user_id)
+    # user_obj = User(user_id)
 
     upl = dbUpload(project_obj) #TODO: don't send, it's available already. Make it clear
 
     run_info_obj = Run_info()
-    # upl.get_all_metadata_info(run_info_obj)
+
     upl.insert_metadata_info()
+    sequence_obj = Seq(project_obj.project_id)
 
     utils.print_both("project_id = %s" % upl.project_id)
 
