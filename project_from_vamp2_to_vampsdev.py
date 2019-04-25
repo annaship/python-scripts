@@ -50,14 +50,20 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
-    def table_dump(self, table_name, host_names, db_names):
+    def table_dump(self, table_name, host_names, db_names, where_clause = ""):
         """
         :param table_name: "run"
         :param host_names: [in, out]
         :param db_names: [in, out]
-        """
 
-        dump_command = 'mysqldump -h %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, host_names[1], db_names[1])
+        mysqldump database table_bame --where="date_column BETWEEN '2012-07-01 00:00:00' and '2012-12-01 00:00:00'"
+
+        """
+        if (where_clause):
+            where_clause = '--where = "%s"' % where_clause
+
+        dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, where_clause,
+                                                                      host_names[1], db_names[1])
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
@@ -190,33 +196,38 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
-    def insert_pdr_info(self, run_info_ill_id):
-        # prepare_pdr_info_values in an obj
-        all_insert_pdr_info_vals = self.seq.prepare_pdr_info_values(run_info_ill_id, self.all_dataset_run_info_dict,
-                                                                    self.db_name, self.db_marker)
+    def insert_sequence(self):
+        where_part = "%s_id in (%s)" % (sequence_obj.sequence_name, sequence_obj.sequence_id_str)
+        utils.print_both("Dump %s" % sequence_obj.sequence_name)
+        self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
 
-        group_vals = self.utils.grouper(all_insert_pdr_info_vals, len(all_insert_pdr_info_vals))
-        sequence_table_name = self.table_names["sequence_table_name"]
-        # get fields in the object
-        fields = ""
-        if self.db_marker == "vamps2":
-            fields = "dataset_id, run_info_ill_id, %s_id, seq_count, classifier_id" % sequence_table_name
-        elif self.db_marker == "env454":
-            fields = "run_info_ill_id, %s_id, seq_count" % sequence_table_name
-        table_name = self.table_names["sequence_pdr_info_table_name"]
-        # query_tmpl = make_sql_for_groups(table_name, fields)
-        # print("q1: insert_pdr_info")
-        # print(query_tmpl)
-        unique_fields = ['dataset_id', 'run_info_ill_id', 'seq_count', 'sequence_id']
-        if self.db_marker == "env454":
-            unique_fields = ['run_info_ill_id', 'sequence_ill_id']
-        query_tmpl1 = self.make_sql_for_groups1(table_name, fields, unique_fields)
-        # print("q1a: insert_pdr_info")
-        # print(query_tmpl1)
-
-        logger.debug("insert sequence_pdr_info:")
-        join_xpr = ' UNION ALL SELECT '
-        self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
+    # def insert_pdr_info(self, run_info_ill_id):
+    #     # prepare_pdr_info_values in an obj
+    #     all_insert_pdr_info_vals = self.seq.prepare_pdr_info_values(run_info_ill_id, self.all_dataset_run_info_dict,
+    #                                                                 self.db_name, self.db_marker)
+    #
+    #     group_vals = self.utils.grouper(all_insert_pdr_info_vals, len(all_insert_pdr_info_vals))
+    #     sequence_table_name = self.table_names["sequence_table_name"]
+    #     # get fields in the object
+    #     fields = ""
+    #     if self.db_marker == "vamps2":
+    #         fields = "dataset_id, run_info_ill_id, %s_id, seq_count, classifier_id" % sequence_table_name
+    #     elif self.db_marker == "env454":
+    #         fields = "run_info_ill_id, %s_id, seq_count" % sequence_table_name
+    #     table_name = self.table_names["sequence_pdr_info_table_name"]
+    #     # query_tmpl = make_sql_for_groups(table_name, fields)
+    #     # print("q1: insert_pdr_info")
+    #     # print(query_tmpl)
+    #     unique_fields = ['dataset_id', 'run_info_ill_id', 'seq_count', 'sequence_id']
+    #     if self.db_marker == "env454":
+    #         unique_fields = ['run_info_ill_id', 'sequence_ill_id']
+    #     query_tmpl1 = self.make_sql_for_groups1(table_name, fields, unique_fields)
+    #     # print("q1a: insert_pdr_info")
+    #     # print(query_tmpl1)
+    #
+    #     logger.debug("insert sequence_pdr_info:")
+    #     join_xpr = ' UNION ALL SELECT '
+    #     self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
 
 
 class Dataset:
@@ -544,8 +555,10 @@ class Seq:
         pdr_id_seq_id = self.get_pdr_info()
 
         self.sequence_id_list = [x[0] for x in pdr_id_seq_id[0]]
+        self.sequence_id_str = "'%s'" % "', '".join(utils.convert_each_to_str(self.sequence_id_list))
+
         self.pdr_id_list = [x[1] for x in pdr_id_seq_id[0]]
-        # print(self.sequence_id_list == self.pdr_id_list)
+        self.pdr_id_list_str = "'%s'" % "', '".join(utils.convert_each_to_str(self.pdr_id_list))
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id
@@ -558,154 +571,149 @@ class Seq:
         rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
         return rows
 
-    @staticmethod
-    def make_seq_upper(seq_list):
-        sequences = [seq.upper() for seq in seq_list]  # here we make uppercase for VAMPS compartibility
-        return sequences
-
-    def insert_seq(self, sequences):
-        seq_field = self.table_names["sequence_field_name"]
-        val_tmpl = " COMPRESS('%s') AS %s "
-        all_seq = set([val_tmpl % (seq, seq_field) for seq in sequences])
-        # group_vals = self.utils.grouper(all_seq, 10)
-        group_vals = self.utils.grouper(all_seq, len(all_seq))
-        # query_tmpl = make_sql_for_groups(self.table_names["sequence_table_name"],
-        #                                  self.table_names["sequence_field_name"])
-        logger.debug("insert sequences:")
-
-        unique_fields = ['sequence_comp']
-        query_tmpl1 = make_sql_for_groups1(self.table_names["sequence_table_name"],
-                                            self.table_names["sequence_field_name"], unique_fields)
-        # print("q2a: sequences")
-        # print(query_tmpl1)
-        # self.my_conn.run_groups(group_vals, query_tmpl)
-        # self.my_conn.run_groups(group_vals, query_tmpl1, ' UNION ALL SELECT ')
-        join_xpr = ' UNION ALL SELECT '
-        self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
-
-    def get_seq_id_dict(self, sequences):
-        # TODO: ONCE IN CLASS
-
-        sequence_field_name = self.table_names["sequence_field_name"]
-        sequence_table_name = self.table_names["sequence_table_name"]
-        id_name = self.table_names["sequence_table_name"] + "_id"
-        query_tmpl = """SELECT %s, uncompress(%s) FROM %s WHERE %s in (COMPRESS(%s))"""
-        val_tmpl = "'%s'"
-        try:
-            group_seq = self.utils.grouper(sequences, len(sequences))
-            for group in group_seq:
-                # key for conv.escape_string(key) in group if key is not None
-                seq_part = '), COMPRESS('.join([val_tmpl % key for key in group if key is not None])
-                my_sql = query_tmpl % (id_name, sequence_field_name, sequence_table_name, sequence_field_name, seq_part)
-                res = self.my_conn.execute_fetch_select(my_sql)
-                one_seq_id_dict = dict((y.decode().upper(), int(x)) for x, y in res)
-
-                self.seq_id_dict.update(one_seq_id_dict)
-        except Exception:
-            if len(sequences) == 0:
-                self.utils.print_both(
-                    "ERROR: There are no sequences, please check if there are correct fasta files in the directory %s" % self.fasta_dir)
-            raise
-
-    def prepare_pdr_info_values(self, run_info_ill_id, all_dataset_run_info_dict, db_name, current_db_host_name):
-
-        all_insert_pdr_info_vals = []
-
-        for fasta_id, seq in self.fasta_dict.items():
-            if not run_info_ill_id:
-                err_msg = "ERROR: There is no run info yet, please check if it's uploaded to %s" % db_name
-                self.utils.print_both(err_msg)
-                self.seq_errors.append(err_msg)
-                break
-            try:
-                sequence_id = self.seq_id_dict[seq]
-
-                seq_count = int(fasta_id.split('|')[-1].split(':')[-1])
-                vals = ""
-                sequence_id_field = self.table_names["sequence_table_name"] + "_id"
-
-                if current_db_host_name == "vamps2":
-                    try:
-                        dataset_id = all_dataset_run_info_dict[run_info_ill_id]
-                        # vals = "(%s, %s, %s, %s)" % (dataset_id, sequence_id, seq_count, C.classifier_id)
-                        vals = "%s AS dataset_id, %s AS run_info_ill_id, %s AS %s, %s AS seq_count, %s AS classifier_id" % (dataset_id, run_info_ill_id, sequence_id, sequence_id_field, seq_count, C.classifier_id)
-                    except KeyError:
-                        logger.error("No such run info, please check a file name and the csv file")
-                        logger.debug("From prepare_pdr_info_values, all_dataset_run_info_dict: %s" % all_dataset_run_info_dict)
-
-                elif current_db_host_name == "env454":
-                    # vals = "(%s, %s, %s)" % (run_info_ill_id, sequence_id, seq_count)
-                    vals = "%s AS run_info_ill_id, %s AS %s, %s AS seq_count" % (run_info_ill_id, sequence_id, sequence_id_field, seq_count)
-
-                all_insert_pdr_info_vals.append(vals)
-                fasta_id = ""
-                seq = ""
-                seq_count = 0
-                sequence_id = ""
-            except Exception:
-                logger.error("FFF0 fasta_id %s" % fasta_id)
-                logger.error("SSS0 seq %s" % seq)
-                raise
-        return all_insert_pdr_info_vals
-
-    def get_seq_id_w_silva_taxonomy_info_per_seq_id(self):
-        logger.debug("get_seq_id_w_silva_taxonomy_info_per_seq_id:")
-        sequence_ids_strs = [str(i) for i in self.seq_id_dict.values()]
-        field_names = "sequence_id, silva_taxonomy_info_per_seq_id"
-        where_part = 'WHERE sequence_id in (%s)'
-        query_tmpl = """SELECT %s FROM %s %s""" % (field_names, "silva_taxonomy_info_per_seq", where_part)
-        group_vals = self.utils.grouper(sequence_ids_strs,
-                                        len(sequence_ids_strs))
-        for group in group_vals:
-            val_part = ", ".join([key for key in group if key is not None])
-            my_sql = query_tmpl % val_part
-            self.seq_id_w_silva_taxonomy_info_per_seq_id.extend(self.my_conn.execute_fetch_select(my_sql))
-
-    def insert_sequence_uniq_info2(self):
-        self.get_seq_id_w_silva_taxonomy_info_per_seq_id()
-        fields = "sequence_id, silva_taxonomy_info_per_seq_id"
-        # sequence_uniq_info_values = ["(%s,  %s)" % (i1, i2) for i1, i2 in self.seq_id_w_silva_taxonomy_info_per_seq_id]
-        sequence_uniq_info_values = ["%s AS sequence_id, %s AS get_seq_id_w_silva_taxonomy_info_per_seq_id" % (i1, i2) for i1, i2 in self.seq_id_w_silva_taxonomy_info_per_seq_id]
-        # query_tmpl = make_sql_for_groups("sequence_uniq_info", fields)
-        group_vals = self.utils.grouper(sequence_uniq_info_values, len(sequence_uniq_info_values))
-        logger.debug("insert sequence_uniq_info_ill:")
-        # print("q3: insert_sequence_uniq_info2")
-        # print(query_tmpl)
-        unique_fields = ['sequence_id']
-        query_tmpl1 = make_sql_for_groups1("sequence_uniq_info", fields, unique_fields)
-        # print("q3a: insert_sequence_uniq_info2")
-        # print(query_tmpl1)
-        join_xpr = ' UNION ALL SELECT '
-
-        self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
-
-    def insert_sequence_uniq_info_ill(self, gast_dict):
-        all_insert_sequence_uniq_info_ill_vals = []
-        for fasta_id, gast in gast_dict.items():
-            (taxonomy, distance, rank, refssu_count, vote, minrank, taxa_counts, max_pcts, na_pcts, refhvr_ids) = gast
-            seq = self.fasta_dict[fasta_id]
-            sequence_id = self.seq_id_dict[seq]
-            rank_id = self.taxonomy.all_rank_w_id[rank]
-            if taxonomy in self.taxonomy.tax_id_dict:
-                taxonomy_id = self.taxonomy.tax_id_dict[taxonomy]
-                vals = """(%s,  %s,  '%s',  '%s',  %s,  '%s')
-                        """ % (sequence_id, taxonomy_id, distance, refssu_count, rank_id, refhvr_ids.rstrip())
-                all_insert_sequence_uniq_info_ill_vals.append(vals)
-        group_vals = self.utils.grouper(all_insert_sequence_uniq_info_ill_vals,
-                                        len(all_insert_sequence_uniq_info_ill_vals))
-
-        fields = "%s_id, taxonomy_id, gast_distance, refssu_count, rank_id, refhvr_ids" % (
-            self.table_names["sequence_table_name"])
-        query_tmpl = make_sql_for_groups("sequence_uniq_info_ill", fields)
-
-        logger.debug("insert sequence_uniq_info_ill:")
-        self.my_conn.run_groups(group_vals, query_tmpl)
+    # def insert_seq(self, sequences):
+    #     seq_field = self.table_names["sequence_field_name"]
+    #     val_tmpl = " COMPRESS('%s') AS %s "
+    #     all_seq = set([val_tmpl % (seq, seq_field) for seq in sequences])
+    #     # group_vals = self.utils.grouper(all_seq, 10)
+    #     group_vals = self.utils.grouper(all_seq, len(all_seq))
+    #     # query_tmpl = make_sql_for_groups(self.table_names["sequence_table_name"],
+    #     #                                  self.table_names["sequence_field_name"])
+    #     logger.debug("insert sequences:")
+    #
+    #     unique_fields = ['sequence_comp']
+    #     query_tmpl1 = make_sql_for_groups1(self.table_names["sequence_table_name"],
+    #                                         self.table_names["sequence_field_name"], unique_fields)
+    #     # print("q2a: sequences")
+    #     # print(query_tmpl1)
+    #     # self.my_conn.run_groups(group_vals, query_tmpl)
+    #     # self.my_conn.run_groups(group_vals, query_tmpl1, ' UNION ALL SELECT ')
+    #     join_xpr = ' UNION ALL SELECT '
+    #     self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
+    #
+    # def get_seq_id_dict(self, sequences):
+    #     # TODO: ONCE IN CLASS
+    #
+    #     sequence_field_name = self.table_names["sequence_field_name"]
+    #     sequence_table_name = self.table_names["sequence_table_name"]
+    #     id_name = self.table_names["sequence_table_name"] + "_id"
+    #     query_tmpl = """SELECT %s, uncompress(%s) FROM %s WHERE %s in (COMPRESS(%s))"""
+    #     val_tmpl = "'%s'"
+    #     try:
+    #         group_seq = self.utils.grouper(sequences, len(sequences))
+    #         for group in group_seq:
+    #             # key for conv.escape_string(key) in group if key is not None
+    #             seq_part = '), COMPRESS('.join([val_tmpl % key for key in group if key is not None])
+    #             my_sql = query_tmpl % (id_name, sequence_field_name, sequence_table_name, sequence_field_name, seq_part)
+    #             res = self.my_conn.execute_fetch_select(my_sql)
+    #             one_seq_id_dict = dict((y.decode().upper(), int(x)) for x, y in res)
+    #
+    #             self.seq_id_dict.update(one_seq_id_dict)
+    #     except Exception:
+    #         if len(sequences) == 0:
+    #             self.utils.print_both(
+    #                 "ERROR: There are no sequences, please check if there are correct fasta files in the directory %s" % self.fasta_dir)
+    #         raise
+    #
+    # def prepare_pdr_info_values(self, run_info_ill_id, all_dataset_run_info_dict, db_name, current_db_host_name):
+    #
+    #     all_insert_pdr_info_vals = []
+    #
+    #     for fasta_id, seq in self.fasta_dict.items():
+    #         if not run_info_ill_id:
+    #             err_msg = "ERROR: There is no run info yet, please check if it's uploaded to %s" % db_name
+    #             self.utils.print_both(err_msg)
+    #             self.seq_errors.append(err_msg)
+    #             break
+    #         try:
+    #             sequence_id = self.seq_id_dict[seq]
+    #
+    #             seq_count = int(fasta_id.split('|')[-1].split(':')[-1])
+    #             vals = ""
+    #             sequence_id_field = self.table_names["sequence_table_name"] + "_id"
+    #
+    #             if current_db_host_name == "vamps2":
+    #                 try:
+    #                     dataset_id = all_dataset_run_info_dict[run_info_ill_id]
+    #                     # vals = "(%s, %s, %s, %s)" % (dataset_id, sequence_id, seq_count, C.classifier_id)
+    #                     vals = "%s AS dataset_id, %s AS run_info_ill_id, %s AS %s, %s AS seq_count, %s AS classifier_id" % (dataset_id, run_info_ill_id, sequence_id, sequence_id_field, seq_count, C.classifier_id)
+    #                 except KeyError:
+    #                     logger.error("No such run info, please check a file name and the csv file")
+    #                     logger.debug("From prepare_pdr_info_values, all_dataset_run_info_dict: %s" % all_dataset_run_info_dict)
+    #
+    #             elif current_db_host_name == "env454":
+    #                 # vals = "(%s, %s, %s)" % (run_info_ill_id, sequence_id, seq_count)
+    #                 vals = "%s AS run_info_ill_id, %s AS %s, %s AS seq_count" % (run_info_ill_id, sequence_id, sequence_id_field, seq_count)
+    #
+    #             all_insert_pdr_info_vals.append(vals)
+    #             fasta_id = ""
+    #             seq = ""
+    #             seq_count = 0
+    #             sequence_id = ""
+    #         except Exception:
+    #             logger.error("FFF0 fasta_id %s" % fasta_id)
+    #             logger.error("SSS0 seq %s" % seq)
+    #             raise
+    #     return all_insert_pdr_info_vals
+    #
+    # def get_seq_id_w_silva_taxonomy_info_per_seq_id(self):
+    #     logger.debug("get_seq_id_w_silva_taxonomy_info_per_seq_id:")
+    #     sequence_ids_strs = [str(i) for i in self.seq_id_dict.values()]
+    #     field_names = "sequence_id, silva_taxonomy_info_per_seq_id"
+    #     where_part = 'WHERE sequence_id in (%s)'
+    #     query_tmpl = """SELECT %s FROM %s %s""" % (field_names, "silva_taxonomy_info_per_seq", where_part)
+    #     group_vals = self.utils.grouper(sequence_ids_strs,
+    #                                     len(sequence_ids_strs))
+    #     for group in group_vals:
+    #         val_part = ", ".join([key for key in group if key is not None])
+    #         my_sql = query_tmpl % val_part
+    #         self.seq_id_w_silva_taxonomy_info_per_seq_id.extend(self.my_conn.execute_fetch_select(my_sql))
+    #
+    # def insert_sequence_uniq_info2(self):
+    #     self.get_seq_id_w_silva_taxonomy_info_per_seq_id()
+    #     fields = "sequence_id, silva_taxonomy_info_per_seq_id"
+    #     # sequence_uniq_info_values = ["(%s,  %s)" % (i1, i2) for i1, i2 in self.seq_id_w_silva_taxonomy_info_per_seq_id]
+    #     sequence_uniq_info_values = ["%s AS sequence_id, %s AS get_seq_id_w_silva_taxonomy_info_per_seq_id" % (i1, i2) for i1, i2 in self.seq_id_w_silva_taxonomy_info_per_seq_id]
+    #     # query_tmpl = make_sql_for_groups("sequence_uniq_info", fields)
+    #     group_vals = self.utils.grouper(sequence_uniq_info_values, len(sequence_uniq_info_values))
+    #     logger.debug("insert sequence_uniq_info_ill:")
+    #     # print("q3: insert_sequence_uniq_info2")
+    #     # print(query_tmpl)
+    #     unique_fields = ['sequence_id']
+    #     query_tmpl1 = make_sql_for_groups1("sequence_uniq_info", fields, unique_fields)
+    #     # print("q3a: insert_sequence_uniq_info2")
+    #     # print(query_tmpl1)
+    #     join_xpr = ' UNION ALL SELECT '
+    #
+    #     self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
+    #
+    # def insert_sequence_uniq_info_ill(self, gast_dict):
+    #     all_insert_sequence_uniq_info_ill_vals = []
+    #     for fasta_id, gast in gast_dict.items():
+    #         (taxonomy, distance, rank, refssu_count, vote, minrank, taxa_counts, max_pcts, na_pcts, refhvr_ids) = gast
+    #         seq = self.fasta_dict[fasta_id]
+    #         sequence_id = self.seq_id_dict[seq]
+    #         rank_id = self.taxonomy.all_rank_w_id[rank]
+    #         if taxonomy in self.taxonomy.tax_id_dict:
+    #             taxonomy_id = self.taxonomy.tax_id_dict[taxonomy]
+    #             vals = """(%s,  %s,  '%s',  '%s',  %s,  '%s')
+    #                     """ % (sequence_id, taxonomy_id, distance, refssu_count, rank_id, refhvr_ids.rstrip())
+    #             all_insert_sequence_uniq_info_ill_vals.append(vals)
+    #     group_vals = self.utils.grouper(all_insert_sequence_uniq_info_ill_vals,
+    #                                     len(all_insert_sequence_uniq_info_ill_vals))
+    #
+    #     fields = "%s_id, taxonomy_id, gast_distance, refssu_count, rank_id, refhvr_ids" % (
+    #         self.table_names["sequence_table_name"])
+    #     query_tmpl = make_sql_for_groups("sequence_uniq_info_ill", fields)
+    #
+    #     logger.debug("insert sequence_uniq_info_ill:")
+    #     self.my_conn.run_groups(group_vals, query_tmpl)
 
 
 class Constant:
     def __init__(self):
 
-        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_index", "illumina_run_key", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene", "primer_suite"
+        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index", "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene", "primer_suite"
                                          , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields"]
         self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
         self.domains = ('Archaea', 'Bacteria', 'Eukarya', 'Organelle', 'Unknown')
@@ -792,6 +800,7 @@ if __name__ == '__main__':
 
     upl.insert_metadata_info()
     sequence_obj = Seq(project_obj.project_id)
+    upl.insert_sequence()
 
     utils.print_both("project_id = %s" % upl.project_id)
 
