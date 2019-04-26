@@ -69,6 +69,18 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
+    def split_long_lists(self, my_list):
+        # my_list = my_list[:10] #<class 'list'>: [195834, 197128, 201913, 202277, 205279, 205758, 206531, 206773, 207317, 207496]
+        total_len = len(my_list)
+        chunk_size = 1000 #TODO: mv. to consts
+        all_chunks = []
+
+        for i in range(0, total_len, chunk_size):
+            all_chunks.append(my_list[i:i + chunk_size])
+
+        return all_chunks
+
+
     def test_dump_result(self, res):
         if (res):
             utils.print_both("Mysqldump error: %s" % res)
@@ -197,6 +209,7 @@ class dbUpload:
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
     def insert_sequence(self):
+        self.split_long_lists(sequence_obj.pdr_id_list)
         where_part = "%s_id in (%s)" % (sequence_obj.sequence_name, sequence_obj.sequence_id_str)
         utils.print_both("Dump %s" % sequence_obj.sequence_name)
         self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
