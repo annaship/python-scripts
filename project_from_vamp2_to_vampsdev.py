@@ -209,10 +209,13 @@ class dbUpload:
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
     def insert_sequence(self):
-        self.split_long_lists(sequence_obj.pdr_id_list)
-        where_part = "%s_id in (%s)" % (sequence_obj.sequence_name, sequence_obj.sequence_id_str)
-        utils.print_both("Dump %s" % sequence_obj.sequence_name)
-        self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
+        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
+        for chunk in all_chunks:
+            chunk_str = utils.make_quoted_str(chunk)
+
+            where_part = "%s_id in (%s)" % (sequence_obj.sequence_name, chunk_str)
+            utils.print_both("Dump %s" % sequence_obj.sequence_name)
+            self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
 
     # def insert_pdr_info(self, run_info_ill_id):
     #     # prepare_pdr_info_values in an obj
@@ -257,7 +260,7 @@ class Dataset:
         self.dataset_values_matrix = self.dataset_info[0]
 
         self.dataset_ids_list = self.get_dataset_ids_for_project_id()
-        self.dataset_ids_string = "'%s'" % "', '".join(utils.convert_each_to_str(self.dataset_ids_list))
+        self.dataset_ids_string = utils.make_quoted_str(self.dataset_ids_list)
 
     def get_dataset_ids_for_project_id(self):
         where_part = "WHERE project_id = '%s'" % (self.project_id)
@@ -315,7 +318,7 @@ class Run_info:
         self.run_info_t_dict = self.get_run_info()
         self.run_info_by_dataset_id = self.convert_run_info_to_dict_by_dataset_id()
         self.used_run_info_id_list = self.get_used_run_info_ids()
-        self.used_run_info_id_str = "'%s'" % "', '".join(utils.convert_each_to_str(self.used_run_info_id_list))
+        self.used_run_info_id_str = utils.make_quoted_str(self.used_run_info_id_list)
 
 
     def get_run_info(self):
@@ -568,10 +571,10 @@ class Seq:
         pdr_id_seq_id = self.get_pdr_info()
 
         self.sequence_id_list = [x[0] for x in pdr_id_seq_id[0]]
-        self.sequence_id_str = "'%s'" % "', '".join(utils.convert_each_to_str(self.sequence_id_list))
+        self.sequence_id_str = utils.make_quoted_str(self.sequence_id_list)
 
         self.pdr_id_list = [x[1] for x in pdr_id_seq_id[0]]
-        self.pdr_id_list_str = "'%s'" % "', '".join(utils.convert_each_to_str(self.pdr_id_list))
+        self.pdr_id_list_str = utils.make_quoted_str(self.pdr_id_list)
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id

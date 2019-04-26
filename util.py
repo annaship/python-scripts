@@ -254,6 +254,9 @@ class Utils:
     def convert_each_to_str(self, my_list):
         return [str(val) for val in my_list]
 
+    def make_quoted_str(self, my_list):
+        return "'%s'" % "', '".join(self.convert_each_to_str(my_list))
+
     def flatten_2d_list(self, my_list):
       return [item for sublist in my_list for item in sublist]
 
