@@ -69,10 +69,11 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
-    def split_long_lists(self, my_list, chunk_size = 1000):
+    def split_long_lists(self, my_list, chunk_size=None):
+        if chunk_size is None:
+            chunk_size = const.chunk_size
         # my_list = my_list[:10] #<class 'list'>: [195834, 197128, 201913, 202277, 205279, 205758, 206531, 206773, 207317, 207496]
         total_len = len(my_list)
-        # chunk_size = 1000 #TODO: mv. to consts
         all_chunks = []
 
         for i in range(0, total_len, chunk_size):
@@ -210,7 +211,7 @@ class dbUpload:
 
     def insert_sequence(self):
         # short_list = sequence_obj.pdr_id_list[0:20]
-        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list, 1000)
+        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
@@ -730,6 +731,7 @@ class Seq:
 class Constant:
     def __init__(self):
 
+        self.chunk_size = 1000
         self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index", "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene", "primer_suite"
                                          , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields"]
         self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
