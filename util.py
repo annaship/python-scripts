@@ -255,7 +255,9 @@ class Utils:
         return [str(val) for val in my_list]
 
     def make_quoted_str(self, my_list):
-        return "'%s'" % "', '".join(self.convert_each_to_str(my_list))
+        res_str = ', '.join('"{0}"'.format(w) for w in my_list)
+        # "'%s'" % "', '".join(self.convert_each_to_str(my_list))
+        return res_str
 
     def flatten_2d_list(self, my_list):
       return [item for sublist in my_list for item in sublist]

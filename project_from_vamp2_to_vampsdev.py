@@ -60,7 +60,7 @@ class dbUpload:
 
         """
         if (where_clause):
-            where_clause = '--where = "%s"' % where_clause
+            where_clause = "--where='%s'" % where_clause
 
         dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, where_clause,
                                                                       host_names[1], db_names[1])
@@ -69,10 +69,10 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
-    def split_long_lists(self, my_list):
+    def split_long_lists(self, my_list, chunk_size = 1000):
         # my_list = my_list[:10] #<class 'list'>: [195834, 197128, 201913, 202277, 205279, 205758, 206531, 206773, 207317, 207496]
         total_len = len(my_list)
-        chunk_size = 1000 #TODO: mv. to consts
+        # chunk_size = 1000 #TODO: mv. to consts
         all_chunks = []
 
         for i in range(0, total_len, chunk_size):
@@ -209,12 +209,13 @@ class dbUpload:
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
     def insert_sequence(self):
-        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
-        for chunk in all_chunks:
+        short_list = sequence_obj.pdr_id_list[0:20]
+        all_chunks = self.split_long_lists(short_list, 3)
+        for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
             where_part = "%s_id in (%s)" % (sequence_obj.sequence_name, chunk_str)
-            utils.print_both("Dump %s" % sequence_obj.sequence_name)
+            utils.print_both("Dump %s, %d" % (sequence_obj.sequence_name, n+1))
             self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
 
     # def insert_pdr_info(self, run_info_ill_id):
