@@ -209,8 +209,8 @@ class dbUpload:
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
     def insert_sequence(self):
-        short_list = sequence_obj.pdr_id_list[0:20]
-        all_chunks = self.split_long_lists(short_list, 3)
+        # short_list = sequence_obj.pdr_id_list[0:20]
+        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list, 1000)
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
