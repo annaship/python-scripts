@@ -50,18 +50,6 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
-        """        rows = x.fetchall()
-        y.executemany("insert into table2 f1, f2, f3) values (%s,%s,%s);", (rows))
-        data = [
-  ('Jane', date(2005, 2, 12)),
-  ('Joe', date(2006, 5, 23)),
-  ('John', date(2010, 10, 3)),
-]
-stmt = "INSERT INTO employees (first_name, hire_date) VALUES (%s, %s)"
-cursor.executemany(stmt, data)
-        
-        
-        """
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = ""):
         sql1 = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
@@ -70,14 +58,6 @@ cursor.executemany(stmt, data)
             sql2 = "INSERT IGNORE INTO %s (%s)" % (table_name, fields_str)
             sql2 = sql2 + " values (%s, %s, %s, %s)"
             sql2 = sql2 + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (unique_fields, unique_fields)
-
-
-            """
-            query_tmpl = "INSERT IGNORE INTO %s (%s) VALUES (%s)"
-            val_tmpl = "'%s'"
-            my_sql = query_tmpl % (key, key, '), ('.join([val_tmpl % v for v in values]))
-            my_sql = my_sql + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (key, key)
-            """
 
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2, rows)
