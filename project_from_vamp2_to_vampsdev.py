@@ -62,21 +62,31 @@ cursor.executemany(stmt, data)
         
         
         """
-    def execute_select_insert(self, table_name, fields_str, where_part = ""):
+    def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = ""):
         sql1 = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
             mysql_utils_in.cursor.execute(sql1)
             rows = mysql_utils_in.cursor.fetchall()
-            sql2 = "INSERT INTO %s (%s)" % (table_name, fields_str)
-            sql2 = sql2 + " values (%s, %s, %s, %s);"
+            sql2 = "INSERT IGNORE INTO %s (%s)" % (table_name, fields_str)
+            sql2 = sql2 + " values (%s, %s, %s, %s)"
+            sql2 = sql2 + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (unique_fields, unique_fields)
+
+
+            """
+            query_tmpl = "INSERT IGNORE INTO %s (%s) VALUES (%s)"
+            val_tmpl = "'%s'"
+            my_sql = query_tmpl % (key, key, '), ('.join([val_tmpl % v for v in values]))
+            my_sql = my_sql + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (key, key)
+            """
+
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2, rows)
                 mysql_utils_out.conn.commit()
             except:
-                self.utils.print_both(("ERROR: query = %s") % sql2)
+                self.utils.print_both(("ERROR: query = %s") % sql2[0:100])
                 raise
         except:
-            self.utils.print_both(("ERROR: query = %s") % sql1)
+            self.utils.print_both(("ERROR: query = %s") % sql1[0:100])
             raise
 
         return rowcount
@@ -248,12 +258,13 @@ cursor.executemany(stmt, data)
         insert_sql = """INSERT iGNORE INTO sequence VALUES %s""" % where_part
         table_name = "sequence"
         fields_str = "sequence_id, sequence_comp, created_at, updated_at"
+        unique_fields = table_name + "_id"
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
             where_part = "WHERE %s_id in (%s)" % (sequence_obj.sequence_name, chunk_str)
             utils.print_both("Dump %s, %d" % (sequence_obj.sequence_name, n+1))
-            rowcount = self.execute_select_insert(table_name, fields_str, where_part = where_part)
+            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             utils.print_both("Inserted %d" % (rowcount))
 
             # self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
