@@ -64,7 +64,6 @@ cursor.executemany(stmt, data)
         """
     def execute_select_insert(self, table_name, fields_str, where_part = ""):
         sql1 = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
-        # if mysql_utils_in.cursor:
         try:
             mysql_utils_in.cursor.execute(sql1)
             rows = mysql_utils_in.cursor.fetchall()
@@ -72,14 +71,13 @@ cursor.executemany(stmt, data)
             sql2 = sql2 + " values (%s, %s, %s, %s);"
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2, rows)
+                mysql_utils_out.conn.commit()
             except:
                 self.utils.print_both(("ERROR: query = %s") % sql2)
                 raise
         except:
             self.utils.print_both(("ERROR: query = %s") % sql1)
             raise
-        mysql_utils_in.conn.commit()
-        mysql_utils_out.conn.commit()
 
         return rowcount
 
