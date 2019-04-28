@@ -234,20 +234,19 @@ class dbUpload:
         # short_list = sequence_obj.pdr_id_list[0:20]
         all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
         where_part = ""
-        select_sql = """SELECT * from sequence %s""" % where_part
-        insert_sql = """INSERT iGNORE INTO sequence VALUES %s""" % where_part
-        table_name = "sequence"
-        fields_str = "sequence_id, sequence_comp, created_at, updated_at"
-        unique_fields = table_name + "_id"
+        table_name = sequence_obj.sequence_name
+        fields_str = sequence_obj.seq_fields_str
+            # "sequence_id, sequence_comp, created_at, updated_at"
+        unique_fields = sequence_obj.sequence_uniq_index_str
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
-            where_part = "WHERE %s_id in (%s)" % (sequence_obj.sequence_name, chunk_str)
-            utils.print_both("Dump %s, %d" % (sequence_obj.sequence_name, n+1))
+            where_part = "WHERE %s_id in (%s)" % (table_name, chunk_str)
+            utils.print_both("Dump %s, %d" % (table_name, n+1))
             rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             utils.print_both("Inserted %d" % (rowcount))
 
-            # self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
+
 
     # def insert_pdr_info(self, run_info_ill_id):
     #     # prepare_pdr_info_values in an obj
@@ -602,11 +601,20 @@ class Seq:
 
         pdr_id_seq_id = self.get_pdr_info()
 
+        self.seq_fields = mysql_utils_in.get_field_names(self.sequence_name)
+        self.seq_fields_str = ", ".join([x[0] for x in self.seq_fields[0]])
+
         self.sequence_id_list = [x[0] for x in pdr_id_seq_id[0]]
         self.sequence_id_str = utils.make_quoted_str(self.sequence_id_list)
 
+        self.sequence_uniq_index = mysql_utils_in.get_uniq_index_name(db_in, self.sequence_name)
+        self.sequence_uniq_index_str = ", ".join(self.sequence_uniq_index)
+
         self.pdr_id_list = [x[1] for x in pdr_id_seq_id[0]]
         self.pdr_id_list_str = utils.make_quoted_str(self.pdr_id_list)
+
+        # self.pdr_uniq_index = utils.get_uniq_index_name(self.sequence_name, db_in)
+
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id
