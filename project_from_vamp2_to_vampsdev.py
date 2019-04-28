@@ -50,6 +50,39 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
+        """        rows = x.fetchall()
+        y.executemany("insert into table2 f1, f2, f3) values (%s,%s,%s);", (rows))
+        data = [
+  ('Jane', date(2005, 2, 12)),
+  ('Joe', date(2006, 5, 23)),
+  ('John', date(2010, 10, 3)),
+]
+stmt = "INSERT INTO employees (first_name, hire_date) VALUES (%s, %s)"
+cursor.executemany(stmt, data)
+        
+        
+        """
+    def execute_select_insert(self, table_name, fields_str, where_part = ""):
+        sql1 = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
+        # if mysql_utils_in.cursor:
+        try:
+            mysql_utils_in.cursor.execute(sql1)
+            rows = mysql_utils_in.cursor.fetchall()
+            sql2 = "INSERT INTO %s (%s)" % (table_name, fields_str)
+            sql2 = sql2 + " values (%s, %s, %s, %s);"
+            try:
+                rowcount = mysql_utils_out.cursor.executemany(sql2, rows)
+            except:
+                self.utils.print_both(("ERROR: query = %s") % sql2)
+                raise
+        except:
+            self.utils.print_both(("ERROR: query = %s") % sql1)
+            raise
+        mysql_utils_in.conn.commit()
+        mysql_utils_out.conn.commit()
+
+        return rowcount
+
     def table_dump(self, table_name, host_names, db_names, where_clause = ""):
         """
         :param table_name: "run"
@@ -212,12 +245,20 @@ class dbUpload:
     def insert_sequence(self):
         # short_list = sequence_obj.pdr_id_list[0:20]
         all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
+        where_part = ""
+        select_sql = """SELECT * from sequence %s""" % where_part
+        insert_sql = """INSERT iGNORE INTO sequence VALUES %s""" % where_part
+        table_name = "sequence"
+        fields_str = "sequence_id, sequence_comp, created_at, updated_at"
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
-            where_part = "%s_id in (%s)" % (sequence_obj.sequence_name, chunk_str)
+            where_part = "WHERE %s_id in (%s)" % (sequence_obj.sequence_name, chunk_str)
             utils.print_both("Dump %s, %d" % (sequence_obj.sequence_name, n+1))
-            self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
+            rowcount = self.execute_select_insert(table_name, fields_str, where_part = where_part)
+            utils.print_both("Inserted %d" % (rowcount))
+
+            # self.table_dump(sequence_obj.sequence_name, [host_in, host_out], [db_in, db_out], where_part)
 
     # def insert_pdr_info(self, run_info_ill_id):
     #     # prepare_pdr_info_values in an obj
