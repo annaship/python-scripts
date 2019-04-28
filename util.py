@@ -115,8 +115,6 @@ class Mysql_util:
             except AttributeError as e:
                 pass
 
-
-
     def execute_no_fetch(self, sql):
       if self.cursor:
           self.cursor.execute(sql)
@@ -202,6 +200,20 @@ class Mysql_util:
       # print(query)
       return self.execute_fetch_select(query)
 
+    def get_uniq_index_name(self, table_schema, table_name):
+        query = """
+        SELECT DISTINCT CONSTRAINT_NAME
+            FROM information_schema.TABLE_CONSTRAINTS
+                WHERE TABLE_SCHEMA = '%s'
+                AND TABLE_NAME = '%s' 
+                AND CONSTRAINT_TYPE = 'UNIQUE';
+        """ % (table_schema, table_name)
+        rows = self.execute_fetch_select(query)
+        return list(self.utils.extract(rows[0]))
+
+    def get_field_names(self, table_name):
+        query = "SHOW columns FROM %s" % table_name
+        return self.execute_fetch_select(query)
 
 class Utils:
     def __init__(self):
