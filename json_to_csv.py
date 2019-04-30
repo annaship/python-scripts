@@ -12,6 +12,7 @@ def get_leaves(item, key=None, n=None):
         n = n + 1
         msg = "=" * 3 + "dict" + "=" * 3 
         print(msg)
+        print(item)
         leaves = []
         for i in item.keys():
             leaves.extend(get_leaves(item[i], i, n))
@@ -26,6 +27,7 @@ def get_leaves(item, key=None, n=None):
         return leaves
     else:
         print("n = %d") % n
+        print("key = %s, item = %s") % (key, item)
         return [(key, item)]
         
 #Function that recursively extracts values out of the object into a flattened dictionary
