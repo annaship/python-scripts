@@ -28,7 +28,10 @@ def get_leaves(item, key=None, n=None):
         # print(item)
         leaves = []
         for i in item.keys():
-            leaves.extend(get_leaves(item[i], i, n))
+            new_key = i
+            if n == 2:
+                new_key = "nomenclature.%s" % i
+            leaves.extend(get_leaves(item[i], new_key, n))
             # print i
         return leaves
     elif isinstance(item, list):
@@ -76,9 +79,9 @@ if __name__ == "__main__":
       write_header = True
 
       for entry in json.load(f_input):
-          print(entry)
-          leaf_entries = flatten(entry)
-          # leaf_entries = sorted(get_leaves(entry))
+          # print(entry)
+          # leaf_entries = flatten(entry)
+          leaf_entries = sorted(get_leaves(entry))
 
           if write_header:
               csv_output.writerow([unicode(k).encode("utf-8") for k, v in leaf_entries])
