@@ -6,25 +6,27 @@ import csv
 def do_something_with(line):
   line1 = line.lstrip("[")
   x = line1.replace("]", "")
-  y = json.loads(x)
-  print(y)
+  data_parsed = json.loads(x)
+  print(data_parsed)
+  # w.writelines(bunch)
+  header = data_parsed.keys()
+  print(header)
+  
+  # csv_writer.writerow(header)
+
+  # for i in range(0,length_data)
+      # meetup = data_parsed[i].values()
+      # csv_writer.writerow([meetup])
+  
 
 def ProcessLargeTextFile():
-  with open("test2.json") as infile:
+  file_in = "test2.json"
+  file_out = "test2_out.json"
+  with open(file_in) as infile, open(file_out, "w") as out_file:
     for line in infile:
       do_something_with(line)
 
-  
-  # some JSON:
-  # x =  '{ "name":"John", "age":30, "city":"New York"}'
 
-  # parse x:
-  # y = json.loads(x)
-
-  # the result is a Python dictionary:
-  # print(y["age"])
-
-  # data_parsed = json.loads(Data)
 
   # header = data_parsed[0].keys()
   # csv_writer.writerow(header)
