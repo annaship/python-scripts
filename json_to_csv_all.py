@@ -74,9 +74,9 @@ if __name__ == "__main__":
           
   time_all = elapsed(start_all)
 
-  print('%.3fs: time_all' % time_all)
-  print('%.3fs: time_sep' % time_sep)
-  print('%.3fs: time_convert' % time_convert)
+  print('%.3fs: time separating' % time_sep)
+  print('%.3fs: time converting' % time_convert)
   print('%.3fs: time_write_csv' % time_write_csv)
 
+  print('%.3fs: total time' % time_all)
   
