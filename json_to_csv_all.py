@@ -7,7 +7,9 @@ import os
 import json
 import csv
 
+# If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, n=None):
+    sub_dict_name = "nomenclature"
     if n == None:
         n = 0
     if isinstance(item, dict):
@@ -16,7 +18,7 @@ def get_leaves(item, key=None, n=None):
         for i in item.keys():
             new_key = i
             if n == 2:
-                new_key = "nomenclature.%s" % i
+                new_key = "%s.%s" % (sub_dict_name, i)
             leaves.extend(get_leaves(item[i], new_key, n))
         return leaves
     elif isinstance(item, list):
@@ -44,17 +46,21 @@ def get_file_names():
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
   args = parser.parse_args()
   return(args.json_file_in, args.csv_file_out)
-  # Namespace(csv_file_out='test_out.json', json_file_in='test.json')
   
+def write_into_csv(leaf_entries, write_header):
+  if write_header:
+      row = [k for k, v in leaf_entries]
+      csv_output.writerow(row)
+      write_header = False
 
-      
+  csv_output.writerow([v for k, v in leaf_entries])
+  return write_header
+  
 if __name__ == "__main__":
   start_all = time.time()
   
   file_in, file_out = get_file_names()
-  print(file_in)
-  # file_in = "test.json"
-  # file_out = "test_out.json"
+
   with open(file_in) as f_input, open(file_out, "wt") as f_output:
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
@@ -64,28 +70,16 @@ if __name__ == "__main__":
       time_sep = elapsed(start_sep)
       
       for chunk in all_data_sep_list:
-          entry = ""
-          try:
-            entry = json.loads(chunk)
-          except ValueError:
-            print("*" * 3 + "ERR: " + "*" * 3)
-            print(chunk)
-            raise
+        entry = json.loads(chunk)
 
-          time_convert = time.time()
-          leaf_entries = sorted(get_leaves(entry))
-          time_convert = elapsed(start_all)
-          
-          time_write_csv = time.time()
-          if write_header:
-              row = [k for k, v in leaf_entries]
-              csv_output.writerow(row)
-              write_header = False
+        time_convert = time.time()
+        leaf_entries = sorted(get_leaves(entry))
+        time_convert = elapsed(start_all)
+        
+        time_write_csv = time.time()
+        write_header = write_into_csv(leaf_entries, write_header)
+        time_write_csv = elapsed(start_all)
 
-          csv_output.writerow([v for k, v in leaf_entries])
-          time_write_csv = elapsed(start_all)
-          
-          
   time_all = elapsed(start_all)
 
   print('%.3fs: time separating' % time_sep)
