@@ -73,15 +73,10 @@ if __name__ == "__main__":
           
           
   time_all = elapsed(start_all)
-  print("time_all in sec = ")
-  print(time_all)
 
-  print("time_sep in sec = ")
-  print(time_sep)
-  
-  print("time_convert in sec = ")
-  print(time_convert)
-  
-  print("time_write_csv in sec = ")
-  print(time_write_csv)
+  print('%.3fs: time_all' % time_all)
+  print('%.3fs: time_sep' % time_sep)
+  print('%.3fs: time_convert' % time_convert)
+  print('%.3fs: time_write_csv' % time_write_csv)
+
   
