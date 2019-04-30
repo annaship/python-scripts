@@ -35,12 +35,13 @@ if __name__ == "__main__":
       all_data1 = f_input.read()
       rep = '},%s{' % (os.linesep)
       all_data_sep = all_data1.replace('},{', rep)
+      all_data_sep_list = json.dump([all_data_sep])
 
-      # for entry in json.load(f_input):
-      #     leaf_entries = sorted(get_leaves(entry))
-      #     if write_header:
-      #         row = [k for k, v in leaf_entries]
-      #         csv_output.writerow(row)
-      #         write_header = False
-      #
-      #     csv_output.writerow([unicode(v).encode("utf-8") for k, v in leaf_entries])
+      for entry in json.loads(all_data_sep_list):
+          leaf_entries = sorted(get_leaves(entry))
+          if write_header:
+              row = [k for k, v in leaf_entries]
+              csv_output.writerow(row)
+              write_header = False
+
+          csv_output.writerow([v for k, v in leaf_entries])
