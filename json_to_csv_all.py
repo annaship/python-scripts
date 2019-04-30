@@ -7,9 +7,11 @@ import os
 import json
 import csv
 
-# If structture can be different that should be generalized, instead of using "nomenclature"
+# If structture can be different that should be generalized, instead of using "nomenclature" and level 2
 def get_leaves(item, key=None, n=None):
     sub_dict_name = "nomenclature"
+    sub_dict_level = 2
+    
     if n == None:
         n = 0
     if isinstance(item, dict):
@@ -17,7 +19,7 @@ def get_leaves(item, key=None, n=None):
         leaves = []
         for i in item.keys():
             new_key = i
-            if n == 2:
+            if n == sub_dict_level:
                 new_key = "%s.%s" % (sub_dict_name, i)
             leaves.extend(get_leaves(item[i], new_key, n))
         return leaves
@@ -68,19 +70,16 @@ if __name__ == "__main__":
       print("Separating...")
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
-      time_sep = elapsed(start_sep)
-      print('%.3fs: separating time' % time_sep)
+      print('%.3fs: separating time' % elapsed(start_sep))
       
       print("Flattening and writing CSV...")
-      time_covert_and_write_csv = time.time()
+      convert_and_write_csv_time = time.time()
       for chunk in all_data_sep_list:
         entry = json.loads(chunk)
         leaf_entries = sorted(get_leaves(entry))
         write_header = write_into_csv(leaf_entries, write_header)
         
-      time_covert_and_write_csv_tot = elapsed(time_covert_and_write_csv)
-      print('%.3fs: time_covert_and_write_csv' % time_covert_and_write_csv_tot)
+      print('%.3fs: convert_and_write_csv_time' % elapsed(convert_and_write_csv_time))
 
-  time_all = elapsed(start_all)
-  print('---\n%.3fs: total time' % time_all)
+  print('---\n%.3fs: total time' % elapsed(start_all))
   
