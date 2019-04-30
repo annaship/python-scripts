@@ -27,7 +27,7 @@ def get_leaves(item, key=None, n=None):
 if __name__ == "__main__":
   file_in = "test.json"
   file_out = "test_out.json"
-  with open(file_in) as f_input, open(file_out, "wb") as f_output:
+  with open(file_in) as f_input, open(file_out, "wt") as f_output:
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
 
@@ -38,4 +38,4 @@ if __name__ == "__main__":
               csv_output.writerow(row)
               write_header = False
 
-          csv_output.writerow([unicode(v).encode("utf-8") for k, v in leaf_entries])
+          csv_output.writerow([v for k, v in leaf_entries])
