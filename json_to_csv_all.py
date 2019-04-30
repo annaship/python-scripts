@@ -65,26 +65,21 @@ if __name__ == "__main__":
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
 
+      print("Separating...")
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
       time_sep = elapsed(start_sep)
       
+      print("Flattening and writing CSV...")
+      time_covert_and_write_csv = time.time()
       for chunk in all_data_sep_list:
         entry = json.loads(chunk)
-
-        time_convert = time.time()
         leaf_entries = sorted(get_leaves(entry))
-        time_convert = elapsed(start_all)
-        
-        time_write_csv = time.time()
         write_header = write_into_csv(leaf_entries, write_header)
-        time_write_csv = elapsed(start_all)
+        
+      time_covert_and_write_csv_tot = elapsed(time_covert_and_write_csv)
+      print('%.3fs: time_covert_and_write_csv' % time_covert_and_write_csv_tot)
 
   time_all = elapsed(start_all)
-
-  print('%.3fs: time separating' % time_sep)
-  print('%.3fs: time converting' % time_convert)
-  print('%.3fs: time_write_csv' % time_write_csv)
-
   print('%.3fs: total time' % time_all)
   
