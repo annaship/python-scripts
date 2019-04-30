@@ -5,29 +5,42 @@ import json
 import csv
 import io
 
+def flatten(entry, n=None):
+  if n == None:
+      n = 0
+  if isinstance(entry, dict):
+      n = n + 1
+      for k, v in entry.items():
+        if k == "nomenclature":
+          for k1, v1 in entry["nomenclature"].items():
+            new_key = "nomenclature.%s" % k1
+            print("!!!")
+            print(new_key)
+    
+
 def get_leaves(item, key=None, n=None):
     if n == None:
         n = 0
     if isinstance(item, dict):
         n = n + 1
         msg = "=" * 3 + "dict" + "=" * 3 
-        print(msg)
-        print(item)
+        # print(msg)
+        # print(item)
         leaves = []
         for i in item.keys():
             leaves.extend(get_leaves(item[i], i, n))
-            print i
+            # print i
         return leaves
     elif isinstance(item, list):
         msg = "-" * 3 + "list" + "-" * 3 
-        print(msg)
+        # print(msg)
         leaves = []
         for i in item:
             leaves.extend(get_leaves(i, key))
         return leaves
     else:
-        print("n = %d") % n
-        print("key = %s, item = %s") % (key, item)
+        # print("n = %d") % n
+        # print("key = %s, item = %s") % (key, item)
         return [(key, item)]
         
 #Function that recursively extracts values out of the object into a flattened dictionary
@@ -51,8 +64,8 @@ def flatten_json(data):
                 out[name[:-1]] = x
 
         flatten2(y)
-        print("out")
-        print(out)
+        # print("out")
+        # print(out)
         return out
 
 if __name__ == "__main__":
@@ -63,7 +76,9 @@ if __name__ == "__main__":
       write_header = True
 
       for entry in json.load(f_input):
-          leaf_entries = sorted(get_leaves(entry))
+          print(entry)
+          leaf_entries = flatten(entry)
+          # leaf_entries = sorted(get_leaves(entry))
 
           if write_header:
               csv_output.writerow([unicode(k).encode("utf-8") for k, v in leaf_entries])
