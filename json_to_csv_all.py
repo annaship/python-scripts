@@ -25,6 +25,18 @@ def get_leaves(item, key=None, n=None):
     else:
         return [(key, item)]
 
+def split_json(f_input):
+  all_data1 = f_input.read()
+  rep = '},%s{' % (os.linesep)
+  all_data_sep = all_data1.replace('},{', rep)
+  return all_data_sep
+  
+def make_json_obj(all_data_sep):
+  json.dump([all_data_sep])
+  with open(filepath, 'w') as f:
+      for chunk in json.JSONEncoder().iterencode(object_to_encode):
+          f.write(chunk)
+
 if __name__ == "__main__":
   file_in = "test.json"
   file_out = "test_out.json"
@@ -32,10 +44,8 @@ if __name__ == "__main__":
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
       
-      all_data1 = f_input.read()
-      rep = '},%s{' % (os.linesep)
-      all_data_sep = all_data1.replace('},{', rep)
-      all_data_sep_list = json.dump([all_data_sep])
+      all_data_sep = split_json(f_input)
+      all_data_sep_list = make_json_obj(all_data_sep)
 
       for entry in json.loads(all_data_sep_list):
           leaf_entries = sorted(get_leaves(entry))
