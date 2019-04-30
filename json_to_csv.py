@@ -5,7 +5,8 @@ import csv
 
 def do_something_with(line):
   line1 = line.lstrip("[")
-  y = line1.replace("]", "")
+  x = line1.replace("]", "")
+  y = json.loads(x)
   print(y)
 
 def ProcessLargeTextFile():
