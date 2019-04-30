@@ -43,9 +43,16 @@ if __name__ == "__main__":
       write_header = True
       
       all_data_sep = split_json(f_input)
+      print("==" * 3)
+      print(all_data_sep)
+      #json.loads(json.dumps([dict1, dict2]))
+      # [{}, {}]
       # all_data_sep_list = json.dumps([all_data_sep])
-
-      for entry in json.loads(all_data_sep):
+          # for entry in json.loads(all_data_sep):
+      for chunk in json.JSONEncoder().iterencode(all_data_sep):
+          print("*" * 3)
+          print(chunk)
+          entry = json.JSONDecoder().decode(chunk)
           leaf_entries = sorted(get_leaves(entry))
           if write_header:
               row = [k for k, v in leaf_entries]
