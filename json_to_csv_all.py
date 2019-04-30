@@ -69,6 +69,7 @@ if __name__ == "__main__":
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
       time_sep = elapsed(start_sep)
+      print('%.3fs: separating time' % time_sep)
       
       print("Flattening and writing CSV...")
       time_covert_and_write_csv = time.time()
@@ -81,5 +82,5 @@ if __name__ == "__main__":
       print('%.3fs: time_covert_and_write_csv' % time_covert_and_write_csv_tot)
 
   time_all = elapsed(start_all)
-  print('%.3fs: total time' % time_all)
+  print('---\n%.3fs: total time' % time_all)
   
