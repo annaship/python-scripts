@@ -1,6 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+import argparse
 import time
 import os
 import json
@@ -34,10 +35,22 @@ def split_str(f_input):
   return all_data_sep_list
 
 def elapsed(start_name):
-    return time.time() - start_name
+  return time.time() - start_name
+    
+def get_file_names():
+  parser = argparse.ArgumentParser()
+
+  parser.add_argument("--json_file_in", "-f", type=str, required=True)
+  parser.add_argument("--csv_file_out", "-o", type=str, required=True)
+  args = parser.parse_args()
+  print(args)
+  # file_in = 
+
       
 if __name__ == "__main__":
   start_all = time.time()
+  
+  get_file_names()
   
   file_in = "test.json"
   file_out = "test_out.json"
