@@ -31,11 +31,10 @@ def split_json(f_input):
   all_data_sep = all_data1.replace('},{', rep)
   return all_data_sep
   
-def make_json_obj(all_data_sep):
-  json.dump([all_data_sep])
-  with open(filepath, 'w') as f:
-      for chunk in json.JSONEncoder().iterencode(object_to_encode):
-          f.write(chunk)
+# def make_json_obj(all_data_sep):
+#   # json.dumps([all_data_sep])
+#   for chunk in json.JSONEncoder().iterencode([all_data_sep]):
+    
 
 if __name__ == "__main__":
   file_in = "test.json"
@@ -45,9 +44,10 @@ if __name__ == "__main__":
       write_header = True
       
       all_data_sep = split_json(f_input)
-      all_data_sep_list = make_json_obj(all_data_sep)
+      # all_data_sep_list = make_json_obj(all_data_sep)
 
-      for entry in json.loads(all_data_sep_list):
+      # for entry in json.loads(all_data_sep_list):
+      for entry in json.JSONEncoder().iterencode(all_data_sep):      
           leaf_entries = sorted(get_leaves(entry))
           if write_header:
               row = [k for k, v in leaf_entries]
