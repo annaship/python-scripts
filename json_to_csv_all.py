@@ -43,17 +43,18 @@ def get_file_names():
   parser.add_argument("--json_file_in", "-f", type=str, required=True)
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
   args = parser.parse_args()
-  print(args)
-  # file_in = 
+  return(args.json_file_in, args.csv_file_out)
+  # Namespace(csv_file_out='test_out.json', json_file_in='test.json')
+  
 
       
 if __name__ == "__main__":
   start_all = time.time()
   
-  get_file_names()
-  
-  file_in = "test.json"
-  file_out = "test_out.json"
+  file_in, file_out = get_file_names()
+  print(file_in)
+  # file_in = "test.json"
+  # file_out = "test_out.json"
   with open(file_in) as f_input, open(file_out, "wt") as f_output:
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
