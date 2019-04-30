@@ -69,11 +69,13 @@ if __name__ == "__main__":
           print(chunk)
           try:
             # entry = json.JSONDecoder().decode(chunk)
-            m = json.dumps(chunk)
-            entry = json.loads(m)
+            # m = json.dumps(chunk)
+            # entry = json.loads(m)
+            entry = json.loads(chunk)
             print("TTT type json_entry: " + "-" * 3)
+            print(type(entry))
             # print(type(json.JSONDecoder().decode(m))) # str
-            print(type(json.JSONEncoder().encode(m)))  # str
+            # print(type(json.JSONEncoder().encode(m)))  # str
             
             # entry = json.JSONEncoder().encode(chunk)
           except ValueError:
