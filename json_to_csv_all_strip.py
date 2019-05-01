@@ -86,12 +86,25 @@ if __name__ == "__main__":
       list_of_dicts = list(map(lambda chunk: json.loads(chunk), all_data_sep_list))
       end_json_loads_time = time.time()
       timer(start_json_loads_time, end_json_loads_time, "Convert JSON time: ")
+      
+      print("Convert JSON 2...")
+      start_json_loads2_time = time.time()
+      list_of_dicts = [json.loads(chunk) for chunk in all_data_sep_list]
+      # list(map(lambda chunk: json.loads(chunk), all_data_sep_list))
+      end_json_loads2_time = time.time()
+      timer(start_json_loads2_time, end_json_loads2_time, "Convert JSON 2 time: ")
 
       print("Flattening...")
       start_flattening_time = time.time()
       leaf_entries_all = list(map(lambda entry: sorted(get_leaves(entry)), list_of_dicts))
       end_flattening_time = time.time()
       timer(start_flattening_time, end_flattening_time, "Flattening time: ")
+      
+      print("Flattening 2...")
+      start_flattening_time2 = time.time()
+      leaf_entries_all = [sorted(get_leaves(entry)) for entry in list_of_dicts]
+      end_flattening_time2 = time.time()
+      timer(start_flattening_time2, end_flattening_time2, "Flattening 2 time: ")
       
       print("Writing CSV...")
       start_write_csv_time = time.time()
