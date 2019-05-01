@@ -607,33 +607,38 @@ class Seq:
     """
     def __init__(self, project_id):
         self.utils = util.Utils()
-        pdr_info_table_data = self.get_pdr_info_table_data()
-        # self.all_cnt_orig = self.get_all_cnt_orig()
-        # self.where_part = "WHERE project_id = '%s'" % (project_id)
-        self.sequence_name = table_names["sequence_table_name"]
-        self.sequence_id_name = self.sequence_name + "_id"
+        self.pdr_info_table_data = self.get_pdr_info_table_data()
+        self.sequence_table_data = self.get_sequence_table_data()
 
         pdr_id_seq_id = self.get_pdr_info()
-
-        self.seq_fields = mysql_utils_in.get_field_names(self.sequence_name)
-        self.seq_fields_str = ", ".join([x[0] for x in self.seq_fields[0]])
 
         self.sequence_id_list = [x[0] for x in pdr_id_seq_id[0]]
         self.sequence_id_str = utils.make_quoted_str(self.sequence_id_list)
 
-        self.sequence_uniq_index = mysql_utils_in.get_uniq_index_name(db_in, self.sequence_name)
-        self.sequence_uniq_index_str = ", ".join(self.sequence_uniq_index)
-
         self.pdr_id_list = [x[1] for x in pdr_id_seq_id[0]]
         self.pdr_id_list_str = utils.make_quoted_str(self.pdr_id_list)
 
-        # self.pdr_uniq_index = utils.get_uniq_index_name(self.sequence_name, db_in)
+        # self.pdr_uniq_index = utils.get_uniq_index_columns(self.sequence_name, db_in)
 
     def get_pdr_info_table_data(self):
         self.sequence_pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
         self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
         self.pdr_info_fields = mysql_utils_in.get_field_names(self.sequence_pdr_info_table_name)
         self.pdr_info_fields_str = ", ".join([x[0] for x in self.pdr_info_fields[0]])
+        self.pdr_info_uniq_index = mysql_utils_in.get_uniq_index_columns(db_in, self.sequence_pdr_info_table_name)
+        self.pdr_info_uniq_index_str = ", ".join(self.pdr_info_uniq_index)
+
+    def get_sequence_table_data(self):
+
+        self.sequence_name = table_names["sequence_table_name"]
+        self.sequence_id_name = self.sequence_name + "_id"
+
+        self.seq_fields = mysql_utils_in.get_field_names(self.sequence_name)
+        self.seq_fields_str = ", ".join([x[0] for x in self.seq_fields[0]])
+
+        self.sequence_uniq_index = mysql_utils_in.get_uniq_index_columns(db_in, self.sequence_name)
+        self.sequence_uniq_index_str = ", ".join(self.sequence_uniq_index)
+
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id
