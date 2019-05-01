@@ -73,11 +73,9 @@ if __name__ == "__main__":
       print("Separating...")
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
-
       sep_end = time.time()
-      print("separating time: ")
       timer(start_sep, sep_end, "Separating time: ")
-      
+
       all_data_sep_list_len = len(all_data_sep_list)
       print("There are %d entries" % all_data_sep_list_len)
 
