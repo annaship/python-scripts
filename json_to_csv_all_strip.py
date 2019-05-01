@@ -71,20 +71,30 @@ if __name__ == "__main__":
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
       print('%.3fs: separating time' % elapsed(start_sep))
-      l = len(all_data_sep_list)
-      print("There are %d entries" % l)
+      all_data_sep_list_len = len(all_data_sep_list)
+      print("There are %d entries" % all_data_sep_list_len)
 
       print("Flattening and writing CSV...")
       convert_and_write_csv_time = time.time()
-      for chunk in all_data_sep_list:
-        try:
-          entry = json.loads(chunk)
-        except:
-          print("ERR in :")
-          print(chunk)
-          raise
-        leaf_entries = sorted(get_leaves(entry))
+      list_of_dicts = list(map(lambda chunk: json.loads(chunk), all_data_sep_list))
+      leaf_entries_all = list(map(lambda entry: sorted(get_leaves(entry)), list_of_dicts))
+      
+      for leaf_entries in leaf_entries_all:
         write_header = write_into_csv(leaf_entries, write_header)
+
+      print(leaf_entries_all)
+      
+      # for chunk in all_data_sep_list:
+      # list(map(lambda x: x**2, items))
+      #   res = map(lambda chunk: json.loads(chunk), all_data_sep_list)
+      #   try:
+      #     entry = json.loads(chunk)
+      #   except:
+      #     print("ERR in :")
+      #     print(chunk)
+      #     raise
+      #   leaf_entries = sorted(get_leaves(entry))
+      #   write_header = write_into_csv(leaf_entries, write_header)
         
       print('%.3fs: convert_and_write_csv_time' % elapsed(convert_and_write_csv_time))
 
