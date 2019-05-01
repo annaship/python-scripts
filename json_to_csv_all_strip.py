@@ -72,8 +72,8 @@ if __name__ == "__main__":
       all_data_sep_list = split_str(f_input)
       print('%.3fs: separating time' % elapsed(start_sep))
       l = len(all_data_sep_list)
-            print("There are %d entries" % l)
-            
+      print("There are %d entries" % l)
+
       print("Flattening and writing CSV...")
       convert_and_write_csv_time = time.time()
       for chunk in all_data_sep_list:
