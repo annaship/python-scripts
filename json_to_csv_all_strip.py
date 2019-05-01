@@ -42,7 +42,7 @@ def timer(start, end, msg = ""):
         hours, rem = divmod(end-start, 3600)
         minutes, seconds = divmod(rem, 60)
         print(msg)
-        print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours),int(minutes),seconds))
+        print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours), int(minutes), seconds))
 
 def get_file_names():
   parser = argparse.ArgumentParser()
