@@ -249,9 +249,7 @@ class dbUpload:
     def insert_pdr_info(self):
         # short_list = sequence_obj.pdr_id_list[0:20]
         all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
-        where_part = ""
-        # self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
-        table_name = sequence_obj.sequence_pdr_info_table_name
+        table_name = sequence_obj.pdr_info_table_data
         fields_str = sequence_obj.seq_fields_str
             # "sequence_id, sequence_comp, created_at, updated_at"
         unique_fields = sequence_obj.sequence_uniq_index_str
@@ -356,8 +354,6 @@ class Project:
 #         user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
 #         res = mysql_utils_in.execute_fetch_select_to_dict(user_sql)
 #         return res[0]
-
-
 
 class Run_info:
     def __init__(self):
@@ -596,7 +592,6 @@ class Taxonomy:
             self.silva_taxonomy_id_per_taxonomy_dict[taxon_string[0]] = silva_taxonomy_id
         # self.utils.print_array_w_title(self.silva_taxonomy_id_per_taxonomy_dict, "silva_taxonomy_id_per_taxonomy_dict from silva_taxonomy_info_per_seq = ")
 
-
 class Seq:
     """
     get sequence ids
@@ -607,7 +602,9 @@ class Seq:
     """
     def __init__(self, project_id):
         self.utils = util.Utils()
-        self.pdr_info_table_data = self.get_pdr_info_table_data()
+        pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
+        self.pdr_info_table_data = self.get_pdr_info_table_data(pdr_info_table_name)
+
         self.sequence_table_data = self.get_sequence_table_data()
 
         pdr_id_seq_id = self.get_pdr_info()
@@ -620,13 +617,14 @@ class Seq:
 
         # self.pdr_uniq_index = utils.get_uniq_index_columns(self.sequence_name, db_in)
 
-    def get_pdr_info_table_data(self):
-        self.sequence_pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
-        self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
-        self.pdr_info_fields = mysql_utils_in.get_field_names(self.sequence_pdr_info_table_name)
-        self.pdr_info_fields_str = ", ".join([x[0] for x in self.pdr_info_fields[0]])
-        self.pdr_info_uniq_index = mysql_utils_in.get_uniq_index_columns(db_in, self.sequence_pdr_info_table_name)
-        self.pdr_info_uniq_index_str = ", ".join(self.pdr_info_uniq_index)
+    def get_pdr_info_table_data(self, table_name):
+        pdr_info_table_data = defaultdict()
+        pdr_info_table_data["id_name"] = table_name + "_id"
+        pdr_info_table_data["fields"] = mysql_utils_in.get_field_names(table_name)
+        pdr_info_table_data["fields_str"] = ", ".join([x[0] for x in pdr_info_table_data["fields"][0]])
+        pdr_info_table_data["uniq_index"] = mysql_utils_in.get_uniq_index_columns(db_in, table_name)
+        pdr_info_table_data["uniq_index_str"] = ", ".join(pdr_info_table_data["uniq_index"])
+        return pdr_info_table_data
 
     def get_sequence_table_data(self):
 
