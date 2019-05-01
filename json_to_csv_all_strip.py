@@ -38,9 +38,12 @@ def split_str(f_input):
   all_data_sep_list = all_data_sep.split("###")
   return all_data_sep_list
 
-def elapsed(start_name):
-  return time.time() - start_name
-    
+def timer(start, end, msg = ""):
+        hours, rem = divmod(end-start, 3600)
+        minutes, seconds = divmod(rem, 60)
+        print(msg)
+        print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours),int(minutes),seconds))
+
 def get_file_names():
   parser = argparse.ArgumentParser()
 
@@ -70,25 +73,33 @@ if __name__ == "__main__":
       print("Separating...")
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
-      print('%.3fs: separating time' % elapsed(start_sep))
+
+      sep_end = time.time()
+      print("separating time: ")
+      timer(start_sep, sep_end, "Separating time: ")
+      
       all_data_sep_list_len = len(all_data_sep_list)
       print("There are %d entries" % all_data_sep_list_len)
 
       print("Convert JSON...")
-      json_loads_time = time.time()
+      start_json_loads_time = time.time()
       list_of_dicts = list(map(lambda chunk: json.loads(chunk), all_data_sep_list))
-      print('%.3fs: json_loads_time' % elapsed(json_loads_time))
+      end_json_loads_time = time.time()
+      timer(start_json_loads_time, end_json_loads_time, "Convert JSON time: ")
 
       print("Flattening...")
-      convert_time = time.time()
+      start_flattening_time = time.time()
       leaf_entries_all = list(map(lambda entry: sorted(get_leaves(entry)), list_of_dicts))
-      print('%.3fs: convert_time' % elapsed(convert_time))
+      end_flattening_time = time.time()
+      timer(start_flattening_time, end_flattening_time, "Flattening time: ")
       
       print("Writing CSV...")
-      write_csv_time = time.time()
+      start_write_csv_time = time.time()
       for leaf_entries in leaf_entries_all:
         write_header = write_into_csv(leaf_entries, write_header)
-      print('%.3fs: write_csv_time' % elapsed(write_csv_time))
+      end_write_csv_time = time.time()
+      timer(start_write_csv_time, end_write_csv_time, "Writing CSV time: ")
 
-  print('---\n%.3fs: total time' % elapsed(start_all))
+  end_all = time.time()
+  timer(start_all, end_all, "Total time: ")
   
