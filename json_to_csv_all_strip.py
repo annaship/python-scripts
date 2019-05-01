@@ -86,12 +86,12 @@ if __name__ == "__main__":
       all_data_sep_list_len = len(all_data_sep_list)
       print("There are %d entries" % all_data_sep_list_len)
 
-      print("Convert JSON...")
-      start_json_loads_time = time.time()
-      list_of_dicts = list(map(lambda chunk: json.loads(chunk), all_data_sep_list))
-      end_json_loads_time = time.time()
-      timer(start_json_loads_time, end_json_loads_time, "Convert JSON time: ")
-      
+      # print("Convert JSON...") # too much memory
+      # start_json_loads_time = time.time()
+      # list_of_dicts = list(map(lambda chunk: json.loads(chunk), all_data_sep_list))
+      # end_json_loads_time = time.time()
+      # timer(start_json_loads_time, end_json_loads_time, "Convert JSON time: ")
+      #
       print("Convert JSON 2...")
       start_json_loads2_time = time.time()
       list_of_dicts = [json.loads(chunk) for chunk in all_data_sep_list]
