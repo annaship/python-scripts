@@ -200,13 +200,15 @@ class Mysql_util:
       # print(query)
       return self.execute_fetch_select(query)
 
-    def get_uniq_index_name(self, table_schema, table_name):
+    def get_uniq_index_columns(self, table_schema, table_name):
         query = """
-        SELECT DISTINCT CONSTRAINT_NAME
-            FROM information_schema.TABLE_CONSTRAINTS
-                WHERE TABLE_SCHEMA = '%s'
-                AND TABLE_NAME = '%s' 
-                AND CONSTRAINT_TYPE = 'UNIQUE';
+            SELECT DISTINCT COLUMN_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            JOIN information_schema.TABLE_CONSTRAINTS USING(CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME)
+            WHERE
+              TABLE_SCHEMA = '%s'
+              AND TABLE_NAME = '%s'
+              AND CONSTRAINT_TYPE = 'UNIQUE';
         """ % (table_schema, table_name)
         rows = self.execute_fetch_select(query)
         return list(self.utils.extract(rows[0]))
