@@ -4,8 +4,15 @@
 import argparse
 import time
 import os
-import json
 import csv
+try:
+    import ujson as json
+except ImportError:
+    try:
+        import simplejson as json
+    except ImportError:
+        import json
+
 
 # If structture can be different that should be generalized, instead of using "nomenclature" and level 2
 def get_leaves(item, key=None, n=None):

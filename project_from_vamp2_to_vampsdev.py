@@ -246,6 +246,22 @@ class dbUpload:
             rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             utils.print_both("Inserted %d" % (rowcount))
 
+    def insert_pdr_info(self):
+        # short_list = sequence_obj.pdr_id_list[0:20]
+        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
+        where_part = ""
+        # self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
+        table_name = sequence_obj.sequence_pdr_info_table_name
+        fields_str = sequence_obj.seq_fields_str
+            # "sequence_id, sequence_comp, created_at, updated_at"
+        unique_fields = sequence_obj.sequence_uniq_index_str
+        for n, chunk in enumerate(all_chunks):
+            chunk_str = utils.make_quoted_str(chunk)
+
+            where_part = "WHERE %s_id in (%s)" % (table_name, chunk_str)
+            utils.print_both("Dump %s, %d" % (table_name, n+1))
+            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
+            utils.print_both("Inserted %d" % (rowcount))
 
 
     # def insert_pdr_info(self, run_info_ill_id):
@@ -591,13 +607,11 @@ class Seq:
     """
     def __init__(self, project_id):
         self.utils = util.Utils()
+        pdr_info_table_data = self.get_pdr_info_table_data()
         # self.all_cnt_orig = self.get_all_cnt_orig()
         # self.where_part = "WHERE project_id = '%s'" % (project_id)
         self.sequence_name = table_names["sequence_table_name"]
         self.sequence_id_name = self.sequence_name + "_id"
-
-        self.sequence_pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
-        self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
 
         pdr_id_seq_id = self.get_pdr_info()
 
@@ -615,6 +629,11 @@ class Seq:
 
         # self.pdr_uniq_index = utils.get_uniq_index_name(self.sequence_name, db_in)
 
+    def get_pdr_info_table_data(self):
+        self.sequence_pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
+        self.sequence_pdr_info_id_name = self.sequence_pdr_info_table_name + "_id"
+        self.pdr_info_fields = mysql_utils_in.get_field_names(self.sequence_pdr_info_table_name)
+        self.pdr_info_fields_str = ", ".join([x[0] for x in self.pdr_info_fields[0]])
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id
@@ -858,6 +877,7 @@ if __name__ == '__main__':
     upl.insert_metadata_info()
     sequence_obj = Seq(project_obj.project_id)
     upl.insert_sequence()
+    upl.insert_pdr_info()
 
     utils.print_both("project_id = %s" % upl.project_id)
 
