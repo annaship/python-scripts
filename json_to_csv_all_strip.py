@@ -34,7 +34,7 @@ def get_leaves(item, key=None, n=None):
 def split_str(f_input):
   all_data1 = f_input.read()
   rep = '}###%s{' % (os.linesep)
-  all_data_sep = all_data1.replace('[', '').replace(']', '').replace('},{', rep)
+  all_data_sep = all_data1.lstrip('[').rstrip(']').replace('},{', rep)
   all_data_sep_list = all_data_sep.split("###")
   return all_data_sep_list
 
@@ -72,17 +72,17 @@ if __name__ == "__main__":
       all_data_sep_list = split_str(f_input)
       print('%.3fs: separating time' % elapsed(start_sep))
       l = len(all_data_sep_list)
-      print("There are %d entries" % l)
-      
+            print("There are %d entries" % l)
+            
       print("Flattening and writing CSV...")
       convert_and_write_csv_time = time.time()
       for chunk in all_data_sep_list:
         try:
           entry = json.loads(chunk)
         except:
-          print("ERR in : ")
+          print("ERR in :")
           print(chunk)
-            
+          raise
         leaf_entries = sorted(get_leaves(entry))
         write_header = write_into_csv(leaf_entries, write_header)
         
