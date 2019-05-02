@@ -61,8 +61,8 @@ class dbUpload:
             sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
 
             duplicate_update_part_list = []
-            for unique_field in [unique_fields]:
-                duplicate_update_part_list.append("%s = VALUES(%s)" % (unique_field, unique_field))
+            for unique_field in unique_fields.split(", "):
+                duplicate_update_part_list.append("%s = VALUES (%s)" % (unique_field, unique_field))
             duplicate_update_part = ", ".join(duplicate_update_part_list)
 
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
