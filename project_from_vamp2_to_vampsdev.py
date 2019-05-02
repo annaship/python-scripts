@@ -239,20 +239,33 @@ class dbUpload:
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
     def insert_sequence(self):
-        # short_list = sequence_obj.pdr_id_list[0:20]
-        all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
-        where_part = ""
-        table_name = sequence_obj.sequence_name
-        fields_str = sequence_obj.seq_fields_str
-            # "sequence_id, sequence_comp, created_at, updated_at"
-        unique_fields = sequence_obj.sequence_uniq_index_str
+
+        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
+        table_name = sequence_obj.sequence_table_data["table_name"]
+        fields_str = sequence_obj.sequence_table_data["fields_str"]
+        unique_fields = sequence_obj.sequence_table_data["unique_fields_str"]
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
-            where_part = "WHERE %s_id in (%s)" % (table_name, chunk_str)
+            where_part = "WHERE %s in (%s)" % (sequence_obj.sequence_table_data["id_name"], chunk_str)
             utils.print_both("Dump %s, %d" % (table_name, n+1))
             rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             utils.print_both("Inserted %d" % (rowcount))
+
+        # # short_list = sequence_obj.pdr_id_list[0:20]
+        # all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
+        # where_part = ""
+        # table_name = sequence_obj.sequence_name
+        # fields_str = sequence_obj.seq_fields_str
+        #     # "sequence_id, sequence_comp, created_at, updated_at"
+        # unique_fields = sequence_obj.sequence_uniq_index_str
+        # for n, chunk in enumerate(all_chunks):
+        #     chunk_str = utils.make_quoted_str(chunk)
+        #
+        #     where_part = "WHERE %s_id in (%s)" % (table_name, chunk_str)
+        #     utils.print_both("Dump %s, %d" % (table_name, n+1))
+        #     rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
+        #     utils.print_both("Inserted %d" % (rowcount))
 
     def insert_pdr_info(self):
         # short_list = sequence_obj.pdr_id_list[0:20]
@@ -583,7 +596,7 @@ class Seq:
         self.pdr_info_table_data = self.get_pdr_info_table_data(pdr_info_table_name)
 
 
-        self.sequence_table_data = self.get_sequence_table_data()
+        self.sequence_table_data = self.get_sequence_table_data(table_names["sequence_table_name"])
 
         pdr_id_seq_id = self.get_pdr_info()
 
@@ -607,23 +620,22 @@ class Seq:
         pdr_info_table_data["unique_fields_str"] = ", ".join(pdr_info_table_data["unique_fields"])
         return pdr_info_table_data
 
-    def get_sequence_table_data(self):
+    def get_sequence_table_data(self, table_name):
+        sequence_table_data = defaultdict()
 
-        self.sequence_name = table_names["sequence_table_name"]
-        self.sequence_id_name = self.sequence_name + "_id"
-
-        self.seq_fields = mysql_utils_in.get_field_names(self.sequence_name)
-        self.seq_fields_str = ", ".join([x[0] for x in self.seq_fields[0]])
-
-        self.sequence_uniq_index = mysql_utils_in.get_uniq_index_columns(db_in, self.sequence_name)
-        self.sequence_uniq_index_str = ", ".join(self.sequence_uniq_index)
-
+        sequence_table_data["table_name"] = table_name
+        sequence_table_data["id_name"] = table_name + "_id"
+        sequence_table_data["fields"] = mysql_utils_in.get_field_names(table_name)
+        sequence_table_data["fields_str"] = ", ".join([x[0] for x in  sequence_table_data["fields"][0]])
+        sequence_table_data["unique_fields"] = mysql_utils_in.get_uniq_index_columns(db_in, table_name)
+        sequence_table_data["unique_fields_str"] = ", ".join( sequence_table_data["unique_fields"])
+        return  sequence_table_data
 
     def get_pdr_info(self):
         # SELECT sequence_pdr_info_id, sequence_id
         all_seq_ids_sql = """SELECT DISTINCT %s, %s FROM %s
                              WHERE dataset_id IN (%s)
-                             AND run_info_ill_id IN (%s)""" % (self.pdr_info_table_data["id_name"], self.sequence_id_name, self.pdr_info_table_data["table_name"],
+                             AND run_info_ill_id IN (%s)""" % (self.pdr_info_table_data["id_name"], self.sequence_table_data["id_name"], self.pdr_info_table_data["table_name"],
                                                              dataset_obj.dataset_ids_string,
                                                              run_info_obj.used_run_info_id_str)
 
