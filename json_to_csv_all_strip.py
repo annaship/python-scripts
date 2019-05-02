@@ -20,8 +20,7 @@ def iteritems_nested(d):
   def fetch (suffixes, v0) :
     if isinstance(v0, dict):
       for k, v in v0.items() :
-        for i in fetch(suffixes + [k], v):  # "yield from" in python3.3
-          yield i
+        yield from fetch(suffixes + [k], v)  # "yield from" in python3.3
     else:
       yield (suffixes, v0)
 
