@@ -7,9 +7,6 @@ import os
 import csv
 import json
 
-
-import collections
-
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
         for k in current:
@@ -18,31 +15,6 @@ def flatten(current, key="", result={}):
     else:
         result[key] = current
     return result
-    
-
-# If structture can be different that should be generalized, instead of using "nomenclature"
-def get_leaves(item, key=None, current_level=None):
-    sub_dict_name = "nomenclature"
-    sub_dict_level = 2
-
-    if current_level == None:
-        current_level = 0
-    if isinstance(item, dict):
-        current_level += 1
-        leaves = []
-        for i in item.keys():
-            new_key = i
-            if current_level == sub_dict_level:
-                new_key = "%s.%s" % (sub_dict_name, i)
-            leaves.extend(get_leaves(item[i], new_key, current_level))
-        return leaves
-    elif isinstance(item, list):
-        leaves = []
-        for i in item:
-            leaves.extend(get_leaves(i, key))
-        return leaves
-    else:
-        return [(key, item)]
 
 def split_str(f_input):
   all_data1 = f_input.read()
