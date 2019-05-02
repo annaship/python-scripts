@@ -87,12 +87,7 @@ if __name__ == "__main__":
       print("By chunks: convert JSON, flatten the dict and write to CSV...")
       start_chunks = time.time()      
       for chunk in all_data_sep_list:
-        try:
-          entry = json.loads(chunk)
-        except ValueError: #Value is too big!
-          print(chunk)
-          raise
-          
+        entry = json.loads(chunk)
         leaf_entries = sorted(get_leaves(entry))        
         write_header = write_into_csv(leaf_entries, write_header)
       end_chunks = time.time()
