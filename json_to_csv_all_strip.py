@@ -25,6 +25,18 @@ def flattenit(pyobj, keystring=''):
 # flattened={k:v for k,v in flattenit(my_obj)}
 # print(flattened)
 
+def flatten_dict1(d): #longer
+    def expand(key, value):
+        if isinstance(value, dict):
+            return [ (key + '.' + k, v) for k, v in flatten_dict(value).items() ]
+        else:
+            return [ (key, value) ]
+
+    items = [ item for k, v in d.items() for item in expand(k, v) ]
+
+    return dict(items)
+
+
 def flatten_dict(d):
     def items():
         for key, value in d.items():
@@ -44,6 +56,14 @@ def flatten(current, key="", result={}):
     else:
         result[key] = current
     return result
+    
+def flatten1(current, key=""):
+    if isinstance(current, dict):
+        for k in current:
+            new_key = "{0}.{1}".format(key, k) if len(key) > 0 else k
+            yield from flatten(current[k], new_key)
+    else:
+      yield key, current
 
 def split_str(f_input):
   all_data1 = f_input.read()
@@ -119,8 +139,8 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = flatten(entry)
-        # leaf_entries = {k:v for k,v in flattenit(entry)}
+        # leaf_entries = flatten(entry)        
+        leaf_entries = flatten_dict1(entry)
         # flattened = {k:v for k,v in flattenit(entry)}
         # print(flattened)
         
