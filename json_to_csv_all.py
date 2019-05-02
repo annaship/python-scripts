@@ -15,7 +15,7 @@ def flattenit(pyobj, keystring=''):
              yield from flattenit(pyobj[k], keystring + k)
      elif (type(pyobj) is list):
          for lelm in pyobj:
-             yield from flatten(lelm, keystring)
+             yield from flattenit(lelm, keystring)
    else:
       yield keystring, pyobj
 
@@ -25,6 +25,16 @@ def flattenit(pyobj, keystring=''):
 # flattened={k:v for k,v in flattenit(my_obj)}
 # print(flattened)
 
+def flatten_dict(d):
+    def items():
+        for key, value in d.items():
+            if isinstance(value, dict):
+                for subkey, subvalue in flatten_dict(value).items():
+                    yield key + "." + subkey, subvalue
+            else:
+                yield key, value
+
+    return dict(items())
 
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
@@ -109,8 +119,8 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        # leaf_entries = flatten(entry)
-        leaf_entries = {k:v for k,v in flattenit(entry)}
+        leaf_entries = flatten(entry)
+        # leaf_entries = {k:v for k,v in flattenit(entry)}
         # flattened = {k:v for k,v in flattenit(entry)}
         # print(flattened)
         
