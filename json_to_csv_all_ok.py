@@ -4,20 +4,12 @@
 import argparse
 import time
 import os
+import json
 import csv
-try:
-    import ujson as json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        import json
-        
+
 # If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, n=None):
     sub_dict_name = "nomenclature"
-    sub_dict_level = 2
-    
     if n == None:
         n = 0
     if isinstance(item, dict):
@@ -25,7 +17,7 @@ def get_leaves(item, key=None, n=None):
         leaves = []
         for i in item.keys():
             new_key = i
-            if n == sub_dict_level:
+            if n == 2:
                 new_key = "%s.%s" % (sub_dict_name, i)
             leaves.extend(get_leaves(item[i], new_key, n))
         return leaves
@@ -40,16 +32,13 @@ def get_leaves(item, key=None, n=None):
 def split_str(f_input):
   all_data1 = f_input.read()
   rep = '}###%s{' % (os.linesep)
-  all_data_sep = all_data1.lstrip('[').rstrip(']').rstrip(',').replace('},{', rep)
+  all_data_sep = all_data1.replace('[', '').replace(']', '').replace('},{', rep)
   all_data_sep_list = all_data_sep.split("###")
   return all_data_sep_list
 
-def timer(start, end, msg = ""):
-  hours, rem = divmod(end-start, 3600)
-  minutes, seconds = divmod(rem, 60)
-  print(msg)
-  print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours), int(minutes), seconds))
-
+def elapsed(start_name):
+  return time.time() - start_name
+    
 def get_file_names():
   parser = argparse.ArgumentParser()
 
@@ -76,23 +65,26 @@ if __name__ == "__main__":
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
 
-      print("Separating...")
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
-      sep_end = time.time()
-      timer(start_sep, sep_end, "Separating time: ")
-
-      all_data_sep_list_len = len(all_data_sep_list)
-      print("There are %d entries" % all_data_sep_list_len)
-            
-      print("Convert JSON, flatten the dict and write to CSV by chunks...")
-      start_chunks = time.time()      
+      time_sep = elapsed(start_sep)
+      
       for chunk in all_data_sep_list:
         entry = json.loads(chunk)
-        leaf_entries = sorted(get_leaves(entry))        
-        write_header = write_into_csv(leaf_entries, write_header)
-      end_chunks = time.time()
-      timer(start_chunks, end_chunks, "Converting, flattening and writing time: ")
 
-  end_all = time.time()
-  timer(start_all, end_all, "Total time: ")  
+        time_convert = time.time()
+        leaf_entries = sorted(get_leaves(entry))
+        time_convert = elapsed(start_all)
+        
+        time_write_csv = time.time()
+        write_header = write_into_csv(leaf_entries, write_header)
+        time_write_csv = elapsed(start_all)
+
+  time_all = elapsed(start_all)
+
+  print('%.3fs: time separating' % time_sep)
+  print('%.3fs: time converting' % time_convert)
+  print('%.3fs: time_write_csv' % time_write_csv)
+
+  print('%.3fs: total time' % time_all)
+  
