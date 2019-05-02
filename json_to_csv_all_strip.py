@@ -6,12 +6,12 @@ import time
 import os
 import csv
 import json
-        
+
 # If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, n=None):
     sub_dict_name = "nomenclature"
     sub_dict_level = 2
-    
+
     if n == None:
         n = 0
     if isinstance(item, dict):
@@ -51,7 +51,7 @@ def get_file_names():
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
   args = parser.parse_args()
   return(args.json_file_in, args.csv_file_out)
-  
+
 def write_into_csv(leaf_entries, write_header):
   if write_header:
       row = [k for k, v in leaf_entries]
@@ -60,18 +60,18 @@ def write_into_csv(leaf_entries, write_header):
 
   csv_output.writerow([v for k, v in leaf_entries])
   return write_header
-  
+
 def elapsed(start_name):
   return time.time() - start_name
-  
+
 if __name__ == "__main__":
   start_all = time.time()
-  
+
   file_in, file_out = get_file_names()
   json_total_time = 0
   get_leaves_total_time = 0
   write_into_csv_total_time = 0
-  
+
   with open(file_in) as f_input, open(file_out, "wt") as f_output:
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
@@ -84,28 +84,28 @@ if __name__ == "__main__":
 
       all_data_sep_list_len = len(all_data_sep_list)
       print("There are %d entries" % all_data_sep_list_len)
-            
+
       print("By chunks: convert JSON, flatten the dict and write to CSV...")
-      start_chunks = time.time()      
+      start_chunks = time.time()
       for chunk in all_data_sep_list:
-        start_json = time.time()      
+        start_json = time.time()
         entry = json.loads(chunk)
         end_json = elapsed(start_sep)
         json_total_time = json_total_time + end_json
-        
-        start_get_leaves = time.time()      
-        leaf_entries = get_leaves(entry)
+
+        start_get_leaves = time.time()
+        leaf_entries = sorted(get_leaves(entry))
         end_get_leaves = elapsed(start_get_leaves)
         get_leaves_total_time = get_leaves_total_time + end_get_leaves
-        
-        start_write_into_csv = time.time()      
+
+        start_write_into_csv = time.time()
         write_header = write_into_csv(leaf_entries, write_header)
         env_write_into_csv = elapsed(start_write_into_csv)
         write_into_csv_total_time = write_into_csv_total_time + env_write_into_csv
-        
+
 
   end_all = time.time()
-  timer(start_all, end_all, "Total time: ")  
+  timer(start_all, end_all, "Total time: ")
 
   print('%.3fs: time converting JSON' % json_total_time)
   print('%.3fs: time flattening' % get_leaves_total_time)
