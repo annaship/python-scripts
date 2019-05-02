@@ -563,8 +563,9 @@ class Seq:
         self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
             # self.get_pdr_info_table_data(pdr_info_table_name)
 
-
-        self.sequence_table_data = self.get_sequence_table_data(table_names["sequence_table_name"])
+        sequence_table_name = table_names["sequence_table_name"]
+        self.sequence_table_data = self.get_table_data(sequence_table_name)
+            # self.get_sequence_table_data(table_names["sequence_table_name"])
 
         pdr_id_seq_id = self.get_pdr_info()
 
@@ -587,17 +588,6 @@ class Seq:
         table_data["unique_fields"] = mysql_utils_in.get_uniq_index_columns(db_in, table_name)
         table_data["unique_fields_str"] = ", ".join(table_data["unique_fields"])
         return table_data
-
-    def get_pdr_info_table_data(self, table_name):
-        pdr_info_table_data = defaultdict()
-
-        pdr_info_table_data["table_name"] = table_name
-        pdr_info_table_data["id_name"] = table_name + "_id"
-        pdr_info_table_data["fields"] = mysql_utils_in.get_field_names(table_name)
-        pdr_info_table_data["fields_str"] = ", ".join([x[0] for x in pdr_info_table_data["fields"][0]])
-        pdr_info_table_data["unique_fields"] = mysql_utils_in.get_uniq_index_columns(db_in, table_name)
-        pdr_info_table_data["unique_fields_str"] = ", ".join(pdr_info_table_data["unique_fields"])
-        return pdr_info_table_data
 
     def get_sequence_table_data(self, table_name):
         sequence_table_data = defaultdict()
