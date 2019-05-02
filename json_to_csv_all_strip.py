@@ -91,7 +91,6 @@ if __name__ == "__main__":
         if to_benchmark:
           start_get_leaves = time.time()
         leaf_entries = flatten(entry)
-        # leaf_entries = sorted(get_leaves(entry))
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
