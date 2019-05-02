@@ -238,21 +238,29 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
-    def insert_long_tables_info(self, id_list, table_obj):
-        long_tables = ["sequence", sequence_obj.pdr_info_table_data["table_name"]]
-        for table_name in long_tables:
-            utils.print_both("Dump %s" % table_name)
-            all_chunks = self.split_long_lists(id_list)
-            # table_name = table_obj["table_name"]
-            fields_str = table_obj["fields_str"]
-            unique_fields = table_obj["unique_fields_str"]
-            for n, chunk in enumerate(all_chunks):
-                chunk_str = utils.make_quoted_str(chunk)
+    def insert_long_table_info(self, id_list, table_obj):
+        all_chunks = self.split_long_lists(id_list)
+        table_name = table_obj["table_name"]
+        fields_str = table_obj["fields_str"]
+        unique_fields = table_obj["unique_fields_str"]
+        for n, chunk in enumerate(all_chunks):
+            chunk_str = utils.make_quoted_str(chunk)
 
-                where_part = "WHERE %s in (%s)" % (table_obj["id_name"], chunk_str)
-                utils.print_both("Dump %s, %d" % (table_name, n + 1))
-                rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
-                utils.print_both("Inserted %d" % (rowcount))
+            where_part = "WHERE %s in (%s)" % (table_obj["id_name"], chunk_str)
+            utils.print_both("Dump %s, %d" % (table_name, n + 1))
+            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
+            utils.print_both("Inserted %d" % (rowcount))
+
+
+    def call_insert_long_tables_info(self):
+        # long_tables = ["sequence", sequence_obj.pdr_info_table_data["table_name"]]
+        # for table_name in long_tables:
+        # utils.print_both("Dump %s" % table_name)
+        # table_name = sequence_obj.sequence_table_data["table_name"]
+        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
+        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data)
+
+
 
 
 
@@ -877,8 +885,8 @@ if __name__ == '__main__':
 
     upl.insert_metadata_info()
     sequence_obj = Seq(project_obj.project_id)
-    upl.insert_sequence()
-    upl.insert_pdr_info()
+    upl.call_insert_long_tables_info()
+    # upl.insert_pdr_info()
 
     utils.print_both("project_id = %s" % upl.project_id)
 
