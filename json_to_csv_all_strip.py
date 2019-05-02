@@ -6,12 +6,11 @@ import time
 import os
 import csv
 try:
-    import ujson as json
+    import simplejson as json
+    print("use simplejson")
 except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        import json
+    import json
+    print("use json")
         
 # If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, n=None):
@@ -85,10 +84,15 @@ if __name__ == "__main__":
       all_data_sep_list_len = len(all_data_sep_list)
       print("There are %d entries" % all_data_sep_list_len)
             
-      print("Convert JSON, flatten the dict and write to CSV by chunks...")
+      print("By chunks: convert JSON, flatten the dict and write to CSV...")
       start_chunks = time.time()      
       for chunk in all_data_sep_list:
-        entry = json.loads(chunk)
+        try:
+          entry = json.loads(chunk)
+        except ValueError: #Value is too big!
+          print(chunk)
+          raise
+          
         leaf_entries = sorted(get_leaves(entry))        
         write_header = write_into_csv(leaf_entries, write_header)
       end_chunks = time.time()
