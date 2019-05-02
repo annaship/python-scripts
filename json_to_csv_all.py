@@ -10,19 +10,18 @@ import json
 
 import collections
 
-def _flatten_dict(dict_, parent_key="", sep="."):
-  items = []
-  for key, value in dict_.items():
-    new_key = parent_key + sep + key if parent_key else key
-    if isinstance(value, collections.MutableMapping):
-      items.extend(_flatten_dict(value, new_key, sep=sep).items())
-    elif isinstance(value, tuple) and hasattr(value, "_asdict"):
-      dict_items = collections.OrderedDict(zip(value._fields, value))
-      items.extend(_flatten_dict(dict_items, new_key, sep=sep).items())
-    else:
-      items.append((new_key, value))
-  return dict(items)
-
+def flatten(d, parent_key='', sep='_'):
+    items = []
+    for k, v in d.items():
+        new_key = '{0}{1}{2}'.format(parent_key,sep,k) if parent_key else k
+        if isinstance(v, collections.MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        elif isinstance(v, list):
+            # apply itself to each element of the list - that's it!
+            items.append((new_key, map(flatten, v)))
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 # If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, current_level=None):
@@ -122,7 +121,7 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = _flatten_dict(entry)
+        leaf_entries = flatten(entry)
         # leaf_entries = sorted(get_leaves(entry))
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
