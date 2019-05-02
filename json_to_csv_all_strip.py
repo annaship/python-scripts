@@ -103,8 +103,6 @@ if __name__ == "__main__":
         env_write_into_csv = elapsed(start_write_into_csv)
         write_into_csv_total_time = write_into_csv_total_time + env_write_into_csv
         
-      end_chunks = time.time()
-      timer(start_chunks, end_chunks, "Converting, flattening and writing time: ")
 
   end_all = time.time()
   timer(start_all, end_all, "Total time: ")  
