@@ -7,6 +7,25 @@ import os
 import csv
 import json
 
+def flattenit(pyobj, keystring=''):
+   if type(pyobj) is dict:
+     if (type(pyobj) is dict):
+         keystring = keystring + "." if keystring else keystring
+         for k in pyobj:
+             yield from flattenit(pyobj[k], keystring + k)
+     elif (type(pyobj) is list):
+         for lelm in pyobj:
+             yield from flatten(lelm, keystring)
+   else:
+      yield keystring, pyobj
+
+# my_obj = {'a': 1, 'c': {'a': 2, 'b': {'x': 5, 'y': 10}}, 'd': [1, 2, 3]}
+#
+# #your flattened dictionary object
+# flattened={k:v for k,v in flattenit(my_obj)}
+# print(flattened)
+
+
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
         for k in current:
@@ -90,7 +109,13 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = flatten(entry)
+        # leaf_entries = flatten(entry)
+        leaf_entries = {k:v for k,v in flattenit(entry)}
+        # flattened = {k:v for k,v in flattenit(entry)}
+        # print(flattened)
+        
+        
+        # leaf_entries = sorted(get_leaves(entry))
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
