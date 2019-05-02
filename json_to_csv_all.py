@@ -49,7 +49,7 @@ def get_args():
 
   parser.add_argument("--json_file_in", "-f", type=str, required=True)
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
-  parser.add_argument("--benchmark", "-b", action="store_true", help="Mesure and print time")
+  parser.add_argument("--benchmark", "-b", action="store_false", help="Do not mesure and print time")
   
   args = parser.parse_args()
 
