@@ -253,46 +253,12 @@ class dbUpload:
 
 
     def call_insert_long_tables_info(self):
-        # long_tables = ["sequence", sequence_obj.pdr_info_table_data["table_name"]]
-        # for table_name in long_tables:
-        # utils.print_both("Dump %s" % table_name)
-        # table_name = sequence_obj.sequence_table_data["table_name"]
         self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
         self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data)
+        # insert_taxonomy
+        # insert_sequence_uniq_info
+        # insert_silva_taxonomy_info_per_seq
 
-
-
-
-
-    def insert_sequence(self):
-        #
-        self.insert_long_tables_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
-
-        # all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
-        # table_name = sequence_obj.sequence_table_data["table_name"]
-        # fields_str = sequence_obj.sequence_table_data["fields_str"]
-        # unique_fields = sequence_obj.sequence_table_data["unique_fields_str"]
-        # for n, chunk in enumerate(all_chunks):
-        #     chunk_str = utils.make_quoted_str(chunk)
-        #
-        #     where_part = "WHERE %s in (%s)" % (sequence_obj.sequence_table_data["id_name"], chunk_str)
-        #     utils.print_both("Dump %s, %d" % (table_name, n+1))
-        #     rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
-        #     utils.print_both("Inserted %d" % (rowcount))
-
-    def insert_pdr_info(self):
-        # short_list = sequence_obj.pdr_id_list[0:20]
-        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
-        table_name = sequence_obj.pdr_info_table_data["table_name"]
-        fields_str = sequence_obj.pdr_info_table_data["fields_str"]
-        unique_fields = sequence_obj.pdr_info_table_data["unique_fields_str"]
-        for n, chunk in enumerate(all_chunks):
-            chunk_str = utils.make_quoted_str(chunk)
-
-            where_part = "WHERE %s in (%s)" % (sequence_obj.pdr_info_table_data["id_name"], chunk_str)
-            utils.print_both("Dump %s, %d" % (table_name, n+1))
-            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
-            utils.print_both("Inserted %d" % (rowcount))
 
 class Dataset:
 
