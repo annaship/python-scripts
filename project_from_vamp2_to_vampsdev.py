@@ -240,7 +240,7 @@ class dbUpload:
 
     def insert_sequence(self):
 
-        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
+        all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
         table_name = sequence_obj.sequence_table_data["table_name"]
         fields_str = sequence_obj.sequence_table_data["fields_str"]
         unique_fields = sequence_obj.sequence_table_data["unique_fields_str"]
