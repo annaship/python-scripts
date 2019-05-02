@@ -5,12 +5,7 @@ import argparse
 import time
 import os
 import csv
-try:
-    import simplejson as json
-    print("use simplejson")
-except ImportError:
-    import json
-    print("use json")
+import json
         
 # If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, n=None):
