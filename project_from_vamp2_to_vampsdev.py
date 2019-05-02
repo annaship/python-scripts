@@ -232,7 +232,7 @@ class dbUpload:
 
     def insert_sequence(self):
         # short_list = sequence_obj.pdr_id_list[0:20]
-        all_chunks = self.split_long_lists(sequence_obj.pdr_id_list)
+        all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
         where_part = ""
         table_name = sequence_obj.sequence_name
         fields_str = sequence_obj.seq_fields_str
@@ -255,7 +255,7 @@ class dbUpload:
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
-            where_part = "WHERE %s_id in (%s)" % (table_name, chunk_str)
+            where_part = "WHERE %s in (%s)" % (sequence_obj.pdr_info_table_data["id_name"], chunk_str)
             utils.print_both("Dump %s, %d" % (table_name, n+1))
             rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             utils.print_both("Inserted %d" % (rowcount))
@@ -609,11 +609,12 @@ class Seq:
 
         pdr_id_seq_id = self.get_pdr_info()
 
-        self.sequence_id_list = [x[0] for x in pdr_id_seq_id[0]]
+        self.pdr_id_list = [x[0] for x in pdr_id_seq_id[0]]
+        self.pdr_id_list_str = utils.make_quoted_str(self.pdr_id_list)
+
+        self.sequence_id_list = [x[1] for x in pdr_id_seq_id[0]]
         self.sequence_id_str = utils.make_quoted_str(self.sequence_id_list)
 
-        self.pdr_id_list = [x[1] for x in pdr_id_seq_id[0]]
-        self.pdr_id_list_str = utils.make_quoted_str(self.pdr_id_list)
 
         # self.pdr_uniq_index = utils.get_uniq_index_columns(self.sequence_name, db_in)
 
