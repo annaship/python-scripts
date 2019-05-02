@@ -8,20 +8,20 @@ import csv
 import json
 
 # If structture can be different that should be generalized, instead of using "nomenclature"
-def get_leaves(item, key=None, n=None):
+def get_leaves(item, key=None, current_level=None):
     sub_dict_name = "nomenclature"
     sub_dict_level = 2
 
-    if n == None:
-        n = 0
+    if current_level == None:
+        current_level = 0
     if isinstance(item, dict):
-        n = n + 1
+        current_level += 1
         leaves = []
         for i in item.keys():
             new_key = i
-            if n == sub_dict_level:
+            if current_level == sub_dict_level:
                 new_key = "%s.%s" % (sub_dict_name, i)
-            leaves.extend(get_leaves(item[i], new_key, n))
+            leaves.extend(get_leaves(item[i], new_key, current_level))
         return leaves
     elif isinstance(item, list):
         leaves = []
