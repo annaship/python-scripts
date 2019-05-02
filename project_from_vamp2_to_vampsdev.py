@@ -238,31 +238,36 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
+    def insert_long_tables_info(self, id_list, table_obj):
+        long_tables = ["sequence", sequence_obj.pdr_info_table_data["table_name"]]
+        for table_name in long_tables:
+            utils.print_both("Dump %s" % table_name)
+            all_chunks = self.split_long_lists(id_list)
+            # table_name = table_obj["table_name"]
+            fields_str = table_obj["fields_str"]
+            unique_fields = table_obj["unique_fields_str"]
+            for n, chunk in enumerate(all_chunks):
+                chunk_str = utils.make_quoted_str(chunk)
+
+                where_part = "WHERE %s in (%s)" % (table_obj["id_name"], chunk_str)
+                utils.print_both("Dump %s, %d" % (table_name, n + 1))
+                rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
+                utils.print_both("Inserted %d" % (rowcount))
+
+
+
     def insert_sequence(self):
+        #
+        self.insert_long_tables_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
 
-        all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
-        table_name = sequence_obj.sequence_table_data["table_name"]
-        fields_str = sequence_obj.sequence_table_data["fields_str"]
-        unique_fields = sequence_obj.sequence_table_data["unique_fields_str"]
-        for n, chunk in enumerate(all_chunks):
-            chunk_str = utils.make_quoted_str(chunk)
-
-            where_part = "WHERE %s in (%s)" % (sequence_obj.sequence_table_data["id_name"], chunk_str)
-            utils.print_both("Dump %s, %d" % (table_name, n+1))
-            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
-            utils.print_both("Inserted %d" % (rowcount))
-
-        # # short_list = sequence_obj.pdr_id_list[0:20]
         # all_chunks = self.split_long_lists(sequence_obj.sequence_id_list)
-        # where_part = ""
-        # table_name = sequence_obj.sequence_name
-        # fields_str = sequence_obj.seq_fields_str
-        #     # "sequence_id, sequence_comp, created_at, updated_at"
-        # unique_fields = sequence_obj.sequence_uniq_index_str
+        # table_name = sequence_obj.sequence_table_data["table_name"]
+        # fields_str = sequence_obj.sequence_table_data["fields_str"]
+        # unique_fields = sequence_obj.sequence_table_data["unique_fields_str"]
         # for n, chunk in enumerate(all_chunks):
         #     chunk_str = utils.make_quoted_str(chunk)
         #
-        #     where_part = "WHERE %s_id in (%s)" % (table_name, chunk_str)
+        #     where_part = "WHERE %s in (%s)" % (sequence_obj.sequence_table_data["id_name"], chunk_str)
         #     utils.print_both("Dump %s, %d" % (table_name, n+1))
         #     rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
         #     utils.print_both("Inserted %d" % (rowcount))
