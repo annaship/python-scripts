@@ -7,29 +7,6 @@ import os
 import csv
 import json
 
-def flatten_dictionary(dictionary):
-  def items():
-  # loop through each item inside the dictionary k, v
-      #Appending
-      # check if the sub-key and sub-value are 
-      # inside the flatten_dict(value)
-      # join on subkey array
-      # add to result
-      # clear out prev_keys
-    for key, value in dictionary.items():
-      if isinstance(value, dict):
-        for subkey, subvalue in flatten_dictionary(value).items():
-          if key == "":
-            yield subkey, subvalue
-          yield key + "." + subkey, subvalue
-
-      else:
-
-        yield key, value
-
-  return dict(items()) 
-
-
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
         for k in current:
@@ -126,13 +103,11 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = flatten(entry) 
-        # leaf_entries = flatten_dictionary(entry)
-        # flattened = {k:v for k,v in flattenit(entry)}
-        # print(flattened)
-        
-        
-        # leaf_entries = sorted(get_leaves(entry))
+        # leaf_entries = flatten(entry) 
+        leaf_entries = flatten_dict(entry)
+        #Time flattening the dicts:
+        # 00:00:0.033
+
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
