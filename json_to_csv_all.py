@@ -7,6 +7,20 @@ import os
 import csv
 import json
 
+
+import collections
+
+def flatten(d, parent_key='', sep='.'):
+  items = []
+  for k, v in d.items():
+    new_key = parent_key + sep + k if parent_key else k
+    if isinstance(v, collections.MutableMapping):
+      items.extend(flatten(v, new_key, sep=sep).items())
+    else:
+      items.append((new_key, v))
+  return dict(items)
+
+
 # If structture can be different that should be generalized, instead of using "nomenclature"
 def get_leaves(item, key=None, current_level=None):
     sub_dict_name = "nomenclature"
@@ -57,11 +71,11 @@ def get_args():
 
 def write_into_csv(leaf_entries, write_header):
   if write_header:
-      row = [k for k, v in leaf_entries]
+      row = [k for k, v in leaf_entries.items()]
       csv_output.writerow(row)
       write_header = False
 
-  csv_output.writerow([v for k, v in leaf_entries])
+  csv_output.writerow([v for k, v in leaf_entries.items()])
   return write_header
 
 if __name__ == "__main__":
@@ -105,7 +119,8 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = sorted(get_leaves(entry))
+        leaf_entries = flatten(entry)
+        # leaf_entries = sorted(get_leaves(entry))
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
