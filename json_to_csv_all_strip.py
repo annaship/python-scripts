@@ -44,13 +44,16 @@ def acc_timer(accumulated_time, msg = ""):
   print(msg)
   print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours), int(minutes), seconds))  
 
-def get_file_names():
+def get_args():
   parser = argparse.ArgumentParser()
 
   parser.add_argument("--json_file_in", "-f", type=str, required=True)
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
+  parser.add_argument("--benchmark", "-b", action="store_true", help="Mesure and print time")
+  
   args = parser.parse_args()
-  return(args.json_file_in, args.csv_file_out)
+
+  return args
 
 def write_into_csv(leaf_entries, write_header):
   if write_header:
@@ -63,44 +66,60 @@ def write_into_csv(leaf_entries, write_header):
 
 if __name__ == "__main__":
   start_all = time.time()
-
-  file_in, file_out = get_file_names()
-  json_total_time = 0
-  get_leaves_total_time = 0
-  write_into_csv_total_time = 0
+  
+  args = get_args()
+  file_in = args.json_file_in
+  file_out = args.csv_file_out
+  to_benchmark = args.benchmark
+  
+  if to_benchmark:
+    json_total_time = 0
+    get_leaves_total_time = 0
+    write_into_csv_total_time = 0
 
   with open(file_in) as f_input, open(file_out, "wt") as f_output:
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
 
       print("Separating...")
-      start_sep = time.time()
+      if to_benchmark:
+        start_sep = time.time()
       all_data_sep_list = split_str(f_input)
-      sep_end = time.time()
-      acc_timer((time.time() - start_sep), "Separating time: ")
+      if to_benchmark:
+        sep_end = time.time()
+        acc_timer((time.time() - start_sep), "Separating time: ")
 
       all_data_sep_list_len = len(all_data_sep_list)
-      print("There are %d entries" % all_data_sep_list_len)
+      if to_benchmark:
+        print("There are %d entries" % all_data_sep_list_len)
 
       print("By chunks: convert JSON, flatten the dict and write to CSV...")
-      start_chunks = time.time()
-      for chunk in all_data_sep_list:
-        
-        start_json = time.time()
+      if to_benchmark:
+        start_chunks = time.time()
+      for chunk in all_data_sep_list:        
+        if to_benchmark:
+          start_json = time.time()
         entry = json.loads(chunk)
-        json_total_time += time.time() - start_json
+        if to_benchmark:
+          json_total_time += time.time() - start_json
 
-        start_get_leaves = time.time()
+        if to_benchmark:
+          start_get_leaves = time.time()
         leaf_entries = sorted(get_leaves(entry))
-        get_leaves_total_time += time.time() - start_get_leaves
+        if to_benchmark:
+          get_leaves_total_time += time.time() - start_get_leaves
 
-        start_write_into_csv = time.time()
+        if to_benchmark:
+          start_write_into_csv = time.time()
         write_header = write_into_csv(leaf_entries, write_header)
-        write_into_csv_total_time += time.time() - start_write_into_csv
+        if to_benchmark:
+          write_into_csv_total_time += time.time() - start_write_into_csv
 
-  acc_timer((time.time() - start_all), '---\nTotal time: ')
+  if to_benchmark:
+    acc_timer((time.time() - start_all), '---\nTotal time: ')
 
-  acc_timer(json_total_time, '---\nTime converting JSON:')
-  acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
-  acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
+    acc_timer(json_total_time, '---\nTime converting JSON:')
+    acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
+    acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
 
+  print("Done")
