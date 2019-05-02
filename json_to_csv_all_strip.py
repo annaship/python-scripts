@@ -15,19 +15,6 @@ def flatten(current, key="", result={}):
     else:
         result[key] = current
     return result
-    
-def iteritems_nested(d):
-  def fetch (suffixes, v0) :
-    if isinstance(v0, dict):
-      for k, v in v0.items() :
-        yield from fetch(suffixes + [k], v)  # "yield from" in python3.3
-    else:
-      yield (suffixes, v0)
-
-  return fetch([], d)
-
-def flatten_dict(d): #longer
-  return dict( ('.'.join(ks), v) for ks, v in iteritems_nested(d))
 
 def split_str(f_input):
   all_data1 = f_input.read()
@@ -103,11 +90,7 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        # leaf_entries = flatten(entry) 
-        leaf_entries = flatten_dict(entry)
-        #Time flattening the dicts:
-        # 00:00:0.033
-
+        leaf_entries = flatten(entry)
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
