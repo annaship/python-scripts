@@ -15,6 +15,30 @@ def flatten(current, key="", result={}):
     else:
         result[key] = current
     return result
+    
+"""def recursive_generator(lis):
+    yield lis[0]
+    yield from recursive_generator(lis[1:])
+
+for k in recursive_generator([6,3,9,1]):
+    print(k)""" 
+
+
+def flatten_gen(current, key="", result={}):
+    if isinstance(current, dict):
+        for k in current:
+            new_key = "{0}.{1}".format(key, k) if len(key) > 0 else k
+            yield from flatten_gen(current[k], new_key, result)
+    else:
+        result[key] = current
+    # return result
+    yield result
+    
+# with open('sells.log') as file:
+#     pizza_col = (line[3] for line in file)
+#     per_hour = (int(x) for x in pizza_col if x != 'N/A')
+#     print("Total pizzas sold = ",sum(per_hour))
+    
 
 def split_str(f_input):
   all_data1 = f_input.read()
@@ -81,6 +105,7 @@ if __name__ == "__main__":
       print("By chunks: convert JSON, flatten the dict and write to CSV...")
       if to_benchmark:
         start_chunks = time.time()
+      # doing separately this 3 operations takes too much memory to keep intermediate results
       for chunk in all_data_sep_list:        
         if to_benchmark:
           start_json = time.time()
@@ -90,15 +115,16 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = flatten(entry)
+        flatten_dicts = flatten_gen(entry)      
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
-        if to_benchmark:
-          start_write_into_csv = time.time()
-        write_header = write_into_csv(leaf_entries, write_header)
-        if to_benchmark:
-          write_into_csv_total_time += time.time() - start_write_into_csv
+        for next_dict in flatten_dicts:
+          if to_benchmark:
+            start_write_into_csv = time.time()
+          write_header = write_into_csv(next_dict, write_header)
+          if to_benchmark:
+            write_into_csv_total_time += time.time() - start_write_into_csv
 
   if to_benchmark:
     acc_timer((time.time() - start_all), '---\nTotal time: ')
