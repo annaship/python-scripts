@@ -268,36 +268,6 @@ class dbUpload:
             rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             utils.print_both("Inserted %d" % (rowcount))
 
-
-    # def insert_pdr_info(self, run_info_ill_id):
-    #     # prepare_pdr_info_values in an obj
-    #     all_insert_pdr_info_vals = self.seq.prepare_pdr_info_values(run_info_ill_id, self.all_dataset_run_info_dict,
-    #                                                                 self.db_name, self.db_marker)
-    #
-    #     group_vals = self.utils.grouper(all_insert_pdr_info_vals, len(all_insert_pdr_info_vals))
-    #     sequence_table_name = self.table_names["sequence_table_name"]
-    #     # get fields in the object
-    #     fields = ""
-    #     if self.db_marker == "vamps2":
-    #         fields = "dataset_id, run_info_ill_id, %s_id, seq_count, classifier_id" % sequence_table_name
-    #     elif self.db_marker == "env454":
-    #         fields = "run_info_ill_id, %s_id, seq_count" % sequence_table_name
-    #     table_name = self.table_names["sequence_pdr_info_table_name"]
-    #     # query_tmpl = make_sql_for_groups(table_name, fields)
-    #     # print("q1: insert_pdr_info")
-    #     # print(query_tmpl)
-    #     unique_fields = ['dataset_id', 'run_info_ill_id', 'seq_count', 'sequence_id']
-    #     if self.db_marker == "env454":
-    #         unique_fields = ['run_info_ill_id', 'sequence_ill_id']
-    #     query_tmpl1 = self.make_sql_for_groups1(table_name, fields, unique_fields)
-    #     # print("q1a: insert_pdr_info")
-    #     # print(query_tmpl1)
-    #
-    #     logger.debug("insert sequence_pdr_info:")
-    #     join_xpr = ' UNION ALL SELECT '
-    #     self.my_conn.run_groups(group_vals, query_tmpl1, join_xpr)
-
-
 class Dataset:
 
     def __init__(self, project_id = None):
