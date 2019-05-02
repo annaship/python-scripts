@@ -560,7 +560,8 @@ class Seq:
     def __init__(self, project_id):
         self.utils = util.Utils()
         pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
-        self.pdr_info_table_data = self.get_pdr_info_table_data(pdr_info_table_name)
+        self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
+            # self.get_pdr_info_table_data(pdr_info_table_name)
 
 
         self.sequence_table_data = self.get_sequence_table_data(table_names["sequence_table_name"])
@@ -575,6 +576,17 @@ class Seq:
 
 
         # self.pdr_uniq_index = utils.get_uniq_index_columns(self.sequence_name, db_in)
+
+    def get_table_data(self, table_name):
+        table_data = defaultdict()
+
+        table_data["table_name"] = table_name
+        table_data["id_name"] = table_name + "_id"
+        table_data["fields"] = mysql_utils_in.get_field_names(table_name)
+        table_data["fields_str"] = ", ".join([x[0] for x in table_data["fields"][0]])
+        table_data["unique_fields"] = mysql_utils_in.get_uniq_index_columns(db_in, table_name)
+        table_data["unique_fields_str"] = ", ".join(table_data["unique_fields"])
+        return table_data
 
     def get_pdr_info_table_data(self, table_name):
         pdr_info_table_data = defaultdict()
