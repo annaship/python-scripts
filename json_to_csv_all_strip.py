@@ -61,9 +61,6 @@ def write_into_csv(leaf_entries, write_header):
   csv_output.writerow([v for k, v in leaf_entries])
   return write_header
 
-def elapsed(start_name):
-  return time.time() - start_name
-
 if __name__ == "__main__":
   start_all = time.time()
 
