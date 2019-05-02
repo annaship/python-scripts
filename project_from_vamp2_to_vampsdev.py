@@ -56,18 +56,25 @@ class dbUpload:
             mysql_utils_in.cursor.execute(sql1_select)
             rows = mysql_utils_in.cursor.fetchall()
             sql2_insert = "INSERT IGNORE INTO %s (%s)" % (table_name, fields_str)
-            fields_num_part = "%s" * len(fields_str.split(","))
+            fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
+            # sql2 = sql2 + " values (%s, %s, %s, %s)"
             sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
-            sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (unique_fields, unique_fields)
+
+            duplicate_update_part_list = []
+            for unique_field in [unique_fields]:
+                duplicate_update_part_list.append("%s = VALUES(%s)" % (unique_field, unique_field))
+            duplicate_update_part = ", ".join(duplicate_update_part_list)
+
+            sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
 
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
             except:
-                self.utils.print_both(("ERROR: query = %s") % sql2_insert[0:1000])
+                self.utils.print_both(("ERROR: query = %s") % sql2_insert)
                 raise
         except:
-            self.utils.print_both(("ERROR: query = %s") % sql1_select[0:1000])
+            self.utils.print_both(("ERROR: query = %s") % sql1_select)
             raise
 
         return rowcount
