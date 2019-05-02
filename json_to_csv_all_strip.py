@@ -38,11 +38,11 @@ def split_str(f_input):
   all_data_sep_list = all_data_sep.split("###")
   return all_data_sep_list
 
-def timer(start, end, msg = ""):
-  hours, rem = divmod(end-start, 3600)
+def acc_timer(accumulated_time, msg = ""):
+  hours, rem = divmod(accumulated_time, 3600)
   minutes, seconds = divmod(rem, 60)
   print(msg)
-  print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours), int(minutes), seconds))
+  print("{:0>2}:{:0>2}:{:05.3f}".format(int(hours), int(minutes), seconds))  
 
 def get_file_names():
   parser = argparse.ArgumentParser()
@@ -80,7 +80,7 @@ if __name__ == "__main__":
       start_sep = time.time()
       all_data_sep_list = split_str(f_input)
       sep_end = time.time()
-      timer(start_sep, sep_end, "Separating time: ")
+      acc_timer((time.time() - start_sep), "Separating time: ")
 
       all_data_sep_list_len = len(all_data_sep_list)
       print("There are %d entries" % all_data_sep_list_len)
@@ -101,9 +101,9 @@ if __name__ == "__main__":
         write_header = write_into_csv(leaf_entries, write_header)
         write_into_csv_total_time += time.time() - start_write_into_csv
 
-  end_all = time.time()
-  timer(start_all, end_all, "Total time: ")
+  acc_timer((time.time() - start_all), '---\nTotal time: ')
 
-  print('%.3fs: time converting JSON' % json_total_time)
-  print('%.3fs: time flattening' % get_leaves_total_time)
-  print('%.3fs: time_write_csv' % write_into_csv_total_time)
+  acc_timer(json_total_time, '---\nTime converting JSON:')
+  acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
+  acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
+
