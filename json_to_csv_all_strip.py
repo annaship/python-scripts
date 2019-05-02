@@ -88,21 +88,18 @@ if __name__ == "__main__":
       print("By chunks: convert JSON, flatten the dict and write to CSV...")
       start_chunks = time.time()
       for chunk in all_data_sep_list:
+        
         start_json = time.time()
         entry = json.loads(chunk)
-        end_json = elapsed(start_sep)
-        json_total_time = json_total_time + end_json
+        json_total_time += time.time() - start_json
 
         start_get_leaves = time.time()
         leaf_entries = sorted(get_leaves(entry))
-        end_get_leaves = elapsed(start_get_leaves)
-        get_leaves_total_time = get_leaves_total_time + end_get_leaves
+        get_leaves_total_time += time.time() - start_get_leaves
 
         start_write_into_csv = time.time()
         write_header = write_into_csv(leaf_entries, write_header)
-        env_write_into_csv = elapsed(start_write_into_csv)
-        write_into_csv_total_time = write_into_csv_total_time + env_write_into_csv
-
+        write_into_csv_total_time += time.time() - start_write_into_csv
 
   end_all = time.time()
   timer(start_all, end_all, "Total time: ")
