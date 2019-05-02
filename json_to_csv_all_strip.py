@@ -7,47 +7,6 @@ import os
 import csv
 import json
 
-def flattenit(pyobj, keystring=''):
-   if type(pyobj) is dict:
-     if (type(pyobj) is dict):
-         keystring = keystring + "." if keystring else keystring
-         for k in pyobj:
-             yield from flattenit(pyobj[k], keystring + k)
-     elif (type(pyobj) is list):
-         for lelm in pyobj:
-             yield from flattenit(lelm, keystring)
-   else:
-      yield keystring, pyobj
-
-# my_obj = {'a': 1, 'c': {'a': 2, 'b': {'x': 5, 'y': 10}}, 'd': [1, 2, 3]}
-#
-# #your flattened dictionary object
-# flattened={k:v for k,v in flattenit(my_obj)}
-# print(flattened)
-
-def flatten_dict1(d): #longer
-    def expand(key, value):
-        if isinstance(value, dict):
-            return [ (key + '.' + k, v) for k, v in flatten_dict(value).items() ]
-        else:
-            return [ (key, value) ]
-
-    items = [ item for k, v in d.items() for item in expand(k, v) ]
-
-    return dict(items)
-
-
-def flatten_dict(d):
-    def items():
-        for key, value in d.items():
-            if isinstance(value, dict):
-                for subkey, subvalue in flatten_dict(value).items():
-                    yield key + "." + subkey, subvalue
-            else:
-                yield key, value
-
-    return dict(items())
-
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
         for k in current:
@@ -57,13 +16,19 @@ def flatten(current, key="", result={}):
         result[key] = current
     return result
     
-def flatten1(current, key=""):
-    if isinstance(current, dict):
-        for k in current:
-            new_key = "{0}.{1}".format(key, k) if len(key) > 0 else k
-            yield from flatten(current[k], new_key)
+def iteritems_nested(d):
+  def fetch (suffixes, v0) :
+    if isinstance(v0, dict):
+      for k, v in v0.items() :
+        for i in fetch(suffixes + [k], v):  # "yield from" in python3.3
+          yield i
     else:
-      yield key, current
+      yield (suffixes, v0)
+
+  return fetch([], d)
+
+def flatten_dict(d): #longer
+  return dict( ('.'.join(ks), v) for ks, v in iteritems_nested(d))
 
 def split_str(f_input):
   all_data1 = f_input.read()
@@ -140,7 +105,7 @@ if __name__ == "__main__":
         if to_benchmark:
           start_get_leaves = time.time()
         # leaf_entries = flatten(entry)        
-        leaf_entries = flatten_dict1(entry)
+        leaf_entries = flatten_dict(entry)
         # flattened = {k:v for k,v in flattenit(entry)}
         # print(flattened)
         
