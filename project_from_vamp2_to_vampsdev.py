@@ -51,22 +51,23 @@ class dbUpload:
         self.metadata_info = defaultdict(dict)
 
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = ""):
-        sql1 = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
+        sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
-            mysql_utils_in.cursor.execute(sql1)
+            mysql_utils_in.cursor.execute(sql1_select)
             rows = mysql_utils_in.cursor.fetchall()
-            sql2 = "INSERT IGNORE INTO %s (%s)" % (table_name, fields_str)
-            sql2 = sql2 + " values (%s, %s, %s, %s)"
-            sql2 = sql2 + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (unique_fields, unique_fields)
+            sql2_insert = "INSERT IGNORE INTO %s (%s)" % (table_name, fields_str)
+            fields_num_part = "%s" * len(fields_str.split(","))
+            sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
+            sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (unique_fields, unique_fields)
 
             try:
-                rowcount = mysql_utils_out.cursor.executemany(sql2, rows)
+                rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
             except:
-                self.utils.print_both(("ERROR: query = %s") % sql2[0:100])
+                self.utils.print_both(("ERROR: query = %s") % sql2_insert[0:1000])
                 raise
         except:
-            self.utils.print_both(("ERROR: query = %s") % sql1[0:100])
+            self.utils.print_both(("ERROR: query = %s") % sql1_select[0:1000])
             raise
 
         return rowcount
