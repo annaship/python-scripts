@@ -308,22 +308,6 @@ class Project:
         project_info = mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
-# class User:
-#
-#     def __init__(self, user_id = None):
-#         self.user_id = user_id
-#         self.user_info = self.get_user_info()
-#
-#     def get_user_info(self):
-#         """
-#         UNIQUE KEY `contact_email_inst` (`first_name`,`last_name`,`email`,`institution`),
-#         UNIQUE KEY `username` (`username`),
-#
-#         """
-#         user_sql = "SELECT * FROM user where user_id = '%s'" % (self.user_id)
-#         res = mysql_utils_in.execute_fetch_select_to_dict(user_sql)
-#         return res[0]
-
 class Run_info:
     def __init__(self):
         # upl
@@ -361,6 +345,10 @@ class Run_info:
         return [entry['run_info_ill_id'] for entry in self.run_info_t_dict]
 
 class Taxonomy:
+    def __init__(self):
+        pass
+
+class Taxonomy_old:
     def __init__(self, my_conn):
 
         self.utils = util.Utils()
