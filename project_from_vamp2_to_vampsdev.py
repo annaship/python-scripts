@@ -596,11 +596,45 @@ class Seq(LongTables):
 
 
 class Taxonomy(LongTables):
+    def __init__(self, sequence_id_str):
+        self.sequence_id_str = sequence_id_str
+        self.table_names_to_insert = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species",
+                                 "silva_taxonomy", "silva_taxonomy_info_per_seq",
+                                 "generic_taxonomy", "generic_taxonomy_info",
+                                 "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
+                                 "sequence_uniq_info"]
 
-    def __init__(self):
-        table_names = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species", "silva_taxonomy", "silva_taxonomy_info_per_seq", "generic_taxonomy", "generic_taxonomy_info", "rdp_taxonomy", "rdp_taxonomy_info_per_seq", "sequence_uniq_info"]
+        self.table_names_to_get_ids_first = ["sequence_uniq_info", "silva_taxonomy_info_per_seq", "rdp_taxonomy_info_per_seq"]
+        self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
+
+        for table_name in self.table_names_to_get_first_ids:
+            self.first_ids_dict = self.get_all_ids(table_name, sequence_id, self.sequence_id_str)
+
+        # self.first_ids_dict[]
+        self.silva_taxonomy_ids = self.get_all_ids("silva_taxonomy_info_per_seq", "silva_taxonomy_id", self.first_ids_dict)
+
+
+        # self.sequence_id_list
+
+        pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
+        self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
+
+        # get_table_data
 
         # self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
+
+    def get_all_ids(self, table_name, where_name, where_id_str):
+        ids_dict = {}
+        table_name_id = table_name + "_id"
+        all_ids_sql = """SELECT DISTINCT %s FROM %s
+                         WHERE where_name IN (%s)
+                         """ % (table_name_id,
+                                table_name,
+                                where_id_str)
+
+        rows = mysql_utils_in.execute_fetch_select(all_ids_sql)
+        ids_dict[table_name] = rows
+        return ids_dict
 
 
 class Constant:
@@ -694,8 +728,10 @@ if __name__ == '__main__':
 
     upl.insert_metadata_info()
     sequence_obj = Seq(project_obj.project_id)
-    upl.call_insert_long_tables_info()
-    # upl.insert_pdr_info()
+    # upl.call_insert_long_tables_info()
+    
+    taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
+
 
     utils.print_both("project_id = %s" % upl.project_id)
 
