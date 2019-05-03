@@ -31,8 +31,9 @@ def flatten_gen(current, key="", result={}):
             yield from flatten_gen(current[k], new_key, result)
     else:
         result[key] = current
+        yield result
     # return result
-    yield result
+    # yield result
     
 # with open('sells.log') as file:
 #     pizza_col = (line[3] for line in file)
@@ -115,11 +116,13 @@ if __name__ == "__main__":
 
         if to_benchmark:
           start_get_leaves = time.time()
-        flatten_dicts = flatten_gen(entry)      
+        flatten_dicts = flatten_gen(entry) 
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
         for next_dict in flatten_dicts:
+          print("LLL")
+          print(next_dict)
           if to_benchmark:
             start_write_into_csv = time.time()
           write_header = write_into_csv(next_dict, write_header)
