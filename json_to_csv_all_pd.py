@@ -6,15 +6,9 @@ import time
 import os
 import csv
 import json
-
-def flatten(current, key="", result={}):
-    if isinstance(current, dict):
-        for k in current:
-            new_key = "{0}.{1}".format(key, k) if len(key) > 0 else k
-            flatten(current[k], new_key, result)
-    else:
-        result[key] = current
-    return result
+import pandas as pd
+from pandas.io.json import json_normalize
+from flatten_json import flatten
 
 def split_str(f_input):
   all_data1 = f_input.read()
@@ -22,6 +16,26 @@ def split_str(f_input):
   all_data_sep = all_data1.lstrip('[').rstrip(']').rstrip(',').replace('},{', rep)
   all_data_sep_list = all_data_sep.split("###")
   return all_data_sep_list
+
+def jsonNormalize(data):
+    # dic_flattened = []
+    # for dd in data:
+    #     d1 = {str(k): str(v) for k, v in dd.items() }
+    #     dic_flattened.append(flatten(d1))
+    # # dic_flattened = (flatten(dd) for dd in data)
+    # td = tuple(dic_flattened)
+    dic_flattened = flatten(data)
+    df = pd.DataFrame(dic_flattened, index=[0])
+    return df
+
+# def flatten(current, key="", result={}):
+#     if isinstance(current, dict):
+#         for k in current:
+#             new_key = "{0}.{1}".format(key, k) if len(key) > 0 else k
+#             flatten(current[k], new_key, result)
+#     else:
+#         result[key] = current
+#     return result
 
 def acc_timer(accumulated_time, msg = ""):
   hours, rem = divmod(accumulated_time, 3600)
@@ -41,12 +55,15 @@ def get_args():
   return args
 
 def write_into_csv(leaf_entries, write_header):
+  data = leaf_entries.to_csv(index = False, sep = ";", quoting = csv.QUOTE_ALL)
+  data_list = data.split(os.linesep);
+
   if write_header:
-      row = [k for k, v in leaf_entries.items()]
-      csv_output.writerow(row)
+      header = data_list[0]
+      csv_output.writerow(header)
       write_header = False
 
-  csv_output.writerow([v for k, v in leaf_entries.items()])
+  csv_output.writerow(data_list[1])
   return write_header
 
 if __name__ == "__main__":
@@ -84,13 +101,16 @@ if __name__ == "__main__":
       for chunk in all_data_sep_list:        
         if to_benchmark:
           start_json = time.time()
-        entry = json.loads(chunk)
+        # chunk_w_square_brackets = chunk.replace("{", "[{").replace("}", "}]")
+        entry_list = json.loads(chunk)
+        # entry = [{str(k): str(v) for k, v in entry_dict.items() for entry_dict in entry_list}]
+
         if to_benchmark:
           json_total_time += time.time() - start_json
 
         if to_benchmark:
           start_get_leaves = time.time()
-        leaf_entries = flatten(entry)
+        leaf_entries = jsonNormalize(entry_list)
         if to_benchmark:
           get_leaves_total_time += time.time() - start_get_leaves
 
