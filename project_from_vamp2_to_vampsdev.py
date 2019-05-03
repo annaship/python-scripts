@@ -55,7 +55,7 @@ class dbUpload:
         try:
             mysql_utils_in.cursor.execute(sql1_select)
             rows = mysql_utils_in.cursor.fetchall()
-            sql2_insert = "INSERT IGNORE INTO %s (%s)" % (table_name, fields_str)
+            sql2_insert = "INSERT INTO %s (%s)" % (table_name, fields_str)
             fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
             # sql2 = sql2 + " values (%s, %s, %s, %s)"
             sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
