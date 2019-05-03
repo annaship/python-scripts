@@ -604,14 +604,16 @@ class Taxonomy(LongTables):
                                  "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
                                  "sequence_uniq_info"]
 
-        self.table_names_to_get_ids_first = ["sequence_uniq_info", "silva_taxonomy_info_per_seq", "rdp_taxonomy_info_per_seq"]
+        self.table_names_to_get_ids_by_sequence_id = ["sequence_uniq_info", "silva_taxonomy_info_per_seq", "rdp_taxonomy_info_per_seq"]
         self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
 
-        for table_name in self.table_names_to_get_first_ids:
-            self.first_ids_dict = self.get_all_ids(table_name, sequence_id, self.sequence_id_str)
+        for table_name in self.table_names_to_get_ids_by_sequence_id:
+            self.ids_dict_by_sequence_id = self.get_all_ids(table_name, "sequence_id", self.sequence_id_str)
 
-        # self.first_ids_dict[]
-        self.silva_taxonomy_ids = self.get_all_ids("silva_taxonomy_info_per_seq", "silva_taxonomy_id", self.first_ids_dict)
+        # self.ids_dict_by_sequence_id[]
+        self.silva_taxonomy_ids = self.get_all_ids("silva_taxonomy_info_per_seq", "silva_taxonomy_id", self.ids_dict_by_sequence_id)
+        # TODO: SELECT DISTINCT silva_taxonomy_id FROM silva_taxonomy_info_per_seq
+        #                          WHERE silva_taxonomy_info_per_seq_id IN ()
 
 
         # self.sequence_id_list
@@ -623,13 +625,14 @@ class Taxonomy(LongTables):
 
         # self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
 
-    def get_all_ids(self, table_name, where_name, where_id_str):
+    def get_all_ids(self, table_name, where_id_name, where_id_str):
         ids_dict = {}
         table_name_id = table_name + "_id"
         all_ids_sql = """SELECT DISTINCT %s FROM %s
-                         WHERE where_name IN (%s)
+                         WHERE %s IN (%s)
                          """ % (table_name_id,
                                 table_name,
+                                where_id_name,
                                 where_id_str)
 
         rows = mysql_utils_in.execute_fetch_select(all_ids_sql)
@@ -726,10 +729,12 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info()
 
-    upl.insert_metadata_info()
+    # TODO: restore! Commented for testing
+    # upl.insert_metadata_info()
     sequence_obj = Seq(project_obj.project_id)
+    # TODO: restore! Commented for testing
     # upl.call_insert_long_tables_info()
-    
+
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
 
 
