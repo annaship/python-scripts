@@ -604,40 +604,36 @@ class Taxonomy(LongTables):
                                  "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
                                  "sequence_uniq_info"]
 
-        self.table_names_to_get_ids_by_sequence_id = ["sequence_uniq_info", "silva_taxonomy_info_per_seq", "rdp_taxonomy_info_per_seq"]
         self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
 
-        for table_name in self.table_names_to_get_ids_by_sequence_id:
-            self.ids_dict_by_sequence_id = self.get_all_ids(table_name, "sequence_id", self.sequence_id_str)
+        what_to_select = "sequence_uniq_info_id"
+        from_table_name = "sequence_uniq_info"
+        where_id_name = "sequence_id"
+        where_id_str = self.sequence_id_str
+        self.sequence_uniq_info_ids = self.get_all_ids(what_to_select, from_table_name, where_id_name, where_id_str)
 
-        # self.ids_dict_by_sequence_id[]
-        self.silva_taxonomy_ids = self.get_all_ids("silva_taxonomy_info_per_seq", "silva_taxonomy_id", self.ids_dict_by_sequence_id)
-        # TODO: SELECT DISTINCT silva_taxonomy_id FROM silva_taxonomy_info_per_seq
-        #                          WHERE silva_taxonomy_info_per_seq_id IN ()
+        what_to_select = "silva_taxonomy_id"
+        from_table_name = "silva_taxonomy_info_per_seq"
+        where_id_name = "sequence_id"
+        where_id_str = self.sequence_id_str
+        self.silva_taxonomy_ids = self.get_all_ids(what_to_select, from_table_name, where_id_name, where_id_str)
 
+        what_to_select = "rdp_taxonomy_id"
+        from_table_name = "rdp_taxonomy_info_per_seq"
+        where_id_name = "sequence_id"
+        where_id_str = self.sequence_id_str
+        self.rdp_taxonomy_id_ids = self.get_all_ids(what_to_select, from_table_name, where_id_name, where_id_str)
 
-        # self.sequence_id_list
-
-        pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
-        self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
-
-        # get_table_data
-
-        # self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
-
-    def get_all_ids(self, table_name, where_id_name, where_id_str):
-        ids_dict = {}
-        table_name_id = table_name + "_id"
-        all_ids_sql = """SELECT DISTINCT %s FROM %s
+    def get_all_ids(self, what_to_select, from_table_name, where_id_name, where_id_str):
+        all_ids_sql = """SELECT %s FROM %s
                          WHERE %s IN (%s)
-                         """ % (table_name_id,
-                                table_name,
+                         """ % (what_to_select,
+                                from_table_name,
                                 where_id_name,
                                 where_id_str)
 
         rows = mysql_utils_in.execute_fetch_select(all_ids_sql)
-        ids_dict[table_name] = rows
-        return ids_dict
+        return rows
 
 
 class Constant:
