@@ -276,6 +276,11 @@ class Utils:
         # "'%s'" % "', '".join(self.convert_each_to_str(my_list))
         return res_str
 
+    def make_quoted_str_from_tuple_sql_rows(self, tuple_sql_rows):
+        my_list = [x[0] for x in tuple_sql_rows[0]]
+        res_str = self.make_quoted_str(my_list)
+        return res_str
+
     def flatten_2d_list(self, my_list):
       return [item for sublist in my_list for item in sublist]
 

@@ -606,25 +606,39 @@ class Taxonomy(LongTables):
 
         self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
 
-        what_to_select = "sequence_uniq_info_id"
-        from_table_name = "sequence_uniq_info"
+        self.get_ids()
+
+        from_table_name = "silva_taxonomy"
+        # domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id,
+        where_id_name = "silva_taxonomy_id"
+        where_id_str = utils.make_quoted_str_from_tuple_sql_rows(self.silva_taxonomy_ids)
+        all_rank_ids_sql = """SELECT * FROM %s
+                         WHERE %s IN (%s)
+                         """ % (from_table_name,
+                                where_id_name,
+                                where_id_str)
+
+        rows = mysql_utils_in.execute_fetch_select(all_rank_ids_sql)
+
+
+    def get_ids(self):
         where_id_name = "sequence_id"
         where_id_str = self.sequence_id_str
-        self.sequence_uniq_info_ids = self.get_all_ids(what_to_select, from_table_name, where_id_name, where_id_str)
+
+        what_to_select = "sequence_uniq_info_id"
+        from_table_name = "sequence_uniq_info"
+        self.sequence_uniq_info_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
 
         what_to_select = "silva_taxonomy_id"
         from_table_name = "silva_taxonomy_info_per_seq"
-        where_id_name = "sequence_id"
-        where_id_str = self.sequence_id_str
-        self.silva_taxonomy_ids = self.get_all_ids(what_to_select, from_table_name, where_id_name, where_id_str)
+        self.silva_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
 
         what_to_select = "rdp_taxonomy_id"
         from_table_name = "rdp_taxonomy_info_per_seq"
-        where_id_name = "sequence_id"
-        where_id_str = self.sequence_id_str
-        self.rdp_taxonomy_id_ids = self.get_all_ids(what_to_select, from_table_name, where_id_name, where_id_str)
+        self.rdp_taxonomy_id_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
 
-    def get_all_ids(self, what_to_select, from_table_name, where_id_name, where_id_str):
+
+    def get_all_ids_from_db(self, what_to_select, from_table_name, where_id_name, where_id_str):
         all_ids_sql = """SELECT %s FROM %s
                          WHERE %s IN (%s)
                          """ % (what_to_select,
