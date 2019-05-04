@@ -29,7 +29,7 @@ class dbUpload:
     Name = "dbUpload"
     """
     Order:
-        # insert_metadata_info
+        # insert_metadata_info_and_short_tables
         # insert_seq()
         # insert_pdr_info()
         # gast
@@ -229,7 +229,7 @@ class dbUpload:
     # def insert_run_info(self):
     #     run_info_obj.run_info_t_dict[0].values()
 
-    def insert_metadata_info(self):
+    def insert_metadata_info_and_short_tables(self):
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
             self.table_dump(table_name, [host_in, host_out], [db_in, db_out])
@@ -753,7 +753,7 @@ if __name__ == '__main__':
     run_info_obj = Run_info()
 
     # TODO: restore! Commented for testing
-    # upl.insert_metadata_info()
+    # upl.insert_metadata_info_and_short_tables()
     sequence_obj = Seq(project_obj.project_id)
     # TODO: restore! Commented for testing
     # upl.call_insert_long_tables_info()
