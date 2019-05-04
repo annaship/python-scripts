@@ -619,6 +619,19 @@ class Taxonomy(LongTables):
                                 where_id_str)
 
         rows = mysql_utils_in.execute_fetch_select(all_rank_ids_sql)
+        # rows[1] - headers
+        # rows[0][0] = <class 'tuple'>: (120, 3, 4, 10, 7, 179, 1, 1, 1, datetime.datetime(2018, 2, 22, 13, 1, 29), datetime.datetime(2018, 2, 22, 13, 1, 29))
+        rows_dict = mysql_utils_in.execute_fetch_select_to_dict(all_rank_ids_sql)
+        # rows_dict[0] {'silva_taxonomy_id': 120, 'domain_id': 3, 'phylum_id': 4, 'klass_id': 10, 'order_id': 7, 'family_id': 179, 'genus_id': 1, 'species_id': 1, 'strain_id': 1, 'created_at': datetime.datetime(2018, 2, 22, 13, 1, 29), 'updated_at': datetime.datetime(2018, 2, 22, 13, 1, 29)}
+
+
+        """Select * from """
+
+        for r in rows:
+            pass
+
+        for rd in rows_dict:
+            pass
 
 
     def get_ids(self):
@@ -655,7 +668,7 @@ class Constant:
 
         self.chunk_size = 1000
         self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index", "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene", "primer_suite"
-                                         , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields", "rank"]
+                                         , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields", "rank", "domain", "phylum", "klass", "order", "family", "genus", "species", "strain"]
         self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
         self.domains = ('Archaea', 'Bacteria', 'Eukarya', 'Organelle', 'Unknown')
         self.domain_adj = ('Archaeal', 'Bacterial', 'Eukaryal', 'Organelle', 'Unknown')  # Fungal
