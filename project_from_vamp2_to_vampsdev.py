@@ -255,10 +255,9 @@ class dbUpload:
     def call_insert_long_tables_info(self):
         self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
         self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data)
-        # insert_taxonomy
-        # insert_sequence_uniq_info
-        # insert_silva_taxonomy_info_per_seq
-
+        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids, taxonomy_obj.silva_taxonomy_table_data)
+        # sequence_uniq_info self.sequence_uniq_info_ids
+        # rdp_taxonomy self.rdp_taxonomy_id_ids
 
 class Dataset:
 
@@ -608,31 +607,6 @@ class Taxonomy(LongTables):
 
         self.get_ids()
 
-        from_table_name = "silva_taxonomy"
-        # domain_id, phylum_id, klass_id, order_id, family_id, genus_id, species_id, strain_id,
-        where_id_name = "silva_taxonomy_id"
-        where_id_str = utils.make_quoted_str_from_tuple_sql_rows(self.silva_taxonomy_ids)
-        all_rank_ids_sql = """SELECT * FROM %s
-                         WHERE %s IN (%s)
-                         """ % (from_table_name,
-                                where_id_name,
-                                where_id_str)
-
-        rows = mysql_utils_in.execute_fetch_select(all_rank_ids_sql)
-        # rows[1] - headers
-        # rows[0][0] = <class 'tuple'>: (120, 3, 4, 10, 7, 179, 1, 1, 1, datetime.datetime(2018, 2, 22, 13, 1, 29), datetime.datetime(2018, 2, 22, 13, 1, 29))
-        rows_dict = mysql_utils_in.execute_fetch_select_to_dict(all_rank_ids_sql)
-        # rows_dict[0] {'silva_taxonomy_id': 120, 'domain_id': 3, 'phylum_id': 4, 'klass_id': 10, 'order_id': 7, 'family_id': 179, 'genus_id': 1, 'species_id': 1, 'strain_id': 1, 'created_at': datetime.datetime(2018, 2, 22, 13, 1, 29), 'updated_at': datetime.datetime(2018, 2, 22, 13, 1, 29)}
-
-
-        """Select * from """
-
-        for r in rows:
-            pass
-
-        for rd in rows_dict:
-            pass
-
 
     def get_ids(self):
         where_id_name = "sequence_id"
@@ -756,7 +730,7 @@ if __name__ == '__main__':
     # upl.insert_metadata_info_and_short_tables()
     sequence_obj = Seq(project_obj.project_id)
     # TODO: restore! Commented for testing
-    # upl.call_insert_long_tables_info()
+    upl.call_insert_long_tables_info()
 
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
 
