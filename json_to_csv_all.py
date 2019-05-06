@@ -3,9 +3,9 @@
 
 import argparse
 import time
-import os
 import csv
 import json
+import functools
 
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
@@ -15,6 +15,28 @@ def flatten(current, key="", result={}):
     else:
         result[key] = current
     return result
+
+
+
+def json_parse(file_object, decoder = json.JSONDecoder(), buffersize = 2048):
+    """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC.
+
+    taken from http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
+    """
+    buffer = ''
+    for chunk in iter(functools.partial(file_object.read, buffersize), ''):
+        buffer += chunk
+        buffer = buffer.replace('},{', '}{')
+            # strip(' \n')
+        while buffer:
+            try:
+                result, index = decoder.raw_decode(buffer)
+                yield result
+                buffer = buffer[index:]
+            except ValueError:
+                # Not enough data to decode, read more
+                break
+
 
 def read_in_chunks(file_object, chunk_size=1024):
     """Lazy function (generator) to read a file piece by piece.
@@ -101,29 +123,20 @@ if __name__ == "__main__":
       collect_ends = ""
       all_data_sep_list_len_total = 0
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
-      for piece in read_in_chunks(f_input):
-          if to_benchmark:
-              start_sep = time.time()
-          all_data_sep_list, collect_ends = split_short_str(piece, collect_ends)
-          if to_benchmark:
-              sep_total_time += time.time() - start_sep
-
-              all_data_sep_list_len_total += len(all_data_sep_list)
-
-          if to_benchmark:
-              start_chunks = time.time()
-          for chunk in all_data_sep_list:
-              write_header = process_data(chunk, write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
-      process_data(collect_ends.rstrip(','), write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
-      all_data_sep_list_len_total += 1
+      piece = json_parse(f_input)
+      print(list(piece))
+      #     for chunk in all_data_sep_list:
+      #         write_header = process_data(chunk, write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
+      # process_data(collect_ends.rstrip(','), write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
+      # all_data_sep_list_len_total += 1
 
   if to_benchmark:
     print("There are %d entries" % all_data_sep_list_len_total)
     acc_timer((time.time() - start_all), '---\nTotal time: ')
 
-    acc_timer(sep_total_time, '---\nSeparating time: ')
-    acc_timer(json_total_time, 'Time converting JSON:')
-    acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
-    acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
+    # acc_timer(sep_total_time, '---\nSeparating time: ')
+    # acc_timer(json_total_time, 'Time converting JSON:')
+    # acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
+    # acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
 
   print("Done")
