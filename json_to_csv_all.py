@@ -113,6 +113,7 @@ if __name__ == "__main__":
   if log_file_path:
       log_file_path = "/Users/ashipunova/split_json.log"
       log_file = open(log_file_path, "a+")
+      # log_file.write("buffer_size = %d" % buffer_size) % TypeError: %d format: a number is required, not NoneType
 
   if to_benchmark:
     sep_total_time = 0
@@ -132,23 +133,26 @@ if __name__ == "__main__":
               all_data_sep_list_len_total += 1
 
               if log_file_path:
-                  log_file.write("all_data_sep_list_len_total = ")
-                  log_file.write("all_data_sep_list_len_total = %d" % all_data_sep_list_len_total)
+                  log_file.write("\nall_data_sep_list_len_total = %d" % all_data_sep_list_len_total)
                   log_file.write("\nstart_get_leaves\n")
 
               start_get_leaves = time.time()
           leaf_entries = flatten(data)
           if to_benchmark:
               get_leaves_total_time += time.time() - start_get_leaves
+              if log_file_path:
+                  log_file.write("\nget_leaves_total_time = %d" % get_leaves_total_time)
 
           if log_file_path:
-              log_file.write("start_write_into_csv\n")
+              log_file.write("\nstart_write_into_csv\n")
 
           if to_benchmark:
               start_write_into_csv = time.time()
           write_header = write_into_csv(leaf_entries, write_header)
           if to_benchmark:
               write_into_csv_total_time += time.time() - start_write_into_csv
+              if log_file_path:
+                  log_file.write("\nwrite_into_csv_total_time = %d" % write_into_csv_total_time)
 
   if to_benchmark:
     print("There are %d entries" % all_data_sep_list_len_total)
