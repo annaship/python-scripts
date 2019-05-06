@@ -16,6 +16,24 @@ def flatten(current, key="", result={}):
         result[key] = current
     return result
 
+def read_in_chunks(file_object, chunk_size=1024):
+    """Lazy function (generator) to read a file piece by piece.
+    Default chunk size: 1k."""
+    while True:
+        data = file_object.read(chunk_size)
+        if not data:
+            break
+        yield data
+
+def split_short_str(input_piece, collect_ends):
+  rep = '}###%s{' % (os.linesep)
+  all_data_sep = (collect_ends + input_piece).lstrip('[').rstrip(']').rstrip(',').replace('},{', rep)
+  all_data_sep_list_interim = all_data_sep.split("###")
+  collect_ends = "," + all_data_sep_list_interim[-1]
+  all_data_sep_list_e = all_data_sep_list_interim[:-1]
+  all_data_sep_list = list(filter(None, all_data_sep_list_e))
+  return (all_data_sep_list, collect_ends)
+
 def split_str(f_input):
   all_data1 = f_input.read()
   rep = '}###%s{' % (os.linesep)
@@ -69,36 +87,46 @@ if __name__ == "__main__":
       print("Separating...")
       if to_benchmark:
         start_sep = time.time()
-      all_data_sep_list = split_str(f_input)
-      if to_benchmark:
-        sep_end = time.time()
-        acc_timer((time.time() - start_sep), "Separating time: ")
+        # f = open('really_big_file.dat')
+      collect_ends = ""
+      for piece in read_in_chunks(f_input):
+          all_data_sep_list, collect_ends = split_short_str(piece, collect_ends)
 
-      all_data_sep_list_len = len(all_data_sep_list)
-      if to_benchmark:
-        print("There are %d entries" % all_data_sep_list_len)
+          # all_data_sep_list = split_str(f_input)
+          if to_benchmark:
+            sep_end = time.time()
+            acc_timer((time.time() - start_sep), "Separating time: ")
 
-      print("By chunks: convert JSON, flatten the dict and write to CSV...")
-      if to_benchmark:
-        start_chunks = time.time()
-      for chunk in all_data_sep_list:        
-        if to_benchmark:
-          start_json = time.time()
-        entry = json.loads(chunk)
-        if to_benchmark:
-          json_total_time += time.time() - start_json
+          all_data_sep_list_len = len(all_data_sep_list)
+          if to_benchmark:
+            print("There are %d entries" % all_data_sep_list_len)
 
-        if to_benchmark:
-          start_get_leaves = time.time()
-        leaf_entries = flatten(entry)
-        if to_benchmark:
-          get_leaves_total_time += time.time() - start_get_leaves
+          print("By chunks: convert JSON, flatten the dict and write to CSV...")
+          if to_benchmark:
+            start_chunks = time.time()
+          for chunk in all_data_sep_list:
+            if to_benchmark:
+              start_json = time.time()
+              try:
+                entry = json.loads(chunk)
+              except:
+                print("CCC chunk")
+                print(chunk)
+                raise
+            if to_benchmark:
+              json_total_time += time.time() - start_json
 
-        if to_benchmark:
-          start_write_into_csv = time.time()
-        write_header = write_into_csv(leaf_entries, write_header)
-        if to_benchmark:
-          write_into_csv_total_time += time.time() - start_write_into_csv
+            if to_benchmark:
+              start_get_leaves = time.time()
+            leaf_entries = flatten(entry)
+            if to_benchmark:
+              get_leaves_total_time += time.time() - start_get_leaves
+
+            if to_benchmark:
+              start_write_into_csv = time.time()
+            write_header = write_into_csv(leaf_entries, write_header)
+            if to_benchmark:
+              write_into_csv_total_time += time.time() - start_write_into_csv
 
   if to_benchmark:
     acc_timer((time.time() - start_all), '---\nTotal time: ')
