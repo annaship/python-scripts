@@ -66,6 +66,7 @@ def get_args():
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
   parser.add_argument("--benchmark", "-b", action="store_false", help="Do not mesure and print time")
   parser.add_argument("--buffer_size", "-s", type=int, required=False)
+  parser.add_argument("--log_file_path", "-l", action="store_true")
 
   args = parser.parse_args()
 
@@ -107,7 +108,12 @@ if __name__ == "__main__":
   file_out = args.csv_file_out
   to_benchmark = args.benchmark
   buffer_size = args.buffer_size
-  
+  log_file_path = args.log_file_path
+
+  if log_file_path:
+      log_file_path = "/Users/ashipunova/split_json.log"
+      log_file = open(log_file_path, "a+")
+
   if to_benchmark:
     sep_total_time = 0
     json_total_time = 0
@@ -125,10 +131,18 @@ if __name__ == "__main__":
           if to_benchmark:
               all_data_sep_list_len_total += 1
 
+              if log_file_path:
+                  log_file.write("all_data_sep_list_len_total = ")
+                  log_file.write("all_data_sep_list_len_total = %d" % all_data_sep_list_len_total)
+                  log_file.write("\nstart_get_leaves\n")
+
               start_get_leaves = time.time()
           leaf_entries = flatten(data)
           if to_benchmark:
               get_leaves_total_time += time.time() - start_get_leaves
+
+          if log_file_path:
+              log_file.write("start_write_into_csv\n")
 
           if to_benchmark:
               start_write_into_csv = time.time()
