@@ -33,13 +33,6 @@ def split_short_str(input_piece, collect_ends):
   all_data_sep_list = all_data_sep_list_interim[:-1]
   return (all_data_sep_list, collect_ends)
 
-def split_str(f_input):
-  all_data1 = f_input.read()
-  rep = '}###%s{' % (os.linesep)
-  all_data_sep = all_data1.lstrip('[').rstrip(']').rstrip(',').replace('},{', rep)
-  all_data_sep_list = all_data_sep.split("###")
-  return all_data_sep_list
-
 def acc_timer(accumulated_time, msg = ""):
   hours, rem = divmod(accumulated_time, 3600)
   minutes, seconds = divmod(rem, 60)
