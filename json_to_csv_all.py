@@ -17,19 +17,18 @@ def flatten(current, key="", result={}):
     return result
 
 
-
-def json_parse(file_object, decoder = json.JSONDecoder(), buffersize = 2048):
+def json_parse(file_object, buffersize = 2048):
     """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC.
 
     taken from http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
     """
     buffer = ''
     for chunk in iter(functools.partial(file_object.read, buffersize), ''):
-        buffer += chunk
+        buffer += chunk.lstrip('[').rstrip(']').replace('},]', '}]')
         buffer = buffer.replace('},{', '}{')
         while buffer:
             try:
-                result, index = decoder.raw_decode(buffer)
+                result, index = json.JSONDecoder().raw_decode(buffer)
                 yield result
                 buffer = buffer[index:]
             except ValueError:
@@ -66,7 +65,8 @@ def get_args():
   parser.add_argument("--json_file_in", "-f", type=str, required=True)
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
   parser.add_argument("--benchmark", "-b", action="store_false", help="Do not mesure and print time")
-  
+  parser.add_argument("--buffer_size", "-s", type=int, required=False)
+
   args = parser.parse_args()
 
   return args
@@ -106,6 +106,7 @@ if __name__ == "__main__":
   file_in = args.json_file_in
   file_out = args.csv_file_out
   to_benchmark = args.benchmark
+  buffer_size = args.buffer_size
   
   if to_benchmark:
     sep_total_time = 0
@@ -117,12 +118,10 @@ if __name__ == "__main__":
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
 
-      print("Separating...")
-
       collect_ends = ""
       all_data_sep_list_len_total = 0
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
-      for data in json_parse(f_input):
+      for data in json_parse(f_input, buffer_size):
           if to_benchmark:
               start_get_leaves = time.time()
           leaf_entries = flatten(data)
@@ -148,7 +147,7 @@ if __name__ == "__main__":
 
     # acc_timer(sep_total_time, '---\nSeparating time: ')
     # acc_timer(json_total_time, 'Time converting JSON:')
-    # acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
-    # acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
+    acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
+    acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
 
   print("Done")
