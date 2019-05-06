@@ -99,13 +99,7 @@ if __name__ == "__main__":
           for chunk in all_data_sep_list:
             if to_benchmark:
               start_json = time.time()
-              try:
-                entry = json.loads(chunk)
-              except:
-                print("CCC chunk")
-                print("CCC1 ch")
-                print(chunk)
-                raise
+              entry = json.loads(chunk)
             if to_benchmark:
               json_total_time += time.time() - start_json
 
