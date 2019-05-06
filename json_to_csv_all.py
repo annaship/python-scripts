@@ -27,7 +27,6 @@ def json_parse(file_object, decoder = json.JSONDecoder(), buffersize = 2048):
     for chunk in iter(functools.partial(file_object.read, buffersize), ''):
         buffer += chunk
         buffer = buffer.replace('},{', '}{')
-            # strip(' \n')
         while buffer:
             try:
                 result, index = decoder.raw_decode(buffer)
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     get_leaves_total_time = 0
     write_into_csv_total_time = 0
 
-  with open(file_in) as f_input, open(file_out, "wt") as f_output:
+  with open(file_in, "r") as f_input, open(file_out, "wt") as f_output:
       csv_output = csv.writer(f_output, delimiter=";", quoting=csv.QUOTE_ALL)
       write_header = True
 
@@ -123,8 +122,8 @@ if __name__ == "__main__":
       collect_ends = ""
       all_data_sep_list_len_total = 0
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
-      piece = json_parse(f_input)
-      print(list(piece))
+      for data in json_parse(f_input):
+        print(data)
       #     for chunk in all_data_sep_list:
       #         write_header = process_data(chunk, write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
       # process_data(collect_ends.rstrip(','), write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
