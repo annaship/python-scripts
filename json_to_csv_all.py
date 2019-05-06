@@ -27,7 +27,7 @@ def read_in_chunks(file_object, chunk_size=1024):
 
 def split_short_str(input_piece, collect_ends):
   rep = '}###{'
-  all_data_sep = (collect_ends + input_piece).lstrip('[').rstrip(']').replace('},{', rep) # .replace('},]', '}]')
+  all_data_sep = (collect_ends + input_piece).lstrip('[').rstrip(']').replace('},{', rep).replace('},]', '}]')
   all_data_sep_list_interim = all_data_sep.split("###")
   collect_ends = all_data_sep_list_interim[-1]
   all_data_sep_list = all_data_sep_list_interim[:-1]
