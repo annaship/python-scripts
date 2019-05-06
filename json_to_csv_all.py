@@ -123,6 +123,8 @@ if __name__ == "__main__":
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
       for data in json_parse(f_input, buffer_size):
           if to_benchmark:
+              all_data_sep_list_len_total += 1
+
               start_get_leaves = time.time()
           leaf_entries = flatten(data)
           if to_benchmark:
