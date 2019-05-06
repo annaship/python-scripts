@@ -26,12 +26,11 @@ def read_in_chunks(file_object, chunk_size=1024):
         yield data
 
 def split_short_str(input_piece, collect_ends):
-  rep = '}###%s{' % (os.linesep)
-  all_data_sep = (collect_ends + input_piece).lstrip('[').rstrip(']').rstrip(',').replace('},{', rep)
+  rep = '}###{'
+  all_data_sep = (collect_ends + input_piece).lstrip('[').rstrip(']').replace('},{', rep) # .replace('},]', '}]')
   all_data_sep_list_interim = all_data_sep.split("###")
-  collect_ends = "," + all_data_sep_list_interim[-1]
-  all_data_sep_list_e = all_data_sep_list_interim[:-1]
-  all_data_sep_list = list(filter(None, all_data_sep_list_e))
+  collect_ends = all_data_sep_list_interim[-1]
+  all_data_sep_list = all_data_sep_list_interim[:-1]
   return (all_data_sep_list, collect_ends)
 
 def split_str(f_input):
@@ -111,6 +110,7 @@ if __name__ == "__main__":
                 entry = json.loads(chunk)
               except:
                 print("CCC chunk")
+                print("CCC1 ch")
                 print(chunk)
                 raise
             if to_benchmark:
