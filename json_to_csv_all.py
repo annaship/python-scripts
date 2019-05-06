@@ -68,6 +68,7 @@ if __name__ == "__main__":
   to_benchmark = args.benchmark
   
   if to_benchmark:
+    sep_total_time = 0
     json_total_time = 0
     get_leaves_total_time = 0
     write_into_csv_total_time = 0
@@ -77,19 +78,15 @@ if __name__ == "__main__":
       write_header = True
 
       print("Separating...")
-      if to_benchmark:
-        start_sep = time.time()
-        # f = open('really_big_file.dat')
       collect_ends = ""
       all_data_sep_list_len_total = 0
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
       for piece in read_in_chunks(f_input):
-          all_data_sep_list, collect_ends = split_short_str(piece, collect_ends)
-
-          # all_data_sep_list = split_str(f_input)
           if to_benchmark:
-            sep_end = time.time()
-            acc_timer((time.time() - start_sep), "Separating time: ")
+              start_sep = time.time()
+          all_data_sep_list, collect_ends = split_short_str(piece, collect_ends)
+          if to_benchmark:
+            sep_total_time += time.time() - start_sep
 
             all_data_sep_list_len_total += len(all_data_sep_list)
 
@@ -98,7 +95,7 @@ if __name__ == "__main__":
           for chunk in all_data_sep_list:
             if to_benchmark:
               start_json = time.time()
-              entry = json.loads(chunk)
+            entry = json.loads(chunk)
             if to_benchmark:
               json_total_time += time.time() - start_json
 
@@ -118,7 +115,8 @@ if __name__ == "__main__":
     print("There are %d entries" % all_data_sep_list_len_total)
     acc_timer((time.time() - start_all), '---\nTotal time: ')
 
-    acc_timer(json_total_time, '---\nTime converting JSON:')
+    acc_timer(sep_total_time, '---\nSeparating time: ')
+    acc_timer(json_total_time, 'Time converting JSON:')
     acc_timer(get_leaves_total_time, 'Time flattening the dicts:')
     acc_timer(write_into_csv_total_time, 'Time writing to CSV:')
 
