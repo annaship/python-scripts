@@ -123,7 +123,20 @@ if __name__ == "__main__":
       all_data_sep_list_len_total = 0
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
       for data in json_parse(f_input):
-        print(data)
+          if to_benchmark:
+              start_get_leaves = time.time()
+          leaf_entries = flatten(data)
+          if to_benchmark:
+              get_leaves_total_time += time.time() - start_get_leaves
+
+          if to_benchmark:
+              start_write_into_csv = time.time()
+          write_header = write_into_csv(leaf_entries, write_header)
+          if to_benchmark:
+              write_into_csv_total_time += time.time() - start_write_into_csv
+
+
+        # print(data)
       #     for chunk in all_data_sep_list:
       #         write_header = process_data(chunk, write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
       # process_data(collect_ends.rstrip(','), write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
