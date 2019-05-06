@@ -136,13 +136,6 @@ if __name__ == "__main__":
           if to_benchmark:
               write_into_csv_total_time += time.time() - start_write_into_csv
 
-
-        # print(data)
-      #     for chunk in all_data_sep_list:
-      #         write_header = process_data(chunk, write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
-      # process_data(collect_ends.rstrip(','), write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time)
-      # all_data_sep_list_len_total += 1
-
   if to_benchmark:
     print("There are %d entries" % all_data_sep_list_len_total)
     acc_timer((time.time() - start_all), '---\nTotal time: ')
