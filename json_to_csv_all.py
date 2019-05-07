@@ -9,7 +9,39 @@ import functools
 import gc
 import os
 import psutil
+from collections import namedtuple
 
+
+class Json_str(namedtuple('Json_str', ['file_object', 'buffersize'])):
+    __slots__ = ()
+
+    def json_parse(self, file_object, buffersize = 2048):
+        """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC.
+
+        taken from http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
+        """
+        buffer = ''
+        for chunk in iter(functools.partial(file_object.read, buffersize), ''):
+            if log_file_path:
+                log_file.write("\n---\nIn json_parse. Before replaces")
+                log_mem()
+            buffer += chunk.lstrip('[').rstrip(']').replace('},]', '}]').strip(' \n')
+            buffer = buffer.replace('},{', '}{')
+
+            while buffer:
+                if log_file_path:
+                    log_file.write("\nIn json_parse. Before raw_decode")
+                    log_mem()
+                try:
+                    result, index = json.JSONDecoder().raw_decode(buffer)
+                    yield result
+                    buffer = buffer[index:]
+                    if log_file_path:
+                        log_file.write("\nIn json_parse. After raw_decode")
+                        log_mem()
+                except ValueError:
+                    # Not enough data to decode, read more
+                    break
 
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
@@ -20,34 +52,19 @@ def flatten(current, key="", result={}):
         result[key] = current
     return result
 
+def write_into_csv(leaf_entries, write_header):
+    if write_header:
+        row = [k for k, v in leaf_entries.items()]
+        csv_output.writerow(row)
+        write_header = False
 
-def json_parse(file_object, buffersize = 2048):
-    """ Small function to parse a file containing JSON objects separated by a new line. This format is used in the live-rundata-xx.json files produces by SMAC.
+    csv_output.writerow([v for k, v in leaf_entries.items()])
+    if log_file_path:
+        log_file.write("\nIn write_into_csv. After writerow")
+        log_mem()
 
-    taken from http://stackoverflow.com/questions/21708192/how-do-i-use-the-json-module-to-read-in-one-json-object-at-a-time/21709058#21709058
-    """
-    buffer = ''
-    for chunk in iter(functools.partial(file_object.read, buffersize), ''):
-        if log_file_path:
-            log_file.write("\n---\nIn json_parse. Before replaces")
-            log_mem()
-        buffer += chunk.lstrip('[').rstrip(']').replace('},]', '}]').strip(' \n')
-        buffer = buffer.replace('},{', '}{')
+    return write_header
 
-        while buffer:
-            if log_file_path:
-                log_file.write("\nIn json_parse. Before raw_decode")
-                log_mem()
-            try:
-                result, index = json.JSONDecoder().raw_decode(buffer)
-                yield result
-                buffer = buffer[index:]
-                if log_file_path:
-                    log_file.write("\nIn json_parse. After raw_decode")
-                    log_mem()
-            except ValueError:
-                # Not enough data to decode, read more
-                break
 
 def acc_timer(accumulated_time, msg = ""):
   hours, rem = divmod(accumulated_time, 3600)
@@ -68,24 +85,6 @@ def get_args():
   args = parser.parse_args()
 
   return args
-
-def write_into_csv(leaf_entries, write_header):
-  if write_header:
-      row = [k for k, v in leaf_entries.items()]
-      csv_output.writerow(row)
-      write_header = False
-
-  csv_output.writerow([v for k, v in leaf_entries.items()])
-  if log_file_path:
-      log_file.write("\nIn write_into_csv. After writerow")
-      log_mem()
-  gc.collect()
-
-  if log_file_path:
-      log_file.write("\nIn write_into_csv. After gc.collect()")
-      log_mem()
-
-  return write_header
 
 def log_mem():
     process = psutil.Process(os.getpid())
@@ -131,7 +130,8 @@ if __name__ == "__main__":
       collect_ends = ""
       all_data_sep_list_len_total = 0
       print("By chunks: separate, convert JSON, flatten the dict and write to CSV...")
-      for data in json_parse(f_input, buffer_size):
+      json_obj = Json_str(f_input, buffer_size)
+      for data in json_obj.json_parse(f_input, buffer_size):
           if to_benchmark:
               all_data_sep_list_len_total += 1
 
