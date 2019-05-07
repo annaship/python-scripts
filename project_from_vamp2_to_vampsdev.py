@@ -53,12 +53,14 @@ class dbUpload:
         self.metadata_info = defaultdict(dict)
 
     def wrtie_insert_to_file(self, file_insert, sql2_insert, rows):
-        with open(file_insert, "w") as f_insert:
+        with open(file_insert, "wb") as f_insert:
             for row in rows:
                 data = sql2_insert % row
-                f_insert.write(data)
+                f_insert.write(data.encode())
 
-    def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = ""):
+    def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
+        if chunk_num is None:
+            chunk_num = 0
         sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
             mysql_utils_in.cursor.execute(sql1_select)
@@ -106,6 +108,17 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
+    def part_dump_to_file(self, table_name, host_names, db_names, where_clause = "", file_out_name):
+        if (where_clause):
+            where_clause = "--where='%s'" % where_clause
+
+        dump_command = 'mysqldump -h %s %s %s %s | gzip > %s' % (host_names[0], db_names[0], table_name, where_clause,
+                                                                      file_out_name)
+        res = subprocess.check_output(dump_command,
+                                    stderr = subprocess.STDOUT,
+                                    shell = True)
+        print(res)
+        
     def split_long_lists(self, my_list, chunk_size=None):
         if chunk_size is None:
             chunk_size = const.chunk_size
@@ -258,7 +271,7 @@ class dbUpload:
 
             where_part = "WHERE %s in (%s)" % (id_name, chunk_str)
             utils.print_both("Dump %s, %d" % (table_name, n + 1))
-            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
+            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part, chunk_num = n)
             # utils.print_both("Inserted %d" % (rowcount))
 
 
