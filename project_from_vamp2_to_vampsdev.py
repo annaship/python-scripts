@@ -3,6 +3,8 @@ import os
 import time
 import logging
 import subprocess
+import argparse
+
 
 logger = logging.getLogger('')
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
@@ -50,6 +52,12 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
+    def wrtie_insert_to_file(self, file_insert, sql2_insert, rows):
+        with open(file_insert, "w") as f_insert:
+            for row in rows:
+                data = sql2_insert % row
+                f_insert.write(data)
+
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = ""):
         sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
@@ -65,7 +73,8 @@ class dbUpload:
             duplicate_update_part = ", ".join(duplicate_update_part_list)
 
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
-
+            file_insert = "/Users/ashipunova/file_insert.%s.sql" % table_name
+            self.wrtie_insert_to_file(file_insert, sql2_insert, rows)
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
@@ -489,9 +498,23 @@ class Constant:
             }
         }
 
+def get_args():
+  parser = argparse.ArgumentParser()
+
+  parser.add_argument("--file_out", "-f", type=str, required=False)
+  parser.add_argument("--host_in", "-hi", type=str, required=False)
+  parser.add_argument("--host_out", "-ho", type=str, required=False)
+  parser.add_argument("--db_in", "-di", type=str, required=False)
+  parser.add_argument("--db_out", "-do", type=str, required=False)
+
+  args = parser.parse_args()
+
+  return args
 
 if __name__ == '__main__':
     utils = util.Utils()
+    args = get_args()
+    file_out_name = args.file_out
 
     const = Constant()
 
