@@ -7,6 +7,9 @@ import csv
 import json
 import functools
 import gc
+import os
+import psutil
+
 
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
@@ -25,34 +28,26 @@ def json_parse(file_object, buffersize = 2048):
     """
     buffer = ''
     for chunk in iter(functools.partial(file_object.read, buffersize), ''):
+        if log_file_path:
+            log_file.write("\n---\nIn json_parse. Before replaces")
+            log_mem()
         buffer += chunk.lstrip('[').rstrip(']').replace('},]', '}]').strip(' \n')
         buffer = buffer.replace('},{', '}{')
+
         while buffer:
+            if log_file_path:
+                log_file.write("\nIn json_parse. Before raw_decode")
+                log_mem()
             try:
                 result, index = json.JSONDecoder().raw_decode(buffer)
                 yield result
                 buffer = buffer[index:]
+                if log_file_path:
+                    log_file.write("\nIn json_parse. After raw_decode")
+                    log_mem()
             except ValueError:
                 # Not enough data to decode, read more
                 break
-
-
-def read_in_chunks(file_object, chunk_size=1024):
-    """Lazy function (generator) to read a file piece by piece.
-    Default chunk size: 1k."""
-    while True:
-        data = file_object.read(chunk_size)
-        if not data:
-            break
-        yield data
-
-def split_short_str(input_piece, collect_ends):
-  rep = '}###{'
-  all_data_sep = (collect_ends + input_piece).lstrip('[').rstrip(']').replace('},{', rep).replace('},]', '}]')
-  all_data_sep_list_interim = all_data_sep.split("###")
-  collect_ends = all_data_sep_list_interim[-1]
-  all_data_sep_list = all_data_sep_list_interim[:-1]
-  return (all_data_sep_list, collect_ends)
 
 def acc_timer(accumulated_time, msg = ""):
   hours, rem = divmod(accumulated_time, 3600)
@@ -67,7 +62,8 @@ def get_args():
   parser.add_argument("--csv_file_out", "-o", type=str, required=True)
   parser.add_argument("--benchmark", "-b", action="store_false", help="Do not mesure and print time")
   parser.add_argument("--buffer_size", "-s", type=int, required=False)
-  parser.add_argument("--log_file_path", "-l", action="store_true")
+  parser.add_argument("--log_file_path", "-l", type=str, required=False)
+                      # , action="store_true")
 
   args = parser.parse_args()
 
@@ -80,11 +76,30 @@ def write_into_csv(leaf_entries, write_header):
       write_header = False
 
   csv_output.writerow([v for k, v in leaf_entries.items()])
+  if log_file_path:
+      log_file.write("\nIn write_into_csv. After writerow")
+      log_mem()
   gc.collect()
+
+  if log_file_path:
+      log_file.write("\nIn write_into_csv. After gc.collect()")
+      log_mem()
+
   return write_header
+
+def log_mem():
+    process = psutil.Process(os.getpid())
+    log_file.write("\nmemory_info: ")
+    mem_mb = process.memory_info().rss / 1024 / 1024
+    log_file.write(str(mem_mb))  # in Mbytes
+
+    memory_dict = dict(psutil.virtual_memory()._asdict())
+    log_file.write("\nmemory used: ")
+    log_file.write(str(memory_dict['used']  / 1024 / 1024 ))
 
 if __name__ == "__main__":
   start_all = time.time()
+  __slots__ = ()
   
   args = get_args()
   file_in = args.json_file_in
@@ -94,9 +109,14 @@ if __name__ == "__main__":
   log_file_path = args.log_file_path
 
   if log_file_path:
-      log_file_path = "/Users/ashipunova/split_json.log"
+      # log_file_path = "/Users/ashipunova/split_json.log"
       log_file = open(log_file_path, "a+")
-      # log_file.write("buffer_size = %d" % buffer_size) % TypeError: %d format: a number is required, not NoneType
+      memory_dict = dict(psutil.virtual_memory()._asdict())
+      log_file.write("\nBefore start memory info in MB: ")
+      for k,v in memory_dict.items():
+          in_mb = v / 1024 / 1024
+          msg = "\n%s: %d" % (k, in_mb)
+          log_file.write(msg)
 
   if to_benchmark:
     sep_total_time = 0
@@ -116,8 +136,9 @@ if __name__ == "__main__":
               all_data_sep_list_len_total += 1
 
               if log_file_path:
-                  log_file.write("\nall_data_sep_list_len_total = %d" % all_data_sep_list_len_total)
-                  log_file.write("\nstart_get_leaves\n")
+                  log_file.write("\n\nEntry # %d" % all_data_sep_list_len_total)
+                  log_file.write("\nFlattening...")
+                  log_mem()
 
               start_get_leaves = time.time()
           leaf_entries = flatten(data)
@@ -125,9 +146,10 @@ if __name__ == "__main__":
               get_leaves_total_time += time.time() - start_get_leaves
               if log_file_path:
                   log_file.write("\nget_leaves_total_time = %d" % get_leaves_total_time)
+                  log_mem()
 
           if log_file_path:
-              log_file.write("\nstart_write_into_csv\n")
+              log_file.write("\n\nstart_write_into_csv")
 
           if to_benchmark:
               start_write_into_csv = time.time()
@@ -136,6 +158,7 @@ if __name__ == "__main__":
               write_into_csv_total_time += time.time() - start_write_into_csv
               if log_file_path:
                   log_file.write("\nwrite_into_csv_total_time = %d" % write_into_csv_total_time)
+                  log_mem()
 
   if to_benchmark:
     print("There are %d entries" % all_data_sep_list_len_total)
