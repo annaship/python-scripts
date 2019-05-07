@@ -75,8 +75,9 @@ class dbUpload:
             duplicate_update_part = ", ".join(duplicate_update_part_list)
 
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
-            file_insert = "/Users/ashipunova/file_insert.%s.sql" % table_name
-            self.wrtie_insert_to_file(file_insert, sql2_insert, rows)
+            file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
+            self.part_dump_to_file(table_name, host_in, db_in, where_part, file_out_name)
+            # self.wrtie_insert_to_file(file_insert, sql2_insert, rows)
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
@@ -108,17 +109,17 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
-    def part_dump_to_file(self, table_name, host_names, db_names, where_clause = "", file_out_name):
+    def part_dump_to_file(self, table_name, in_host_name, in_db_name, where_clause = "", file_out_name = ""):
         if (where_clause):
-            where_clause = "--where='%s'" % where_clause
+            where_clause = "--where='%s'" % where_clause.lstrip("WHERE")
 
-        dump_command = 'mysqldump -h %s %s %s %s | gzip > %s' % (host_names[0], db_names[0], table_name, where_clause,
+        dump_command = 'mysqldump -h %s %s %s %s | gzip > %s' % (in_host_name, in_db_name, table_name, where_clause,
                                                                       file_out_name)
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
-        print(res)
-        
+        # print(res)
+
     def split_long_lists(self, my_list, chunk_size=None):
         if chunk_size is None:
             chunk_size = const.chunk_size
