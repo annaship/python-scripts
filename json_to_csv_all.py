@@ -6,6 +6,7 @@ import time
 import csv
 import json
 import functools
+import gc
 
 def flatten(current, key="", result={}):
     if isinstance(current, dict):
@@ -79,26 +80,8 @@ def write_into_csv(leaf_entries, write_header):
       write_header = False
 
   csv_output.writerow([v for k, v in leaf_entries.items()])
+  gc.collect()
   return write_header
-
-def process_data(chunk, write_header, json_total_time, get_leaves_total_time, write_into_csv_total_time):
-    if to_benchmark:
-        start_json = time.time()
-    entry = json.loads(chunk)
-    if to_benchmark:
-        json_total_time += time.time() - start_json
-
-    if to_benchmark:
-        start_get_leaves = time.time()
-    leaf_entries = flatten(entry)
-    if to_benchmark:
-        get_leaves_total_time += time.time() - start_get_leaves
-
-    if to_benchmark:
-        start_write_into_csv = time.time()
-    write_header = write_into_csv(leaf_entries, write_header)
-    if to_benchmark:
-        write_into_csv_total_time += time.time() - start_write_into_csv
 
 if __name__ == "__main__":
   start_all = time.time()
