@@ -57,7 +57,6 @@ class dbUpload:
             rows = mysql_utils_in.cursor.fetchall()
             sql2_insert = "INSERT INTO %s (%s)" % (table_name, fields_str)
             fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
-            # sql2 = sql2 + " values (%s, %s, %s, %s)"
             sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
 
             duplicate_update_part_list = []
@@ -238,7 +237,9 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
 
-    def insert_long_table_info(self, id_list, table_obj):
+    def insert_long_table_info(self, id_list, table_obj, id_name = None):
+        if id_name is None:
+            id_name = table_obj["id_name"]
         all_chunks = self.split_long_lists(id_list)
         table_name = table_obj["table_name"]
         fields_str = table_obj["fields_str"]
@@ -246,18 +247,20 @@ class dbUpload:
         for n, chunk in enumerate(all_chunks):
             chunk_str = utils.make_quoted_str(chunk)
 
-            where_part = "WHERE %s in (%s)" % (table_obj["id_name"], chunk_str)
+            where_part = "WHERE %s in (%s)" % (id_name, chunk_str)
             utils.print_both("Dump %s, %d" % (table_name, n + 1))
             rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
-            utils.print_both("Inserted %d" % (rowcount))
+            # utils.print_both("Inserted %d" % (rowcount))
 
 
     def call_insert_long_tables_info(self):
         self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
         self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data)
         self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data)
-        # sequence_uniq_info self.sequence_uniq_info_ids
-        # rdp_taxonomy self.rdp_taxonomy_id_ids
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, "sequence_id")
+        self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data)
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, "sequence_id")
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, "sequence_id")
 
 class Dataset:
 
@@ -403,6 +406,8 @@ class Taxonomy(LongTables):
                                  "sequence_uniq_info"]
 
         self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
+        self.long_tax_tables = ["silva_taxonomy", "silva_taxonomy_info_per_seq", "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
+                                 "sequence_uniq_info"]
 
         self.get_ids()
         self.silva_taxonomy_table_data = self.get_table_data("silva_taxonomy")
@@ -427,8 +432,9 @@ class Taxonomy(LongTables):
 
         what_to_select = "rdp_taxonomy_id"
         from_table_name = "rdp_taxonomy_info_per_seq"
-        self.rdp_taxonomy_id_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
-
+        self.rdp_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
+        self.rdp_taxonomy_ids_list = [x[0] for x in self.rdp_taxonomy_ids[0]]
+        self.rdp_taxonomy_str = utils.make_quoted_str(self.rdp_taxonomy_ids_list)
 
     def get_all_ids_from_db(self, what_to_select, from_table_name, where_id_name, where_id_str):
         all_ids_sql = """SELECT %s FROM %s
