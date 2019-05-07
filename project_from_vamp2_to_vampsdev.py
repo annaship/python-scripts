@@ -405,7 +405,11 @@ class Taxonomy(LongTables):
         self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
 
         self.get_ids()
-
+        self.silva_taxonomy_table_data = self.get_table_data("silva_taxonomy")
+        self.silva_taxonomy_info_per_seq_table_data = self.get_table_data("silva_taxonomy_info_per_seq")
+        self.rdp_taxonomy_table_data = self.get_table_data("rdp_taxonomy")
+        self.rdp_taxonomy_info_per_seq_table_data = self.get_table_data("rdp_taxonomy_info_per_seq")
+        self.sequence_uniq_info_table_data = self.get_table_data("sequence_uniq_info")
 
     def get_ids(self):
         where_id_name = "sequence_id"
@@ -420,8 +424,6 @@ class Taxonomy(LongTables):
         self.silva_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
         self.silva_taxonomy_ids_list = [x[0] for x in self.silva_taxonomy_ids[0]]
         self.silva_taxonomy_str = utils.make_quoted_str(self.silva_taxonomy_ids_list)
-
-
 
         what_to_select = "rdp_taxonomy_id"
         from_table_name = "rdp_taxonomy_info_per_seq"
