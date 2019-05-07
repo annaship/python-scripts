@@ -25,7 +25,7 @@ def json_parse(file_object, buffersize = 2048):
     """
     buffer = ''
     for chunk in iter(functools.partial(file_object.read, buffersize), ''):
-        buffer += chunk.lstrip('[').rstrip(']').replace('},]', '}]')
+        buffer += chunk.lstrip('[').rstrip(']').replace('},]', '}]').strip(' \n')
         buffer = buffer.replace('},{', '}{')
         while buffer:
             try:
