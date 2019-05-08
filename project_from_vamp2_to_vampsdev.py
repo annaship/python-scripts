@@ -40,7 +40,7 @@ class dbUpload:
 
     """
 
-    def __init__(self, project_obj = None, db_name = None):
+    def __init__(self, project_obj = None, db_name = None, ):
 
         self.db_name = db_name
         self.utils = util.Utils()
@@ -69,8 +69,10 @@ class dbUpload:
             duplicate_update_part = ", ".join(duplicate_update_part_list)
 
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
-            file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
-            self.part_dump_to_file(table_name, host_in, db_in, where_part, file_out_name)
+            if file_out_name:
+                # file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
+                file_out_name += file_out_name + ".%s.%s.sql" % (table_name, chunk_num)
+                self.part_dump_to_file(table_name, host_in, db_in, where_part, file_out_name, "no_drop")
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
@@ -102,11 +104,15 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
-    def part_dump_to_file(self, table_name, in_host_name, in_db_name, where_clause = "", file_out_name = ""):
+    def part_dump_to_file(self, table_name, in_host_name, in_db_name, where_clause = "", file_out_name = "", no_drop = ""):
         if (where_clause):
             where_clause = "--where='%s'" % where_clause.lstrip("WHERE")
 
-        dump_command = 'mysqldump -h %s %s %s %s | gzip > %s' % (in_host_name, in_db_name, table_name, where_clause,
+        if (no_drop):
+            no_drop = "--skip-add-drop-table"
+
+        dump_command = 'mysqldump -h %s %s %s %s %s | gzip > %s' % (in_host_name, in_db_name, table_name, where_clause,
+                                                                    no_drop,
                                                                       file_out_name)
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
@@ -244,11 +250,16 @@ class dbUpload:
     # def insert_run_info(self):
     #     run_info_obj.run_info_t_dict[0].values()
 
-    def insert_metadata_info_and_short_tables(self):
+    def insert_metadata_info_and_short_tables(self, file_out_name = None):
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
-            self.table_dump(table_name, [host_in, host_out], [db_in, db_out])
+            if file_out_name:
+                file_out_name += file_out_name + ".%s.sql" % (table_name)
+                self.part_dump_to_file(table_name, host_in, db_in, None, file_out_name)
+            else:
+                self.table_dump(table_name, [host_in, host_out], [db_in, db_out])
 
+        # TODO:             if file_out_name:
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
@@ -269,7 +280,7 @@ class dbUpload:
             # utils.print_both("Inserted %d" % (rowcount))
 
 
-    def call_insert_long_tables_info(self):
+    def call_insert_long_tables_info(self, file_out_name):
         self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
         self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data)
         self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data)
@@ -521,7 +532,12 @@ def get_args():
 if __name__ == '__main__':
     utils = util.Utils()
     args = get_args()
-    file_out_name = args.file_out
+    if args:
+        file_out_name = args.file_out
+        user_host_in = args.host_in
+        user_host_out = args.host_out
+        user_db_in = args.db_in
+        user_db_out = args.db_out
 
     const = Constant()
 
@@ -568,11 +584,11 @@ if __name__ == '__main__':
     run_info_obj = Run_info()
 
     # TODO: restore! Commented for testing
-    # upl.insert_metadata_info_and_short_tables()
+    upl.insert_metadata_info_and_short_tables(file_out_name)
     sequence_obj = Seq(project_obj.project_id)
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
     # TODO: restore! Commented for testing
-    upl.call_insert_long_tables_info()
+    upl.call_insert_long_tables_info(file_out_name)
 
 
 
