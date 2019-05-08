@@ -27,7 +27,8 @@ except ImportError:
         import MySQLdb as mysql
 
 
-class Connection:
+class Current_connection:
+
     def __init__(self, args = None):
         # utils = util.Utils()
         # const = Constant()
@@ -39,10 +40,10 @@ class Connection:
 
         self.db_info_dict = self.get_db_info_dict()
 
-        self.mysql_utils_in = util.Mysql_util(host = db_info_dict["host_in"], db = db_info_dict["db_in"],
-                                                         read_default_group = db_info_dict["read_default_group"])
-        self.mysql_utils_out = util.Mysql_util(host = db_info_dict["host_out"], db = db_info_dict["db_out"],
-                                                          read_default_group = db_info_dict["read_default_group"])
+        self.mysql_utils_in = util.Mysql_util(host = self.db_info_dict["host_in"], db = self.db_info_dict["db_in"],
+                                                         read_default_group = self.db_info_dict["read_default_group"])
+        self.mysql_utils_out = util.Mysql_util(host = self.db_info_dict["host_out"], db = self.db_info_dict["db_out"],
+                                                          read_default_group = self.db_info_dict["read_default_group"])
 
 
     def get_db_info_dict(self):
@@ -90,29 +91,31 @@ class dbUpload:
 
     """
 
-    def __init__(self, db_info_dict, project_obj = None):
+    def __init__(self, project_obj, curr_connection):
 
-        self.utils = util.Utils()
+        # self.utils = util.Utils()
         self.project_obj = project_obj
         self.project_id = self.project_obj.project_id
 
-        self.db_marker = "vamps2"
+        self.db_marker = curr_connection["in_marker"]
         self.table_names = const.table_names_dict[self.db_marker]
 
         self.metadata_info = defaultdict(dict)
 
-        self.host_in = db_info_dict["host_in"]
-        self.db_in = db_info_dict["db_in"]
-        self.host_out = db_info_dict["host_out"]
-        self.db_out = db_info_dict["db_out"]
+        self.host_in = curr_connection.db_info_dict["host_in"]
+        self.db_in = curr_connection.db_info_dict["db_in"]
+        self.host_out = curr_connection.db_info_dict["host_out"]
+        self.db_out = curr_connection.db_info_dict["db_out"]
+
+        self.mysql_utils_in = curr_connection.mysql_utils_in
 
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
         if chunk_num is None:
             chunk_num = 0
         sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
-            mysql_utils_in.cursor.execute(sql1_select)
-            rows = mysql_utils_in.cursor.fetchall()
+            self.mysql_utils_in.cursor.execute(sql1_select)
+            rows = self.mysql_utils_in.cursor.fetchall()
             sql2_insert = "INSERT INTO %s (%s)" % (table_name, fields_str)
             fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
             sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
@@ -278,7 +281,7 @@ class dbUpload:
 
 class Dataset:
 
-    def __init__(self, project_id = None):
+    def __init__(self, project_id, curr_connection):
         self.project_id = project_id
         self.db_marker = "vamps2"
         self.table_names = const.table_names_dict[self.db_marker]
@@ -309,29 +312,30 @@ class Dataset:
 
 class Project:
 
-    def __init__(self, project = None):
+    def __init__(self, project, curr_conn_obj):
         self.project = project
+        self.mysql_utils_in = curr_conn_obj.mysql_utils_in
         self.get_project_id()
 
     def get_project_id(self):
         project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
-        res = mysql_utils_in.execute_fetch_select_to_dict(project_sql)
+        res = self.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         self.project_id = res[0]['project_id']
 
     def get_project_info(self):
         # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
         project_sql = "SELECT distinct * FROM project where project = '%s' limit 1" % (self.project)
-        project_info = mysql_utils_in.execute_fetch_select_to_dict(project_sql)
+        project_info = self.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
 class Run_info:
-    def __init__(self):
+    def __init__(self, curr_conn_obj):
         # upl
         self.run_info_t_dict = self.get_run_info()
         self.run_info_by_dataset_id = self.convert_run_info_to_dict_by_dataset_id()
         self.used_run_info_id_list = self.get_used_run_info_ids()
         self.used_run_info_id_str = utils.make_quoted_str(self.used_run_info_id_list)
-
+        self.mysql_utils_in = curr_conn_obj.mysql_utils_in
 
     def get_run_info(self):
         my_sql = """SELECT * FROM run_info_ill
@@ -345,7 +349,7 @@ class Run_info:
                     ;
         """ % (dataset_obj.dataset_ids_string)
 
-        rows = mysql_utils_in.execute_fetch_select_to_dict(my_sql)
+        rows = self.mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
 
     def convert_run_info_to_dict_by_dataset_id(self):
@@ -525,14 +529,12 @@ if __name__ == '__main__':
         file_out_name = args.file_out
 
     const = Constant()
-    curr_conn = Connection(args)
-
-    db_info_dict = curr_conn.db_info_dict
+    curr_conn_obj = Current_connection(args)
 
     if args.project_name:
         project = args.project_name
 
-    project_obj = Project(project)
+    project_obj = Project(project, curr_conn_obj)
     project_info = project_obj.get_project_info()
     
     dataset_obj = Dataset(project_obj.project_id)
@@ -540,13 +542,13 @@ if __name__ == '__main__':
     user_id = project_info['owner_user_id']
     # user_obj = User(user_id)
 
-    upl = dbUpload(db_info_dict, project_obj) #TODO: don't send, it's available already. Make it clear
+    upl = dbUpload(project_obj, curr_conn_obj)
 
-    run_info_obj = Run_info()
+    run_info_obj = Run_info(curr_conn_obj)
 
     # TODO: restore! Commented for testing
     if file_out_name:
-        upl.dump_metadata_info_and_short_tables(file_out_name, db_info_dict)
+        upl.dump_metadata_info_and_short_tables(file_out_name, curr_conn_obj)
     else:
         upl.insert_metadata_info_and_short_tables()
 
@@ -554,8 +556,6 @@ if __name__ == '__main__':
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
     # TODO: restore! Commented for testing
     upl.call_insert_long_tables_info(file_out_name)
-
-
 
     utils.print_both("project_id = %s" % upl.project_id)
 
