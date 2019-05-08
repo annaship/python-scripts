@@ -52,12 +52,6 @@ class dbUpload:
 
         self.metadata_info = defaultdict(dict)
 
-    def wrtie_insert_to_file(self, file_insert, sql2_insert, rows):
-        with open(file_insert, "wb") as f_insert:
-            for row in rows:
-                data = sql2_insert % row
-                f_insert.write(data.encode())
-
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
         if chunk_num is None:
             chunk_num = 0
@@ -77,7 +71,6 @@ class dbUpload:
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
             file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
             self.part_dump_to_file(table_name, host_in, db_in, where_part, file_out_name)
-            # self.wrtie_insert_to_file(file_insert, sql2_insert, rows)
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
@@ -118,7 +111,7 @@ class dbUpload:
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
-        # print(res)
+        return res
 
     def split_long_lists(self, my_list, chunk_size=None):
         if chunk_size is None:
