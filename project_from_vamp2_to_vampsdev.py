@@ -27,6 +27,56 @@ except ImportError:
         import MySQLdb as mysql
 
 
+class Connection:
+    def __init__(self, args = None):
+        # utils = util.Utils()
+        # const = Constant()
+        self.args = args
+
+        self.in_marker = "vamps2"
+        self.out_marker = "vampsdev"
+        self.local_marker = "all_local"
+
+        self.db_info_dict = self.get_db_info_dict()
+
+        self.mysql_utils_in = util.Mysql_util(host = db_info_dict["host_in"], db = db_info_dict["db_in"],
+                                                         read_default_group = db_info_dict["read_default_group"])
+        self.mysql_utils_out = util.Mysql_util(host = db_info_dict["host_out"], db = db_info_dict["db_out"],
+                                                          read_default_group = db_info_dict["read_default_group"])
+
+
+    def get_db_info_dict(self):
+        db_info_dict = {}
+        if (utils.is_local() == True):
+            db_info_dict["host_in"] = const.db_cnf['all_local'][self.in_marker]['host']
+            db_info_dict["host_out"] = const.db_cnf['all_local'][self.out_marker]['host']
+
+            db_info_dict["db_in"] = const.db_cnf['all_local'][self.in_marker]['db']
+            db_info_dict["db_out"] = const.db_cnf['all_local'][self.out_marker]['db']
+
+            db_info_dict["read_default_group"] = "clienthome"
+
+        else:
+            db_info_dict["host_in"] = const.db_cnf['vamps2']['production']['host']  # "vampsdb"
+            db_info_dict["host_out"] = const.db_cnf['vamps2']['development']['host']  # "vampsdev"
+
+            db_info_dict["db_in"] = "vamps2"
+            db_info_dict["db_out"] = "vamps2"
+
+            db_info_dict["read_default_group"] = "client"
+
+        if self.args.host_in:
+            db_info_dict["host_in"] = self.args.host_in
+        if self.args.host_out:
+            db_info_dict["host_out"] = self.args.host_out
+        if self.args.db_in:
+            db_info_dict["db_in"] = self.args.db_in
+        if self.args.db_out:
+            db_info_dict["db_out"] = self.args.db_out
+
+        return db_info_dict
+
+
 class dbUpload:
     Name = "dbUpload"
     """
@@ -40,9 +90,8 @@ class dbUpload:
 
     """
 
-    def __init__(self, project_obj = None, db_name = None, ):
+    def __init__(self, db_info_dict, project_obj = None):
 
-        self.db_name = db_name
         self.utils = util.Utils()
         self.project_obj = project_obj
         self.project_id = self.project_obj.project_id
@@ -51,6 +100,11 @@ class dbUpload:
         self.table_names = const.table_names_dict[self.db_marker]
 
         self.metadata_info = defaultdict(dict)
+
+        self.host_in = db_info_dict["host_in"]
+        self.db_in = db_info_dict["db_in"]
+        self.host_out = db_info_dict["host_out"]
+        self.db_out = db_info_dict["db_out"]
 
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
         if chunk_num is None:
@@ -72,7 +126,7 @@ class dbUpload:
             if file_out_name:
                 # file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
                 file_out_name += file_out_name + ".%s.%s.sql" % (table_name, chunk_num)
-                self.part_dump_to_file(table_name, host_in, db_in, where_part, file_out_name, "no_drop")
+                self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 mysql_utils_out.conn.commit()
@@ -85,7 +139,7 @@ class dbUpload:
 
         return rowcount
 
-    def table_dump(self, table_name, host_names, db_names, where_clause = ""):
+    def table_dump(self, table_name, where_clause = ""):
         """
         :param table_name: "run"
         :param host_names: [in, out]
@@ -97,23 +151,23 @@ class dbUpload:
         if (where_clause):
             where_clause = "--where='%s'" % where_clause
 
-        dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (host_names[0], db_names[0], table_name, where_clause,
-                                                                      host_names[1], db_names[1])
+        dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (self.host_in, self.db_in, table_name, where_clause,
+                                                                      self.host_out, self.db_out)
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
         self.test_dump_result(res)
 
-    def part_dump_to_file(self, table_name, in_host_name, in_db_name, where_clause = "", file_out_name = "", no_drop = ""):
+    def part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
         if (where_clause):
             where_clause = "--where='%s'" % where_clause.lstrip("WHERE")
 
         if (no_drop):
             no_drop = "--skip-add-drop-table"
 
-        dump_command = 'mysqldump -h %s %s %s %s %s | gzip > %s' % (in_host_name, in_db_name, table_name, where_clause,
+        dump_command = 'mysqldump -h %s %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
                                                                     no_drop,
-                                                                      file_out_name)
+                                                                    file_out_name)
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
@@ -178,91 +232,24 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
-    # def insert_one_full_value(self, table_name, info_data):
-    #     fields_str = "%s" % (", ".join(utils.convert_each_to_str(info_data.keys())))
-    #
-    #     vals_list = utils.convert_each_to_str(info_data.values())
-    #     vals_str = "('%s')" % ("', '".join(vals_list))
-    #
-    #     templ = self.make_sql_for_groups(table_name, fields_str)
-    #
-    #     res = mysql_utils_out.execute_no_fetch(templ % vals_str)
-    #     return res
-
-    # def insert_multiple_values(self, table_name, fields_str, values_matrix):
-    #     all_vals = []
-    #     for row in values_matrix:
-    #         vals_list = utils.convert_each_to_str(row)
-    #         vals_str = "('%s')" % ("', '".join(vals_list))
-    #         all_vals.append(vals_str)
-    #
-    #     dataset_values = ", ".join(all_vals)
-    #     my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
-    #
-    #     return mysql_utils_out.execute_no_fetch(my_sql)
-
-
-    # def get_run(self, run_info_obj):
-    #     return set([(entry['run_id'], entry['run'], entry['run_prefix'], entry['date_trimmed'], entry['run.platform']) for entry in run_info_obj.run_info_t_dict])
-
-    # def insert_rundate(self, run_info_obj):
-    #     # TODO: do like project, all at once
-    #     run_vals = []
-    #     run_rows = self.get_run(run_info_obj)
-    #     for row in run_rows:
-    #         run_str = '", "'.join(utils.convert_each_to_str(row))
-    #         run_vals.append('("%s")' % run_str)
-    #
-    #     table_name = "run"
-    #     fields_str = 'run_id, run, run_prefix, date_trimmed, platform'
-    #     my_sql = self.make_insert_template(table_name, fields_str, ', '.join(run_vals))
-    #     mysql_utils_out.execute_no_fetch(my_sql)
-    #
-    # def insert_dataset(self):
-    #     fields_str = ", ".join(dataset_obj.dataset_fields_list)
-    #     all_vals = []
-    #     for row in dataset_obj.dataset_info[0]:
-    #         vals_list = utils.convert_each_to_str(row)
-    #         vals_str = "('%s')" % ("', '".join(vals_list))
-    #         all_vals.append(vals_str)
-    #
-    #     table_name = "dataset"
-    #     dataset_values = ", ".join(all_vals)
-    #     my_sql = self.make_sql_for_groups(table_name, fields_str)  % dataset_values
-    #
-    #     return mysql_utils_out.execute_no_fetch(my_sql)
-
-    # def convert_env_sample_source(self, env_sample_source):
-    #     if (env_sample_source == "miscellaneous_natural_or_artificial_environment"):
-    #         env_sample_source_replaced = "miscellaneous"
-    #     else:
-    #         env_sample_source_replaced = env_sample_source.replace("_", " ")
-    #     return env_sample_source_replaced
-    #
-    # def insert_run_keys(self, run_info_obj):
-    #     run_keys = set([entry['run_key'] for entry in run_info_obj.run_info_t_dict])
-    #     self.insert_bulk_data('run_key', run_keys)
-
-    # def insert_dna_regions(self, run_info_obj):
-    #     dna_regions = set([entry['dna_region'] for entry in run_info_obj.run_info_t_dict])
-    #     self.insert_bulk_data('dna_region', dna_regions)
-
-    # def insert_run_info(self):
-    #     run_info_obj.run_info_t_dict[0].values()
-
-    def insert_metadata_info_and_short_tables(self, file_out_name = None):
+    def dump_metadata_info_and_short_tables(self, file_out_name):
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
-            if file_out_name:
-                file_out_name += file_out_name + ".%s.sql" % (table_name)
-                self.part_dump_to_file(table_name, host_in, db_in, None, file_out_name)
-            else:
-                self.table_dump(table_name, [host_in, host_out], [db_in, db_out])
+            file_out_name += file_out_name + ".%s.sql" % (table_name)
+            self.part_dump_to_file(table_name, "", file_out_name)
 
-        # TODO:             if file_out_name:
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
         utils.print_both("Dump %s" % custom_metadata_table_name)
-        self.table_dump(custom_metadata_table_name, [host_in, host_out], [db_in, db_out])
+        self.part_dump_to_file(custom_metadata_table_name)
+
+    def insert_metadata_info_and_short_tables(self):
+        for table_name in const.full_short_ordered_tables:
+            utils.print_both("Dump %s" % table_name)
+            self.table_dump(table_name)
+
+        custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
+        utils.print_both("Dump %s" % custom_metadata_table_name)
+        self.table_dump(custom_metadata_table_name)
 
     def insert_long_table_info(self, id_list, table_obj, id_name = None):
         if id_name is None:
@@ -519,6 +506,8 @@ class Constant:
 def get_args():
   parser = argparse.ArgumentParser()
 
+  parser.add_argument("--project_name", "-p", type=str, required=True)
+  parser.add_argument("--project_id", "-pid", type=str, required=False)
   parser.add_argument("--file_out", "-f", type=str, required=False)
   parser.add_argument("--host_in", "-hi", type=str, required=False)
   parser.add_argument("--host_out", "-ho", type=str, required=False)
@@ -532,44 +521,16 @@ def get_args():
 if __name__ == '__main__':
     utils = util.Utils()
     args = get_args()
-    if args:
+    if args.file_out:
         file_out_name = args.file_out
-        user_host_in = args.host_in
-        user_host_out = args.host_out
-        user_db_in = args.db_in
-        user_db_out = args.db_out
 
     const = Constant()
+    curr_conn = Connection(args)
 
-    in_marker = "vamps2"
-    out_marker = "vampsdev"
-    local_marker = "all_local"
+    db_info_dict = curr_conn.db_info_dict
 
-    # TODO: change in dbUpload class to use this
-    table_names = const.table_names_dict[in_marker]
-
-    if (utils.is_local() == True):
-        db_in  = const.db_cnf['all_local'][in_marker]['db']
-        db_out = const.db_cnf['all_local'][out_marker]['db']
-        host_in  = const.db_cnf['all_local'][in_marker]['host']
-            # "localhost"
-        host_out = const.db_cnf['all_local'][out_marker]['host']
-
-        mysql_utils_in  = util.Mysql_util(host = host_in, db = db_in,  read_default_group = "clienthome")
-        mysql_utils_out = util.Mysql_util(host = host_out, db = db_out, read_default_group = "clienthome")
-    else:
-        host_in = const.db_cnf['vamps2']['production']['host'] # "vampsdb"
-        host_out = const.db_cnf['vamps2']['development']['host'] # "vampsdev"
-
-        db_in  = "vamps2"
-        db_out = "vamps2"
-
-        mysql_utils_in = util.Mysql_util(host = host_in, db = db_in, read_default_group = "client")
-        mysql_utils_in = util.Mysql_util(host = host_out, db = db_out, read_default_group = "client")
-
-
-    # TODO: get from args
-    project = "SLM_CITY_Bv4v5"
+    if args.project_name:
+        project = args.project_name
 
     project_obj = Project(project)
     project_info = project_obj.get_project_info()
@@ -579,12 +540,16 @@ if __name__ == '__main__':
     user_id = project_info['owner_user_id']
     # user_obj = User(user_id)
 
-    upl = dbUpload(project_obj) #TODO: don't send, it's available already. Make it clear
+    upl = dbUpload(db_info_dict, project_obj) #TODO: don't send, it's available already. Make it clear
 
     run_info_obj = Run_info()
 
     # TODO: restore! Commented for testing
-    upl.insert_metadata_info_and_short_tables(file_out_name)
+    if file_out_name:
+        upl.dump_metadata_info_and_short_tables(file_out_name, db_info_dict)
+    else:
+        upl.insert_metadata_info_and_short_tables()
+
     sequence_obj = Seq(project_obj.project_id)
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
     # TODO: restore! Commented for testing
