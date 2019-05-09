@@ -5,7 +5,6 @@ import logging
 import subprocess
 import argparse
 
-
 logger = logging.getLogger('')
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG,format=FORMAT)
@@ -191,13 +190,13 @@ class dbUpload:
                                     shell = True)
         self.test_dump_result(res)
 
-    def part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
+    def part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop_and_create = ""):
         file_out_name += ".gz"
         if where_clause:
             where_clause = "--where='%s'" % where_clause.lstrip("WHERE")
 
-        if no_drop:
-            no_drop = "--skip-add-drop-table"
+        if no_drop_and_create:
+            no_drop_and_create = "--skip-add-drop-table --no-create-info"
 
         # TODO: to a method
         if utils.check_if_file_exists(file_out_name):
@@ -209,8 +208,8 @@ class dbUpload:
                                         stderr = subprocess.STDOUT,
                                         shell = True)
 
-        dump_command = 'mysqldump -h %s %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
-                                                                    no_drop,
+        dump_command = 'mysqldump -h %s --insert-ignore %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
+                                                                    no_drop_and_create,
                                                                     file_out_name)
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
