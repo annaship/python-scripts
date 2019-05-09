@@ -169,7 +169,14 @@ class dbUpload:
         if (no_drop):
             no_drop = "--skip-add-drop-table"
 
-        utils.check_if_file_exists(file_out_name)
+        if utils.check_if_file_exists(file_out_name):
+            print('File %s already exists!' % file_out_name)
+            sys.exit(1) # TODO: change to return?
+        else:
+            res_file = subprocess.check_output("touch %s" % file_out_name,
+                                        stderr = subprocess.STDOUT,
+                                        shell = True)
+
         dump_command = 'mysqldump -h %s %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
                                                                     no_drop,
                                                                     file_out_name)

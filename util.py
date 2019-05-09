@@ -422,14 +422,9 @@ class Utils:
         return False
 
     def check_if_file_exists(self, filename):
-        if os.path.exists(filename):
-            print('File %s exists!' % filename)
-            sys.exit(1) #append_write = 'a' # append if already exists
-        else:
-            append_write = 'w' # make a new file if not
+        file_exists = os.path.exists(filename) and os.path.isFile(filename)
+        return file_exists
 
-        f = open(filename, append_write)
-        f.close()
 
     """
     >>> from collections import defaultdict
