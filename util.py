@@ -1,5 +1,6 @@
 from __future__ import generators    # needs to be at the top of your module
 import os
+from pathlib import Path
 import sys
 import MySQLdb
 import logging
@@ -422,7 +423,10 @@ class Utils:
         return False
 
     def check_if_file_exists(self, filename):
-        file_exists = os.path.exists(filename) and os.path.isFile(filename)
+        print(os.path) #<module 'posixpath' from '/anaconda3/lib/python3.6/posixpath.py'>
+        my_file = Path(filename)
+
+        file_exists = my_file.exists() and my_file.is_file()
         return file_exists
 
 
