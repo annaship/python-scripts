@@ -37,6 +37,8 @@ class Current_connection:
         self.out_marker = "vampsdev"
         self.local_marker = "all_local"
 
+        self.table_names = const.table_names_dict[self.in_marker]
+
         self.db_info_dict = self.get_db_info_dict()
 
         self.mysql_utils_in = util.Mysql_util(host = self.db_info_dict["host_in"],
@@ -45,6 +47,7 @@ class Current_connection:
         self.mysql_utils_out = util.Mysql_util(host = self.db_info_dict["host_out"],
                                                db = self.db_info_dict["db_out"],
                                                read_default_group = self.db_info_dict["read_default_group"])
+
 
 
     def get_db_info_dict(self):
@@ -98,9 +101,6 @@ class dbUpload:
         self.project_obj = project_obj
         self.project_id = self.project_obj.project_id
 
-        self.db_marker = curr_conn_obj.in_marker
-        self.table_names = const.table_names_dict[self.db_marker]
-
         self.metadata_info = defaultdict(dict)
 
         self.host_in = curr_conn_obj.db_info_dict["host_in"]
@@ -127,13 +127,9 @@ class dbUpload:
             duplicate_update_part = ", ".join(duplicate_update_part_list)
 
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
-            if file_out_name:
-                # file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
-                file_out_name += ".%s.%s.sql" % (table_name, chunk_num)
-                self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
             try:
-                rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
-                mysql_utils_out.conn.commit()
+                rowcount = self.mysql_utils_out.cursor.executemany(sql2_insert, rows)
+                self.mysql_utils_out.conn.commit()
             except:
                 self.utils.print_both(("ERROR: query = %s") % sql2_insert)
                 raise
@@ -143,6 +139,39 @@ class dbUpload:
 
         return rowcount
 
+    # def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
+    #     if chunk_num is None:
+    #         chunk_num = 0
+    #     sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
+    #     try:
+    #         self.mysql_utils_in.cursor.execute(sql1_select)
+    #         rows = self.mysql_utils_in.cursor.fetchall()
+    #         sql2_insert = "INSERT INTO %s (%s)" % (table_name, fields_str)
+    #         fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
+    #         sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
+    #
+    #         duplicate_update_part_list = []
+    #         for unique_field in unique_fields.split(", "):
+    #             duplicate_update_part_list.append("%s = VALUES (%s)" % (unique_field, unique_field))
+    #         duplicate_update_part = ", ".join(duplicate_update_part_list)
+    #
+    #         sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
+    #         if file_out_name:
+    #             # file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
+    #             file_out_name += ".%s.%s.sql" % (table_name, chunk_num)
+    #             self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
+    #         try:
+    #             rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
+    #             mysql_utils_out.conn.commit()
+    #         except:
+    #             self.utils.print_both(("ERROR: query = %s") % sql2_insert)
+    #             raise
+    #     except:
+    #         self.utils.print_both(("ERROR: query = %s") % sql1_select)
+    #         raise
+    #
+    #     return rowcount
+    #
     def table_dump(self, table_name, where_clause = ""):
         """
         :param table_name: "run"
@@ -164,15 +193,17 @@ class dbUpload:
 
     def part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
         file_out_name += ".gz"
-        if (where_clause):
+        if where_clause:
             where_clause = "--where='%s'" % where_clause.lstrip("WHERE")
 
-        if (no_drop):
+        if no_drop:
             no_drop = "--skip-add-drop-table"
 
+        # TODO: to a method
         if utils.check_if_file_exists(file_out_name):
-            print('File %s already exists!' % file_out_name)
-            sys.exit(1) # TODO: change to return?
+            utils.print_both('WARNING: File %s already exists! The script will not overwrite it.' % file_out_name)
+            # sys.exit(1) # TODO: change to return?
+            return
         else:
             res_file = subprocess.check_output("touch %s" % file_out_name,
                                         stderr = subprocess.STDOUT,
@@ -246,14 +277,15 @@ class dbUpload:
         return my_sql_tmpl
 
     def dump_metadata_info_and_short_tables(self, file_name):
+        file_out_name = file_name + ".%s.sql"
+
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
-            file_out_name = file_name + ".%s.sql" % (table_name)
-            self.part_dump_to_file(table_name, "", file_out_name)
+            self.part_dump_to_file(table_name, "", (file_out_name % table_name))
 
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
         utils.print_both("Dump %s" % custom_metadata_table_name)
-        self.part_dump_to_file(custom_metadata_table_name)
+        self.part_dump_to_file(custom_metadata_table_name, "", file_out_name % custom_metadata_table_name)
 
     def insert_metadata_info_and_short_tables(self):
         for table_name in const.full_short_ordered_tables:
@@ -264,7 +296,7 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name)
 
-    def insert_long_table_info(self, id_list, table_obj, id_name = None):
+    def insert_long_table_info(self, id_list, table_obj, file_name, id_name = None):
         if id_name is None:
             id_name = table_obj["id_name"]
         all_chunks = self.split_long_lists(id_list)
@@ -276,25 +308,29 @@ class dbUpload:
 
             where_part = "WHERE %s in (%s)" % (id_name, chunk_str)
             utils.print_both("Dump %s, %d" % (table_name, n + 1))
-            rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part, chunk_num = n)
+            chunk_num = n
+            if file_name:
+                file_out_name = file_name + ".%s.%s.sql" % (table_name, chunk_num)
+                self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
+                # part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
+            else:
+                rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part, chunk_num = chunk_num)
             # utils.print_both("Inserted %d" % (rowcount))
 
 
     def call_insert_long_tables_info(self, file_out_name):
-        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data)
-        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data)
-        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data)
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, "sequence_id")
+        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name)
+        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name)
+        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name)
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id")
         self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data)
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, "sequence_id")
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, "sequence_id")
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id")
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id")
 
 class Dataset:
 
     def __init__(self, project_id, curr_connection):
         self.project_id = project_id
-        self.db_marker = curr_conn_obj.in_marker
-        self.table_names = const.table_names_dict[self.db_marker]
 
         self.dataset_info = self.get_dataset_info()
         self.dataset_fields_list = self.dataset_info[1]
@@ -308,7 +344,7 @@ class Dataset:
     def get_dataset_ids_for_project_id(self):
         where_part = "WHERE project_id = '%s'" % (self.project_id)
         dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
-                                            """ % (self.table_names["connect_pr_dat_table"], where_part)
+                                            """ % (curr_conn_obj.table_names["connect_pr_dat_table"], where_part)
 
         rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
         return list(utils.extract(rows[0]))
@@ -383,7 +419,7 @@ class LongTables:
         table_data["id_name"] = table_name + "_id"
         table_data["fields"] = curr_conn_obj.mysql_utils_in.get_field_names(table_name)
         table_data["fields_str"] = ", ".join([x[0] for x in table_data["fields"][0]])
-        table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(db_in, table_name)
+        table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(curr_conn_obj.db_info_dict["db_in"], table_name)
         table_data["unique_fields_str"] = ", ".join(table_data["unique_fields"])
         return table_data
 
@@ -396,10 +432,11 @@ class Seq(LongTables):
 
     """
     def __init__(self, project_id, curr_conn_obj):
-        pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
+
+        pdr_info_table_name = curr_conn_obj.table_names["sequence_pdr_info_table_name"]
         self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
 
-        sequence_table_name = table_names["sequence_table_name"]
+        sequence_table_name = curr_conn_obj.table_names["sequence_table_name"]
         self.sequence_table_data = self.get_table_data(sequence_table_name)
 
         pdr_id_seq_id = self.get_pdr_info()
@@ -478,7 +515,7 @@ class Constant:
     def __init__(self):
 
         self.chunk_size = 1000
-        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index", "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene", "primer_suite"
+        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index", "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene"
                                          , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields", "rank", "domain", "phylum", "klass", "order", "family", "genus", "species", "strain"]
         self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
         self.domains = ('Archaea', 'Bacteria', 'Eukarya', 'Organelle', 'Unknown')
@@ -554,7 +591,6 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info(curr_conn_obj)
 
-    # TODO: restore! Commented for testing
     if file_out_name:
         upl.dump_metadata_info_and_short_tables(file_out_name)
     else:
@@ -562,7 +598,6 @@ if __name__ == '__main__':
 
     sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str, curr_conn_obj)
-    # TODO: restore! Commented for testing
     upl.call_insert_long_tables_info(file_out_name)
 
     utils.print_both("project_id = %s" % upl.project_id)

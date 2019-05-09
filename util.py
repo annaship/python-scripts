@@ -423,7 +423,6 @@ class Utils:
         return False
 
     def check_if_file_exists(self, filename):
-        print(os.path) #<module 'posixpath' from '/anaconda3/lib/python3.6/posixpath.py'>
         my_file = Path(filename)
 
         file_exists = my_file.exists() and my_file.is_file()
