@@ -129,7 +129,7 @@ class dbUpload:
             sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
             if file_out_name:
                 # file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
-                file_out_name += file_out_name + ".%s.%s.sql" % (table_name, chunk_num)
+                file_out_name += ".%s.%s.sql" % (table_name, chunk_num)
                 self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
             try:
                 rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
@@ -163,6 +163,7 @@ class dbUpload:
         self.test_dump_result(res)
 
     def part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
+        file_out_name += ".gz"
         if (where_clause):
             where_clause = "--where='%s'" % where_clause.lstrip("WHERE")
 
@@ -244,10 +245,10 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
-    def dump_metadata_info_and_short_tables(self, file_out_name):
+    def dump_metadata_info_and_short_tables(self, file_name):
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
-            file_out_name += file_out_name + ".%s.sql" % (table_name)
+            file_out_name = file_name + ".%s.sql" % (table_name)
             self.part_dump_to_file(table_name, "", file_out_name)
 
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
