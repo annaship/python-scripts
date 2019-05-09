@@ -30,8 +30,7 @@ except ImportError:
 class Current_connection:
 
     def __init__(self, args = None):
-        # utils = util.Utils()
-        # const = Constant()
+
         self.args = args
 
         self.in_marker = "vamps2"
@@ -40,10 +39,12 @@ class Current_connection:
 
         self.db_info_dict = self.get_db_info_dict()
 
-        self.mysql_utils_in = util.Mysql_util(host = self.db_info_dict["host_in"], db = self.db_info_dict["db_in"],
-                                                         read_default_group = self.db_info_dict["read_default_group"])
-        self.mysql_utils_out = util.Mysql_util(host = self.db_info_dict["host_out"], db = self.db_info_dict["db_out"],
-                                                          read_default_group = self.db_info_dict["read_default_group"])
+        self.mysql_utils_in = util.Mysql_util(host = self.db_info_dict["host_in"],
+                                              db = self.db_info_dict["db_in"],
+                                              read_default_group = self.db_info_dict["read_default_group"])
+        self.mysql_utils_out = util.Mysql_util(host = self.db_info_dict["host_out"],
+                                               db = self.db_info_dict["db_out"],
+                                               read_default_group = self.db_info_dict["read_default_group"])
 
 
     def get_db_info_dict(self):
@@ -97,17 +98,17 @@ class dbUpload:
         self.project_obj = project_obj
         self.project_id = self.project_obj.project_id
 
-        self.db_marker = curr_connection["in_marker"]
+        self.db_marker = curr_conn_obj.in_marker
         self.table_names = const.table_names_dict[self.db_marker]
 
         self.metadata_info = defaultdict(dict)
 
-        self.host_in = curr_connection.db_info_dict["host_in"]
-        self.db_in = curr_connection.db_info_dict["db_in"]
-        self.host_out = curr_connection.db_info_dict["host_out"]
-        self.db_out = curr_connection.db_info_dict["db_out"]
+        self.host_in = curr_conn_obj.db_info_dict["host_in"]
+        self.db_in = curr_conn_obj.db_info_dict["db_in"]
+        self.host_out = curr_conn_obj.db_info_dict["host_out"]
+        self.db_out = curr_conn_obj.db_info_dict["db_out"]
 
-        self.mysql_utils_in = curr_connection.mysql_utils_in
+        self.mysql_utils_in = curr_conn_obj.mysql_utils_in
 
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
         if chunk_num is None:
@@ -168,6 +169,7 @@ class dbUpload:
         if (no_drop):
             no_drop = "--skip-add-drop-table"
 
+        utils.check_if_file_exists(file_out_name)
         dump_command = 'mysqldump -h %s %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
                                                                     no_drop,
                                                                     file_out_name)
@@ -283,7 +285,7 @@ class Dataset:
 
     def __init__(self, project_id, curr_connection):
         self.project_id = project_id
-        self.db_marker = "vamps2"
+        self.db_marker = curr_conn_obj.in_marker
         self.table_names = const.table_names_dict[self.db_marker]
 
         self.dataset_info = self.get_dataset_info()
@@ -300,12 +302,12 @@ class Dataset:
         dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
                                             """ % (self.table_names["connect_pr_dat_table"], where_part)
 
-        rows = mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
+        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(dataset_ids_for_project_id_sql)
         return list(utils.extract(rows[0]))
     
     def get_dataset_info(self):
         dataset_sql = "SELECT distinct * FROM dataset where project_id = '%s'" % (self.project_id)
-        dataset_info = mysql_utils_in.execute_fetch_select(dataset_sql)
+        dataset_info = curr_conn_obj.mysql_utils_in.execute_fetch_select(dataset_sql)
         # self.dataset_info_dict = mysql_utils_in.execute_fetch_select_to_dict(dataset_sql)
         # print("HERE!")
         return dataset_info
@@ -314,18 +316,17 @@ class Project:
 
     def __init__(self, project, curr_conn_obj):
         self.project = project
-        self.mysql_utils_in = curr_conn_obj.mysql_utils_in
         self.get_project_id()
 
     def get_project_id(self):
         project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
-        res = self.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
+        res = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         self.project_id = res[0]['project_id']
 
     def get_project_info(self):
         # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
         project_sql = "SELECT distinct * FROM project where project = '%s' limit 1" % (self.project)
-        project_info = self.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
+        project_info = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
 class Run_info:
@@ -335,7 +336,6 @@ class Run_info:
         self.run_info_by_dataset_id = self.convert_run_info_to_dict_by_dataset_id()
         self.used_run_info_id_list = self.get_used_run_info_ids()
         self.used_run_info_id_str = utils.make_quoted_str(self.used_run_info_id_list)
-        self.mysql_utils_in = curr_conn_obj.mysql_utils_in
 
     def get_run_info(self):
         my_sql = """SELECT * FROM run_info_ill
@@ -349,7 +349,7 @@ class Run_info:
                     ;
         """ % (dataset_obj.dataset_ids_string)
 
-        rows = self.mysql_utils_in.execute_fetch_select_to_dict(my_sql)
+        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
 
     def convert_run_info_to_dict_by_dataset_id(self):
@@ -365,7 +365,7 @@ class Run_info:
         return [entry['run_info_ill_id'] for entry in self.run_info_t_dict]
 
 class LongTables:
-    def __init__(self, project_id):
+    def __init__(self, curr_conn_obj):
         self.utils = util.Utils()
 
     def get_table_data(self, table_name):
@@ -373,9 +373,9 @@ class LongTables:
 
         table_data["table_name"] = table_name
         table_data["id_name"] = table_name + "_id"
-        table_data["fields"] = mysql_utils_in.get_field_names(table_name)
+        table_data["fields"] = curr_conn_obj.mysql_utils_in.get_field_names(table_name)
         table_data["fields_str"] = ", ".join([x[0] for x in table_data["fields"][0]])
-        table_data["unique_fields"] = mysql_utils_in.get_uniq_index_columns(db_in, table_name)
+        table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(db_in, table_name)
         table_data["unique_fields_str"] = ", ".join(table_data["unique_fields"])
         return table_data
 
@@ -387,7 +387,7 @@ class Seq(LongTables):
              mysql_utils.execute_no_fetch_w_info(q_update_table_look_up_tax % (counter, chunk_size))
 
     """
-    def __init__(self, project_id):
+    def __init__(self, project_id, curr_conn_obj):
         pdr_info_table_name = table_names["sequence_pdr_info_table_name"]
         self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
 
@@ -410,12 +410,12 @@ class Seq(LongTables):
                                                              dataset_obj.dataset_ids_string,
                                                              run_info_obj.used_run_info_id_str)
 
-        rows = mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
+        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
         return rows
 
 
 class Taxonomy(LongTables):
-    def __init__(self, sequence_id_str):
+    def __init__(self, sequence_id_str, curr_conn_obj):
         self.sequence_id_str = sequence_id_str
         self.table_names_to_insert = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species",
                                  "silva_taxonomy", "silva_taxonomy_info_per_seq",
@@ -462,7 +462,7 @@ class Taxonomy(LongTables):
                                 where_id_name,
                                 where_id_str)
 
-        rows = mysql_utils_in.execute_fetch_select(all_ids_sql)
+        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_ids_sql)
         return rows
 
 
@@ -537,7 +537,7 @@ if __name__ == '__main__':
     project_obj = Project(project, curr_conn_obj)
     project_info = project_obj.get_project_info()
     
-    dataset_obj = Dataset(project_obj.project_id)
+    dataset_obj = Dataset(project_obj.project_id, curr_conn_obj)
 
     user_id = project_info['owner_user_id']
     # user_obj = User(user_id)
@@ -548,12 +548,12 @@ if __name__ == '__main__':
 
     # TODO: restore! Commented for testing
     if file_out_name:
-        upl.dump_metadata_info_and_short_tables(file_out_name, curr_conn_obj)
+        upl.dump_metadata_info_and_short_tables(file_out_name)
     else:
         upl.insert_metadata_info_and_short_tables()
 
-    sequence_obj = Seq(project_obj.project_id)
-    taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str)
+    sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
+    taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str, curr_conn_obj)
     # TODO: restore! Commented for testing
     upl.call_insert_long_tables_info(file_out_name)
 
