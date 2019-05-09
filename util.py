@@ -1,5 +1,6 @@
 from __future__ import generators    # needs to be at the top of your module
 import os
+import sys
 import MySQLdb
 import logging
 import timeit
@@ -420,6 +421,15 @@ class Utils:
 
         return False
 
+    def check_if_file_exists(self, filename):
+        if os.path.exists(filename):
+            print('File %s exists!' % filename)
+            sys.exit(1) #append_write = 'a' # append if already exists
+        else:
+            append_write = 'w' # make a new file if not
+
+        f = open(filename, append_write)
+        f.close()
 
     """
     >>> from collections import defaultdict
