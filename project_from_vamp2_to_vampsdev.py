@@ -47,8 +47,6 @@ class Current_connection:
                                                db = self.db_info_dict["db_out"],
                                                read_default_group = self.db_info_dict["read_default_group"])
 
-
-
     def get_db_info_dict(self):
         db_info_dict = {}
         if (utils.is_local() == True):
@@ -521,9 +519,9 @@ class Constant:
         self.domain_adj = ('Archaeal', 'Bacterial', 'Eukaryal', 'Organelle', 'Unknown')  # Fungal
         self.db_cnf = {
             "vamps2": {
-                "local"      : {"host": "localhost", "db": "vamps2"},
-                "production" : {"host": "vampsdb", "db": "vamps2"},
-                "development": {"host": "bpcweb7", "db": "vamps2"}
+                "local"      : {"host": "localhost", "db": "vamps2", "read_default_group": "clienthome"},
+                "production" : {"host": "vampsdb", "db": "vamps2", "read_default_group": "client"},
+                "development": {"host": "bpcweb7", "db": "vamps2", "read_default_group": "client"}
             },
             "env454": {
                 "local"      : {"host": "localhost", "db": "test_env454"},
@@ -531,10 +529,10 @@ class Constant:
                 "development": {"host": "bpcweb7.bpcservers.private", "db": "test"}
             },
             "all_local": {
-                "env454"   : {"host": "localhost", "db": "test_env454"},
-                "vamps2"   : {"host": "localhost", "db": "vamps2"},
-                "vampsdev" : {"host": "localhost", "db": "vampsdev_testing"},
-                "old_vamps": {"host": "localhost", "db": "test_vamps"}
+                "env454"   : {"host": "localhost", "db": "test_env454", "read_default_group": "clienthome"},
+                "vamps2"   : {"host": "localhost", "db": "vamps2", "read_default_group": "clienthome"},
+                "vampsdev" : {"host": "localhost", "db": "vampsdev_testing", "read_default_group": "clienthome"},
+                "old_vamps": {"host": "localhost", "db": "test_vamps", "read_default_group": "clienthome"}
             }
 
         }
