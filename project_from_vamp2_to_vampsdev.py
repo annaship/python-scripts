@@ -512,8 +512,10 @@ class Constant:
     def __init__(self):
 
         self.chunk_size = 1000
-        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index", "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene"
-                                         , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields", "rank", "domain", "phylum", "klass", "order", "family", "genus", "species", "strain"]
+        self.full_short_ordered_tables = ["classifier", "dna_region", "domain", "env_package", "illumina_adaptor", "illumina_index"
+            , "illumina_run_key", "illumina_adaptor_ref", "primer_suite", "rank", "run", "run_key", "sequencing_platform", "target_gene"
+            , "user", "project", "dataset", "run_info_ill", "required_metadata_info", "custom_metadata_fields"
+            , "rank", "phylum", "klass", "order", "family", "genus", "species", "strain"]
         self.ranks = ('domain', 'phylum', 'class', 'orderx', 'family', 'genus', 'species', 'strain')
         self.domains = ('Archaea', 'Bacteria', 'Eukarya', 'Organelle', 'Unknown')
         self.domain_adj = ('Archaeal', 'Bacterial', 'Eukaryal', 'Organelle', 'Unknown')  # Fungal
