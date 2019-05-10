@@ -2,7 +2,13 @@ from __future__ import generators    # needs to be at the top of your module
 import os
 from pathlib import Path
 import sys
-import MySQLdb
+try:
+    import mysqlclient as mysql
+except ImportError:
+    try:
+        import pymysql as mysql
+    except ImportError:
+        import MySQLdb as mysql
 import logging
 import timeit
 import time
@@ -39,17 +45,14 @@ class Mysql_util:
             self.utils.print_both("host = " + str(host) + ", db = "  + str(db) + ", read_default_group = " + str(read_default_group)  + ", read_default_file = " + str(read_default_file))
             self.utils.print_both("=" * 40)
 
-            # self.conn = MySQLdb.connect(host = host, db = db, read_default_file = read_default_file, port = port)
-            self.conn    =  MySQLdb.connect(host = host, read_default_file = read_default_file)
-            # self.conn    =  MySQLdb.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
-
-            # self.conn = MySQLdb.connect(host = "bpcweb8",
-            #                    read_default_file = "~/.my.cnf_node")
+            # self.conn = mysql.connect(host = host, db = db, read_default_file = read_default_file, port = port)
+            self.conn    =  mysql.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
+            # print("host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file))
 
             self.cursor = self.conn.cursor()
-            self.dict_cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
+            self.dict_cursor = self.conn.cursor(mysql.cursors.DictCursor)
 
-        except MySQLdb.Error as e:
+        except mysql.Error as e:
             self.utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
             raise
         except:                       # catch everything
