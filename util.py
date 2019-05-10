@@ -40,8 +40,11 @@ class Mysql_util:
             self.utils.print_both("=" * 40)
 
             # self.conn = MySQLdb.connect(host = host, db = db, read_default_file = read_default_file, port = port)
-            self.conn    =  MySQLdb.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
-            # print("host = %s, db = %s, read_default_file = %s" % (host, db, read_default_file))
+            self.conn    =  MySQLdb.connect(host = host, read_default_file = read_default_file)
+            # self.conn    =  MySQLdb.connect(host = host, db = db, read_default_group = read_default_group, read_default_file = "~/.my.cnf")
+
+            # self.conn = MySQLdb.connect(host = "bpcweb8",
+            #                    read_default_file = "~/.my.cnf_node")
 
             self.cursor = self.conn.cursor()
             self.dict_cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)

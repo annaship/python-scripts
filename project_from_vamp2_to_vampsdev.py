@@ -40,12 +40,20 @@ class Current_connection:
 
         self.db_info_dict = self.get_db_info_dict()
 
-        self.mysql_utils_in = util.Mysql_util(host = self.db_info_dict["host_in"],
+        # db = mysql.connect(host = args.dbhost,  # your host, usually localhost
+        #                    read_default_file = "~/.my.cnf_node")
+
+        self.mysql_utils_in = util.Mysql_util(host = "vampsdb",
+                                              # self.db_info_dict["host_in"],
                                               db = self.db_info_dict["db_in"],
-                                              read_default_group = self.db_info_dict["read_default_group"])
+                                              read_default_file = self.db_info_dict["read_default_file"])
+                                              # ,
+                                              # read_default_group = self.db_info_dict["read_default_group"])
         self.mysql_utils_out = util.Mysql_util(host = self.db_info_dict["host_out"],
-                                               db = self.db_info_dict["db_out"],
-                                               read_default_group = self.db_info_dict["read_default_group"])
+                                               db = self.db_info_dict["db_out"])
+                                               # ,
+                                               # read_default_group = "clienthome")
+                                               # self.db_info_dict["read_default_group"])
 
 
 
@@ -58,7 +66,13 @@ class Current_connection:
             db_info_dict["db_in"] = const.db_cnf['all_local'][self.in_marker]['db']
             db_info_dict["db_out"] = const.db_cnf['all_local'][self.out_marker]['db']
 
-            db_info_dict["read_default_group"] = "clienthome"
+            db_info_dict["read_default_group"] = "client"
+            """
+                # "clientservers"
+                # "clienthome"
+                db = mysql.connect(host=args.dbhost, # your host, usually localhost
+                             read_default_file="~/.my.cnf_node"  )
+            """
 
         else:
             db_info_dict["host_in"] = const.db_cnf['vamps2']['production']['host']  # "vampsdb"
@@ -67,6 +81,7 @@ class Current_connection:
             db_info_dict["db_in"] = "vamps2"
             db_info_dict["db_out"] = "vamps2"
 
+            db_info_dict["read_default_file"] = "~/.my.cnf_node"
             db_info_dict["read_default_group"] = "client"
 
         if self.args.host_in:
