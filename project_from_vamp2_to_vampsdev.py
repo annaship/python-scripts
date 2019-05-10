@@ -106,6 +106,7 @@ class dbUpload:
         self.db_out = curr_conn_obj.db_info_dict["db_out"]
 
         self.mysql_utils_in = curr_conn_obj.mysql_utils_in
+        self.mysql_utils_out = curr_conn_obj.mysql_utils_out
 
     def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
         if chunk_num is None:
@@ -128,10 +129,10 @@ class dbUpload:
                 rowcount = self.mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 self.mysql_utils_out.conn.commit()
             except:
-                self.utils.print_both(("ERROR: query = %s") % sql2_insert)
+                utils.print_both(("ERROR: query = %s") % sql2_insert)
                 raise
         except:
-            self.utils.print_both(("ERROR: query = %s") % sql1_select)
+            utils.print_both(("ERROR: query = %s") % sql1_select)
             raise
 
         return rowcount
@@ -243,7 +244,7 @@ class dbUpload:
         val_tmpl = "'%s'"
         my_sql = query_tmpl % (key, key, '), ('.join([val_tmpl % v for v in values]))
         my_sql = my_sql + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (key, key)
-        mysql_utils_out.execute_no_fetch(my_sql)
+        self.mysql_utils_out.execute_no_fetch(my_sql)
 
     def make_sql_for_groups(self, table_name, fields_str):
         field_list = fields_str.split(",")
@@ -258,7 +259,7 @@ class dbUpload:
         my_sql = "SELECT %s FROM %s WHERE %s = '%s';" % ("term_id", "term", "term_name", "unknown")
         # and ontology_id = 1
         # logger.debug("my_sql from get_all_metadata_info: %s" % my_sql)
-        rows = mysql_utils_in.execute_fetch_select(my_sql)
+        rows = self.mysql_utils_in.execute_fetch_select(my_sql)
         return [x[0] for x in rows[0]]
 
     def make_insert_template(self, table_name, fields_str, values_str):
@@ -293,7 +294,7 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump(custom_metadata_table_name)
 
-    def insert_long_table_info(self, id_list, table_obj, file_name, id_name = None):
+    def insert_long_table_info(self, id_list, table_obj, file_name = None, id_name = None):
         if id_name is None:
             id_name = table_obj["id_name"]
         all_chunks = self.split_long_lists(id_list)
@@ -315,7 +316,7 @@ class dbUpload:
             # utils.print_both("Inserted %d" % (rowcount))
 
 
-    def call_insert_long_tables_info(self, file_out_name):
+    def call_insert_long_tables_info(self, file_out_name = None):
         self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name)
         self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name)
         self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name)
@@ -504,8 +505,12 @@ class Taxonomy(LongTables):
                                 where_id_name,
                                 where_id_str)
 
-        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_ids_sql)
-        return rows
+        try:
+            rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_ids_sql)
+            return rows
+        except:
+            utils.print_both("Eroro running this query: %s" % (all_ids_sql))
+
 
 
 class Constant:
@@ -569,8 +574,6 @@ def get_args():
 if __name__ == '__main__':
     utils = util.Utils()
     args = get_args()
-    if args.file_out:
-        file_out_name = args.file_out
 
     const = Constant()
     curr_conn_obj = Current_connection(args)
@@ -590,12 +593,16 @@ if __name__ == '__main__':
 
     run_info_obj = Run_info(curr_conn_obj)
 
-    if file_out_name:
+    file_out_name = ""
+    if args.file_out:
+        file_out_name = args.file_out
         upl.dump_metadata_info_and_short_tables(file_out_name)
     else:
         upl.insert_metadata_info_and_short_tables()
 
+    utils.print_both("Making seq obj...")
     sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
+    utils.print_both("Making tax obj...")
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str, curr_conn_obj)
     upl.call_insert_long_tables_info(file_out_name)
 
