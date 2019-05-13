@@ -23,21 +23,31 @@ class Log_system:
         self.log_modes = {
             "debug"  : logging.DEBUG,
             "info"   : logging.INFO,
+            "warn": logging.WARN,
             "warning": logging.WARN
-        }
 
-    def fetchLogger(self, filename = None, log_mode = None):
+        }
+        now = datetime.datetime.now()
+        self.log_file_name = "debug" + now.strftime("%Y-%m-%d") + ".log"
+
+        self.log_mode = "debug"
+        self.logger = self.fetchLogger()
+
+    def fetchLogger(self, log_file_name = None, log_mode = None):
         logger = logging.getLogger(__name__)
 
         if logger.hasHandlers():
             logger.handlers = []
 
+        if log_file_name == None:
+            log_file_name = self.log_file_name
+
         if log_mode == None:
-            log_mode = "debug"
+            log_mode = self.log_mode
         logger.setLevel(self.log_modes[log_mode])
 
         # create File for Log
-        handler = logging.FileHandler(str(filename))
+        handler = logging.FileHandler(str(log_file_name))
         handler.setLevel(self.log_modes[log_mode])
         # log format
         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
@@ -259,6 +269,7 @@ class Mysql_util:
 class Utils:
     def __init__(self):
         self.log_system = Log_system()
+
         # self.loggers = {}
         # self.logger = self.myLogger('debug')
 
@@ -282,20 +293,16 @@ class Utils:
     #         return logger
 
     def print_both(self, message, file_name = None, log_mode = None):
-        if log_mode is None:
-            log_mode = "debug"
-
         if file_name is None:
-            now = datetime.datetime.now()
-            file_name = 'debug' + now.strftime("%Y-%m-%d") + '.log'
+            file_name = self.log_system.log_file_name
 
-        logger = self.log_system.fetchLogger(file_name, log_mode)
+        if log_mode is None:
+            logger = self.log_system.logger
+        else:
+            logger = self.log_system.fetchLogger(file_name, log_mode)
 
-        print("LLL log_mode", log_mode)
         print(message)
-        logger.debug(message)
-        # modes[log_mode]
-
+        logger.log(log_mode, message)
 
     def is_local(self):
         print("os.environ['HOME']:")
