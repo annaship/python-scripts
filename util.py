@@ -19,20 +19,29 @@ import logging
 
 
 class Log_system:
+    def __init__(self):
+        self.log_modes = {
+            "debug"  : logging.DEBUG,
+            "info"   : logging.INFO,
+            "warning": logging.WARN
+        }
 
-    def fetchLogger(self, name = None, log_mode = None):
+    def fetchLogger(self, filename = None, log_mode = None):
         logger = logging.getLogger(__name__)
 
         if logger.hasHandlers():
             logger.handlers = []
 
-        logger.setLevel(logging.DEBUG)
+        if log_mode == None:
+            log_mode = "debug"
+        logger.setLevel(self.log_modes[log_mode])
 
         # create File for Log
-        handler = logging.FileHandler(str(name))
-        handler.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(str(filename))
+        handler.setLevel(self.log_modes[log_mode])
         # log format
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+        formatter = logging.Formatter(FORMAT)
         handler.setFormatter(formatter)
         # adding the handler to Logging System
         logger.addHandler(handler)
@@ -274,25 +283,13 @@ class Utils:
 
     def print_both(self, message, file_name = None, log_mode = None):
         if log_mode is None:
-            log_mode = "DEBUG"
+            log_mode = "debug"
 
         if file_name is None:
             now = datetime.datetime.now()
             file_name = 'debug' + now.strftime("%Y-%m-%d") + '.log'
 
-        # file_name = 'AAA.py'
-
-        "logger.setLevel(logging.DEBUG)"
-        # def warn(msg):
-
-        # modes = {
-        #     "warning": logging.warning(message),
-        #     "debug": logging.debug(message),
-        #     "info": logging.info(message)
-        # }
-
         logger = self.log_system.fetchLogger(file_name, log_mode)
-        logger.setLevel(logging.DEBUG)
 
         print("LLL log_mode", log_mode)
         print(message)
