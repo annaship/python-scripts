@@ -9,13 +9,35 @@ except ImportError:
         import pymysql as mysql
     except ImportError:
         import MySQLdb as mysql
-import logging
 import timeit
 import time
 import csv
 from collections import Iterable
 
-# from itertools import izip_longest
+import datetime
+import logging
+
+
+class Log_system:
+
+    def fetchLogger(self, name = None, log_mode = None):
+        logger = logging.getLogger(__name__)
+
+        if logger.hasHandlers():
+            logger.handlers = []
+
+        logger.setLevel(logging.DEBUG)
+
+        # create File for Log
+        handler = logging.FileHandler(str(name))
+        handler.setLevel(logging.DEBUG)
+        # log format
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        # adding the handler to Logging System
+        logger.addHandler(handler)
+
+        return logger
 
 class Mysql_util:
     """
@@ -227,7 +249,56 @@ class Mysql_util:
 
 class Utils:
     def __init__(self):
-        pass
+        self.log_system = Log_system()
+        # self.loggers = {}
+        # self.logger = self.myLogger('debug')
+
+    # def myLogger(self, name):
+    #     if self.loggers.get(name):
+    #         return self.loggers.get(name)
+    #     else:
+    #         logger = logging.getLogger(name)
+    #         logger.setLevel(logging.DEBUG)
+    #         now = datetime.datetime.now()
+    #         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+    #         handler = logging.FileHandler(
+    #             'debug'
+    #             + now.strftime("%Y-%m-%d")
+    #             + '.log')
+    #         formatter = logging.Formatter(FORMAT)
+    #         handler.setFormatter(formatter)
+    #         logger.addHandler(handler)
+    #         self.loggers[name] = logger
+    #
+    #         return logger
+
+    def print_both(self, message, file_name = None, log_mode = None):
+        if log_mode is None:
+            log_mode = "DEBUG"
+
+        if file_name is None:
+            now = datetime.datetime.now()
+            file_name = 'debug' + now.strftime("%Y-%m-%d") + '.log'
+
+        # file_name = 'AAA.py'
+
+        "logger.setLevel(logging.DEBUG)"
+        # def warn(msg):
+
+        # modes = {
+        #     "warning": logging.warning(message),
+        #     "debug": logging.debug(message),
+        #     "info": logging.info(message)
+        # }
+
+        logger = self.log_system.fetchLogger(file_name, log_mode)
+        logger.setLevel(logging.DEBUG)
+
+        print("LLL log_mode", log_mode)
+        print(message)
+        logger.debug(message)
+        # modes[log_mode]
+
 
     def is_local(self):
         print("os.environ['HOME']:")
@@ -257,10 +328,6 @@ class Utils:
             return True
         else:
             return False
-
-    def print_both(self, message):
-        print(message)
-        logging.debug(message)
 
     def print_array_w_title(self, message, title = 'message'):
       print(title)
