@@ -9,7 +9,7 @@ logger = logging.getLogger('')
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG,format=FORMAT)
 
-"""TODO: get all info from vamps2, put into vampsdev"""
+"""Gets info from vamps2, puts into vampsdev or into files"""
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 
@@ -137,46 +137,11 @@ class dbUpload:
 
         return rowcount
 
-    # def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
-    #     if chunk_num is None:
-    #         chunk_num = 0
-    #     sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
-    #     try:
-    #         self.mysql_utils_in.cursor.execute(sql1_select)
-    #         rows = self.mysql_utils_in.cursor.fetchall()
-    #         sql2_insert = "INSERT INTO %s (%s)" % (table_name, fields_str)
-    #         fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
-    #         sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
-    #
-    #         duplicate_update_part_list = []
-    #         for unique_field in unique_fields.split(", "):
-    #             duplicate_update_part_list.append("%s = VALUES (%s)" % (unique_field, unique_field))
-    #         duplicate_update_part = ", ".join(duplicate_update_part_list)
-    #
-    #         sql2_insert = sql2_insert + " ON DUPLICATE KEY UPDATE %s;" % duplicate_update_part
-    #         if file_out_name:
-    #             # file_out_name = "/Users/ashipunova/file_insert.%s.%s.sql" % (table_name, chunk_num)
-    #             file_out_name += ".%s.%s.sql" % (table_name, chunk_num)
-    #             self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
-    #         try:
-    #             rowcount = mysql_utils_out.cursor.executemany(sql2_insert, rows)
-    #             mysql_utils_out.conn.commit()
-    #         except:
-    #             self.utils.print_both(("ERROR: query = %s") % sql2_insert)
-    #             raise
-    #     except:
-    #         self.utils.print_both(("ERROR: query = %s") % sql1_select)
-    #         raise
-    #
-    #     return rowcount
-    #
-    def table_dump(self, table_name, where_clause = ""):
+    def table_dump_to_db(self, table_name, where_clause = ""):
         """
         :param table_name: "run"
-        :param host_names: [in, out]
-        :param db_names: [in, out]
 
-        mysqldump database table_bame --where="date_column BETWEEN '2012-07-01 00:00:00' and '2012-12-01 00:00:00'"
+        mysqldump database table_name --where="date_column BETWEEN '2012-07-01 00:00:00' and '2012-12-01 00:00:00'"
 
         """
         if (where_clause):
@@ -197,10 +162,8 @@ class dbUpload:
         if no_drop_and_create:
             no_drop_and_create = "--skip-add-drop-table --no-create-info"
 
-        # TODO: to a method
         if utils.check_if_file_exists(file_out_name):
             utils.print_both('WARNING: File %s already exists! The script will not overwrite it.' % file_out_name)
-            # sys.exit(1) # TODO: change to return?
             return
         else:
             res_file = subprocess.check_output("touch %s" % file_out_name,
@@ -288,11 +251,11 @@ class dbUpload:
     def insert_metadata_info_and_short_tables(self):
         for table_name in const.full_short_ordered_tables:
             utils.print_both("Dump %s" % table_name)
-            self.table_dump(table_name)
+            self.table_dump_to_db(table_name)
 
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
         utils.print_both("Dump %s" % custom_metadata_table_name)
-        self.table_dump(custom_metadata_table_name)
+        self.table_dump_to_db(custom_metadata_table_name)
 
     def insert_long_table_info(self, id_list, table_obj, file_name = None, id_name = None):
         if id_name is None:
