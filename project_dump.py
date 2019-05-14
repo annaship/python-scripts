@@ -530,7 +530,6 @@ def get_args():
   parser = argparse.ArgumentParser()
 
   parser.add_argument("--project_name", "-p", type=str, required=True)
-  parser.add_argument("--project_id", "-pid", type=str, required=False)
   parser.add_argument("--file_out", "-f", type=str, required=False)
   parser.add_argument("--host_in", "-hi", type=str, required=False)
   parser.add_argument("--host_out", "-ho", type=str, required=False)
