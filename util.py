@@ -23,9 +23,9 @@ class Log_system:
         self.log_modes = {
             "debug"  : logging.DEBUG,
             "info"   : logging.INFO,
-            "warn": logging.WARN,
-            "warning": logging.WARN
-
+            "warn"   : logging.WARN,
+            "warning": logging.WARNING,
+            "error"  : logging.ERROR,
         }
 
         # logging.basicConfig(level = log_level)
@@ -53,20 +53,20 @@ class Log_system:
         #         return logger
 
         # DEFAULTS:
-        self.log_mode = "debug"
+        self.log_level_name = "debug"
 
         if log_level == None:
-            self.log_level = self.log_modes[self.log_mode]
+            self.log_level = self.log_modes[self.log_level_name]
         else:
             self.log_level = log_level
-            self.log_mode = list(self.log_modes.keys())[list(self.log_modes.values()).index(self.log_level)]
+            self.log_level_name = list(self.log_modes.keys())[list(self.log_modes.values()).index(self.log_level)]
 
         now = datetime.datetime.now()
-        self.log_file_name = self.log_mode + now.strftime("%Y-%m-%d") + ".log"
+        self.log_file_name = self.log_level_name + now.strftime("%Y-%m-%d") + ".log"
 
         self.logger = self.fetchLogger()
 
-    def fetchLogger(self, log_file_name = None, log_mode = None):
+    def fetchLogger(self, log_file_name = None, log_level_name = None):
         logger = logging.getLogger(__name__)
 
         if logger.hasHandlers():
@@ -75,10 +75,10 @@ class Log_system:
         if log_file_name == None:
             log_file_name = self.log_file_name
 
-        if log_mode == None:
-            log_mode = self.log_mode
+        if log_level_name == None:
+            log_level_name = self.log_level_name
 
-        log_level_num = self.log_modes[log_mode]
+        log_level_num = self.log_modes[log_level_name]
         logger.setLevel(log_level_num)
 
         # create File for Log
@@ -306,19 +306,19 @@ class Utils:
     def __init__(self):
         self.log_system = Log_system()
 
-    def print_both(self, message, file_name = None, log_mode = None):
+    def print_both(self, message, file_name = None, log_level_name = None):
         if file_name is None:
             file_name = self.log_system.log_file_name
 
-        if log_mode is None:
+        if log_level_name is None:
             logger = self.log_system.logger
-            log_mode = "debug"
+            log_level_name = "debug"
         else:
-            logger = self.log_system.fetchLogger(file_name, self.log_system.log_modes[log_mode])
+            logger = self.log_system.fetchLogger(file_name, log_level_name)
 
         print(message)
         try:
-            logger.log(self.log_system.log_modes[log_mode], message)
+            logger.log(self.log_system.log_modes[log_level_name], message)
         except:
             raise
 
