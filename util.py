@@ -78,7 +78,7 @@ class Log_system:
         if log_level_name == None:
             log_level_name = self.log_level_name
 
-        log_level_num = self.log_modes[log_level_name]
+        log_level_num = self.log_modes[log_level_name.lower()]
         logger.setLevel(log_level_num)
 
         # create File for Log
@@ -93,6 +93,13 @@ class Log_system:
         logger.addHandler(handler)
 
         return logger
+
+    def get_log_level_num(self, log_level_name):
+        try:
+            return self.log_modes[log_level_name.lower()]
+        except:
+            return self.log_level
+
 
 class Mysql_util:
     """
@@ -316,9 +323,11 @@ class Utils:
         else:
             logger = self.log_system.fetchLogger(file_name, log_level_name)
 
+        log_level_num = self.log_system.get_log_level_num(log_level_name)
+
         print(message)
         try:
-            logger.log(self.log_system.log_modes[log_level_name], message)
+            logger.log(log_level_num, message)
         except:
             raise
 
