@@ -562,9 +562,9 @@ if __name__ == '__main__':
     else:
         upl.insert_metadata_info_and_short_tables()
 
-    utils.print_both("Making seq obj...")
+    utils.print_both("Making seq obj...", log_mode = "info")
     sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
-    utils.print_both("Making tax obj...")
+    utils.print_both("Making tax obj...", log_mode = "error")
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str, curr_conn_obj)
     upl.call_insert_long_tables_info(file_out_name)
 

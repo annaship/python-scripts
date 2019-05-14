@@ -19,7 +19,7 @@ import logging
 
 
 class Log_system:
-    def __init__(self):
+    def __init__(self, log_level = None):
         self.log_modes = {
             "debug"  : logging.DEBUG,
             "info"   : logging.INFO,
@@ -27,10 +27,43 @@ class Log_system:
             "warning": logging.WARN
 
         }
-        now = datetime.datetime.now()
-        self.log_file_name = "debug" + now.strftime("%Y-%m-%d") + ".log"
 
+        # logging.basicConfig(level = log_level)
+        # logging.basicConfig(level = logging.INFO, filename = time.strftime("my-%Y-%m-%d.log"))
+        # self.loggers = {}
+        # self.logger = self.myLogger('debug')
+
+        # def myLogger(self, name):
+        #     if self.loggers.get(name):
+        #         return self.loggers.get(name)
+        #     else:
+        #         logger = logging.getLogger(name)
+        #         logger.setLevel(logging.DEBUG)
+        #         now = datetime.datetime.now()
+        #         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+        #         handler = logging.FileHandler(
+        #             'debug'
+        #             + now.strftime("%Y-%m-%d")
+        #             + '.log')
+        #         formatter = logging.Formatter(FORMAT)
+        #         handler.setFormatter(formatter)
+        #         logger.addHandler(handler)
+        #         self.loggers[name] = logger
+        #
+        #         return logger
+
+        # DEFAULTS:
         self.log_mode = "debug"
+
+        if log_level == None:
+            self.log_level = self.log_modes[self.log_mode]
+        else:
+            self.log_level = log_level
+            self.log_mode = list(self.log_modes.keys())[list(self.log_modes.values()).index(self.log_level)]
+
+        now = datetime.datetime.now()
+        self.log_file_name = self.log_mode + now.strftime("%Y-%m-%d") + ".log"
+
         self.logger = self.fetchLogger()
 
     def fetchLogger(self, log_file_name = None, log_mode = None):
@@ -44,11 +77,14 @@ class Log_system:
 
         if log_mode == None:
             log_mode = self.log_mode
-        logger.setLevel(self.log_modes[log_mode])
+
+        log_level_num = self.log_modes[log_mode]
+        logger.setLevel(log_level_num)
 
         # create File for Log
+
         handler = logging.FileHandler(str(log_file_name))
-        handler.setLevel(self.log_modes[log_mode])
+        handler.setLevel(log_level_num)
         # log format
         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
         formatter = logging.Formatter(FORMAT)
@@ -270,39 +306,21 @@ class Utils:
     def __init__(self):
         self.log_system = Log_system()
 
-        # self.loggers = {}
-        # self.logger = self.myLogger('debug')
-
-    # def myLogger(self, name):
-    #     if self.loggers.get(name):
-    #         return self.loggers.get(name)
-    #     else:
-    #         logger = logging.getLogger(name)
-    #         logger.setLevel(logging.DEBUG)
-    #         now = datetime.datetime.now()
-    #         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-    #         handler = logging.FileHandler(
-    #             'debug'
-    #             + now.strftime("%Y-%m-%d")
-    #             + '.log')
-    #         formatter = logging.Formatter(FORMAT)
-    #         handler.setFormatter(formatter)
-    #         logger.addHandler(handler)
-    #         self.loggers[name] = logger
-    #
-    #         return logger
-
     def print_both(self, message, file_name = None, log_mode = None):
         if file_name is None:
             file_name = self.log_system.log_file_name
 
         if log_mode is None:
             logger = self.log_system.logger
+            log_mode = "debug"
         else:
-            logger = self.log_system.fetchLogger(file_name, log_mode)
+            logger = self.log_system.fetchLogger(file_name, self.log_system.log_modes[log_mode])
 
         print(message)
-        logger.log(log_mode, message)
+        try:
+            logger.log(self.log_system.log_modes[log_mode], message)
+        except:
+            raise
 
     def is_local(self):
         print("os.environ['HOME']:")
