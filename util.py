@@ -19,7 +19,7 @@ import logging
 
 
 class Log_system:
-    def __init__(self, log_level = None):
+    def __init__(self, log_level_num = None):
         self.log_modes = {
             "debug"  : logging.DEBUG,
             "info"   : logging.INFO,
@@ -28,7 +28,7 @@ class Log_system:
             "error"  : logging.ERROR,
         }
 
-        # logging.basicConfig(level = log_level)
+        # logging.basicConfig(level = log_level_num)
         # logging.basicConfig(level = logging.INFO, filename = time.strftime("my-%Y-%m-%d.log"))
         # self.loggers = {}
         # self.logger = self.myLogger('debug')
@@ -55,11 +55,11 @@ class Log_system:
         # DEFAULTS:
         self.log_level_name = "debug"
 
-        if log_level == None:
-            self.log_level = self.log_modes[self.log_level_name]
+        if log_level_num == None:
+            self.log_level_num = self.get_log_level_num(self.log_level_name)
         else:
-            self.log_level = log_level
-            self.log_level_name = list(self.log_modes.keys())[list(self.log_modes.values()).index(self.log_level)]
+            self.log_level_num = log_level_num
+            self.log_level_name = list(self.log_modes.keys())[list(self.log_modes.values()).index(self.log_level_num)]
 
         now = datetime.datetime.now()
         self.log_file_name = self.log_level_name + now.strftime("%Y-%m-%d") + ".log"
@@ -78,7 +78,7 @@ class Log_system:
         if log_level_name == None:
             log_level_name = self.log_level_name
 
-        log_level_num = self.log_modes[log_level_name.lower()]
+        log_level_num = self.get_log_level_num(log_level_name)
         logger.setLevel(log_level_num)
 
         # create File for Log
@@ -98,7 +98,7 @@ class Log_system:
         try:
             return self.log_modes[log_level_name.lower()]
         except:
-            return self.log_level
+            return self.log_level_num
 
 
 class Mysql_util:
