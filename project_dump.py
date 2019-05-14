@@ -8,11 +8,6 @@ import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 
-# import logging
-# logger = logging.getLogger('')
-# FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-# logging.basicConfig(level = logging.DEBUG, format = FORMAT, filename = 'debug.log', filemode='w')
-
 import util
 import IlluminaUtils.lib.fastalib as fastalib
 from collections import defaultdict
@@ -450,13 +445,26 @@ class Taxonomy(LongTables):
         what_to_select = "silva_taxonomy_id"
         from_table_name = "silva_taxonomy_info_per_seq"
         self.silva_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
-        self.silva_taxonomy_ids_list = [x[0] for x in self.silva_taxonomy_ids[0]]
+        try:
+            self.silva_taxonomy_ids_list = [x[0] for x in self.silva_taxonomy_ids[0]]
+        except TypeError:
+            utils.print_both("No silva_taxonomy_ids", "error")
+            self.silva_taxonomy_ids_list = []
+        except:
+            raise
+
         self.silva_taxonomy_str = utils.make_quoted_str(self.silva_taxonomy_ids_list)
 
         what_to_select = "rdp_taxonomy_id"
         from_table_name = "rdp_taxonomy_info_per_seq"
         self.rdp_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
-        self.rdp_taxonomy_ids_list = [x[0] for x in self.rdp_taxonomy_ids[0]]
+        try:
+            self.rdp_taxonomy_ids_list = [x[0] for x in self.rdp_taxonomy_ids[0]]
+        except TypeError:
+            utils.print_both("No rdp_taxonomy_ids", "error")
+            self.rdp_taxonomy_ids_list = []
+        except:
+            raise
         self.rdp_taxonomy_str = utils.make_quoted_str(self.rdp_taxonomy_ids_list)
 
     def get_all_ids_from_db(self, what_to_select, from_table_name, where_id_name, where_id_str):
@@ -562,9 +570,9 @@ if __name__ == '__main__':
     else:
         upl.insert_metadata_info_and_short_tables()
 
-    utils.print_both("Making seq obj...", log_mode = "info")
+    utils.print_both("Making seq obj...", log_level_name = "info")
     sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
-    utils.print_both("Making tax obj...", log_mode = "error")
+    utils.print_both("Making tax obj...", log_level_name = "INFO")
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str, curr_conn_obj)
     upl.call_insert_long_tables_info(file_out_name)
 
