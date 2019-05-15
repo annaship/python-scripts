@@ -233,16 +233,23 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
-    def dump_metadata_info_and_short_tables(self, file_name):
-        file_out_name = file_name + ".%s.sql"
+    def make_file_out_num_name(self, file_prefix, table_number, table_name):
+        file_out_name = file_prefix + "%s.%s.sql"
+        return file_out_name % (table_number, table_name)
+
+    def dump_metadata_info_and_short_tables(self, file_prefix):
+        table_number = 0
 
         for table_name in const.full_short_ordered_tables:
+            table_number += 1
             utils.print_both("Dump %s" % table_name)
-            self.part_dump_to_file(table_name, "", (file_out_name % table_name))
+            file_out_num_name = self.make_file_out_num_name(file_prefix, table_number, table_name)
+            self.part_dump_to_file(table_name, "", file_out_num_name)
 
         custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
         utils.print_both("Dump %s" % custom_metadata_table_name)
-        self.part_dump_to_file(custom_metadata_table_name, "", file_out_name % custom_metadata_table_name)
+        file_out_num_name = self.make_file_out_num_name(file_prefix, table_number, custom_metadata_table_name)
+        self.part_dump_to_file(custom_metadata_table_name, "", file_out_num_name)
 
     def insert_metadata_info_and_short_tables(self):
         for table_name in const.full_short_ordered_tables:
@@ -569,6 +576,7 @@ if __name__ == '__main__':
     else:
         upl.insert_metadata_info_and_short_tables()
 
+    # TODO: change to the abstract class call - long tables
     utils.print_both("Making seq obj...", log_level_name = "info")
     sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
     utils.print_both("Making tax obj...", log_level_name = "INFO")
