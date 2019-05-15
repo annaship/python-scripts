@@ -161,9 +161,15 @@ class dbUpload:
             utils.print_both('WARNING: File %s already exists! The script will not overwrite it.' % file_out_name)
             return
         else:
-            res_file = subprocess.check_output("touch %s" % file_out_name,
+            try:
+                res_file = subprocess.check_output("touch %s" % file_out_name,
                                         stderr = subprocess.STDOUT,
                                         shell = True)
+            except subprocess.CalledProcessError:
+                utils.print_both("ERROR: No such directory, couldn't create file %s." % file_out_name)
+                raise
+            except:
+                raise
 
         dump_command = 'mysqldump -h %s --insert-ignore %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
                                                                     no_drop_and_create,
@@ -291,19 +297,19 @@ class dbUpload:
 
     def call_insert_long_tables_info(self, file_out_name = None):
         long_table_num = 0
-        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num)
+        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num = long_table_num)
         long_table_num = long_table_num + 1
-        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, long_table_num)
+        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, long_table_num = long_table_num)
         long_table_num = long_table_num + 1
-        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, long_table_num)
+        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, long_table_num = long_table_num)
         long_table_num = long_table_num + 1
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num)
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
         long_table_num = long_table_num + 1
-        self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, long_table_num)
+        self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, long_table_num = long_table_num)
         long_table_num = long_table_num + 1
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num)
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
         long_table_num = long_table_num + 1
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id", long_table_num)
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
 
 class Dataset:
 
