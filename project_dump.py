@@ -233,8 +233,12 @@ class dbUpload:
         my_sql_tmpl = my_sql_1 + values_str + my_sql_2
         return my_sql_tmpl
 
-    def make_file_out_num_name(self, file_prefix, table_number, table_name):
-        file_out_name = file_prefix + "%s.%s.sql"
+    def make_file_out_num_name(self, file_prefix, table_number, table_name, add_more = None):
+        if add_more == None:
+            add_more = ""
+        else:
+            add_more = ".%s" % add_more
+        file_out_name = file_prefix + "%s.%s" + add_more + ".sql"
         return file_out_name % (table_number, table_name)
 
     def dump_metadata_info_and_short_tables(self, file_prefix):
@@ -260,7 +264,9 @@ class dbUpload:
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump_to_db(custom_metadata_table_name)
 
-    def insert_long_table_info(self, id_list, table_obj, file_name = None, id_name = None):
+    def insert_long_table_info(self, id_list, table_obj, file_prefix = None, id_name = None, long_table_num = None):
+        if long_table_num is None:
+            long_table_num = 0
         if id_name is None:
             id_name = table_obj["id_name"]
         all_chunks = self.split_long_lists(id_list)
@@ -273,8 +279,9 @@ class dbUpload:
             where_part = "WHERE %s in (%s)" % (id_name, chunk_str)
             utils.print_both("Dump %s, %d" % (table_name, n + 1))
             chunk_num = n
-            if file_name:
-                file_out_name = file_name + ".%s.%s.sql" % (table_name, chunk_num)
+            if file_prefix:
+                file_out_name = self.make_file_out_num_name(file_prefix, long_table_num, table_name, chunk_num)
+                # file_out_name = file_prefix + ".%s.%s.sql" % (table_name, chunk_num)
                 self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
                 # part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
             else:
@@ -283,13 +290,20 @@ class dbUpload:
 
 
     def call_insert_long_tables_info(self, file_out_name = None):
-        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name)
-        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name)
-        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name)
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id")
-        self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name)
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id")
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id")
+        long_table_num = 0
+        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num)
+        long_table_num = long_table_num + 1
+        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, long_table_num)
+        long_table_num = long_table_num + 1
+        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, long_table_num)
+        long_table_num = long_table_num + 1
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num)
+        long_table_num = long_table_num + 1
+        self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, long_table_num)
+        long_table_num = long_table_num + 1
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num)
+        long_table_num = long_table_num + 1
+        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id", long_table_num)
 
 class Dataset:
 
