@@ -459,11 +459,10 @@ class Taxonomy(LongTables):
                                  "sequence_uniq_info"]
 
         ids = self.get_ids()
-        self.sequence_uniq_info_ids = ids["sequence_uniq_info_id"]
-        self.silva_taxonomy_ids = ids["silva_taxonomy_id"]
-        self.rdp_taxonomy_ids = ids["rdp_taxonomy_id"]
+        id_lists_dict = self.make_id_lists(ids)
 
-        self.make_id_str()
+        self.silva_taxonomy_ids_list = id_lists_dict["silva_taxonomy_id"]
+        self.rdp_taxonomy_ids_list = id_lists_dict["rdp_taxonomy_id"]
 
         self.silva_taxonomy_table_data = self.get_table_data("silva_taxonomy")
         self.silva_taxonomy_info_per_seq_table_data = self.get_table_data("silva_taxonomy_info_per_seq")
@@ -478,9 +477,6 @@ class Taxonomy(LongTables):
 
         table_names_from = ["sequence_uniq_info", "silva_taxonomy_info_per_seq", "rdp_taxonomy_info_per_seq"]
         what_to_select_list = ["sequence_uniq_info_id", "silva_taxonomy_id", "rdp_taxonomy_id"]
-        # what_to_select = "sequence_uniq_info_id"
-        # from_table_name = "sequence_uniq_info"
-
 
         this_len = len(table_names_from)
         for n in range(0, this_len):
@@ -488,34 +484,24 @@ class Taxonomy(LongTables):
             temp_dict[what_to_select] = self.get_all_ids_from_db(what_to_select, table_names_from[n], where_id_name, where_id_str)
 
         return temp_dict
-        # self.sequence_uniq_info_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
 
-        # what_to_select = "silva_taxonomy_id"
-        # from_table_name = "silva_taxonomy_info_per_seq"
-        # self.silva_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
-    def make_id_str(self):
+    def make_id_lists(self, ids):
+        make_list_from = ["silva_taxonomy_id", "rdp_taxonomy_id"]
+        res_lists_dict = defaultdict(list)
 
-        try:
-            self.silva_taxonomy_ids_list = [x[0] for x in self.silva_taxonomy_ids[0]]
-        except TypeError:
-            utils.print_both("No silva_taxonomy_ids", "error")
-            self.silva_taxonomy_ids_list = []
-        except:
-            raise
+        for id_name in make_list_from:
+            try:
+                res_lists_dict[id_name] = [x[0] for x in ids[id_name][0]]
+            except TypeError:
+                utils.print_both("No %ss" % id_name, "error")
+                res_lists_dict[id_name] = []
+            except:
+                raise
 
-        self.silva_taxonomy_str = utils.make_quoted_str(self.silva_taxonomy_ids_list)
+        return res_lists_dict
 
-        # what_to_select = "rdp_taxonomy_id"
-        # from_table_name = "rdp_taxonomy_info_per_seq"
-        # self.rdp_taxonomy_ids = self.get_all_ids_from_db(what_to_select, from_table_name, where_id_name, where_id_str)
-        try:
-            self.rdp_taxonomy_ids_list = [x[0] for x in self.rdp_taxonomy_ids[0]]
-        except TypeError:
-            utils.print_both("No rdp_taxonomy_ids", "error")
-            self.rdp_taxonomy_ids_list = []
-        except:
-            raise
-        self.rdp_taxonomy_str = utils.make_quoted_str(self.rdp_taxonomy_ids_list)
+        # self.silva_taxonomy_str = utils.make_quoted_str(res_lists_dict["silva_taxonomy_id"])
+        # self.rdp_taxonomy_str = utils.make_quoted_str(res_lists_dict["rdp_taxonomy_id"])
 
     def get_all_ids_from_db(self, what_to_select, from_table_name, where_id_name, where_id_str):
         all_ids_sql = """SELECT %s FROM %s
