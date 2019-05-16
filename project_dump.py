@@ -350,8 +350,14 @@ class Project:
 
     def get_project_id(self):
         project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
-        res = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
-        return res[0]['project_id']
+        try:
+            res = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
+            return res[0]['project_id']
+        except IndexError:
+            utils.print_both("ERROR: Wrong project name: %s" % self.project, "error")
+            raise
+        except:
+            raise
 
     def get_project_info(self):
         # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
