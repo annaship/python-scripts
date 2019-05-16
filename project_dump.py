@@ -477,7 +477,7 @@ class Taxonomy(LongTables):
         self.sequence_uniq_info_table_data = self.get_table_data("sequence_uniq_info")
 
     def get_ids(self):
-        temp_dict = defaultdict(list)
+        ids_dict = defaultdict(list)
         where_id_name = "sequence_id"
         where_id_str = self.sequence_id_str
 
@@ -487,9 +487,9 @@ class Taxonomy(LongTables):
         this_len = len(table_names_from)
         for n in range(0, this_len):
             what_to_select = what_to_select_list[n]
-            temp_dict[what_to_select] = self.get_all_ids_from_db(what_to_select, table_names_from[n], where_id_name, where_id_str)
+            ids_dict[what_to_select] = self.get_all_ids_from_db(what_to_select, table_names_from[n], where_id_name, where_id_str)
 
-        return temp_dict
+        return ids_dict
 
     def make_id_lists(self, ids):
         make_list_from = ["silva_taxonomy_id", "rdp_taxonomy_id"]
