@@ -300,24 +300,62 @@ class dbUpload:
             # utils.print_both("Inserted %d" % (rowcount))
 
     def call_insert_long_tables_info(self, file_out_name = None):
-        long_tables_call_parameters = defaultdict(list)
-        long_tables_call_parameters
+        #     def insert_long_table_info(self, id_list, table_obj, file_prefix = None, id_name = None, long_table_num = None):
 
+        sequence_table_name = sequence_obj.sequence_table_data['table_name']
+        pdr_info_table_name = sequence_obj.pdr_info_table_data['table_name']
+
+
+        # self.long_tables_names = [sequence_table_name, pdr_info_table_name, "silva_taxonomy", "silva_taxonomy_info_per_seq", "rdp_taxonomy", "rdp_taxonomy_info_per_seq", "sequence_uniq_info"]
+
+        #         table_data["table_name"] = table_name
+        #         table_data["id_name"] = table_name + "_id"
+        #         table_data["fields"] = curr_conn_obj.mysql_utils_in.get_field_names(table_name)
+        #         table_data["fields_str"] = ", ".join([x[0] for x in table_data["fields"][0]])
+        #         table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(curr_conn_obj.db_info_dict["db_in"], table_name)
+        long_tables_call_parameters_keys = ["id_list", "table_obj", "file_prefix", "id_name", "long_table_num"]
 
         long_table_num = self.table_number
-        self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num = long_table_num)
-        long_table_num += 1
-        self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, long_table_num = long_table_num)
-        long_table_num += 1
-        self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, long_table_num = long_table_num)
-        long_table_num += 1
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
-        long_table_num += 1
-        self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, long_table_num = long_table_num)
-        long_table_num += 1
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
-        long_table_num += 1
-        self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
+        long_tables_call_parameters = defaultdict(dict)
+
+        values = [sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, None, long_table_num]
+        long_tables_call_parameters[sequence_table_name] = dict(zip(long_tables_call_parameters_keys, values))
+
+        values = [sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, None,long_table_num]
+        long_tables_call_parameters[pdr_info_table_name] = dict(zip(long_tables_call_parameters_keys, values))
+
+        values = [taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, None, long_table_num]
+        long_tables_call_parameters["silva_taxonomy"] = dict(zip(long_tables_call_parameters_keys, values))
+
+        values = [sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num]
+        long_tables_call_parameters["silva_taxonomy_info_per_seq"] = dict(zip(long_tables_call_parameters_keys, values))
+
+        values = [taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, None, long_table_num]
+        long_tables_call_parameters["rdp_taxonomy"] = dict(zip(long_tables_call_parameters_keys, values))
+
+        values = [sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, None,long_table_num]
+        long_tables_call_parameters["rdp_taxonomy_info_per_seq"] = dict(zip(long_tables_call_parameters_keys, values))
+
+        values = [sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id", long_table_num ]
+        long_tables_call_parameters["sequence_uniq_info"] = dict(zip(long_tables_call_parameters_keys, values))
+
+        for k, v in long_tables_call_parameters.items():
+            self.insert_long_table_info(**v)
+            long_table_num += 1
+
+        # self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num = long_table_num)
+        # long_table_num += 1
+        # self.insert_long_table_info(sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, long_table_num = long_table_num)
+        # long_table_num += 1
+        # self.insert_long_table_info(taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, long_table_num = long_table_num)
+        # long_table_num += 1
+        # self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
+        # long_table_num += 1
+        # self.insert_long_table_info(taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, long_table_num = long_table_num)
+        # long_table_num += 1
+        # self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
+        # long_table_num += 1
+        # self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
         self.table_number = long_table_num
 
 class Dataset:
@@ -430,11 +468,11 @@ class Seq(LongTables):
     """
     def __init__(self, project_id, curr_conn_obj):
 
-        pdr_info_table_name = curr_conn_obj.table_names["sequence_pdr_info_table_name"]
-        self.pdr_info_table_data = self.get_table_data(pdr_info_table_name)
+        self.pdr_info_table_name = curr_conn_obj.table_names["sequence_pdr_info_table_name"]
+        self.pdr_info_table_data = self.get_table_data(self.pdr_info_table_name)
 
-        sequence_table_name = curr_conn_obj.table_names["sequence_table_name"]
-        self.sequence_table_data = self.get_table_data(sequence_table_name)
+        self.sequence_table_name = curr_conn_obj.table_names["sequence_table_name"]
+        self.sequence_table_data = self.get_table_data(self.sequence_table_name)
 
         pdr_id_seq_id = self.get_pdr_info()
 
@@ -619,7 +657,10 @@ if __name__ == '__main__':
     sequence_obj = Seq(project_obj.project_id, curr_conn_obj)
     utils.print_both("Making tax obj...", log_level_name = "INFO")
     taxonomy_obj = Taxonomy(sequence_obj.sequence_id_str, curr_conn_obj)
+    call_insert_long_tables_info_start = time.time()
     upl.call_insert_long_tables_info(file_out_name)
+    call_insert_long_tables_info_res = time.time() - call_insert_long_tables_info_start
+    print("\ncall_insert_long_tables_info_time = %d" % call_insert_long_tables_info_res)
 
     utils.print_both("project_id = %s" % upl.project_id)
 
