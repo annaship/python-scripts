@@ -315,7 +315,7 @@ class DbUpload:
 
 class Dataset:
 
-    def __init__(self, project_id, curr_connection):
+    def __init__(self, project_id):
         self.project_id = project_id
 
         self.dataset_info = self.get_dataset_info()
@@ -367,7 +367,7 @@ class Project:
 
 class RunInfo:
     def __init__(self, curr_conn_obj):
-        # upl
+        self.curr_conn_obj = curr_conn_obj
         self.run_info_t_dict = self.get_run_info()
         self.run_info_by_dataset_id = self.convert_run_info_to_dict_by_dataset_id()
         self.used_run_info_id_list = self.get_used_run_info_ids()
@@ -385,7 +385,7 @@ class RunInfo:
                     ;
         """ % dataset_obj.dataset_ids_string
 
-        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(my_sql)
+        rows = self.curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
 
     def convert_run_info_to_dict_by_dataset_id(self):
@@ -403,6 +403,7 @@ class RunInfo:
 
 class LongTables:
     def __init__(self, curr_conn_obj):
+        self.curr_conn_obj = curr_conn_obj
         self.utils = util.Utils()
 
     def get_table_data(self, table_name):
@@ -410,10 +411,10 @@ class LongTables:
 
         table_data["table_name"] = table_name
         table_data["id_name"] = table_name + "_id"
-        table_data["fields"] = curr_conn_obj.mysql_utils_in.get_field_names(table_name)
+        table_data["fields"] = self.curr_conn_obj.mysql_utils_in.get_field_names(table_name)
         table_data["fields_str"] = ", ".join([x[0] for x in table_data["fields"][0]])
-        db_in = curr_conn_obj.db_info_dict["db_in"]
-        table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(db_in, table_name)
+        db_in = self.curr_conn_obj.db_info_dict["db_in"]
+        table_data["unique_fields"] = self.curr_conn_obj.mysql_utils_in.get_uniq_index_columns(db_in, table_name)
         table_data["unique_fields_str"] = ", ".join(table_data["unique_fields"])
         return table_data
 
@@ -427,11 +428,12 @@ class Seq(LongTables):
 
     """
     def __init__(self, project_id, curr_conn_obj):
+        self.curr_conn_obj = curr_conn_obj
 
-        self.pdr_info_table_name = curr_conn_obj.table_names["sequence_pdr_info_table_name"]
+        self.pdr_info_table_name = self.curr_conn_obj.table_names["sequence_pdr_info_table_name"]
         self.pdr_info_table_data = self.get_table_data(self.pdr_info_table_name)
 
-        self.sequence_table_name = curr_conn_obj.table_names["sequence_table_name"]
+        self.sequence_table_name = self.curr_conn_obj.table_names["sequence_table_name"]
         self.sequence_table_data = self.get_table_data(self.sequence_table_name)
 
         pdr_id_seq_id = self.get_pdr_info()
@@ -452,22 +454,14 @@ class Seq(LongTables):
                                                                dataset_obj.dataset_ids_string,
                                                                run_info_obj.used_run_info_id_str)
 
-        rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
+        rows = self.curr_conn_obj.mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
         return rows
 
 
 class Taxonomy(LongTables):
     def __init__(self, sequence_id_str, curr_conn_obj):
+        self.curr_conn_obj = curr_conn_obj
         self.sequence_id_str = sequence_id_str
-        # self.table_names_to_insert = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species",
-        #                          "silva_taxonomy", "silva_taxonomy_info_per_seq",
-        #                          "generic_taxonomy", "generic_taxonomy_info",
-        #                          "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
-        #                          "sequence_uniq_info"]
-
-        # self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
-        # self.long_tax_tables = ["silva_taxonomy", "silva_taxonomy_info_per_seq", "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
-        #                          "sequence_uniq_info"]
 
         ids = self.get_ids()
         id_lists_dict = self.make_id_lists(ids)
@@ -523,7 +517,7 @@ class Taxonomy(LongTables):
                                 where_id_str)
 
         try:
-            rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_ids_sql)
+            rows = self.curr_conn_obj.mysql_utils_in.execute_fetch_select(all_ids_sql)
             return rows
         except:
             utils.print_both("Error running this query: %s" % all_ids_sql)
@@ -602,12 +596,12 @@ if __name__ == '__main__':
     project_obj = Project(project, curr_conn_obj)
     project_info = project_obj.get_project_info()
     
-    dataset_obj = Dataset(project_obj.project_id, curr_conn_obj)
+    dataset_obj = Dataset(project_obj.project_id)
 
     user_id = project_info['owner_user_id']
     # user_obj = User(user_id)
 
-    upl = DbUpload(project_obj, curr_conn_obj)
+    upl = DbUpload(project_obj)
 
     run_info_obj = RunInfo(curr_conn_obj)
 
