@@ -2,6 +2,7 @@
 *.gz
 RCS
 *.pyc
+*.log
 
 # IDE #
 #######
