@@ -145,11 +145,13 @@ class dbUpload:
         if where_clause:
             where_clause = "--where='%s'" % where_clause
 
-        dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (self.host_in, self.db_in, table_name, where_clause,
+        dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (self.host_in, self.db_in,
+                                                                      table_name,
+                                                                      where_clause,
                                                                       self.host_out, self.db_out)
         res = subprocess.check_output(dump_command,
-                                    stderr = subprocess.STDOUT,
-                                    shell = True)
+            stderr = subprocess.STDOUT,
+            shell = True)
         self.test_dump_result(res)
 
     def part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop_and_create = ""):
@@ -166,8 +168,8 @@ class dbUpload:
         else:
             try:
                 res_file = subprocess.check_output("touch %s" % file_out_name,
-                                        stderr = subprocess.STDOUT,
-                                        shell = True)
+                    stderr = subprocess.STDOUT,
+                    shell = True)
             except subprocess.CalledProcessError:
                 utils.print_both("ERROR: No such directory, couldn't create file %s." % file_out_name)
                 raise
@@ -175,8 +177,8 @@ class dbUpload:
                 raise
 
         dump_command = 'mysqldump -h %s --insert-ignore %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
-                                                                    no_drop_and_create,
-                                                                    file_out_name)
+                                                                                    no_drop_and_create,
+                                                                                    file_out_name)
         res = subprocess.check_output(dump_command,
                                     stderr = subprocess.STDOUT,
                                     shell = True)
@@ -297,8 +299,11 @@ class dbUpload:
                 rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part, chunk_num = chunk_num)
             # utils.print_both("Inserted %d" % (rowcount))
 
-
     def call_insert_long_tables_info(self, file_out_name = None):
+        long_tables_call_parameters = defaultdict(list)
+        long_tables_call_parameters
+
+
         long_table_num = self.table_number
         self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num = long_table_num)
         long_table_num += 1
@@ -454,15 +459,15 @@ class Seq(LongTables):
 class Taxonomy(LongTables):
     def __init__(self, sequence_id_str, curr_conn_obj):
         self.sequence_id_str = sequence_id_str
-        self.table_names_to_insert = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species",
-                                 "silva_taxonomy", "silva_taxonomy_info_per_seq",
-                                 "generic_taxonomy", "generic_taxonomy_info",
-                                 "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
-                                 "sequence_uniq_info"]
+        # self.table_names_to_insert = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species",
+        #                          "silva_taxonomy", "silva_taxonomy_info_per_seq",
+        #                          "generic_taxonomy", "generic_taxonomy_info",
+        #                          "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
+        #                          "sequence_uniq_info"]
 
-        self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
-        self.long_tax_tables = ["silva_taxonomy", "silva_taxonomy_info_per_seq", "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
-                                 "sequence_uniq_info"]
+        # self.table_names_to_get_ids_second = ["strain", "genus", "domain", "family", "klass", "order", "phylum", "species"]
+        # self.long_tax_tables = ["silva_taxonomy", "silva_taxonomy_info_per_seq", "rdp_taxonomy", "rdp_taxonomy_info_per_seq",
+        #                          "sequence_uniq_info"]
 
         ids = self.get_ids()
         id_lists_dict = self.make_id_lists(ids)
