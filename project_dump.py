@@ -176,7 +176,8 @@ class dbUpload:
             except:
                 raise
 
-        dump_command = 'mysqldump -h %s --insert-ignore %s %s %s %s | gzip > %s' % (self.host_in, self.db_in, table_name, where_clause,
+        dump_command = 'mysqldump -h %s --insert-ignore %s %s %s %s | gzip > %s' % (self.host_in, self.db_in,
+                                                                                    table_name, where_clause,
                                                                                     no_drop_and_create,
                                                                                     file_out_name)
         res = subprocess.check_output(dump_command,
@@ -292,9 +293,7 @@ class dbUpload:
             chunk_num = n
             if file_prefix:
                 file_out_name = self.make_file_out_num_name(file_prefix, long_table_num, table_name, chunk_num)
-                # file_out_name = file_prefix + ".%s.%s.sql" % (table_name, chunk_num)
                 self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
-                # part_dump_to_file(self, table_name, where_clause = "", file_out_name = "", no_drop = ""):
             else:
                 rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part, chunk_num = chunk_num)
             # utils.print_both("Inserted %d" % (rowcount))
@@ -307,31 +306,31 @@ class dbUpload:
         long_table_num = self.table_number
         long_tables_call_parameters = defaultdict(dict)
 
-        values = [sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, None, long_table_num]
+        params = [sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, None, long_table_num]
         sequence_table_name = sequence_obj.sequence_table_data['table_name']
-        long_tables_call_parameters[sequence_table_name] = dict(zip(long_tables_call_parameters_keys, values))
+        long_tables_call_parameters[sequence_table_name] = dict(zip(long_tables_call_parameters_keys, params))
 
-        values = [sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, None, long_table_num]
+        params = [sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, None, long_table_num]
         pdr_info_table_name = sequence_obj.pdr_info_table_data['table_name']
-        long_tables_call_parameters[pdr_info_table_name] = dict(zip(long_tables_call_parameters_keys, values))
+        long_tables_call_parameters[pdr_info_table_name] = dict(zip(long_tables_call_parameters_keys, params))
 
-        values = [taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, None, long_table_num]
-        long_tables_call_parameters["silva_taxonomy"] = dict(zip(long_tables_call_parameters_keys, values))
+        params = [taxonomy_obj.silva_taxonomy_ids_list, taxonomy_obj.silva_taxonomy_table_data, file_out_name, None, long_table_num]
+        long_tables_call_parameters["silva_taxonomy"] = dict(zip(long_tables_call_parameters_keys, params))
 
-        values = [sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num]
-        long_tables_call_parameters["silva_taxonomy_info_per_seq"] = dict(zip(long_tables_call_parameters_keys, values))
+        params = [sequence_obj.sequence_id_list, taxonomy_obj.silva_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num]
+        long_tables_call_parameters["silva_taxonomy_info_per_seq"] = dict(zip(long_tables_call_parameters_keys, params))
 
-        values = [taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, None, long_table_num]
-        long_tables_call_parameters["rdp_taxonomy"] = dict(zip(long_tables_call_parameters_keys, values))
+        params = [taxonomy_obj.rdp_taxonomy_ids_list, taxonomy_obj.rdp_taxonomy_table_data, file_out_name, None, long_table_num]
+        long_tables_call_parameters["rdp_taxonomy"] = dict(zip(long_tables_call_parameters_keys, params))
 
-        values = [sequence_obj.pdr_id_list, sequence_obj.pdr_info_table_data, file_out_name, None, long_table_num]
-        long_tables_call_parameters["rdp_taxonomy_info_per_seq"] = dict(zip(long_tables_call_parameters_keys, values))
+        params = [sequence_obj.sequence_id_list, taxonomy_obj.rdp_taxonomy_info_per_seq_table_data, file_out_name, "sequence_id", long_table_num]
+        long_tables_call_parameters["rdp_taxonomy_info_per_seq"] = dict(zip(long_tables_call_parameters_keys, params))
 
-        values = [sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id", long_table_num]
-        long_tables_call_parameters["sequence_uniq_info"] = dict(zip(long_tables_call_parameters_keys, values))
+        params = [sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, "sequence_id", long_table_num]
+        long_tables_call_parameters["sequence_uniq_info"] = dict(zip(long_tables_call_parameters_keys, params))
 
-        for k, v in long_tables_call_parameters.items():
-            self.insert_long_table_info(**v)
+        for val in long_tables_call_parameters.values():
+            self.insert_long_table_info(**val)
             long_table_num += 1
 
         # self.insert_long_table_info(sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, long_table_num = long_table_num)
