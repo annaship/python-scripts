@@ -9,7 +9,6 @@ import argparse
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 
 import util
-import IlluminaUtils.lib.fastalib as fastalib
 from collections import defaultdict
 
 try:
@@ -21,7 +20,7 @@ except ImportError:
         import MySQLdb as mysql
 
 
-class Current_connection:
+class CurrentConnection:
 
     def __init__(self, args = None):
 
@@ -74,7 +73,7 @@ class Current_connection:
         return db_info_dict
 
 
-class dbUpload:
+class DbUpload:
     Name = "dbUpload"
     """
     Order:
@@ -87,7 +86,7 @@ class dbUpload:
 
     """
 
-    def __init__(self, project_obj, curr_connection):
+    def __init__(self, project_obj):
 
         # self.utils = util.Utils()
         self.project_obj = project_obj
@@ -104,9 +103,7 @@ class dbUpload:
         self.mysql_utils_out = curr_conn_obj.mysql_utils_out
         self.table_number = 0
 
-    def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = "", chunk_num = None):
-        if chunk_num is None:
-            chunk_num = 0
+    def execute_select_insert(self, table_name, fields_str, unique_fields, where_part = ""):
         sql1_select = "SELECT %s FROM %s %s" % (fields_str, table_name, where_part)
         try:
             self.mysql_utils_in.cursor.execute(sql1_select)
@@ -137,7 +134,6 @@ class dbUpload:
         """
         :param table_name: "run"
         :param where_clause: "sequence_id in (1,2,3)"
-
 
         mysqldump database table_name --where="date_column BETWEEN '2012-07-01 00:00:00' and '2012-12-01 00:00:00'"
 
@@ -197,41 +193,9 @@ class dbUpload:
 
         return all_chunks
 
-
     def test_dump_result(self, res):
         if res:
             utils.print_both("Mysqldump error: %s" % res)
-
-    def run_groups(self, group_vals, query_tmpl, join_xpr = ', '):
-        for group in group_vals:
-            val_part = join_xpr.join([key for key in group if key is not None])
-            my_sql = query_tmpl % val_part
-            insert_info = self.execute_no_fetch(my_sql)
-            print("insert_info from run_groups")
-            print(insert_info)
-
-    def insert_bulk_data(self, key, values):
-        query_tmpl = "INSERT IGNORE INTO %s (%s) VALUES (%s)"
-        val_tmpl = "'%s'"
-        my_sql = query_tmpl % (key, key, '), ('.join([val_tmpl % v for v in values]))
-        my_sql = my_sql + " ON DUPLICATE KEY UPDATE %s = VALUES(%s);" % (key, key)
-        self.mysql_utils_out.execute_no_fetch(my_sql)
-
-    def make_sql_for_groups(self, table_name, fields_str):
-        field_list = fields_str.split(",")
-        my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
-        my_sql_2 = " ON DUPLICATE KEY UPDATE "
-        for field_name in field_list[:-1]:
-            my_sql_2 = my_sql_2 + " %s = VALUES(%s), " % (field_name.strip(), field_name.strip())
-        my_sql_2 = my_sql_2 + "  %s = VALUES(%s);" % (field_list[-1].strip(), field_list[-1].strip())
-        return my_sql_1 + " %s " + my_sql_2
-
-    def get_unknown_term_id(self):
-        my_sql = "SELECT %s FROM %s WHERE %s = '%s';" % ("term_id", "term", "term_name", "unknown")
-        # and ontology_id = 1
-        # logger.debug("my_sql from get_all_metadata_info: %s" % my_sql)
-        rows = self.mysql_utils_in.execute_fetch_select(my_sql)
-        return [x[0] for x in rows[0]]
 
     def make_insert_template(self, table_name, fields_str, values_str):
         my_sql_1 = "INSERT IGNORE INTO %s (%s) VALUES " % (table_name, fields_str)
@@ -295,7 +259,7 @@ class dbUpload:
                 file_out_name = self.make_file_out_num_name(file_prefix, long_table_num, table_name, chunk_num)
                 self.part_dump_to_file(table_name, where_part, file_out_name, "no_drop")
             else:
-                rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part, chunk_num = chunk_num)
+                rowcount = self.execute_select_insert(table_name, fields_str, unique_fields, where_part = where_part)
             # utils.print_both("Inserted %d" % (rowcount))
 
     def call_insert_long_tables_info(self, file_out_name = None):
@@ -348,6 +312,7 @@ class dbUpload:
         # self.insert_long_table_info(sequence_obj.sequence_id_list, taxonomy_obj.sequence_uniq_info_table_data, file_out_name, id_name = "sequence_id", long_table_num = long_table_num)
         self.table_number = long_table_num
 
+
 class Dataset:
 
     def __init__(self, project_id, curr_connection):
@@ -375,6 +340,7 @@ class Dataset:
         dataset_info = curr_conn_obj.mysql_utils_in.execute_fetch_select(dataset_sql)
         return dataset_info
 
+
 class Project:
 
     def __init__(self, project, curr_conn_obj):
@@ -398,7 +364,8 @@ class Project:
         project_info = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
-class Run_info:
+
+class RunInfo:
     def __init__(self, curr_conn_obj):
         # upl
         self.run_info_t_dict = self.get_run_info()
@@ -433,6 +400,7 @@ class Run_info:
     def get_used_run_info_ids(self):
         return [entry['run_info_ill_id'] for entry in self.run_info_t_dict]
 
+
 class LongTables:
     def __init__(self, curr_conn_obj):
         self.utils = util.Utils()
@@ -444,9 +412,11 @@ class LongTables:
         table_data["id_name"] = table_name + "_id"
         table_data["fields"] = curr_conn_obj.mysql_utils_in.get_field_names(table_name)
         table_data["fields_str"] = ", ".join([x[0] for x in table_data["fields"][0]])
-        table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(curr_conn_obj.db_info_dict["db_in"], table_name)
+        db_in = curr_conn_obj.db_info_dict["db_in"]
+        table_data["unique_fields"] = curr_conn_obj.mysql_utils_in.get_uniq_index_columns(db_in, table_name)
         table_data["unique_fields_str"] = ", ".join(table_data["unique_fields"])
         return table_data
+
 
 class Seq(LongTables):
     """
@@ -476,9 +446,11 @@ class Seq(LongTables):
         # SELECT sequence_pdr_info_id, sequence_id
         all_seq_ids_sql = """SELECT DISTINCT %s, %s FROM %s
                              WHERE dataset_id IN (%s)
-                             AND run_info_ill_id IN (%s)""" % (self.pdr_info_table_data["id_name"], self.sequence_table_data["id_name"], self.pdr_info_table_data["table_name"],
-                                                             dataset_obj.dataset_ids_string,
-                                                             run_info_obj.used_run_info_id_str)
+                             AND run_info_ill_id IN (%s)""" % (self.pdr_info_table_data["id_name"],
+                                                               self.sequence_table_data["id_name"],
+                                                               self.pdr_info_table_data["table_name"],
+                                                               dataset_obj.dataset_ids_string,
+                                                               run_info_obj.used_run_info_id_str)
 
         rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_seq_ids_sql)
         return rows
@@ -600,27 +572,30 @@ class Constant:
             }
         }
 
+
 def get_args():
-  parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
 
-  parser.add_argument("--project_name", "-p", type=str, required=True)
-  parser.add_argument("--file_out", "-f", type=str, required=False)
-  parser.add_argument("--host_in", "-hi", type=str, required=False)
-  parser.add_argument("--host_out", "-ho", type=str, required=False)
-  parser.add_argument("--db_in", "-di", type=str, required=False)
-  parser.add_argument("--db_out", "-do", type=str, required=False)
+    parser.add_argument("--project_name", "-p", type=str, required=True)
+    parser.add_argument("--file_out", "-f", type=str, required=False)
+    parser.add_argument("--host_in", "-hi", type=str, required=False)
+    parser.add_argument("--host_out", "-ho", type=str, required=False)
+    parser.add_argument("--db_in", "-di", type=str, required=False)
+    parser.add_argument("--db_out", "-do", type=str, required=False)
 
-  args = parser.parse_args()
+    args = parser.parse_args()
 
-  return args
+    return args
+
 
 if __name__ == '__main__':
     utils = util.Utils()
     args = get_args()
 
     const = Constant()
-    curr_conn_obj = Current_connection(args)
+    curr_conn_obj = CurrentConnection(args)
 
+    project = ""
     if args.project_name:
         project = args.project_name
 
@@ -632,9 +607,9 @@ if __name__ == '__main__':
     user_id = project_info['owner_user_id']
     # user_obj = User(user_id)
 
-    upl = dbUpload(project_obj, curr_conn_obj)
+    upl = DbUpload(project_obj, curr_conn_obj)
 
-    run_info_obj = Run_info(curr_conn_obj)
+    run_info_obj = RunInfo(curr_conn_obj)
 
     file_out_name = ""
     if args.file_out:
