@@ -44,7 +44,7 @@ class Current_connection:
 
     def get_db_info_dict(self):
         db_info_dict = {}
-        if (utils.is_local() == True):
+        if utils.is_local() == True:
             db_info_dict["host_in"] = const.db_cnf['all_local'][self.in_marker]['host']
             db_info_dict["host_out"] = const.db_cnf['all_local'][self.out_marker]['host']
 
@@ -113,7 +113,7 @@ class dbUpload:
             rows = self.mysql_utils_in.cursor.fetchall()
             sql2_insert = "INSERT INTO %s (%s)" % (table_name, fields_str)
             fields_num_part = ", ". join(["%s" for x in range(len(fields_str.split(",")))])
-            sql2_insert = sql2_insert + " values (%s)" % (fields_num_part)
+            sql2_insert = sql2_insert + " values (%s)" % fields_num_part
 
             duplicate_update_part_list = []
             for unique_field in unique_fields.split(", "):
@@ -125,10 +125,10 @@ class dbUpload:
                 rowcount = self.mysql_utils_out.cursor.executemany(sql2_insert, rows)
                 self.mysql_utils_out.conn.commit()
             except:
-                utils.print_both(("ERROR: query = %s") % sql2_insert)
+                utils.print_both("ERROR: query = %s" % sql2_insert)
                 raise
         except:
-            utils.print_both(("ERROR: query = %s") % sql1_select)
+            utils.print_both("ERROR: query = %s" % sql1_select)
             raise
 
         return rowcount
@@ -142,7 +142,7 @@ class dbUpload:
         mysqldump database table_name --where="date_column BETWEEN '2012-07-01 00:00:00' and '2012-12-01 00:00:00'"
 
         """
-        if (where_clause):
+        if where_clause:
             where_clause = "--where='%s'" % where_clause
 
         dump_command = 'mysqldump -h %s %s %s %s | mysql -h %s %s' % (self.host_in, self.db_in, table_name, where_clause,
@@ -196,7 +196,7 @@ class dbUpload:
 
 
     def test_dump_result(self, res):
-        if (res):
+        if res:
             utils.print_both("Mysqldump error: %s" % res)
 
     def run_groups(self, group_vals, query_tmpl, join_xpr = ', '):
@@ -258,7 +258,7 @@ class dbUpload:
             file_out_num_name = self.make_file_out_num_name(file_prefix, table_number, table_name)
             self.part_dump_to_file(table_name, "", file_out_num_name)
 
-        custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
+        custom_metadata_table_name = "custom_metadata_%s" % self.project_id
         utils.print_both("Dump %s" % custom_metadata_table_name)
         file_out_num_name = self.make_file_out_num_name(file_prefix, table_number, custom_metadata_table_name)
         self.part_dump_to_file(custom_metadata_table_name, "", file_out_num_name)
@@ -269,7 +269,7 @@ class dbUpload:
             utils.print_both("Dump %s" % table_name)
             self.table_dump_to_db(table_name)
 
-        custom_metadata_table_name = "custom_metadata_%s" % (self.project_id)
+        custom_metadata_table_name = "custom_metadata_%s" % self.project_id
         utils.print_both("Dump %s" % custom_metadata_table_name)
         self.table_dump_to_db(custom_metadata_table_name)
 
@@ -330,7 +330,7 @@ class Dataset:
         self.dataset_ids_string = utils.make_quoted_str(self.dataset_ids_list)
 
     def get_dataset_ids_for_project_id(self):
-        where_part = "WHERE project_id = '%s'" % (self.project_id)
+        where_part = "WHERE project_id = '%s'" % self.project_id
         dataset_ids_for_project_id_sql = """SELECT dataset_id FROM %s %s 
                                             """ % (curr_conn_obj.table_names["connect_pr_dat_table"], where_part)
 
@@ -338,7 +338,7 @@ class Dataset:
         return list(utils.extract(rows[0]))
     
     def get_dataset_info(self):
-        dataset_sql = "SELECT distinct * FROM dataset where project_id = '%s'" % (self.project_id)
+        dataset_sql = "SELECT distinct * FROM dataset where project_id = '%s'" % self.project_id
         dataset_info = curr_conn_obj.mysql_utils_in.execute_fetch_select(dataset_sql)
         return dataset_info
 
@@ -349,7 +349,7 @@ class Project:
         self.project_id = self.get_project_id()
 
     def get_project_id(self):
-        project_sql = "SELECT distinct project_id FROM project where project = '%s'" % (self.project)
+        project_sql = "SELECT distinct project_id FROM project where project = '%s'" % self.project
         try:
             res = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
             return res[0]['project_id']
@@ -361,7 +361,7 @@ class Project:
 
     def get_project_info(self):
         # "distinct" and "limit 1" are redundant for clarity, a project name is unique in the db
-        project_sql = "SELECT distinct * FROM project where project = '%s' limit 1" % (self.project)
+        project_sql = "SELECT distinct * FROM project where project = '%s' limit 1" % self.project
         project_info = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(project_sql)
         return project_info[0]
 
@@ -383,7 +383,7 @@ class Run_info:
                     JOIN dataset using(dataset_id)
                     WHERE dataset_id in (%s)
                     ;
-        """ % (dataset_obj.dataset_ids_string)
+        """ % dataset_obj.dataset_ids_string
 
         rows = curr_conn_obj.mysql_utils_in.execute_fetch_select_to_dict(my_sql)
         return rows
@@ -521,7 +521,7 @@ class Taxonomy(LongTables):
             rows = curr_conn_obj.mysql_utils_in.execute_fetch_select(all_ids_sql)
             return rows
         except:
-            utils.print_both("Error running this query: %s" % (all_ids_sql))
+            utils.print_both("Error running this query: %s" % all_ids_sql)
 
 
 class Constant:
