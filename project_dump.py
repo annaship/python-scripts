@@ -242,7 +242,7 @@ class DbUpload:
 
     def insert_long_table_info(self, id_list, table_obj, file_prefix = None, id_name = None, long_table_num = None):
         if long_table_num is None:
-            long_table_num = self.table_number
+            long_table_num = self.table_number + 1
         if id_name is None:
             id_name = table_obj["id_name"]
         all_chunks = self.split_long_lists(id_list)
@@ -267,7 +267,7 @@ class DbUpload:
 
         long_tables_call_parameters_keys = ["id_list", "table_obj", "file_prefix", "id_name", "long_table_num"]
 
-        long_table_num = self.table_number
+        long_table_num = self.table_number + 1
         long_tables_call_parameters = defaultdict(dict)
 
         params = [sequence_obj.sequence_id_list, sequence_obj.sequence_table_data, file_out_name, None, long_table_num]
