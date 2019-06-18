@@ -22,7 +22,9 @@ def get_file_content():
 all_totals = defaultdict()
 all_lines = get_file_content()
 
+n = 0
 for line in all_lines:
+  n += 1
   try:
     line_arr = line.split(": ")
     try:
@@ -40,9 +42,14 @@ for line in all_lines:
       all_totals[name] = 0
       
     all_totals[name] = curr_cnt + num_cnt
-    
   except:
     raise
+# print n
+
+print("average: ")
+for k, v in all_totals.items():
+  avg = v / n
+  print("%s: %.2f" % (k, avg)) 
 
 print("all_totals: ")
 for k, v in all_totals.items():
