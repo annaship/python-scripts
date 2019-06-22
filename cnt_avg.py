@@ -50,6 +50,7 @@ print("average: ")
 for k, v in all_totals.items():
   avg = v / n
   print("%s: %.2f" % (k, avg)) 
+print("\n---\n")
 
 print("all_totals: ")
 for k, v in all_totals.items():
