@@ -21,39 +21,56 @@ def get_file_content():
 
 all_totals = defaultdict()
 all_lines = get_file_content()
-
-n = 0
+name_cnt = 0
+#
+# for i in test_str:
+#     if i == 'e':
+#         count = count + 1
 for line in all_lines:
-  n += 1
+  # print(line)
   try:
     line_arr = line.split(": ")
-    try:
-      name = line_arr[1]
-      str_cnt = line_arr[2]
-    except IndexError:
-      continue
-
-    num_cnt = convert_to_num(str_cnt)
-
-    curr_cnt = 0
-    try:
-      curr_cnt = all_totals[name]
-    except KeyError:
-      all_totals[name] = 0
-      
-    all_totals[name] = curr_cnt + num_cnt
+    name = line_arr[1]
+    str_cnt = line_arr[2]
+    all_totals[name]["name_cnt"] += 1
+  except KeyError:
+    all_totals[name] = {}
+    all_totals[name]["name_cnt"] = 1
+  except IndexError:
+    continue
   except:
     raise
-# print n
 
-print("average: ")
-for k, v in all_totals.items():
-  avg = v / n
-  print("%s: %.2f" % (k, avg)) 
-print("\n---\n")
+  for k, v in all_totals.items():
+    # avg = v / n
+    # avg = 0
+    print "k = %s, v = %s" % (k, v)
 
-print("all_totals: ")
-for k, v in all_totals.items():
-  print("%s: %.2f" % (k, v)) 
-# pp.pprint(all_totals)
-
+  num_cnt = convert_to_num(str_cnt)
+# #
+# #     curr_cnt = 0
+# #     try:
+# #       curr_cnt = all_totals[name][num_cnt]
+# #     except KeyError:
+# #       all_totals[name] = {}
+# #
+# #     all_totals[name][num_cnt] = curr_cnt + num_cnt
+# #     all_totals[name][name_cnt] = name_cnt
+# #
+# #   except:
+# #     raise
+# # # print n
+# #
+# # print("average: ")
+# # for k, v in all_totals.items():
+# #   # avg = v / n
+# #   avg = 0
+# #   print "k = %s, v = %s" % (k, v)
+# #   print("%s: %.2f" % (k, avg))
+# # print("\n---\n")
+# #
+# # print("all_totals: ")
+# # for k, v in all_totals.items():
+# #   print("%s: %.2f" % (k, v))
+# # pp.pprint(all_totals)
+# #
