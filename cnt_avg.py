@@ -7,9 +7,9 @@ def convert_to_num(str_cnt):
     tmp_cnt = str_cnt.rstrip("ms\n")
     # pp.pprint(tmp_cnt)
   
-    num_cnt = float(tmp_cnt)
-    # pp.pprint(num_cnt)  
-    return num_cnt
+    total_cnts = float(tmp_cnt)
+    # pp.pprint(total_cnts)  
+    return total_cnts
 
 def get_file_content():
     args = sys.argv
@@ -18,63 +18,60 @@ def get_file_content():
     all_lines = fh.readlines()
     fh.close()
     return all_lines
+    
+def print_avg(all_totals):
+  print("average: ")
+  for k, v in all_totals.items():
+    total_cnts = v["total_cnts"];
+    name_occurance = v["name_occurance"];
+  
+    avg = total_cnts / name_occurance
 
+    print("%s: %.2f" % (k, avg))
+
+def print_total(all_totals):
+  print("all_totals: ")
+  for k, v in all_totals.items():
+    print("%s: %.2f" % (k, v["total_cnts"]))
+  
+# ---
 all_totals = defaultdict()
 all_lines = get_file_content()
-name_cnt = 0
-#
-# for i in test_str:
-#     if i == 'e':
-#         count = count + 1
+name_occurance = 0
+
 for line in all_lines:
   try:
     line_arr = line.split(": ")
     name = line_arr[1]
     str_cnt = line_arr[2]
-    all_totals[name]["name_cnt"] += 1
+    all_totals[name]["name_occurance"] += 1
   except KeyError:
     all_totals[name] = {}
-    all_totals[name]["name_cnt"] = 1
+    all_totals[name]["name_occurance"] = 1
   except IndexError:
     continue
   except:
     raise
 
-  num_cnt = convert_to_num(str_cnt)
-  print(num_cnt)
+  total_cnts = convert_to_num(str_cnt)
 
   curr_cnt = 0
   try:
-    curr_cnt = all_totals[name]["num_cnt"]
-    print("curr_cnt: %s" % num_cnt)
-    all_totals[name]["num_cnt"] = curr_cnt + num_cnt
-    
+    curr_cnt = all_totals[name]["total_cnts"]
+    all_totals[name]["total_cnts"] = curr_cnt + total_cnts    
   except KeyError:
-    all_totals[name]["num_cnt"] = 0
-    
-  for k, v in all_totals.items():
-    # avg = v / n
-    # avg = 0
-    print("k = %s, v = %s" % (k, v))
-        
-# #
-# #     all_totals[name][num_cnt] = curr_cnt + num_cnt
-# #     all_totals[name][name_cnt] = name_cnt
-# #
-# #   except:
-# #     raise
-# # # print n
-# #
-# # print("average: ")
-# # for k, v in all_totals.items():
-# #   # avg = v / n
-# #   avg = 0
-# #   print "k = %s, v = %s" % (k, v)
-# #   print("%s: %.2f" % (k, avg))
-# # print("\n---\n")
-# #
-# # print("all_totals: ")
-# # for k, v in all_totals.items():
-# #   print("%s: %.2f" % (k, v))
-# # pp.pprint(all_totals)
-# #
+    all_totals[name]["total_cnts"] = 0
+            
+# print("average: ")
+# for k, v in all_totals.items():
+#   total_cnts = v["total_cnts"];
+#   name_occurance = v["name_occurance"];
+#
+#   avg = total_cnts / name_occurance
+#
+#   print("%s: %.2f" % (k, avg))
+print_avg(all_totals)
+print("\n---\n")
+
+# pp.pprint(all_totals)
+
