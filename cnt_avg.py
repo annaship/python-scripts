@@ -27,7 +27,6 @@ name_cnt = 0
 #     if i == 'e':
 #         count = count + 1
 for line in all_lines:
-  # print(line)
   try:
     line_arr = line.split(": ")
     name = line_arr[1]
@@ -41,18 +40,23 @@ for line in all_lines:
   except:
     raise
 
+  num_cnt = convert_to_num(str_cnt)
+  print(num_cnt)
+
+  curr_cnt = 0
+  try:
+    curr_cnt = all_totals[name]["num_cnt"]
+    print("curr_cnt: %s" % num_cnt)
+    all_totals[name]["num_cnt"] = curr_cnt + num_cnt
+    
+  except KeyError:
+    all_totals[name]["num_cnt"] = 0
+    
   for k, v in all_totals.items():
     # avg = v / n
     # avg = 0
-    print "k = %s, v = %s" % (k, v)
-
-  num_cnt = convert_to_num(str_cnt)
-# #
-# #     curr_cnt = 0
-# #     try:
-# #       curr_cnt = all_totals[name][num_cnt]
-# #     except KeyError:
-# #       all_totals[name] = {}
+    print("k = %s, v = %s" % (k, v))
+        
 # #
 # #     all_totals[name][num_cnt] = curr_cnt + num_cnt
 # #     all_totals[name][name_cnt] = name_cnt
