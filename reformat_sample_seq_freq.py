@@ -38,7 +38,7 @@ file_names = ["test1.csv", "test2.csv"]
 
 
 all_dict = defaultdict()
-res_text = ""
+# defaultdict(list)
 
 for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
@@ -56,9 +56,7 @@ for file_name in file_names:
      pr_dat = line_arr[0]
      seq = line_arr[1]
      freq = line_arr[2]
-     # for k in seq_tax_dict.keys():
-       # print(k)
-       # res_text += line_arr[0] +
+
      try:
        all_dict[pr_dat][seq] = freq
      except KeyError:         
@@ -67,3 +65,21 @@ for file_name in file_names:
      
 print(all_dict)
 # {'BBO_IGM_Bv4v5__G6_3': {'118510824': '1', '118510832': '1'}..., 'BBO_IGM_Bv4v5__R3_2': {'118510832': '1'}}
+
+# do by file
+result = []
+res_text = []
+
+for seq in seq_tax_dict.keys():
+  # print(seq)
+  for pr_dat, seq_freq_dict in all_dict.items():
+    res_text.append(pr_dat)
+    res_text.append(seq)
+    if seq in seq_freq_dict.keys():
+      freq = seq_freq_dict[seq]
+      res_text.append(freq)
+    else:
+      res_text.append("0")
+      
+  result.append(res_text)
+print(result)
