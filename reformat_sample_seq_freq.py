@@ -27,10 +27,32 @@ def print_result(result):
   for pr_dat, counts in result.items():
     out_file_name = pr_dat + "by_seq_id.csv"
     file = open(out_file_name, "w") 
-    res_Line = "%s, %s\n" % (pr_dat.strip(), ",".join(counts))
-    file.write(res_Line) 
+    res_line = "%s, %s\n" % (pr_dat.strip(), ",".join(counts))
+    file.write(res_line) 
  
   file.close() 
+
+def print_first_line(seq_tax_dict):
+  seqs = seq_tax_dict.keys()
+  res_line = ", %s\n" % (",".join(seqs))
+
+  out_file_name = "first_line.csv"
+  file = open(out_file_name, "w") 
+  file.write(res_line) 
+ 
+  file.close()
+  
+def print_last_line(seq_tax_dict):
+  taxa = seq_tax_dict.values()
+  res_line = "Taxonomy, %s\n" % (",".join(taxa))
+
+  out_file_name = "last_line.csv"
+  file = open(out_file_name, "w") 
+  file.write(res_line) 
+ 
+  file.close()
+
+
 
 
 my_dir = "/Users/ashipunova/work/emil/results_py"
@@ -90,4 +112,6 @@ for pr_dat, seq_freq_dict in all_dict.items():
       result[pr_dat].append("0")
       
 print_result(result)      
+print_first_line(seq_tax_dict)
+print_last_line(seq_tax_dict)      
 
