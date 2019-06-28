@@ -32,7 +32,7 @@ file_names = ["test1.csv", "test2.csv"]
 # fp = open(full_name, 'r')
 # with open(filepath) as fp:
 #    for cnt, line in enumerate(fp):
-#        print("Line {}: {}".format(cnt, line))
+#        # print("Line {}: {}".format(cnt, line))
 
 # seq_tax = open(seq_tax_file_name, 'r')
 
@@ -42,14 +42,14 @@ all_dict = defaultdict()
 
 for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
-  print(full_name)
+  # print(full_name)
   content = get_file_content(full_name) 
   cnt = 1
   for line in content:
      cnt += 1
      
      line_arr = line.strip().split()
-     print("Line {}: {}".format(cnt, line_arr))
+     # print("Line {}: {}".format(cnt, line_arr))
      # Line 11: ['BBO_IGM_Bv4v5__R3_2', '118510832', '1', 'Bacteria;Firmicutes;Bacilli;Bacillales;Bacillaceae;Bacillus']
 
      # all_dict[line_arr[0]]
@@ -63,16 +63,16 @@ for file_name in file_names:
        all_dict[pr_dat] = {}
        all_dict[pr_dat][seq] = freq
      
-print(all_dict)
+# print(all_dict)
 # {'BBO_IGM_Bv4v5__G6_3': {'118510824': '1', '118510832': '1'}..., 'BBO_IGM_Bv4v5__R3_2': {'118510832': '1'}}
 
 # do by file
 result = []
-res_text = []
 
-for seq in seq_tax_dict.keys():
-  # print(seq)
-  for pr_dat, seq_freq_dict in all_dict.items():
+  # # print(seq)
+for pr_dat, seq_freq_dict in all_dict.items():
+  res_text = []
+  for seq in seq_tax_dict.keys():
     res_text.append(pr_dat)
     res_text.append(seq)
     if seq in seq_freq_dict.keys():
@@ -81,5 +81,10 @@ for seq in seq_tax_dict.keys():
     else:
       res_text.append("0")
       
-  result.append(res_text)
-print(result)
+    result.append(res_text)
+# # print(result)
+
+for line in result:
+  print(", ".join(line))
+  # BBO_IGM_Bv4v5__G6_3, 118510824, 1, BBO_IGM_Bv4v5__G6_3, 118510826, 0, BBO_IGM_Bv4v5__G6_3, 118510832, 1
+  
