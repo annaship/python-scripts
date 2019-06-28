@@ -11,9 +11,21 @@ def get_file_content(filename):
     all_lines = fh.readlines()
     fh.close()
     return all_lines
+    
+def get_seq_tax(seq_tax_file_name):
+  seq_tax_dict = {}
+
+  with open(seq_tax_file_name) as seq_tax:
+    for line in seq_tax:
+        listedline = line.strip().split('\t')
+        if len(listedline) > 1: # we have the "\t" sign in there
+            seq_tax_dict[listedline[0]] = listedline[1]
+
+  return seq_tax_dict
 
 my_dir = "/Users/ashipunova/work/emil/results_py"
 seq_tax_file_name = "seq_tax_u.txt"
+seq_tax_dict = get_seq_tax(seq_tax_file_name)
 
 file_names = ["test1.csv", "test2.csv"]
 
@@ -23,16 +35,7 @@ file_names = ["test1.csv", "test2.csv"]
 #        print("Line {}: {}".format(cnt, line))
 
 # seq_tax = open(seq_tax_file_name, 'r')
-# print(seq_tax)
-seq_tax_dict = {}
 
-with open(seq_tax_file_name) as seq_tax:
-  for line in seq_tax:
-      listedline = line.strip().split('\t')
-      if len(listedline) > 1: # we have the "\t" sign in there
-          seq_tax_dict[listedline[0]] = listedline[1]
-
-print(seq_tax_dict)
 
 all_dict = defaultdict()
 
