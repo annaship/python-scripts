@@ -1,5 +1,8 @@
 import os
 import sys
+from collections import defaultdict
+
+# save headers
 
 def get_file_content(filename):
     # args = sys.argv
@@ -31,15 +34,17 @@ with open(seq_tax_file_name) as seq_tax:
 
 print(seq_tax_dict)
 
-all_dict = {}
+all_dict = defaultdict()
+
 for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
   print(full_name)
   content = get_file_content(full_name) 
   cnt = 1
   for line in content:
-     print("Line {}: {}".format(cnt, line.strip()))
      cnt += 1
-  #        headers = line.strip()
+     
+     line_arr = line.strip().split()
+     # all_dict[]
+     print("Line {}: {}".format(cnt, line_arr))
 
-# Line 1: project__dataset  sequence_ill_id  sum_seq_count  taxonomy
