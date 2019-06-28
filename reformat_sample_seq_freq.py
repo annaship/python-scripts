@@ -1,8 +1,23 @@
+# ver 2; by file
 import os
 import sys
 from collections import defaultdict
 
-# save headers
+# save headers?
+# args file name
+
+def get_files(walk_dir_name = ".", ext = ""):
+    files = {}
+    filenames = []
+    for dirname, dirnames, filenames in os.walk(walk_dir_name, followlinks=True):
+        if ext:
+            filenames = [f for f in filenames if f.endswith(ext)]
+        
+        for file_name in filenames:
+            full_name = os.path.join(dirname, file_name)
+            (file_base, file_extension) = os.path.splitext(os.path.join(dirname, file_name))
+            files[full_name] = (dirname, file_base, file_extension)
+    return files
 
 def get_file_content(filename):
     # args = sys.argv
@@ -53,21 +68,33 @@ def print_last_line(seq_tax_dict):
   file.close()
 
 
+def get_result(all_dict):
+  result = defaultdict()
 
+  for pr_dat, seq_freq_dict in all_dict.items():
+    res_text = []
+    result[pr_dat] = []
+    for seq in seq_tax_dict.keys():
+      if seq in seq_freq_dict.keys():
+        freq = seq_freq_dict[seq]
+        result[pr_dat].append(freq)
+      else:
+        result[pr_dat].append("0")
+  return result
 
 my_dir = "/Users/ashipunova/work/emil/results_py"
 seq_tax_file_name = "seq_tax_u.txt"
 seq_tax_dict = get_seq_tax(seq_tax_file_name)
 
-file_names = ["test1.csv", "test2.csv"]
-
-all_dict = defaultdict()
-# 
+file_names = get_files(ext = ".tsv")
+print(file_names)
 
 for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
-  # print(full_name)
+  print(full_name)
   content = get_file_content(full_name) 
+  all_dict = defaultdict()
+  
   for line in content:
      
      line_arr = line.strip().split()
@@ -84,23 +111,20 @@ for file_name in file_names:
        all_dict[pr_dat] = {}
        all_dict[pr_dat][seq] = freq
      
-# print(all_dict)
-# {'BBO_IGM_Bv4v5__G6_3': {'118510824': '1', '118510832': '1'}..., 'BBO_IGM_Bv4v5__R3_2': {'118510832': '1'}}
-
-# do by file
-result = defaultdict()
-
-for pr_dat, seq_freq_dict in all_dict.items():
-  res_text = []
-  result[pr_dat] = []
-  for seq in seq_tax_dict.keys():
-    if seq in seq_freq_dict.keys():
-      freq = seq_freq_dict[seq]
-      result[pr_dat].append(freq)
-    else:
-      result[pr_dat].append("0")
-      
-print_result(result)      
-print_first_line(seq_tax_dict)
-print_last_line(seq_tax_dict)      
+  result = get_result(all_dict)
+  # result = defaultdict()
+  #
+  # for pr_dat, seq_freq_dict in all_dict.items():
+  #   res_text = []
+  #   result[pr_dat] = []
+  #   for seq in seq_tax_dict.keys():
+  #     if seq in seq_freq_dict.keys():
+  #       freq = seq_freq_dict[seq]
+  #       result[pr_dat].append(freq)
+  #     else:
+  #       result[pr_dat].append("0")
+  #
+  print_result(result)      
+  print_first_line(seq_tax_dict)
+  print_last_line(seq_tax_dict)      
 
