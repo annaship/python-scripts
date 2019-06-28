@@ -81,39 +81,45 @@ def get_result(all_dict):
       else:
         result[pr_dat].append("0")
   return result
-
-my_dir = "/Users/ashipunova/work/emil/results_py"
-seq_tax_file_name = "seq_tax_u.txt"
-seq_tax_dict = get_seq_tax(seq_tax_file_name)
-
-file_names = get_files(ext = ".tsv")
-# print(file_names)
-
-for file_name in file_names:
-  full_name = os.path.join(my_dir, file_name)
-  # print(full_name)
-  content = get_file_content(full_name) 
-  all_dict = defaultdict()
   
-  for line in content:
+def process_files(file_names):
+  for file_name in file_names:
+    full_name = os.path.join(my_dir, file_name)
+    # print(full_name)
+    content = get_file_content(full_name) 
+    all_dict = defaultdict()
+  
+    for line in content:
      
-     line_arr = line.strip().split()
-     # print("Line {}: {}".format(cnt, line_arr))
-     # Line 11: ['BBO_IGM_Bv4v5__R3_2', '118510832', '1', 'Bacteria;Firmicutes;Bacilli;Bacillales;Bacillaceae;Bacillus']
+       line_arr = line.strip().split()
+       # print("Line {}: {}".format(cnt, line_arr))
+       # Line 11: ['BBO_IGM_Bv4v5__R3_2', '118510832', '1', 'Bacteria;Firmicutes;Bacilli;Bacillales;Bacillaceae;Bacillus']
 
-     pr_dat = line_arr[0]
-     seq = line_arr[1]
-     freq = line_arr[2]
+       pr_dat = line_arr[0]
+       seq = line_arr[1]
+       freq = line_arr[2]
 
-     try:
-       all_dict[pr_dat][seq] = freq
-     except KeyError:         
-       all_dict[pr_dat] = {}
-       all_dict[pr_dat][seq] = freq
+       try:
+         all_dict[pr_dat][seq] = freq
+       except KeyError:         
+         all_dict[pr_dat] = {}
+         all_dict[pr_dat][seq] = freq
      
-  result = get_result(all_dict)
+    result = get_result(all_dict)
 
-  print_result(result)      
-  print_first_line(seq_tax_dict)
-  print_last_line(seq_tax_dict)      
+    print_result(result)      
+    print_first_line(seq_tax_dict)
+    print_last_line(seq_tax_dict)      
 
+if __name__ == '__main__':
+
+  my_dir = "."
+  # args.argv[0]
+  # "/workspace/ashipunova/for_emil/by_python"
+  seq_tax_file_name = "seq_tax_u.txt"
+  seq_tax_dict = get_seq_tax(seq_tax_file_name)
+
+  file_names = get_files(ext = ".tsv")
+  print(file_names)
+
+  process_files(file_names)
