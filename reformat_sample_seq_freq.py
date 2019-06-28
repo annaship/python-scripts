@@ -22,6 +22,16 @@ def get_seq_tax(seq_tax_file_name):
             seq_tax_dict[listedline[0]] = listedline[1]
 
   return seq_tax_dict
+  
+def print_result(result):
+  for pr_dat, counts in result.items():
+    out_file_name = pr_dat + "by_seq_id.csv"
+    file = open(out_file_name, "w") 
+    res_Line = "%s, %s\n" % (pr_dat.strip(), ",".join(counts))
+    file.write(res_Line) 
+ 
+  file.close() 
+
 
 my_dir = "/Users/ashipunova/work/emil/results_py"
 seq_tax_file_name = "seq_tax_u.txt"
@@ -44,9 +54,9 @@ for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
   # print(full_name)
   content = get_file_content(full_name) 
-  cnt = 1
+  # cnt = 1
   for line in content:
-     cnt += 1
+     # cnt += 1
      
      line_arr = line.strip().split()
      # print("Line {}: {}".format(cnt, line_arr))
@@ -69,15 +79,15 @@ for file_name in file_names:
 # do by file
 result = defaultdict()
 
-  # # print(seq)
 for pr_dat, seq_freq_dict in all_dict.items():
   res_text = []
-  result[pr_dat] = defaultdict()
+  result[pr_dat] = []
   for seq in seq_tax_dict.keys():
-    result[pr_dat][seq] = 0
     if seq in seq_freq_dict.keys():
       freq = seq_freq_dict[seq]
-      result[pr_dat][seq] = freq
+      result[pr_dat].append(freq)
+    else:
+      result[pr_dat].append("0")
       
-print(result)
-# , 'BBO_IGM_Bv4v5__R3_2': defaultdict(None, {'118510824': 0, '118510826': 0, '118510832': '1'})})
+print_result(result)      
+
