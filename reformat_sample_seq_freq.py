@@ -38,7 +38,7 @@ file_names = ["test1.csv", "test2.csv"]
 
 
 all_dict = defaultdict()
-# defaultdict(list)
+# 
 
 for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
@@ -67,24 +67,17 @@ for file_name in file_names:
 # {'BBO_IGM_Bv4v5__G6_3': {'118510824': '1', '118510832': '1'}..., 'BBO_IGM_Bv4v5__R3_2': {'118510832': '1'}}
 
 # do by file
-result = []
+result = defaultdict()
 
   # # print(seq)
 for pr_dat, seq_freq_dict in all_dict.items():
   res_text = []
+  result[pr_dat] = defaultdict()
   for seq in seq_tax_dict.keys():
-    res_text.append(pr_dat)
-    res_text.append(seq)
+    result[pr_dat][seq] = 0
     if seq in seq_freq_dict.keys():
       freq = seq_freq_dict[seq]
-      res_text.append(freq)
-    else:
-      res_text.append("0")
+      result[pr_dat][seq] = freq
       
-    result.append(res_text)
-# # print(result)
-
-for line in result:
-  print(", ".join(line))
-  # BBO_IGM_Bv4v5__G6_3, 118510824, 1, BBO_IGM_Bv4v5__G6_3, 118510826, 0, BBO_IGM_Bv4v5__G6_3, 118510832, 1
-  
+print(result)
+# , 'BBO_IGM_Bv4v5__R3_2': defaultdict(None, {'118510824': 0, '118510826': 0, '118510832': '1'})})
