@@ -1,4 +1,4 @@
-# ver 2; by file
+# ver 3; append to file
 import os
 import sys
 from collections import defaultdict
@@ -40,8 +40,8 @@ def get_seq_tax(seq_tax_file_name):
   
 def print_result(result):
   for pr_dat, counts in result.items():
-    out_file_name = pr_dat + "by_seq_id.csv"
-    file = open(out_file_name, "w") 
+    out_file_name = pr_dat + "_by_seq_id.csv"
+    file = open(out_file_name, "a") 
     res_line = "%s, %s\n" % (pr_dat.strip(), ",".join(counts))
     file.write(res_line) 
  
@@ -81,9 +81,8 @@ def get_result(all_dict):
       else:
         result[pr_dat].append("0")
   return result
-  
-def process_files(file_names):
-  for file_name in file_names:
+
+def process_one_file(file_name):
     full_name = os.path.join(my_dir, file_name)
     # print(full_name)
     content = get_file_content(full_name) 
@@ -110,16 +109,45 @@ def process_files(file_names):
     print_result(result)      
     print_first_line(seq_tax_dict)
     print_last_line(seq_tax_dict)      
+  
+# def process_files(file_names):
+#   for file_name in file_names:
+#     full_name = os.path.join(my_dir, file_name)
+#     # print(full_name)
+#     content = get_file_content(full_name)
+#     all_dict = defaultdict()
+#
+#     for line in content:
+#
+#        line_arr = line.strip().split()
+#        # print("Line {}: {}".format(cnt, line_arr))
+#        # Line 11: ['BBO_IGM_Bv4v5__R3_2', '118510832', '1', 'Bacteria;Firmicutes;Bacilli;Bacillales;Bacillaceae;Bacillus']
+#
+#        pr_dat = line_arr[0]
+#        seq = line_arr[1]
+#        freq = line_arr[2]
+#
+#        try:
+#          all_dict[pr_dat][seq] = freq
+#        except KeyError:
+#          all_dict[pr_dat] = {}
+#          all_dict[pr_dat][seq] = freq
+#
+#     result = get_result(all_dict)
+#
+#     print_result(result)
+#     print_first_line(seq_tax_dict)
+#     print_last_line(seq_tax_dict)
 
 if __name__ == '__main__':
 
   my_dir = "."
-  # args.argv[0]
+  file_name = sys.argv[1]
   # "/workspace/ashipunova/for_emil/by_python"
   seq_tax_file_name = "seq_tax_u.txt"
   seq_tax_dict = get_seq_tax(seq_tax_file_name)
 
-  file_names = get_files(ext = ".tsv")
-  print(file_names)
+  # file_names = get_files(ext = ".tsv")
+  # print(file_name)
 
-  process_files(file_names)
+  process_one_file(file_name)
