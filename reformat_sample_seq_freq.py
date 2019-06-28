@@ -87,11 +87,11 @@ seq_tax_file_name = "seq_tax_u.txt"
 seq_tax_dict = get_seq_tax(seq_tax_file_name)
 
 file_names = get_files(ext = ".tsv")
-print(file_names)
+# print(file_names)
 
 for file_name in file_names:
   full_name = os.path.join(my_dir, file_name)
-  print(full_name)
+  # print(full_name)
   content = get_file_content(full_name) 
   all_dict = defaultdict()
   
@@ -112,18 +112,7 @@ for file_name in file_names:
        all_dict[pr_dat][seq] = freq
      
   result = get_result(all_dict)
-  # result = defaultdict()
-  #
-  # for pr_dat, seq_freq_dict in all_dict.items():
-  #   res_text = []
-  #   result[pr_dat] = []
-  #   for seq in seq_tax_dict.keys():
-  #     if seq in seq_freq_dict.keys():
-  #       freq = seq_freq_dict[seq]
-  #       result[pr_dat].append(freq)
-  #     else:
-  #       result[pr_dat].append("0")
-  #
+
   print_result(result)      
   print_first_line(seq_tax_dict)
   print_last_line(seq_tax_dict)      
