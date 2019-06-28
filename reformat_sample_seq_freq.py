@@ -38,9 +38,14 @@ def get_seq_tax(seq_tax_file_name):
 
   return seq_tax_dict
   
+def get_pr_file_name(pr_dat):
+  pr_dat_arr = pr_dat.split("__")
+  return pr_dat_arr[0]
+
 def print_result(result):
   for pr_dat, counts in result.items():
-    out_file_name = pr_dat + "_by_seq_id.csv"
+    pr = get_pr_file_name(pr_dat)
+    out_file_name = pr + "_by_seq_id.csv"
     file = open(out_file_name, "a") 
     res_line = "%s, %s\n" % (pr_dat.strip(), ",".join(counts))
     file.write(res_line) 
@@ -94,9 +99,11 @@ def process_one_file(file_name):
        # print("Line {}: {}".format(cnt, line_arr))
        # Line 11: ['BBO_IGM_Bv4v5__R3_2', '118510832', '1', 'Bacteria;Firmicutes;Bacilli;Bacillales;Bacillaceae;Bacillus']
 
-       pr_dat = line_arr[0]
-       seq = line_arr[1]
-       freq = line_arr[2]
+       pr = line_arr[0]
+       dat = line_arr[1]
+       pr_dat = "%s__%s" % (pr, dat)
+       seq = line_arr[2]
+       freq = line_arr[3]
 
        try:
          all_dict[pr_dat][seq] = freq
