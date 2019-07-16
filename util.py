@@ -305,7 +305,7 @@ class Mysql_util:
         rows = self.execute_fetch_select(query)
         return list(self.utils.extract(rows[0]))
 
-    def get_field_names(self, table_name):
+    def get_column_names(self, table_name):
         query = "SHOW columns FROM %s" % table_name
         return self.execute_fetch_select(query)
 
@@ -365,13 +365,13 @@ class Utils:
       print(message)
 
     def read_csv_into_list(self, file_name, delimiter = ','):
-      csv_file_content_all = list(csv.reader(open(file_name, 'rb'), delimiter = delimiter))
+      csv_file_content_all = list(csv.reader(open(file_name, 'rt'), delimiter = delimiter))
       csv_file_fields      = csv_file_content_all[0]
       csv_file_content     = csv_file_content_all[1:]
       return (csv_file_fields, csv_file_content)
       
     def read_csv_into_dict(self, file_name, delimiter = ','):
-      csv_file_content_all = csv.DictReader(open(file_name, 'rb'), delimiter = delimiter)
+      csv_file_content_all = csv.DictReader(open(file_name, 'rt'), delimiter = delimiter)
       return [row for row in csv_file_content_all]
 
     def convert_each_to_str(self, my_list):

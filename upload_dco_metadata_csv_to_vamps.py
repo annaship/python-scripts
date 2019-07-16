@@ -2,9 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import util
-import MySQLdb
-import csv
-import sys
+try:
+    import mysqlclient as mysql
+except ImportError:
+    try:
+        import pymysql as mysql
+    except ImportError:
+        import MySQLdb as mysql
+
 import argparse
 from collections import defaultdict
 # try:
@@ -19,7 +24,7 @@ class Metadata():
   # parse csv
   # separate required from custom
   # find ids by value
-  # find and print errors
+  # find and print(errors)
 
   required_metadata_fields_to_update = ['collection_date',
     'env_biome_id',
@@ -60,6 +65,7 @@ class Metadata():
   csv_fields_with_units = {"fish_probe_name":"",
     "fish_probe_seq":"",
     "npoc":"percent",
+    "adapt_3letter":"",
     "adapter_sequence":"",
     "alkalinity":"meq/L",
     "ammonium":"µmol/kg",
@@ -232,7 +238,7 @@ class Metadata():
     'volcanic rock':'volcanic',
     'vent':'marine hydrothermal vent'}
 
-  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', '']
+  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'Select...', '']
 
   env_fields = ['env_feature', 'env_biome', 'env_material']
 
@@ -264,34 +270,34 @@ class Metadata():
     for field in Metadata.csv_file_fields:
       self.get_new_fields_units(field)
       
-    # print "MMM0 Metadata.csv_file_fields"
-    # print Metadata.csv_file_fields
+    # print("MMM0 Metadata.csv_file_fields")
+    # print(Metadata.csv_file_fields)
     #
-    # print "MMM1 Metadata.field_names_equivalents_csv_db"
-    # print Metadata.field_names_equivalents_csv_db
+    # print("MMM1 Metadata.field_names_equivalents_csv_db")
+    # print(Metadata.field_names_equivalents_csv_db)
     #
-    # print "MMM2 Metadata.csv_fields_with_units"
-    # print Metadata.csv_fields_with_units
+    # print("MMM2 Metadata.csv_fields_with_units")
+    # print(Metadata.csv_fields_with_units)
     
     Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
     
-    # print "MMM3 Metadata.csv_file_content_dict"
-    # print Metadata.csv_file_content_dict
+    # print("MMM3 Metadata.csv_file_content_dict")
+    # print(Metadata.csv_file_content_dict)
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
-    # print 'Metadata.not_req_fields_from_csv'
-    # print Metadata.not_req_fields_from_csv
+    # print('Metadata.not_req_fields_from_csv')
+    # print(Metadata.not_req_fields_from_csv)
 
-    # print 'csv_file_fields = '
-    # print Metadata.csv_file_fields
+    # print('csv_file_fields = ')
+    # print(Metadata.csv_file_fields)
     # ['NPOC', 'access_point_type', 'adapter_sequence', 'alkalinity', 'ammonium', 'bicarbonate', 'env_biome', 'biome_secondary', 'calcium', 'calcium_carbonate', 'chloride', 'clone_library_results', 'collection_date', 'conductivity', 'dataset', 'dataset_id', 'del18O_water', 'depth_in_core', 'depth_subseafloor', 'depth_subterrestrial', 'diss_hydrogen', 'diss_inorg_carb', 'diss_inorg_carbon_del13C', 'diss_org_carb', 'diss_oxygen', 'dna_extraction_meth', 'dna_quantitation', 'dna_region', 'domain', 'elevation', 'env_package', 'enzyme_activities', 'env_feature', 'feature_secondary', 'formation_name', 'forward_primer', 'functional_gene_assays', 'geo_loc_name_continental', 'geo_loc_name_marine', 'illumina_index', 'investigation_type', 'iron', 'iron_II', 'iron_III', 'isol_growth_cond', 'latitude', 'longitude', 'magnesium', 'manganese', 'env_material', 'material_secondary', 'methane', 'methane_del13C', 'microbial_biomass_FISH', 'microbial_biomass_avg_cell_number', 'microbial_biomass_intactpolarlipid', 'microbial_biomass_microscopic', 'microbial_biomass_platecounts', 'microbial_biomass_qPCR', 'nitrate', 'nitrite', 'nitrogen_tot', 'noble_gas_chemistry', 'org_carb_nitro_ratio', 'pH', 'part_org_carbon_del13C', 'phosphate', 'pi_email', 'pi_name', 'plate_counts', 'porosity', 'potassium', 'pressure', 'project', 'project_abstract', 'project_title', 'redox_potential', 'redox_state', 'references', 'resistivity', 'reverse_primer', 'rock_age', 'run', 'salinity', 'samp_store_dur', 'samp_store_temp', 'sample_name', 'sample_size_mass', 'sample_size_vol', 'sample_type', 'sequencing_meth', 'sodium', 'sulfate', 'sulfide', 'sulfur_tot', 'target_gene', 'temperature', 'tot_carb', 'tot_depth_water_col', 'tot_inorg_carb', 'tot_org_carb', 'trace_element_geochem', 'water_age', 'first_name', 'institution', 'last_name', 'public', 'username']
     #
-    # print 'csv_file_content_list = '
-    # print self.csv_file_content_list
+    # print('csv_file_content_list = ')
+    # print(self.csv_file_content_list)
     
   def get_new_fields_units(self, field):
-    # print "field"
-    # print field
+    # print("field")
+    # print(field)
     # field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
     try:
       new_col = field.split('--UNITS--')
@@ -317,7 +323,7 @@ class Metadata():
     for old_key, new_key in key_dict.items():
       if old_key != new_key:
         for dictionary in arr_of_dictis:
-          # print 'dictionary = %s' % (dictionary)
+          # print('dictionary = %s' % (dictionary))
         
           dictionary[new_key] = dictionary[old_key]
           del dictionary[old_key]
@@ -326,7 +332,7 @@ class Metadata():
 
 class RequiredMetadata(Metadata):
   # find ids by value
-  # find and print errors
+  # find and print(errors)
   # readonly:
   # VAMPS project name
   # VAMPS dataset name
@@ -351,7 +357,7 @@ class RequiredMetadata(Metadata):
   #     JOIN new_dataset using(dataset)
   #     SET refids_per_dataset_temp.dataset_id = new_dataset.dataset_id;
   # """
-  # print query
+  # print(query)
   # return mysql_utils.execute_no_fetch(query)
 
 
@@ -395,82 +401,82 @@ class RequiredMetadata(Metadata):
     #required_metadata_info
     # pass
     # req_field_names_t = metadata.get_field_names('required_metadata_info')
-    # print req_field_names_t
+    # print(req_field_names_t)
 
 
-    #   print field
-    # print 'type(req_field_names_from_db)'
-    # print type(req_field_names_from_db)
+    #   print(field)
+    # print('type(req_field_names_from_db)')
+    # print(type(req_field_names_from_db))
     # <type 'tuple'>
-    # print list(req_field_names_from_db)
+    # print(list(req_field_names_from_db))
 
     # req_field_names_from_db = zip(*req_field_names_t[0])
-    # print 'req_field_names_from_db'
-    # print req_field_names_from_db
+    # print('req_field_names_from_db')
+    # print(req_field_names_from_db)
 
     for d in self.content_dict:
       dataset_id = d['dataset_id']
       # self.put_required_field_names_in_dict(dataset_id)
 
-    # print 'type(csv_file_fields)'
-    # print type(csv_file_fields)
+    # print('type(csv_file_fields)')
+    # print(type(csv_file_fields))
     # <type 'list'>
 
     intersection = list(set(self.required_metadata_fields_to_update) & set(self.fields))
-    # print '\nintersection == '
-    # print intersection
+    # print('\nintersection == ')
+    # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
 
     for name in intersection:
       for d in self.content_dict:
         dataset_id = d['dataset_id']
-        # print 'dataset_id'
-        # print dataset_id
+        # print('dataset_id')
+        # print(dataset_id)
         for k, v in d.items():
           if (k == name) and (v.lower() not in Metadata.empty_equivalents):
-            # print 'k = %s, v = %s' % (k, v)
+            # print('k = %s, v = %s' % (k, v))
             self.required_metadata_update[dataset_id][k] = v
           # else:
           #   self.required_metadata_update[dataset_id][k] = "None"
 
 
     needed_req_all = list(set(self.required_metadata_fields_to_update) - set(self.fields))
-    # print '\nneeded_req_all == '
-    # print needed_req_all
+    # print('\nneeded_req_all == ')
+    # print(needed_req_all)
     # ['adapter_sequence_id', 'required_metadata_id', 'geo_loc_name_id', 'run_id', 'created_at', 'dna_region_id', 'updated_at', 'domain_id', 'target_gene_id', 'env_feature_id', 'env_package_id', 'illumina_index_id', 'env_biome_id', 'sequencing_platform_id', 'primer_suite_id', 'env_material_id']
 
     list_of_fields_rm_id = [field_name.rstrip('_id') for field_name in needed_req_all]
     # for field_name in needed_req_all:
     #   no_id_field = field_name.rstrip('_id')
-    #   print 'field_name = %s, no_id_field = %s' % (field_name, no_id_field)
-    # print 'list_of_fields_rm_id'
-    # print list_of_fields_rm_id
+    #   print('field_name = %s, no_id_field = %s' % (field_name, no_id_field))
+    # print('list_of_fields_rm_id')
+    # print(list_of_fields_rm_id)
 
     intersection_no_id = list(set(list_of_fields_rm_id) & set(self.fields))
-    # print 'intersection_no_id ='
-    # print intersection_no_id
+    # print('intersection_no_id =')
+    # print(intersection_no_id)
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
 
     req_metadata_from_csv_no_id = defaultdict(dict)
     for name in intersection_no_id:
       for d in self.content_dict:
         dataset_id = d['dataset_id']
-        # print 'dataset_id'
-        # print dataset_id
+        # print('dataset_id')
+        # print(dataset_id)
 
         for k, v in d.items():
           if k == name:
-            # print 'k = %s, v = %s' % (k, v)
+            # print('k = %s, v = %s' % (k, v))
             req_metadata_from_csv_no_id[dataset_id][k] = v
             # k = illumina_index, v = unknown
             # k = env_feature, v = aquifer
 
-    # print 'req_metadata_from_csv_no_id'
-    # print req_metadata_from_csv_no_id
+    # print('req_metadata_from_csv_no_id')
+    # print(req_metadata_from_csv_no_id)
     #{'illumina_index': 'unknown', 'env_feature': 'aquifer', 'domain': 'Bacteria', 'run': '20080709', 'adapter_sequence': 'TGTCA', 'env_package': 'Please choose one', 'env_biome': 'Please choose one', 'env_material': 'water', 'dna_region': 'v3v5', 'target_gene': '16s'}
 
     # rr = mysql_utils.get_all_name_id('illumina_index')
-    # print rr
+    # print(rr)
     #(('AACATC', 45), ('AAGCCT', 71), ...
 
     self.find_id_by_value(req_metadata_from_csv_no_id)
@@ -478,7 +484,7 @@ class RequiredMetadata(Metadata):
   # TODO: simplify
   def find_id_by_value(self, req_metadata_from_csv_no_id):
     for dataset, inner_d in req_metadata_from_csv_no_id.items():
-      # print 'dataset = %s, inner_d = %s' % (dataset, inner_d)
+      # print('dataset = %s, inner_d = %s' % (dataset, inner_d))
       for field, val in inner_d.items():
         if val.lower() not in Metadata.empty_equivalents:
           try:
@@ -488,16 +494,16 @@ class RequiredMetadata(Metadata):
           except:
             raise
             #empty_equivalents
-          # print 'FFF field = %s, val = %s, clean_val = %s' % (field, val, clean_val)
+          # print('FFF field = %s, val = %s, clean_val = %s' % (field, val, clean_val))
           where_part = 'WHERE %s = "%s"' % (field, clean_val)
           field_id_name = field + '_id'
           try:
             res = mysql_utils.get_all_name_id(field, where_part = where_part)
-            # print 'res'
-            # print res
+            # print('res')
+            # print(res)
             if res:
               self.required_metadata_update[dataset][field_id_name] = int(res[0][1])
-          except MySQLdb.Error, e:
+          except mysql.Error as e:
             # utils.print_both('Error %d: %s' % (e.args[0], e.args[1]))
             # def get_all_name_id(self, table_name, id_name = '', field_name = '', where_part = ''):
             # if field == 'env_package':
@@ -519,8 +525,8 @@ class RequiredMetadata(Metadata):
         # else:
         #   self.required_metadata_update[dataset_id][field_id_name] = "None"
 
-    print 'self.required_metadata_update'
-    print self.required_metadata_update
+    print('self.required_metadata_update')
+    print(self.required_metadata_update)
     # {'4312': {'illumina_index': 83, 'domain': 3, 'run': 47, 'collection_date': '2007-06-01', 'longitude': '-17.51', 'env_material': 1280, 'latitude': '64.49', 'dna_region': 5, 'dataset_id': '4312', 'target_gene': 1},
 
 class CustomMetadata(Metadata):
@@ -544,26 +550,29 @@ class CustomMetadata(Metadata):
 
     # self.not_req_fields =
     self.project_id = self.get_project_id()
-    # print self.project_id
+    # print(self.project_id)
     self.custom_metadata_table_name = 'custom_metadata_%s' % (str(self.project_id))
-    # print 'self.custom_metadata_table_name'
-    # print self.custom_metadata_table_name
+    # print('self.custom_metadata_table_name')
+    # print(self.custom_metadata_table_name)
 
-    self.custom_fields_from_db = self.get_custom_fields_from_db()[0]
-    # print 'self.custom_fields_from_db'
-    # print self.custom_fields_from_db[0]
+    try:
+      self.custom_fields_from_db = self.get_custom_fields_from_db()[0]
+    except IndexError:
+      self.custom_fields_from_db = []
+    # print('self.custom_fields_from_db')
+    # print(self.custom_fields_from_db[0])
     # [0]
     self.custom_fields_from_csv = set(self.fields_w_sec) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project)
-    print 'self.custom_fields_from_csv'
-    print self.custom_fields_from_csv
+    print('self.custom_fields_from_csv')
+    print(self.custom_fields_from_csv)
 
     self.diff_db_csv = set(self.custom_fields_from_db) - self.custom_fields_from_csv
-    print 'diff_db_csv: set(self.custom_fields_from_db) - self.custom_fields_from_csv'
-    print self.diff_db_csv
+    print('diff_db_csv: set(self.custom_fields_from_db) - self.custom_fields_from_csv')
+    print(self.diff_db_csv)
 
     self.diff_csv_db = self.custom_fields_from_csv - set(self.custom_fields_from_db)
-    print 'diff_csv_db: set(self.custom_fields_from_csv) - set (self.custom_fields_from_db)'
-    print self.diff_csv_db
+    print('diff_csv_db: set(self.custom_fields_from_csv) - set (self.custom_fields_from_db)')
+    print(self.diff_csv_db)
 
 
     self.get_not_empty_csv_only_fields()
@@ -577,8 +586,8 @@ class CustomMetadata(Metadata):
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
           self.fields_to_add_to_db[key] = val
-        # else:
-        #   self.fields_to_add_to_db[key] = "None"
+        else:
+          self.fields_to_add_to_db[key] = "None"
 
   # def get_new_fields_units(self, field):
   #   try:
@@ -593,26 +602,26 @@ class CustomMetadata(Metadata):
   # TODO: simplify
   def populate_custom_data_from_csv(self):
 
-    # print 'type(Metadata.csv_file_content_dict)' list
-    # print 'Metadata.csv_file_content_dict'
-    # print len(Metadata.csv_file_content_dict) 8
+    # print('type(Metadata.csv_file_content_dict)' list)
+    # print('Metadata.csv_file_content_dict')
+    # print(len(Metadata.csv_file_content_dict) 8)
     
     all_custom_fields = list(self.custom_fields_from_db) + list(self.fields_to_add_to_db.keys())
-    print "AAA all_custom_fields"
-    print all_custom_fields
+    print("AAA all_custom_fields")
+    print(all_custom_fields)
     # html_pars = HTMLParser()
 
-    # print "FFF2 self.fields_to_add_to_db = "
-    # print self.fields_to_add_to_db
+    # print("FFF2 self.fields_to_add_to_db = ")
+    # print(self.fields_to_add_to_db)
     for d in Metadata.csv_file_content_dict:
       current_dict = utils.slicedict(d, all_custom_fields)
       dataset_id = current_dict['dataset_id']
-      # print 'DDD dataset_id'
-      # print dataset_id
+      # print('DDD dataset_id')
+      # print(dataset_id)
 
       for key, val in current_dict.items():
         for cust_field in all_custom_fields:
-          # print 'YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field)
+          # print('YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field))
           if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
             # column_name = key
             self.custom_metadata_update[dataset_id][key] = val
@@ -621,23 +630,23 @@ class CustomMetadata(Metadata):
           #   self.custom_metadata_update[dataset_id][key] = "None"
 
 
-    # print "CCC custom_metadata_update = "
-    # print self.custom_metadata_update
+    # print("CCC custom_metadata_update = ")
+    # print(self.custom_metadata_update)
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
       # TODO: env_feature is not in term?
 
   def get_project_id(self):
     projects = [d['project'] for d in Metadata.csv_file_content_dict]
     project  = list(set(projects))[0]
-    print 'project ='
-    print project
+    print('project =')
+    print(project)
     where_part = ('WHERE project = "%s"') % (project)
     project_id = mysql_utils.get_all_name_id('project', where_part = where_part)
     return int(project_id[0][1])
 
   def get_custom_fields_from_db(self):
     custom_metadata_fields_t = mysql_utils.get_field_names('vamps2', self.custom_metadata_table_name)
-    return zip(*custom_metadata_fields_t[0])
+    return list(zip(*custom_metadata_fields_t[0]))
 
 
 class Upload():
@@ -649,8 +658,8 @@ class Upload():
   # custom 3: UPDATE custom_metadata_##
 
   def __init__(self):
-    # print "EEE required_metadata_update"
-    # print required_metadata_update
+    # print("EEE required_metadata_update")
+    # print(required_metadata_update)
 
     self.update_required_metadata()
     # custom 1
@@ -669,17 +678,17 @@ class Upload():
       set_str = ""
       for field_name, field_value in required_metadata_update[dataset_id].items():
         set_str += """required_metadata_info.%s = '%s', """ % (field_name, field_value)
-        # print 'field_name = %s, field_value = %s' % (field_name, str(field_value))
+        # print('field_name = %s, field_value = %s' % (field_name, str(field_value)))
       query = """ UPDATE required_metadata_info
                   SET %s
                       updated_at = Now()
                   where dataset_id = '%s'
               """ % (set_str, dataset_id)
-      print "UUU000 query"
-      print query
+      print("UUU000 query")
+      print(query)
       res = mysql_utils.execute_no_fetch(query)
-      print "RRR000 res"
-      print res
+      print("RRR000 res")
+      print(res)
 
   def add_fields_to_custom_metadata_table(self):
     # QQQ2 = add_fields_to_db_dict
@@ -690,11 +699,11 @@ class Upload():
       query = """ALTER TABLE custom_metadata_%s
                 ADD COLUMN `%s` varchar(128) DEFAULT NULL
             """ % (project_id, k)
-      print "UUU query"
-      print query
+      print("UUU query")
+      print(query)
       res = mysql_utils.execute_no_fetch(query)
-      print "res"
-      print res
+      print("res")
+      print(res)
 
   def add_fields_to_custom_metadata_fields(self):
     # add_fields_to_db_dict:
@@ -706,16 +715,16 @@ class Upload():
       try:
         query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k].decode('utf-8'), v)
       except KeyError:
-        print "UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v)
+        print("UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v))
         raise
         
       except:
         raise
-      print "UUU5 query.decode('utf-8')"
-      print query.decode('utf-8')
+      print("UUU5 query.decode('utf-8')")
+      print(query.decode('utf-8'))
       res = mysql_utils.execute_no_fetch(query)
-      print "res"
-      print res
+      print("res")
+      print(res)
 
   # TODO: combine with update_required_metadata
   def update_custom_metadata(self):
@@ -724,24 +733,24 @@ class Upload():
       set_str = []
       for field_name, field_value in custom_metadata_update[dataset_id].items():
         set_str.append("%s.%s = '%s'" % (table_name, field_name, field_value))
-        # print 'field_name = %s, field_value = %s' % (field_name, str(field_value))
+        # print('field_name = %s, field_value = %s' % (field_name, str(field_value)))
       query = """ UPDATE %s
                   SET %s
                   where dataset_id = '%s'
               """ % (table_name, ', '.join(set_str), dataset_id)
-      print "UUU00 query"
-      print query
+      print("UUU00 query")
+      print(query)
       res = mysql_utils.execute_no_fetch(query)
-      print "res"
-      print res
+      print("res")
+      print(res)
       
   def insert_dataset_id_custom_metadata(self):
     query = "INSERT IGNORE INTO custom_metadata_%s (dataset_id) SELECT dataset_id FROM dataset WHERE project_id = %s;" % (project_id, project_id)
-    print "UUU7 query from insert_dataset_id_custom_metadata"
-    print query
+    print("UUU7 query from insert_dataset_id_custom_metadata")
+    print(query)
     res = mysql_utils.execute_no_fetch(query)
-    print "res"
-    print res
+    print("res")
+    print(res)
     
 
   # TODO:
@@ -766,11 +775,11 @@ if __name__ == '__main__':
 
   if (utils.is_local() == True):
     mysql_utils = util.Mysql_util(host = 'localhost', db = 'vamps2', read_default_group = 'clienthome')
-    print "host = 'localhost', db = 'vamps2'"
+    print("host = 'localhost', db = 'vamps2'")
   else:
     mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
     # mysql_utils = util.Mysql_util(host = 'vampsdev', db = 'vamps2', read_default_group = 'client')
-    # print "host = 'vampsdev', db = 'vamps2'"
+    # print("host = 'vampsdev', db = 'vamps2'")
     
   parser = argparse.ArgumentParser()
 
@@ -779,8 +788,8 @@ if __name__ == '__main__':
       help = '''Input file name''')
 
   args = parser.parse_args()
-  print 'args = '
-  print args
+  print('args = ')
+  print(args)
 
   metadata = Metadata(args.input_file)
   required_metadata = RequiredMetadata()
@@ -790,19 +799,19 @@ if __name__ == '__main__':
 
   # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
   add_fields_to_db_dict = custom_metadata.fields_to_add_to_db
-  # print "FFF6 custom_metadata.fields_to_add_to_db = "
-  # print custom_metadata.fields_to_add_to_db
+  # print("FFF6 custom_metadata.fields_to_add_to_db = ")
+  # print(custom_metadata.fields_to_add_to_db)
   
   custom_metadata_update = custom_metadata.custom_metadata_update
   project_id = custom_metadata.project_id
 
-  print 'QQQ1 = required_metadata_update'
-  print required_metadata_update
+  print('QQQ1 = required_metadata_update')
+  print(required_metadata_update)
 
-  print 'QQQ2 = add_fields_to_db_dict'
-  print add_fields_to_db_dict
+  print('QQQ2 = add_fields_to_db_dict')
+  print(add_fields_to_db_dict)
 
-  print 'QQQ3 = custom_metadata_update'
-  print custom_metadata_update
+  print('QQQ3 = custom_metadata_update')
+  print(custom_metadata_update)
 
   upload_metadata = Upload()
