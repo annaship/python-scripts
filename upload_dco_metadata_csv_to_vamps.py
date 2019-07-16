@@ -242,14 +242,6 @@ class Metadata():
 
   env_fields = ['env_feature', 'env_biome', 'env_material']
 
-  # field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
-  #   'feature_secondary':'env_feature_sec',
-  #   'material_secondary':'env_material_sec',
-  #   'geo_loc_name_continental':'geo_loc_name'
-  #   # ,
-  #   # 'dna_extraction_meth': 'DNA_extraction_method'
-  # }
-
   field_names_equivalents_csv_db = {'biome_secondary':'biome_secondary',
     'feature_secondary':'feature_secondary',
     'material_secondary':'material_secondary',
@@ -257,7 +249,6 @@ class Metadata():
     # ,
     # 'dna_extraction_meth': 'DNA_extraction_method'
   }
-
 
   not_req_fields_from_csv = []
   csv_file_fields         = []
@@ -268,25 +259,17 @@ class Metadata():
     self.get_data_from_csv(input_file)
 
     for field in Metadata.csv_file_fields:
-      self.get_new_fields_units(field)
-      
-    # print("MMM0 Metadata.csv_file_fields")
-    # print(Metadata.csv_file_fields)
-    #
-    # print("MMM1 Metadata.field_names_equivalents_csv_db")
-    # print(Metadata.field_names_equivalents_csv_db)
-    #
-    # print("MMM2 Metadata.csv_fields_with_units")
-    # print(Metadata.csv_fields_with_units)
-    
-    Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
-    
-    # print("MMM3 Metadata.csv_file_content_dict")
-    # print(Metadata.csv_file_content_dict)
+      if ('--UNITS--' in field):
+        self.get_new_fields_units(field)
+
+    Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict_to_const(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
+    temp_list = []
+    for dictionary in Metadata.csv_file_content_dict:
+      temp_dict = self.change_keys_in_csv_content_dict_clean_custom(dictionary)
+      temp_list.append(temp_dict)
+    Metadata.csv_file_content_dict = temp_list
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
-    # print('Metadata.not_req_fields_from_csv')
-    # print(Metadata.not_req_fields_from_csv)
 
     # print('csv_file_fields = ')
     # print(Metadata.csv_file_fields)
@@ -294,7 +277,10 @@ class Metadata():
     #
     # print('csv_file_content_list = ')
     # print(self.csv_file_content_list)
-    
+
+  def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
+    return {field_name.replace(".", "_").replace(" ", "_").lower(): val for field_name, val in my_dict.items()}
+
   def get_new_fields_units(self, field):
     # print("field")
     # print(field)
@@ -318,7 +304,7 @@ class Metadata():
     Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
     Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
 
-  def change_keys_in_csv_content_dict(self, arr_of_dictis, key_dict):
+  def change_keys_in_csv_content_dict_to_const(self, arr_of_dictis, key_dict):
     new_format = []
     for old_key, new_key in key_dict.items():
       if old_key != new_key:
@@ -416,7 +402,6 @@ class RequiredMetadata(Metadata):
 
     for d in self.content_dict:
       dataset_id = d['dataset_id']
-      # self.put_required_field_names_in_dict(dataset_id)
 
     # print('type(csv_file_fields)')
     # print(type(csv_file_fields))
@@ -548,20 +533,13 @@ class CustomMetadata(Metadata):
     self.custom_metadata_update = defaultdict(dict)
     self.fields_to_add_to_db = defaultdict(dict)
 
-    # self.not_req_fields =
     self.project_id = self.get_project_id()
-    # print(self.project_id)
     self.custom_metadata_table_name = 'custom_metadata_%s' % (str(self.project_id))
-    # print('self.custom_metadata_table_name')
-    # print(self.custom_metadata_table_name)
 
     try:
       self.custom_fields_from_db = self.get_custom_fields_from_db()[0]
     except IndexError:
       self.custom_fields_from_db = []
-    # print('self.custom_fields_from_db')
-    # print(self.custom_fields_from_db[0])
-    # [0]
     self.custom_fields_from_csv = set(self.fields_w_sec) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project)
     print('self.custom_fields_from_csv')
     print(self.custom_fields_from_csv)
@@ -574,10 +552,9 @@ class CustomMetadata(Metadata):
     print('diff_csv_db: set(self.custom_fields_from_csv) - set (self.custom_fields_from_db)')
     print(self.diff_csv_db)
 
-
     self.get_not_empty_csv_only_fields()
-
-    # self.new_custom_fields =
+    # self.clean_users_csv_field_names()
+    self.fields_to_add_to_db = self.change_keys_in_csv_content_dict_clean_custom(self.fields_to_add_to_db)
     self.populate_custom_data_from_csv()
 
   def get_not_empty_csv_only_fields(self):
@@ -586,18 +563,9 @@ class CustomMetadata(Metadata):
       for key, val in current_dict1.items():
         if val.lower() not in Metadata.empty_equivalents:
           self.fields_to_add_to_db[key] = val
-        else:
-          self.fields_to_add_to_db[key] = "None"
 
-  # def get_new_fields_units(self, field):
-  #   try:
-  #     new_col = field.split('--UNITS--')
-  #   except IndexError:
-  #     new_col = [field, csv_fields_with_units[field]]
-  #   except:
-  #     raise
-  #   return new_col
-    # column_name_1--UNITS--row_1_units1
+  def clean_users_csv_field_names(self):
+    self.fields_to_add_to_db = {field_name.replace(".", "_").replace(" ", "_").lower(): val for field_name, val in self.fields_to_add_to_db.items()}
 
   # TODO: simplify
   def populate_custom_data_from_csv(self):
@@ -606,10 +574,9 @@ class CustomMetadata(Metadata):
     # print('Metadata.csv_file_content_dict')
     # print(len(Metadata.csv_file_content_dict) 8)
     
-    all_custom_fields = list(self.custom_fields_from_db) + list(self.fields_to_add_to_db.keys())
+    all_custom_fields = list(set(list(self.custom_fields_from_db) + list(self.fields_to_add_to_db.keys())))
     print("AAA all_custom_fields")
     print(all_custom_fields)
-    # html_pars = HTMLParser()
 
     # print("FFF2 self.fields_to_add_to_db = ")
     # print(self.fields_to_add_to_db)
@@ -622,12 +589,11 @@ class CustomMetadata(Metadata):
       for key, val in current_dict.items():
         for cust_field in all_custom_fields:
           # print('YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field))
-          if (cust_field == key) and (val.lower() not in Metadata.empty_equivalents):
-            # column_name = key
-            self.custom_metadata_update[dataset_id][key] = val
-            # html_pars.unescape(val)
-          # else:
-          #   self.custom_metadata_update[dataset_id][key] = "None"
+          if (cust_field == key):
+            if (val.lower() not in Metadata.empty_equivalents):
+              self.custom_metadata_update[dataset_id][key] = val
+            elif (val.lower() in Metadata.empty_equivalents):
+              self.custom_metadata_update[dataset_id][key] = "None"
 
 
     # print("CCC custom_metadata_update = ")
@@ -713,15 +679,15 @@ class Upload():
       #96717	307	potassium	nanogram_per_liter	125000
       
       try:
-        query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k].decode('utf-8'), v)
+        query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k], v)
       except KeyError:
         print("UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v))
         raise
         
       except:
         raise
-      print("UUU5 query.decode('utf-8')")
-      print(query.decode('utf-8'))
+      # print("UUU5 query.decode('utf-8')")
+      # print(query.decode('utf-8'))
       res = mysql_utils.execute_no_fetch(query)
       print("res")
       print(res)
