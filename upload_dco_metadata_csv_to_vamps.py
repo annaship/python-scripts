@@ -21,7 +21,7 @@ from collections import defaultdict
 #     from html.parser import HTMLParser
 
 
-class Metadata():
+class Metadata:
   # parse csv
   # separate required from custom
   # find ids by value
@@ -261,7 +261,7 @@ class Metadata():
     self.get_data_from_csv(input_file)
 
     for field in Metadata.csv_file_fields:
-      if ('--UNITS--' in field):
+      if '--UNITS--' in field:
         self.get_new_fields_units(field)
 
     Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict_to_const(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
@@ -550,7 +550,7 @@ class CustomMetadata(Metadata):
     project  = list(set(projects))[0]
     print('project =')
     print(project)
-    where_part = ('WHERE project = "%s"') % (project)
+    where_part = 'WHERE project = "%s"' % project
     project_id = mysql_utils.get_all_name_id('project', where_part = where_part)
     return int(project_id[0][1])
 
@@ -559,7 +559,7 @@ class CustomMetadata(Metadata):
     return list(zip(*custom_metadata_fields_t[0]))
 
 
-class Upload():
+class Upload:
   # upload required data
   # check if all custom fields are in custom_metadata_fields and custom_metadata_##
   # upload custom data
@@ -584,7 +584,6 @@ class Upload():
 
   def update_required_metadata(self):
     for dataset_id in required_metadata_update.keys():
-      query   = ""
       set_str = ""
       for field_name, field_value in required_metadata_update[dataset_id].items():
         set_str += """required_metadata_info.%s = '%s', """ % (field_name, field_value)
@@ -681,7 +680,7 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
-  if (utils.is_local() == True):
+  if utils.is_local() == True:
     mysql_utils = util.Mysql_util(host = 'localhost', db = 'vamps2', read_default_group = 'clienthome')
     print("host = 'localhost', db = 'vamps2'")
   else:
