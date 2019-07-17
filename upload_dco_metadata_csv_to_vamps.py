@@ -238,7 +238,7 @@ class Metadata():
     'volcanic rock':'volcanic',
     'vent':'marine hydrothermal vent'}
 
-  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'Select...', '']
+  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
 
   env_fields = ['env_feature', 'env_biome', 'env_material']
 
@@ -403,6 +403,14 @@ class RequiredMetadata(Metadata):
           # else:
           #   self.required_metadata_update[dataset_id][k] = "None"
 
+    self.required_metadata_update = defaultdict(dict)
+
+    for d in self.content_dict:
+      dataset_id = d['dataset_id']
+      self.required_metadata_update[dataset_id] = {your_key: d[your_key]
+                                                   for your_key in intersection
+                                                   if d[your_key].lower() not in Metadata.empty_equivalents }
+    # foodict = {k: v for k, v in mydict.items() if k.startswith('foo')}
 
     needed_req_all = list(set(self.required_metadata_fields_to_update) - set(self.fields))
     # print('\nneeded_req_all == ')
