@@ -412,7 +412,7 @@ class RequiredMetadata(Metadata):
     for d in self.content_dict:
       dataset_id = d['dataset_id']
       req_metadata_from_csv_no_id[dataset_id] = {your_key: d[your_key]
-                   for your_key in intersection_no_id}
+                                                 for your_key in intersection_no_id}
 
     # t2 = time.time()
     # print("Time elapsed 2 = ")
@@ -434,8 +434,6 @@ class RequiredMetadata(Metadata):
             clean_val = Metadata.term_equivalents[val]
           except KeyError:
             clean_val = val
-          except:
-            raise
 
           where_part = 'WHERE %s = "%s"' % (field, clean_val)
           field_id_name = field + '_id'
@@ -454,14 +452,10 @@ class RequiredMetadata(Metadata):
                 where_part = 'WHERE %s in ("%s", "%s")' % (field_name, val, clean_val)
               except KeyError:
                 where_part = 'WHERE %s = "%s"' % (field_name, clean_val)
-              except:
-                raise
 
               res1 = mysql_utils.get_all_name_id('term', field_name = field_name, where_part = where_part)
               if res1:
                 self.required_metadata_update[dataset][field_id_name] = int(res1[0][1])
-          except:
-            raise
         # else:
         #   self.required_metadata_update[dataset_id][field_id_name] = "None"
 
@@ -477,14 +471,10 @@ class CustomMetadata(Metadata):
   # prepare info to update in custom_metadata_#
 
   def __init__(self):
-    self.fields_w_sec = [f if f not in Metadata.field_names_equivalents_csv_db else Metadata.field_names_equivalents_csv_db[f] for f in Metadata.csv_file_fields]
+    self.fields_w_sec = [f if f not in Metadata.field_names_equivalents_csv_db
+                         else Metadata.field_names_equivalents_csv_db[f]
+                         for f in Metadata.csv_file_fields]
 
-    #
-    # return {k: v for k, v in my_dict.items() if k in key_list}
-    # if key in Metadata.field_names_equivalents_csv_db:
-    #   key = Metadata.field_names_equivalents_csv_db[key]
-
-    # self.content_list = Metadata.csv_file_content_list
     self.custom_metadata_update = defaultdict(dict)
     self.fields_to_add_to_db = defaultdict(dict)
 
@@ -513,6 +503,7 @@ class CustomMetadata(Metadata):
     self.populate_custom_data_from_csv()
 
   def get_not_empty_csv_only_fields(self):
+
     for d in Metadata.csv_file_content_dict:
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
@@ -520,7 +511,8 @@ class CustomMetadata(Metadata):
           self.fields_to_add_to_db[key] = val
 
   def clean_users_csv_field_names(self):
-    self.fields_to_add_to_db = {field_name.replace(".", "_").replace(" ", "_").lower(): val for field_name, val in self.fields_to_add_to_db.items()}
+    self.fields_to_add_to_db = {field_name.replace(".", "_").replace(" ", "_").lower(): val
+                                for field_name, val in self.fields_to_add_to_db.items()}
 
   # TODO: simplify
   def populate_custom_data_from_csv(self):
