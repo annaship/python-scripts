@@ -377,23 +377,12 @@ class RequiredMetadata(Metadata):
     # self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
     self.required_metadata_update = defaultdict(dict)
-    # self.req_field_names_from_db = []
-
     self.get_required_fields()
 
-  # def put_required_field_names_in_dict(self, dataset_id):
-  #   for f_name in self.required_metadata_fields_to_update:
-  #     self.required_metadata_update[dataset_id][f_name] = ''
-  #
-  def get_required_fields(self):
-    for d in self.content_dict:
-      dataset_id = d['dataset_id']
-
+  def fill_required_metadata_update(self):
     intersection = list(set(self.required_metadata_fields_to_update) & set(self.fields))
     # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
-
-    self.required_metadata_update = defaultdict(dict)
 
     # t1 = time.time()
 
@@ -409,22 +398,14 @@ class RequiredMetadata(Metadata):
     # print("Time elapsed 2 = ")
     # print(t2 - t1)
 
-        # foodict = {k: v for k, v in mydict.items() if k.startswith('foo')}
-
+  def get_required_fields(self):
     needed_req_all = list(set(self.required_metadata_fields_to_update) - set(self.fields))
-    # print('\nneeded_req_all == ')
     # print(needed_req_all)
     # ['adapter_sequence_id', 'required_metadata_id', 'geo_loc_name_id', 'run_id', 'created_at', 'dna_region_id', 'updated_at', 'domain_id', 'target_gene_id', 'env_feature_id', 'env_package_id', 'illumina_index_id', 'env_biome_id', 'sequencing_platform_id', 'primer_suite_id', 'env_material_id']
 
     list_of_fields_rm_id = [field_name.rstrip('_id') for field_name in needed_req_all]
-    # for field_name in needed_req_all:
-    #   no_id_field = field_name.rstrip('_id')
-    #   print('field_name = %s, no_id_field = %s' % (field_name, no_id_field))
-    # print('list_of_fields_rm_id')
-    # print(list_of_fields_rm_id)
 
     intersection_no_id = list(set(list_of_fields_rm_id) & set(self.fields))
-    # print('intersection_no_id =')
     # print(intersection_no_id)
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
 
@@ -442,8 +423,8 @@ class RequiredMetadata(Metadata):
             # k = illumina_index, v = unknown
             # k = env_feature, v = aquifer
 
-    # print('req_metadata_from_csv_no_id')
-    # print(req_metadata_from_csv_no_id)
+    print('req_metadata_from_csv_no_id')
+    print(req_metadata_from_csv_no_id)
     #{'illumina_index': 'unknown', 'env_feature': 'aquifer', 'domain': 'Bacteria', 'run': '20080709', 'adapter_sequence': 'TGTCA', 'env_package': 'Please choose one', 'env_biome': 'Please choose one', 'env_material': 'water', 'dna_region': 'v3v5', 'target_gene': '16s'}
 
     # rr = mysql_utils.get_all_name_id('illumina_index')
