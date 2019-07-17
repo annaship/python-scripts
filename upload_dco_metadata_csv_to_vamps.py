@@ -268,7 +268,9 @@ class Metadata():
       temp_dict = self.change_keys_in_csv_content_dict_clean_custom(dictionary)
       temp_list.append(temp_dict)
     Metadata.csv_file_content_dict = temp_list
+    Metadata.csv_file_fields = list(Metadata.csv_file_content_dict[0].keys())
 
+    # self.csv_file_content_dict[0]['a__fundyense_cells_per_liter']
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
 
     # print('csv_file_fields = ')
@@ -301,7 +303,6 @@ class Metadata():
   def get_data_from_csv(self, input_file):
     # TODO: get from args
     # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
-    Metadata.csv_file_fields, Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
     Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
 
   def change_keys_in_csv_content_dict_to_const(self, arr_of_dictis, key_dict):
@@ -372,7 +373,7 @@ class RequiredMetadata(Metadata):
 
   def __init__(self):
     self.fields = Metadata.csv_file_fields
-    self.content_list = Metadata.csv_file_content_list
+    # self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
     self.required_metadata_update = defaultdict(dict)
     # self.req_field_names_from_db = []
@@ -529,7 +530,7 @@ class CustomMetadata(Metadata):
     # if key in Metadata.field_names_equivalents_csv_db:
     #   key = Metadata.field_names_equivalents_csv_db[key]
 
-    self.content_list = Metadata.csv_file_content_list
+    # self.content_list = Metadata.csv_file_content_list
     self.custom_metadata_update = defaultdict(dict)
     self.fields_to_add_to_db = defaultdict(dict)
 
@@ -682,7 +683,7 @@ class Upload():
         query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k], v)
       except KeyError:
         print("UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v))
-        raise
+        # raise
         
       except:
         raise
