@@ -385,31 +385,10 @@ class RequiredMetadata(Metadata):
   #     self.required_metadata_update[dataset_id][f_name] = ''
   #
   def get_required_fields(self):
-    #required_metadata_info
-    # pass
-    # req_field_names_t = metadata.get_field_names('required_metadata_info')
-    # print(req_field_names_t)
-
-
-    #   print(field)
-    # print('type(req_field_names_from_db)')
-    # print(type(req_field_names_from_db))
-    # <type 'tuple'>
-    # print(list(req_field_names_from_db))
-
-    # req_field_names_from_db = zip(*req_field_names_t[0])
-    # print('req_field_names_from_db')
-    # print(req_field_names_from_db)
-
     for d in self.content_dict:
       dataset_id = d['dataset_id']
 
-    # print('type(csv_file_fields)')
-    # print(type(csv_file_fields))
-    # <type 'list'>
-
     intersection = list(set(self.required_metadata_fields_to_update) & set(self.fields))
-    # print('\nintersection == ')
     # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
 
@@ -420,7 +399,6 @@ class RequiredMetadata(Metadata):
         # print(dataset_id)
         for k, v in d.items():
           if (k == name) and (v.lower() not in Metadata.empty_equivalents):
-            # print('k = %s, v = %s' % (k, v))
             self.required_metadata_update[dataset_id][k] = v
           # else:
           #   self.required_metadata_update[dataset_id][k] = "None"
@@ -479,8 +457,7 @@ class RequiredMetadata(Metadata):
             clean_val = val
           except:
             raise
-            #empty_equivalents
-          # print('FFF field = %s, val = %s, clean_val = %s' % (field, val, clean_val))
+
           where_part = 'WHERE %s = "%s"' % (field, clean_val)
           field_id_name = field + '_id'
           try:
@@ -491,9 +468,7 @@ class RequiredMetadata(Metadata):
               self.required_metadata_update[dataset][field_id_name] = int(res[0][1])
           except mysql.Error as e:
             # utils.print_both('Error %d: %s' % (e.args[0], e.args[1]))
-            # def get_all_name_id(self, table_name, id_name = '', field_name = '', where_part = ''):
-            # if field == 'env_package':
-            
+
             if field in Metadata.env_fields:
               field_name = 'term_name'
               try:
