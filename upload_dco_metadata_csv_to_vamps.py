@@ -11,6 +11,7 @@ except ImportError:
         import MySQLdb as mysql
 
 import argparse
+import time
 from collections import defaultdict
 # try:
 #     # Python 2.6-2.7
@@ -392,6 +393,7 @@ class RequiredMetadata(Metadata):
     # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
 
+    t1 = time.time()
     for name in intersection:
       for d in self.content_dict:
         dataset_id = d['dataset_id']
@@ -403,14 +405,26 @@ class RequiredMetadata(Metadata):
           # else:
           #   self.required_metadata_update[dataset_id][k] = "None"
 
+    t2 = time.time()
+    print("Time elapsed = ")
+    print(t2 - t1)
     self.required_metadata_update = defaultdict(dict)
 
+    t1 = time.time()
+
+    temp_dict = {}
     for d in self.content_dict:
       dataset_id = d['dataset_id']
-      self.required_metadata_update[dataset_id] = {your_key: d[your_key]
-                                                   for your_key in intersection
-                                                   if d[your_key].lower() not in Metadata.empty_equivalents }
-    # foodict = {k: v for k, v in mydict.items() if k.startswith('foo')}
+      temp_dict = {your_key: d[your_key]
+                   for your_key in intersection
+                   if d[your_key].lower() not in Metadata.empty_equivalents}
+      if any(temp_dict.values()):
+        self.required_metadata_update[dataset_id] = temp_dict
+    t2 = time.time()
+    print("Time elapsed 2 = ")
+    print(t2 - t1)
+
+        # foodict = {k: v for k, v in mydict.items() if k.startswith('foo')}
 
     needed_req_all = list(set(self.required_metadata_fields_to_update) - set(self.fields))
     # print('\nneeded_req_all == ')
