@@ -469,6 +469,7 @@ class Utils:
       return prod_mysql_util.execute_fetch_select(query)
       # prod_mysql_util = Mysql_util(host = host_prod, db = "vamps", read_default_file = read_default_file_prod, port = port_prod)
 
+    # TODO: make intersection my_dict.keys() & key_list, use for list; benchmark
     def slicedict(self, my_dict, key_list):
       return {k: v for k, v in my_dict.items() if k in key_list}
 

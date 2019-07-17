@@ -180,7 +180,8 @@ class Metadata():
   """
 
 # to correct term or to what we have in the form
-  term_equivalents = {'abyssal zone biome':'marine abyssal zone biome',
+  # 'abyssal zone biome':'marine abyssal zone biome',
+  term_equivalents = {
     'abyssal zone biome':'abyssal zone',
     'anaerobic':'anaerobic sediment',
     'bathyal biome':'bathyal',
@@ -371,8 +372,8 @@ class RequiredMetadata(Metadata):
   # join term on (geo_loc_name_id = term_id)
   # set required_metadata_info.geo_loc_name_id = (select term_id from term where term_name = "CCAL" and ontology_id = 3)
 
-
-  def __init__(self):
+  def __init__(self, input_file):
+    super().__init__(input_file)
     self.fields = Metadata.csv_file_fields
     # self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
@@ -470,7 +471,8 @@ class CustomMetadata(Metadata):
   # missing column names for custom_metadata_#
   # prepare info to update in custom_metadata_#
 
-  def __init__(self):
+  def __init__(self, input_file):
+    super().__init__(input_file)
     self.fields_w_sec = [f if f not in Metadata.field_names_equivalents_csv_db
                          else Metadata.field_names_equivalents_csv_db[f]
                          for f in Metadata.csv_file_fields]
@@ -514,7 +516,6 @@ class CustomMetadata(Metadata):
     self.fields_to_add_to_db = {field_name.replace(".", "_").replace(" ", "_").lower(): val
                                 for field_name, val in self.fields_to_add_to_db.items()}
 
-  # TODO: simplify
   def populate_custom_data_from_csv(self):
 
     # print('type(Metadata.csv_file_content_dict)' list)
@@ -699,8 +700,8 @@ if __name__ == '__main__':
   print(args)
 
   metadata = Metadata(args.input_file)
-  required_metadata = RequiredMetadata()
-  custom_metadata = CustomMetadata()
+  required_metadata = RequiredMetadata(args.input_file)
+  custom_metadata = CustomMetadata(args.input_file)
 
   required_metadata_update = required_metadata.required_metadata_update
 
