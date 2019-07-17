@@ -683,6 +683,8 @@ class Upload():
         query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, Metadata.csv_fields_with_units[k], v)
       except KeyError:
         print("UUU6 values: (project_id = %s, k = %s, Metadata.csv_fields_with_units = %s, v = %s)" % (project_id, k, Metadata.csv_fields_with_units, v))
+        query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, "", v)
+
         # raise
         
       except:
