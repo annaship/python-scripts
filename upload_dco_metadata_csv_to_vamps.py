@@ -528,54 +528,17 @@ class CustomMetadata(Metadata):
     # print("FFF2 self.fields_to_add_to_db = ")
     # print(self.fields_to_add_to_db)
 
-    t1 = time.time()
-
-    for d in Metadata.csv_file_content_dict:
-      current_dict = utils.slicedict(d, all_custom_fields)
-      dataset_id = current_dict['dataset_id']
-      # print('DDD dataset_id')
-      # print(dataset_id)
-
-      for key, val in current_dict.items():
-        for cust_field in all_custom_fields:
-          # print('YYY key = %s, val = %s, cust_field = %s' % (key, val, cust_field))
-          if (cust_field == key):
-            if (val.lower() not in Metadata.empty_equivalents):
-              self.custom_metadata_update[dataset_id][key] = val
-            elif (val.lower() in Metadata.empty_equivalents):
-              self.custom_metadata_update[dataset_id][key] = "None"
-
-
-    t2 = time.time()
-    print("Time elapsed = ")
-    print(t2 - t1)
-
-    print("CCC custom_metadata_update = ")
-    print(self.custom_metadata_update)
-
-    # 2
-    # { (some_key if condition else default_key):(something_if_true if condition
-    #           else something_if_false) for key, value in dict_.items() }
-
-    self.custom_metadata_update = defaultdict(dict)
-
-    t1 = time.time()
-
     for d in Metadata.csv_file_content_dict:
       dataset_id = d['dataset_id']
       temp_keys = list(set(d.keys()) & set(all_custom_fields))
       self.custom_metadata_update[dataset_id] = {your_key: (d[your_key]
-                                                if (d[your_key].lower() not in Metadata.empty_equivalents)
-                                                else "None")
-                                    for your_key in temp_keys
+                                                            if (d[your_key].lower() not in Metadata.empty_equivalents)
+                                                            else "None")
+                                                for your_key in temp_keys
       }
 
-    t2 = time.time()
-    print("Time elapsed 2 = ")
-    print(t2 - t1)
-
-    print("CCC custom_metadata_update2  = ")
-    print(self.custom_metadata_update)
+    # print("CCC custom_metadata_update  = ")
+    # print(self.custom_metadata_update)
 
 
       # set(['formation_name', 'env_biome', 'microbial_biomass_FISH', 'pH', 'investigation_type', 'dataset_id', 'target_gene', 'env_feature', 'sample_size_vol', 'samp_store_temp', 'sodium', 'sulfate', 'samp_store_dur', 'sample_name', 'chloride', 'elevation', 'temperature', 'depth_subseafloor', 'depth_subterrestrial', 'isol_growth_cond', 'manganese', 'calcium', 'iron'])
