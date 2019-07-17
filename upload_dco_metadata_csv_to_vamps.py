@@ -377,14 +377,13 @@ class RequiredMetadata(Metadata):
     # self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
     self.required_metadata_update = defaultdict(dict)
+    self.fill_required_metadata_update()
     self.get_required_fields()
 
   def fill_required_metadata_update(self):
     intersection = list(set(self.required_metadata_fields_to_update) & set(self.fields))
     # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
-
-    # t1 = time.time()
 
     for d in self.content_dict:
       temp_dict = {}
@@ -410,6 +409,8 @@ class RequiredMetadata(Metadata):
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
 
     req_metadata_from_csv_no_id = defaultdict(dict)
+    t1 = time.time()
+
     for name in intersection_no_id:
       for d in self.content_dict:
         dataset_id = d['dataset_id']
@@ -422,10 +423,30 @@ class RequiredMetadata(Metadata):
             req_metadata_from_csv_no_id[dataset_id][k] = v
             # k = illumina_index, v = unknown
             # k = env_feature, v = aquifer
+    t2 = time.time()
+    print("Time elapsed = ")
+    print(t2 - t1)
 
     print('req_metadata_from_csv_no_id')
     print(req_metadata_from_csv_no_id)
     #{'illumina_index': 'unknown', 'env_feature': 'aquifer', 'domain': 'Bacteria', 'run': '20080709', 'adapter_sequence': 'TGTCA', 'env_package': 'Please choose one', 'env_biome': 'Please choose one', 'env_material': 'water', 'dna_region': 'v3v5', 'target_gene': '16s'}
+
+    # 2
+    req_metadata_from_csv_no_id = defaultdict(dict)
+    t1 = time.time()
+
+    for d in self.content_dict:
+      temp_dict = {}
+      dataset_id = d['dataset_id']
+      req_metadata_from_csv_no_id[dataset_id] = {your_key: d[your_key]
+                   for your_key in intersection_no_id}
+
+    t2 = time.time()
+    print("Time elapsed 2 = ")
+    print(t2 - t1)
+    print('req_metadata_from_csv_no_id 2')
+    print(req_metadata_from_csv_no_id)
+
 
     # rr = mysql_utils.get_all_name_id('illumina_index')
     # print(rr)
