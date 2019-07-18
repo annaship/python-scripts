@@ -274,6 +274,26 @@ class Metadata:
 
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
 
+    Metadata.csv_file_content_dict = self.format_not_empty_dict()
+
+  def get_data_from_csv(self, input_file):
+    # TODO: get from args
+    # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
+    Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
+    Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
+
+  def format_not_empty_dict(self):
+      temp_list_of_dict = []
+      keys = list(Metadata.not_empty_csv_content_dict.keys())
+      transposed_values = list(map(list, zip(*Metadata.not_empty_csv_content_dict.values())))
+      for l in transposed_values:
+        temp_dict = {}
+        for idx, v in enumerate(l):
+          key = keys[idx]
+          temp_dict[key] = v
+        temp_list_of_dict.append(temp_dict)
+      return temp_list_of_dict
+
   def check_for_empty_fields(self):
     removed_fields = []
     clean_matrix = []
@@ -311,13 +331,6 @@ class Metadata:
       #TODO: change field to new_col[0] in Metadata.csv_file_fields
     except IndexError:
       pass
-    #   new_col = [field, csv_fields_with_units[field]]
-
-  def get_data_from_csv(self, input_file):
-    # TODO: get from args
-    # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
-    Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
-    Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
 
   def change_keys_in_csv_content_dict_to_const(self):
     dictionary = Metadata.not_empty_csv_content_dict
