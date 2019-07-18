@@ -262,37 +262,17 @@ class Metadata:
     self.get_data_from_csv(input_file)
 
     Metadata.csv_file_fields = Metadata.csv_file_content_list[0]
-      # list(Metadata.csv_file_content_dict[0].keys())
-
     for field in Metadata.csv_file_fields:
       if '--UNITS--' in field:
         self.get_new_fields_units(field)
 
-    # self.check_for_duplicate_field_names()
     Metadata.not_empty_csv_content_dict = self.check_for_empty_fields()
-    # self.not_empty_csv_content_dict['adapter_sequence'] = <class 'list'>: ['GTCAC', 'GACAG', 'ATGCT', 'TACGC', 'ATGCT', 'CGACG', 'TACGC', 'CTACT', 'TGACT', 'CGACG', 'TGACT', 'CTACT', 'ACTGC', 'TGACT', 'ACTGC', 'GACAG', 'GTCAC', 'ATGCT', 'TACGC', 'TGACT', 'CTACT', 'TGACT', 'TACGC', 'ACTGC', 'GTCAC', 'GTCAC', 'TACGC', 'GACAG', 'GACAG', 'ATGCT', 'TACGC', 'ATGCT', 'CGACG', 'CTACT']
-    # Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict_to_const(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
 
-    # Metadata.csv_file_content_dict = \
     self.change_keys_in_csv_content_dict_to_const()
     Metadata.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(Metadata.not_empty_csv_content_dict)
-    # temp_list = []
-    # for dictionary in Metadata.csv_file_content_dict:
-    #   temp_dict = self.change_keys_in_csv_content_dict_clean_custom(dictionary)
-    #   temp_list.append(temp_dict)
-    # Metadata.csv_file_content_dict = temp_list
-    # Metadata.csv_file_fields = list(Metadata.csv_file_content_dict[0].keys())
     Metadata.csv_file_fields = list(Metadata.not_empty_csv_content_dict.keys())
 
-    # self.csv_file_content_dict[0]['a__fundyense_cells_per_liter']
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
-
-    # print('csv_file_fields = ')
-    # print(Metadata.csv_file_fields)
-    # ['NPOC', 'access_point_type', 'adapter_sequence', 'alkalinity', 'ammonium', 'bicarbonate', 'env_biome', 'biome_secondary', 'calcium', 'calcium_carbonate', 'chloride', 'clone_library_results', 'collection_date', 'conductivity', 'dataset', 'dataset_id', 'del18O_water', 'depth_in_core', 'depth_subseafloor', 'depth_subterrestrial', 'diss_hydrogen', 'diss_inorg_carb', 'diss_inorg_carbon_del13C', 'diss_org_carb', 'diss_oxygen', 'dna_extraction_meth', 'dna_quantitation', 'dna_region', 'domain', 'elevation', 'env_package', 'enzyme_activities', 'env_feature', 'feature_secondary', 'formation_name', 'forward_primer', 'functional_gene_assays', 'geo_loc_name_continental', 'geo_loc_name_marine', 'illumina_index', 'investigation_type', 'iron', 'iron_II', 'iron_III', 'isol_growth_cond', 'latitude', 'longitude', 'magnesium', 'manganese', 'env_material', 'material_secondary', 'methane', 'methane_del13C', 'microbial_biomass_FISH', 'microbial_biomass_avg_cell_number', 'microbial_biomass_intactpolarlipid', 'microbial_biomass_microscopic', 'microbial_biomass_platecounts', 'microbial_biomass_qPCR', 'nitrate', 'nitrite', 'nitrogen_tot', 'noble_gas_chemistry', 'org_carb_nitro_ratio', 'pH', 'part_org_carbon_del13C', 'phosphate', 'pi_email', 'pi_name', 'plate_counts', 'porosity', 'potassium', 'pressure', 'project', 'project_abstract', 'project_title', 'redox_potential', 'redox_state', 'references', 'resistivity', 'reverse_primer', 'rock_age', 'run', 'salinity', 'samp_store_dur', 'samp_store_temp', 'sample_name', 'sample_size_mass', 'sample_size_vol', 'sample_type', 'sequencing_meth', 'sodium', 'sulfate', 'sulfide', 'sulfur_tot', 'target_gene', 'temperature', 'tot_carb', 'tot_depth_water_col', 'tot_inorg_carb', 'tot_org_carb', 'trace_element_geochem', 'water_age', 'first_name', 'institution', 'last_name', 'public', 'username']
-    #
-    # print('csv_file_content_list = ')
-    # print(self.csv_file_content_list)
 
   def check_for_empty_fields(self):
     removed_fields = []
@@ -311,38 +291,18 @@ class Metadata:
 
     return not_empty_csv_content_dict
 
-
-
-  def check_for_duplicate_field_names(self):
-    all_names_cnt = defaultdict(int)
-    all_names_dup = defaultdict(list)
-    for field_name in Metadata.csv_file_fields:
-      new_name = field_name.replace(".", "_").replace(" ", "_").lower()
-      all_names_cnt[new_name] += 1
-      all_names_dup[new_name].append(field_name)
-    duplicates = [k for k, v in all_names_cnt.items() if v > 1]
-    # transposed_vals = list(map(list, zip(*Metadata.csv_file_content_list[1])))
-    # for l in transposed_vals:
-    #   all_val_for1_field = set(l)
-    #   if (len(set(l)) == 1) and list(set(l))[0] in Metadata.empty_equivalents:
-    #
-    #
-    #
-    # for d in Metadata.csv_file_content_dict:
-    #   for k, v in d:
-    #     if k.replace(".", "_").replace(" ", "_").lower() in duplicates:
-    #       pass
-      # dup_lists =
-      # for f in duplicates:
-      #     old_name = all_names_dup[f]
-        # if d[old_name]:
-
-    return all_names_cnt
+  # def check_for_duplicate_field_names(self):
+  #   all_names_cnt = defaultdict(int)
+  #   all_names_dup = defaultdict(list)
+  #   for field_name in Metadata.csv_file_fields:
+  #     new_name = field_name.replace(".", "_").replace(" ", "_").lower()
+  #     all_names_cnt[new_name] += 1
+  #     all_names_dup[new_name].append(field_name)
+  #   duplicates = [k for k, v in all_names_cnt.items() if v > 1]
+  #
+  #   return all_names_cnt
 
   def get_new_fields_units(self, field):
-    # print("field")
-    # print(field)
-    # field_names_equivalents_csv_db = {'biome_secondary':'env_biome_sec',
     try:
       new_col = field.split('--UNITS--')
       if field != new_col[0]:
@@ -367,26 +327,13 @@ class Metadata:
           dictionary[new_key] = dictionary[old_key]
           del dictionary[old_key]
         except KeyError:
-          # print("old_key = %s, new_key = %s " % (old_key, new_key))
           pass
-    # print("Metadata.not_empty_csv_content_dict")
 
   def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
     return {field_name.replace(".", "_").replace(" ", "_").lower(): val
             for field_name, val in my_dict.items()}
 
 
-  # def change_keys_in_csv_content_dict_to_const(self, arr_of_dictis, key_dict):
-  #   new_format = []
-  #   for old_key, new_key in key_dict.items():
-  #     if old_key != new_key:
-  #       for dictionary in arr_of_dictis:
-  #         # print('dictionary = %s' % (dictionary))
-  #
-  #         dictionary[new_key] = dictionary[old_key]
-  #         del dictionary[old_key]
-  #         new_format.append(dictionary)
-  #   return new_format
 class RequiredMetadata(Metadata):
   # find ids by value
   # find and print(errors)
