@@ -32,6 +32,7 @@ class Metadata:
     'env_feature_id',
     'env_material_id',
     'env_package_id',
+    'geo_loc_name_id',
     'latitude',
     'longitude']
 
@@ -242,7 +243,7 @@ class Metadata:
 
   empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
 
-  env_fields = ['env_feature', 'env_biome', 'env_material']
+  term_fields = ['env_feature', 'env_biome', 'env_material', 'geo_loc_name']
 
   field_names_equivalents_csv_db = {'biome_secondary':'biome_secondary',
     'feature_secondary':'feature_secondary',
@@ -414,7 +415,7 @@ class RequiredMetadata(Metadata):
     # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
     # Metadata.not_empty_csv_content_dict
-    for d in self.content_dict:
+    for d in Metadata.csv_file_content_dict:
       temp_dict = {}
       dataset_id = d['dataset_id']
       temp_dict = {your_key: d[your_key]
@@ -438,7 +439,7 @@ class RequiredMetadata(Metadata):
     # ['illumina_index', 'env_feature', 'domain', 'run', 'adapter_sequence', 'env_package', 'env_biome', 'env_material', 'dna_region', 'target_gene']
 
     req_metadata_from_csv_no_id = defaultdict(dict)
-    for d in self.content_dict:
+    for d in Metadata.csv_file_content_dict:
       dataset_id = d['dataset_id']
       req_metadata_from_csv_no_id[dataset_id] = {your_key: d[your_key]
                                                  for your_key in intersection_no_id}
@@ -475,7 +476,7 @@ class RequiredMetadata(Metadata):
           except mysql.Error as e:
             # utils.print_both('Error %d: %s' % (e.args[0], e.args[1]))
 
-            if field in Metadata.env_fields:
+            if field in Metadata.term_fields:
               field_name = 'term_name'
               try:
                 where_part = 'WHERE %s in ("%s", "%s")' % (field_name, val, clean_val)
@@ -532,7 +533,6 @@ class CustomMetadata(Metadata):
     self.populate_custom_data_from_csv()
 
   def get_not_empty_csv_only_fields(self):
-
     for d in Metadata.csv_file_content_dict:
       current_dict1 = utils.slicedict(d, self.diff_csv_db)
       for key, val in current_dict1.items():
