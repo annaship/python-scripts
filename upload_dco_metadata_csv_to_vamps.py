@@ -260,6 +260,7 @@ class Metadata:
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
+
     Metadata.csv_file_fields = Metadata.csv_file_content_list[0]
       # list(Metadata.csv_file_content_dict[0].keys())
 
@@ -274,13 +275,14 @@ class Metadata:
 
     # Metadata.csv_file_content_dict = \
     self.change_keys_in_csv_content_dict_to_const()
-    self.change_keys_in_csv_content_dict_clean_custom()
+    Metadata.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(Metadata.not_empty_csv_content_dict)
     # temp_list = []
     # for dictionary in Metadata.csv_file_content_dict:
     #   temp_dict = self.change_keys_in_csv_content_dict_clean_custom(dictionary)
     #   temp_list.append(temp_dict)
     # Metadata.csv_file_content_dict = temp_list
     # Metadata.csv_file_fields = list(Metadata.csv_file_content_dict[0].keys())
+    Metadata.csv_file_fields = list(Metadata.not_empty_csv_content_dict.keys())
 
     # self.csv_file_content_dict[0]['a__fundyense_cells_per_liter']
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
@@ -367,7 +369,7 @@ class Metadata:
         except KeyError:
           # print("old_key = %s, new_key = %s " % (old_key, new_key))
           pass
-    print("Metadata.not_empty_csv_content_dict")
+    # print("Metadata.not_empty_csv_content_dict")
 
   def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
     return {field_name.replace(".", "_").replace(" ", "_").lower(): val
@@ -438,11 +440,11 @@ class RequiredMetadata(Metadata):
   # join term on (geo_loc_name_id = term_id)
   # set required_metadata_info.geo_loc_name_id = (select term_id from term where term_name = "CCAL" and ontology_id = 3)
 
-  def __init__(self, input_file):
-    super().__init__(input_file)
+  def __init__(self):
+    # super().__init__(input_file)
     self.fields = Metadata.csv_file_fields
-    self.content_list = Metadata.csv_file_content_list
-    self.content_dict = Metadata.csv_file_content_dict
+    # self.content_list = Metadata.csv_file_content_list
+    # self.content_dict = Metadata.csv_file_content_dict
     self.required_metadata_update = defaultdict(dict)
     self.fill_required_metadata_update()
     self.get_required_fields()
@@ -451,7 +453,7 @@ class RequiredMetadata(Metadata):
     intersection = list(set(self.required_metadata_fields_to_update) & set(self.fields))
     # print(intersection)
     # ['collection_date', 'latitude', 'dataset_id', 'longitude']
-
+    # Metadata.not_empty_csv_content_dict
     for d in self.content_dict:
       temp_dict = {}
       dataset_id = d['dataset_id']
@@ -537,8 +539,8 @@ class CustomMetadata(Metadata):
   # missing column names for custom_metadata_#
   # prepare info to update in custom_metadata_#
 
-  def __init__(self, input_file):
-    super().__init__(input_file)
+  def __init__(self):
+    # super().__init__(input_file)
     self.fields_w_sec = [f if f not in Metadata.field_names_equivalents_csv_db
                          else Metadata.field_names_equivalents_csv_db[f]
                          for f in Metadata.csv_file_fields]
@@ -764,8 +766,8 @@ if __name__ == '__main__':
   print(args)
 
   metadata = Metadata(args.input_file)
-  required_metadata = RequiredMetadata(args.input_file)
-  custom_metadata = CustomMetadata(args.input_file)
+  required_metadata = RequiredMetadata()
+  custom_metadata = CustomMetadata()
 
   required_metadata_update = required_metadata.required_metadata_update
 
