@@ -256,21 +256,31 @@ class Metadata:
   csv_file_fields         = []
   csv_file_content_list   = []
   csv_file_content_dict   = []
+  not_empty_csv_content_dict = {}
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
+    Metadata.csv_file_fields = Metadata.csv_file_content_list[0]
+      # list(Metadata.csv_file_content_dict[0].keys())
 
     for field in Metadata.csv_file_fields:
       if '--UNITS--' in field:
         self.get_new_fields_units(field)
 
-    Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict_to_const(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
-    temp_list = []
-    for dictionary in Metadata.csv_file_content_dict:
-      temp_dict = self.change_keys_in_csv_content_dict_clean_custom(dictionary)
-      temp_list.append(temp_dict)
-    Metadata.csv_file_content_dict = temp_list
-    Metadata.csv_file_fields = list(Metadata.csv_file_content_dict[0].keys())
+    # self.check_for_duplicate_field_names()
+    Metadata.not_empty_csv_content_dict = self.check_for_empty_fields()
+    # self.not_empty_csv_content_dict['adapter_sequence'] = <class 'list'>: ['GTCAC', 'GACAG', 'ATGCT', 'TACGC', 'ATGCT', 'CGACG', 'TACGC', 'CTACT', 'TGACT', 'CGACG', 'TGACT', 'CTACT', 'ACTGC', 'TGACT', 'ACTGC', 'GACAG', 'GTCAC', 'ATGCT', 'TACGC', 'TGACT', 'CTACT', 'TGACT', 'TACGC', 'ACTGC', 'GTCAC', 'GTCAC', 'TACGC', 'GACAG', 'GACAG', 'ATGCT', 'TACGC', 'ATGCT', 'CGACG', 'CTACT']
+    # Metadata.csv_file_content_dict = self.change_keys_in_csv_content_dict_to_const(Metadata.csv_file_content_dict, Metadata.field_names_equivalents_csv_db)
+
+    # Metadata.csv_file_content_dict = \
+    self.change_keys_in_csv_content_dict_to_const()
+    self.change_keys_in_csv_content_dict_clean_custom()
+    # temp_list = []
+    # for dictionary in Metadata.csv_file_content_dict:
+    #   temp_dict = self.change_keys_in_csv_content_dict_clean_custom(dictionary)
+    #   temp_list.append(temp_dict)
+    # Metadata.csv_file_content_dict = temp_list
+    # Metadata.csv_file_fields = list(Metadata.csv_file_content_dict[0].keys())
 
     # self.csv_file_content_dict[0]['a__fundyense_cells_per_liter']
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
@@ -282,8 +292,50 @@ class Metadata:
     # print('csv_file_content_list = ')
     # print(self.csv_file_content_list)
 
-  def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
-    return {field_name.replace(".", "_").replace(" ", "_").lower(): val for field_name, val in my_dict.items()}
+  def check_for_empty_fields(self):
+    removed_fields = []
+    clean_matrix = []
+    good_fields = []
+    transposed_vals = list(map(list, zip(*Metadata.csv_file_content_list[1])))
+    for idx, vals_l in enumerate(transposed_vals):
+      all_val_for1_field = set(vals_l)
+      field_name = Metadata.csv_file_fields[idx]
+      if (len(all_val_for1_field) == 1) and list(all_val_for1_field)[0].lower() in Metadata.empty_equivalents:
+        removed_fields.append(field_name)
+      else:
+        good_fields.append(field_name)
+        clean_matrix.append(vals_l)
+    not_empty_csv_content_dict = dict(zip(good_fields, clean_matrix)) or {}
+
+    return not_empty_csv_content_dict
+
+
+
+  def check_for_duplicate_field_names(self):
+    all_names_cnt = defaultdict(int)
+    all_names_dup = defaultdict(list)
+    for field_name in Metadata.csv_file_fields:
+      new_name = field_name.replace(".", "_").replace(" ", "_").lower()
+      all_names_cnt[new_name] += 1
+      all_names_dup[new_name].append(field_name)
+    duplicates = [k for k, v in all_names_cnt.items() if v > 1]
+    # transposed_vals = list(map(list, zip(*Metadata.csv_file_content_list[1])))
+    # for l in transposed_vals:
+    #   all_val_for1_field = set(l)
+    #   if (len(set(l)) == 1) and list(set(l))[0] in Metadata.empty_equivalents:
+    #
+    #
+    #
+    # for d in Metadata.csv_file_content_dict:
+    #   for k, v in d:
+    #     if k.replace(".", "_").replace(" ", "_").lower() in duplicates:
+    #       pass
+      # dup_lists =
+      # for f in duplicates:
+      #     old_name = all_names_dup[f]
+        # if d[old_name]:
+
+    return all_names_cnt
 
   def get_new_fields_units(self, field):
     # print("field")
@@ -298,27 +350,41 @@ class Metadata:
     except IndexError:
       pass
     #   new_col = [field, csv_fields_with_units[field]]
-    except:
-      raise
-
 
   def get_data_from_csv(self, input_file):
     # TODO: get from args
     # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
+    Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
     Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
 
-  def change_keys_in_csv_content_dict_to_const(self, arr_of_dictis, key_dict):
-    new_format = []
-    for old_key, new_key in key_dict.items():
+  def change_keys_in_csv_content_dict_to_const(self):
+    dictionary = Metadata.not_empty_csv_content_dict
+    for old_key, new_key in Metadata.field_names_equivalents_csv_db.items():
       if old_key != new_key:
-        for dictionary in arr_of_dictis:
-          # print('dictionary = %s' % (dictionary))
-        
+        try:
           dictionary[new_key] = dictionary[old_key]
           del dictionary[old_key]
-          new_format.append(dictionary)
-    return new_format
+        except KeyError:
+          # print("old_key = %s, new_key = %s " % (old_key, new_key))
+          pass
+    print("Metadata.not_empty_csv_content_dict")
 
+  def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
+    return {field_name.replace(".", "_").replace(" ", "_").lower(): val
+            for field_name, val in my_dict.items()}
+
+
+  # def change_keys_in_csv_content_dict_to_const(self, arr_of_dictis, key_dict):
+  #   new_format = []
+  #   for old_key, new_key in key_dict.items():
+  #     if old_key != new_key:
+  #       for dictionary in arr_of_dictis:
+  #         # print('dictionary = %s' % (dictionary))
+  #
+  #         dictionary[new_key] = dictionary[old_key]
+  #         del dictionary[old_key]
+  #         new_format.append(dictionary)
+  #   return new_format
 class RequiredMetadata(Metadata):
   # find ids by value
   # find and print(errors)
@@ -375,7 +441,7 @@ class RequiredMetadata(Metadata):
   def __init__(self, input_file):
     super().__init__(input_file)
     self.fields = Metadata.csv_file_fields
-    # self.content_list = Metadata.csv_file_content_list
+    self.content_list = Metadata.csv_file_content_list
     self.content_dict = Metadata.csv_file_content_dict
     self.required_metadata_update = defaultdict(dict)
     self.fill_required_metadata_update()
@@ -500,7 +566,6 @@ class CustomMetadata(Metadata):
     print(self.diff_csv_db)
 
     self.get_not_empty_csv_only_fields()
-    # self.clean_users_csv_field_names()
     self.fields_to_add_to_db = self.change_keys_in_csv_content_dict_clean_custom(self.fields_to_add_to_db)
     self.populate_custom_data_from_csv()
 
