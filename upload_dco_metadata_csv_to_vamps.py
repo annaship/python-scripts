@@ -275,7 +275,7 @@ class Metadata:
     self.change_keys_in_csv_content_dict_to_const()
     Metadata.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(Metadata.not_empty_csv_content_dict)
     Metadata.csv_file_fields = list(Metadata.not_empty_csv_content_dict.keys())
-
+    # check for duplicate field names
     Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
 
     Metadata.csv_file_content_dict = self.format_not_empty_dict()
@@ -702,7 +702,23 @@ class Upload:
     for dataset_id in custom_metadata_update.keys():    
       table_name = "custom_metadata_" + str(project_id)
       set_str = []
+
+      """
+      sql = "INSERT INTO my_table VALUES (%s, %s, %s);"
+      cursor.execute(sql, [string1, string2, string3])
+      """
       for field_name, field_value in custom_metadata_update[dataset_id].items():
+        query1 = """ UPDATE {}
+                    SET {}.{} = %s
+                    where dataset_id = %s
+                """.format(table_name, table_name, field_name)
+        values = [field_value, dataset_id]
+        print("UUU001 query1")
+        print(query1)
+        res1 = mysql_utils.execute_no_fetch_w_values(query1, values)
+        print("UUU001 res1")
+        print(res1)
+
         set_str.append("%s.%s = '%s'" % (table_name, field_name, field_value))
         # print('field_name = %s, field_value = %s' % (field_name, str(field_value)))
       query = """ UPDATE %s
