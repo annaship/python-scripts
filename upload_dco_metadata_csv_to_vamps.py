@@ -13,6 +13,7 @@ except ImportError:
 import argparse
 import time
 from collections import defaultdict
+import re
 # try:
 #     # Python 2.6-2.7
 #     from HTMLParser import HTMLParser
@@ -267,6 +268,8 @@ class Metadata:
       if '--UNITS--' in field:
         self.get_new_fields_units(field)
 
+    Metadata.csv_file_fields = self.clean_csv_file_field_names()
+
     Metadata.not_empty_csv_content_dict = self.check_for_empty_fields()
 
     self.change_keys_in_csv_content_dict_to_const()
@@ -282,6 +285,40 @@ class Metadata:
     # file_name = '/Users/ashipunova/Downloads/metadata-project_DCO_GAI_Bv3v5_ashipunova_1501347586182.csv'
     Metadata.csv_file_content_list = utils.read_csv_into_list(input_file)
     Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file)
+
+  def clean_csv_file_field_names(self):
+    t1 = time.time()
+
+    # def re1(f): return f.lower()
+    # res1 = list(map(re1, Metadata.csv_file_fields))
+
+    def re_non_ascii(f): return ''.join([i.lower() if ord(i) < 128 else '_' for i in f])
+    res2 = list(map(re_non_ascii, Metadata.csv_file_fields))
+
+    def re_non_letters(f): return re.sub(r'\W', r'_', f)
+    res3 = list(map(re_non_letters, res2))
+    t2 = time.time()
+    print("clean_csv_file_field_names Time elapsed = ")
+    print(t2 - t1)
+
+    t1 = time.time()
+    res_l = []
+    for f in Metadata.csv_file_fields:
+        f1 = ''.join([i.lower() if ord(i) < 128 else '_' for i in f])
+        f2 = re.sub(r'\W', r'_', f1)
+        res_l.append(f2)
+
+    t2 = time.time()
+    print("clean_csv_file_field_names Time elapsed 2 = ")
+    print(t2 - t1)
+
+    print("res3 = ")
+    print(res3)
+    print("res_l = ")
+    print(res_l)
+
+    # TODO: check for duplicat field names!
+    return res_l
 
   def format_not_empty_dict(self):
       temp_list_of_dict = []
