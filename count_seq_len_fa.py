@@ -75,7 +75,7 @@ if __name__ == '__main__':
   parser.add_argument("-d", "--dir",
     required = False, action = "store", dest = "start_dir", default = '.',
     help = """Input directory name, default - current""")
-  parser.add_argument("-ve","--verbatim",
+  parser.add_argument("-ve", "--verbatim",
     required = False, action = "store_true", dest = "is_verbatim",
     help = """Print an additional inforamtion""")
   parser.add_argument("-l", "--length",
