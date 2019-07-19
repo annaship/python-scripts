@@ -715,27 +715,19 @@ class Upload:
         values = [field_value, dataset_id]
         print("UUU001 query1")
         print(query1)
+        print("UUU001 values")
+        print(values)
         res1 = mysql_utils.execute_no_fetch_w_values(query1, values)
         print("UUU001 res1")
         print(res1)
 
-        set_str.append("%s.%s = '%s'" % (table_name, field_name, field_value))
-        # print('field_name = %s, field_value = %s' % (field_name, str(field_value)))
-      query = """ UPDATE %s
-                  SET %s
-                  where dataset_id = '%s'
-              """ % (table_name, ', '.join(set_str), dataset_id)
-      print("UUU00 query")
-      print(query)
-      res = mysql_utils.execute_no_fetch(query)
-      print("res")
-      print(res)
-      
+
   def insert_dataset_id_custom_metadata(self):
-    query = "INSERT IGNORE INTO custom_metadata_%s (dataset_id) SELECT dataset_id FROM dataset WHERE project_id = %s;" % (project_id, project_id)
+    query = "INSERT IGNORE INTO custom_metadata_{} (dataset_id) SELECT dataset_id FROM dataset WHERE project_id = %s;".format(project_id)
     print("UUU7 query from insert_dataset_id_custom_metadata")
     print(query)
-    res = mysql_utils.execute_no_fetch(query)
+    print(project_id)
+    res = mysql_utils.execute_no_fetch_w_values(query, project_id)
     print("res")
     print(res)
     
