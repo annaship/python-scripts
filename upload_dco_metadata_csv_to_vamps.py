@@ -466,6 +466,7 @@ class RequiredMetadata(Metadata):
     self.find_id_by_value(req_metadata_from_csv_no_id)
 
   # TODO: simplify
+  # TODO: use cash, safe _id and look it up
   def find_id_by_value(self, req_metadata_from_csv_no_id):
     for dataset, inner_d in req_metadata_from_csv_no_id.items():
       # print('dataset = %s, inner_d = %s' % (dataset, inner_d))
