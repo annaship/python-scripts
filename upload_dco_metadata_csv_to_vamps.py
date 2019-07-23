@@ -673,11 +673,19 @@ class Upload:
       except KeyError:
         field_units = ""
 
-      query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ('%s', '%s', '%s', '%s')""" % (project_id, k, field_units, v)
+      notes = ""
+      short_value = v
+      example_varchar = 128
+      if len(v) >= example_varchar:
+        short_value = v[:124] + "...";
+        notes = "Example was shortened"
 
+      query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES (%s, %s, %s, %s, %s)"""
+
+      values = [project_id, k, field_units, short_value, notes]
       # print("UUU5 query.decode('utf-8')")
       # print(query.decode('utf-8'))
-      res = mysql_utils.execute_no_fetch(query)
+      res = mysql_utils.execute_no_fetch_w_values(query, values)
       if (is_verbatim):
         print("res")
         print(res)
