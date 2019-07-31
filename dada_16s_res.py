@@ -35,22 +35,53 @@ def combine_seq_freq_by_tax(curr_arr, seq_t_d):
 # new_dict = ...,
 # 'k_Bacteria;p_Proteobacteria;c_Gammaproteobacteria;o_Enterobacteriales;f_Enterobacteriaceae;GenusNA;s_NA': ['ATGCCGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAAGGCGTTGAGGTTAATAACCTCAGCGATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTCTGTCAAGTCGGATGTGAAATCCCCGGGCTTAACCTGGGAACTGCATTTGAAACTGGCAGGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACAGGATT\n', 'BP04-L-NCAP-16S;0\n', 'BP05-B-NCAP-16S;0\n', 'BP06-G-NCAP-16S;1\n']}
 
+def combine_seq_freq_by_tax_n_dataset(seq_freq_by_tax_d):
+  dict_by_tax_n_dataset = {}
+  for taxon, arr in seq_freq_by_tax_d.items():
+    new_arr = [a.strip("\n") for a in arr]
+    dict_by_tax_n_dataset[taxon] = ",".join(new_arr)
+
+  return dict_by_tax_n_dataset
+
 def write_out(curr_dict, dict_name):
   f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax.txt", "a")
   for t, f in curr_dict.items():
       f_out.write("%s,%s,%s\n" % (dict_name, t, f))
   f_out.close()
 
+def write_out_by_dataset(curr_dict, dict_name):
+  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax_by_dat.txt", "a")
+  f_out.write("%s\n" % (dict_name))
+  for t, f in curr_dict.items():
+    f_out.write("%s,%s\n" % (f, t))
+  f_out.close()
+  
+def write_out_by_tax(curr_dict):
+  head_line = """BP04_L_NCAP_16S,BP04_B_NCAP_16S,BP04_G_NCAP_16S,taxonomy"""
+
+  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax_by_tax.txt", "a")
+  f_out.write("%s\n" % (head_line))
+  for t, f in curr_dict.items():
+    print("%s,%s\n" % (f, t))
+    # f_out.write("%s,%s\n" % (f, t))
+  f_out.close()  
+
 if __name__ == '__main__':
 
   sequence_taxa_d = get_sequence_taxa()
   array_by4 = get_dada_freq_res()
-  new_dict = combine_seq_freq_by_tax(array_by4, sequence_taxa_d)
+  seq_freq_by_tax_d = combine_seq_freq_by_tax(array_by4, sequence_taxa_d)
+  combine_seq_freq_by_tax_n_dataset = combine_seq_freq_by_tax_n_dataset(seq_freq_by_tax_d)
+  
+  BP04_L_NCAP_16S = {t: a[1].split(";")[1].strip("\n") for t, a in seq_freq_by_tax_d.items()}
+  BP04_B_NCAP_16S = {t: a[2].split(";")[1].strip("\n") for t, a in seq_freq_by_tax_d.items()}
+  BP04_G_NCAP_16S = {t: a[3].split(";")[1].strip("\n") for t, a in seq_freq_by_tax_d.items()}
 
-  BP04_L_NCAP_16S = {t: a[1].split(";")[1].strip("\n") for t, a in new_dict.items()}
-  BP04_B_NCAP_16S = {t: a[2].split(";")[1].strip("\n") for t, a in new_dict.items()}
-  BP04_G_NCAP_16S = {t: a[3].split(";")[1].strip("\n") for t, a in new_dict.items()}
-
-  write_out(BP04_L_NCAP_16S, "BP04_L_NCAP_16S")
-  write_out(BP04_B_NCAP_16S, "BP04_B_NCAP_16S")
-  write_out(BP04_G_NCAP_16S, "BP04_G_NCAP_16S")
+  # write_out(BP04_L_NCAP_16S, "BP04_L_NCAP_16S")
+  # write_out(BP04_B_NCAP_16S, "BP04_B_NCAP_16S")
+  # write_out(BP04_G_NCAP_16S, "BP04_G_NCAP_16S")
+  
+  write_out_by_tax(combine_seq_freq_by_tax_n_dataset)
+  write_out_by_tax(combine_seq_freq_by_tax_n_dataset)
+  write_out_by_tax(combine_seq_freq_by_tax_n_dataset)  
+  
