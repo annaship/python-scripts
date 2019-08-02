@@ -209,7 +209,11 @@ class Mysql_util:
 
     def execute_no_fetch(self, sql):
       if self.cursor:
-          self.cursor.execute(sql)
+          try:
+            self.cursor.execute(sql)
+          except mysql.InternalError as e:
+              print(e)
+              pass
           self.conn.commit()
           # print(self.cursor.lastrowid)
           return (self.cursor.rowcount, self.cursor.lastrowid)
