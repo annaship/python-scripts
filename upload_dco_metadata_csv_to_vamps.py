@@ -649,6 +649,18 @@ class Upload:
     # QQQ2 = add_fields_to_db_dict
     # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
 
+    long_fieds = ["reference", "project_abstract", "project_description"]
+    for f in long_fieds:
+      query = """ALTER TABLE custom_metadata_%s
+                ADD COLUMN `%s` text DEFAULT NULL
+            """ % (project_id, f)
+      if (is_verbatim):
+        print("UUU query")
+        print(query)
+      res = mysql_utils.execute_no_fetch(query)
+      if (is_verbatim):
+        print("res")
+        print(res)
 
     for k, v in add_fields_to_db_dict.items():
       query = """ALTER TABLE custom_metadata_%s
@@ -657,7 +669,14 @@ class Upload:
       if (is_verbatim):
         print("UUU query")
         print(query)
-      res = mysql_utils.execute_no_fetch(query)
+      try:
+        res = mysql_utils.execute_no_fetch(query)
+      except mysql.InternalError as e:
+        print(e)
+        continue
+
+        # pymysql.err.InternalError: (1060, "Duplicate column name 'project_abstract'")
+
       if (is_verbatim):
         print("res")
         print(res)
