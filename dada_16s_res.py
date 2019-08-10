@@ -1,15 +1,17 @@
 from itertools import islice
+import sys
+import os 
 
-def get_sequence_taxa():
-  sequence_taxa_f_name = "/Users/ashipunova/work/dada2/stephen_fastq/t_taxa.txt"
+def get_sequence_taxa(sequence_taxa_f_name):
+  # sequence_taxa_f_name = "/Users/ashipunova/work/dada2/stephen_fastq/t_taxa.txt"
   sequence_taxa_f = open(sequence_taxa_f_name, "r")
   all_lines = sequence_taxa_f.readlines()
   spls = [line.strip("\n").split("#") for line in all_lines]
   seq_t_d = {s: t for s, t in spls}
   return seq_t_d
 
-def get_dada_freq_res():
-  freq_csv = "/Users/ashipunova/work/dada2/stephen_fastq/seqtab.nochim.csv"
+def get_dada_freq_res(freq_csv):
+  # freq_csv = "/Users/ashipunova/work/dada2/stephen_fastq/seqtab.nochim.csv"
   freq_csv_f = open(freq_csv, "r")
   array_by4 = []
   n = 4
@@ -55,7 +57,7 @@ def write_fasta_from_dada_w_id(dict_seq_freq_by_seq_id):
     BP05-B-NCAP-16S;15
     BP06-G-NCAP-16S;11'
  ..."""
-  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax_id.fa", "w")
+  f_out = open(os.path.join(out_file_dir, "freq_tax_id.fa"), "w")
   for i, v in dict_seq_freq_by_seq_id.items():
     arr = v.split(',')
     BP04_id = "%s|%s|%s" % (arr[2], i, arr[0]) 
@@ -67,7 +69,7 @@ def write_fasta_from_dada_w_id(dict_seq_freq_by_seq_id):
   
 def write_fasta_from_dada(array_by4):
   # array_by4 = ..., ['ATGCCGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAAGGCGTTGAGGTTAATAACCTCAGCGATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTCTGTCAAGTCGGATGTGAAATCCCCGGGCTTAACCTGGGAACTGCATTTGAAACTGGCAGGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACAGGATT\n', 'BP04-L-NCAP-16S;0\n', 'BP05-B-NCAP-16S;0\n', 'BP06-G-NCAP-16S;1\n']]
-  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax.fa", "w")
+  f_out = open(os.path.join(out_file_dir, "freq_tax.fa"), "w")
   # make_seq_ids(array_by4)
   for arr in array_by4:
       new_arr = [a.strip("\n") for a in arr]
@@ -75,13 +77,13 @@ def write_fasta_from_dada(array_by4):
   f_out.close()
 
 def write_out(curr_dict, dict_name):
-  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax.txt", "a")
+  f_out = open(os.path.join(out_file_dir, "freq_tax.txt"), "a")
   for t, f in curr_dict.items():
       f_out.write("%s,%s,%s\n" % (dict_name, t, f))
   f_out.close()
 
 def write_out_by_dataset(curr_dict, dict_name):
-  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax_by_dat.txt", "a")
+  f_out = open(os.path.join(out_file_dir, "freq_tax_by_dat.txt"), "a")
   f_out.write("%s\n" % (dict_name))
   for t, f in curr_dict.items():
     f_out.write("%s,%s\n" % (f, t))
@@ -90,16 +92,29 @@ def write_out_by_dataset(curr_dict, dict_name):
 def write_out_by_tax(curr_dict):
   head_line = """,BP04_L_NCAP_16S,BP05_B_NCAP_16S,BP06_G_NCAP_16S,taxonomy"""
 
-  f_out = open("/Users/ashipunova/work/dada2/stephen_fastq/freq_tax_by_tax.txt", "a")
+  f_out = open(os.path.join(out_file_dir, "freq_tax_by_tax.txt"), "a")
   f_out.write("%s\n" % (head_line))
   for t, f in curr_dict.items():
     f_out.write("%s,%s\n" % (f, t))
   f_out.close()  
 
 if __name__ == '__main__':
+  out_file_dir = "/Users/ashipunova/work/dada2/stephen_fastq/its/"
+  
+  # freq_csv = "/Users/ashipunova/work/dada2/stephen_fastq/seqtab.nochim.csv"
+  """AATACGAAGGGGGCAAGCGTTGCTCGGAATGACTGGGCGTAAAGGGCGCGTAGGCGGTTGACACAGTCAGATGTGAAATTCCCGGGCTTAACCTGGGGGCTGCATTTGATACGTGGCGACTAGAGTGTGAGAGAGGGTTGTGGAATTCCCAGTGTAGAGGTGAAATTCGTAGATATTGGGAAGAACACCGGTGGCGAAGGCGGCAACCTGGCTCATGACTGACGCTGAGGCGCGAAAGCGTGGGGAGCAAACAGGATT
+BP04-L-NCAP-16S;143
+BP05-B-NCAP-16S;1517
+BP06-G-NCAP-16S;1496
+"""
+  file_freq_name = sys.argv[1]
+  # file_tax_name = "/Users/ashipunova/work/dada2/stephen_fastq/t_taxa.txt"
+  """AATACGAAGGGGGCAAGCGTTGCTCGGAATGACTGGGCGTAAAGGGCGCGTAGGCGGTTGACACAGTCAGATGTGAAATTCCCGGGCTTAACCTGGGGGCTGCATTTGATACGTGGCGACTAGAGTGTGAGAGAGGGTTGTGGAATTCCCAGTGTAGAGGTGAAATTCGTAGATATTGGGAAGAACACCGGTGGCGAAGGCGGCAACCTGGCTCATGACTGACGCTGAGGCGCGAAAGCGTGGGGAGCAAACAGGATT#k_Bacteria;p_Proteobacteria;c_Alphaproteobacteria;o_Acetobacterales;f_Acetobacteraceae;g_Komagataeibacter;s_NA
+"""
+  file_tax_name = sys.argv[2]
 
-  sequence_taxa_d = get_sequence_taxa()
-  array_by4 = get_dada_freq_res()
+  sequence_taxa_d = get_sequence_taxa(file_tax_name)
+  array_by4 = get_dada_freq_res(file_freq_name)
   seq_freq_by_tax_d = combine_seq_freq_by_tax(array_by4, sequence_taxa_d)
   combine_seq_freq_by_tax_n_dataset = combine_seq_freq_by_tax_n_dataset(seq_freq_by_tax_d)
   dict_seq_freq_by_seq_id = combine_seq_freq_by_seq_id(seq_freq_by_tax_d)
