@@ -97,17 +97,25 @@ def write_out(curr_dict, dict_name):
       f_out.write("%s,%s,%s\n" % (dict_name, t, f))
   f_out.close()
 
-def write_out_by_dataset(curr_dict, dict_name):
-  f_out = open(os.path.join(out_file_dir, "freq_tax_by_dat.txt"), "a")
-  f_out.write("%s\n" % (dict_name))
-  for t, f in curr_dict.items():
-    f_out.write("%s,%s\n" % (f, t))
+def write_out_by_dataset(dict_seq_freq_by_seq_id):
+  # array_by4 = ..., ['ATGCCGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAAGGCGTTGAGGTTAATAACCTCAGCGATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTCTGTCAAGTCGGATGTGAAATCCCCGGGCTTAACCTGGGAACTGCATTTGAAACTGGCAGGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACAGGATT\n', 'BP04-L-NCAP-16S;0\n', 'BP05-B-NCAP-16S;0\n', 'BP06-G-NCAP-16S;1\n']]
+
+  f_out = open(os.path.join(out_file_dir, "freq_tax_by_dat.csv"), "a")
+  header = "ID,BP04_L_NCAP_ITS,BP05_B_NCAP_ITS,BP06_G_NCAP_ITS,taxonomy"""
+  f_out.write("%s\n" % (header))
+  for i, v in dict_seq_freq_by_seq_id.items():
+    arr = v.split(',')
+    taxa = arr[0]
+    BP04 = arr[2].split(";frequency=")
+    BP05 = arr[3].split(";frequency=")
+    BP06 = arr[4].split(";frequency=")
+    f_out.write("%s,%s,%s,%s,%s\n" % (i, BP04[1], BP05[1], BP06[1], taxa))
   f_out.close()
-  
+
 def write_out_by_tax(curr_dict):
   head_line = """,BP04_L_NCAP_ITS,BP05_B_NCAP_ITS,BP06_G_NCAP_ITS,taxonomy"""
 
-  f_out = open(os.path.join(out_file_dir, "freq_tax_by_tax.txt"), "a")
+  f_out = open(os.path.join(out_file_dir, "freq_tax_by_tax.csv"), "a")
   f_out.write("%s\n" % (head_line))
   for t, f in curr_dict.items():
     f_out.write("%s,%s\n" % (f, t))
@@ -145,9 +153,10 @@ BP06-G-NCAP-16S;1496
   # write_out(BP05_B_NCAP_16S, "BP04_B_NCAP_16S")
   # write_out(BP06_G_NCAP_16S, "BP04_G_NCAP_16S")
   
-  # write_out_by_tax(combine_seq_freq_by_tax_n_dataset)
-  write_fasta_from_dada_w_id(dict_seq_freq_by_seq_id)
+  write_out_by_tax(combine_seq_freq_by_tax_n_dataset)
+  # write_fasta_from_dada_w_id(dict_seq_freq_by_seq_id)
   """~/work/dada2/stephen_fastq$ python dada_16s_res.py 
 ~/work/dada2/stephen_fastq$ head freq_tax_id.fa 
 0_k_Bacteria;p_Proteobacteria;c_Alphaproteobacteria;o_Acetobacterales;f_Acetobacteraceae;g_Komagataeibacter;s_NA_BP04-L-NCAP-16S;0#GCGGTTGACACAGTCAGATGTGAAATTCCCGGGCTTAACCTGGGGGCTGCATTTGATACGTGGCGACTAGAGTGTGAGAGAGGGTTGTGGAATTCCCAGTGTAGAGGTGAAATTCGTAGATATTGGGAAGAACACCGGTGGCGAAGGCGGCAACCTGGCTCATGACTGACGCTGAGGCGCGAAAGCGTGGGGAGCAAACAGGATTAGATACCCGGGTAGTCCA
 """
+  write_out_by_dataset(dict_seq_freq_by_seq_id)
