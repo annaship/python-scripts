@@ -1,7 +1,7 @@
 import IlluminaUtils.lib.fastqlib as fq
 import os
 import sys
-
+import argparse
 
 def get_files(walk_dir_name, ext = ""):
     files = {}
@@ -16,7 +16,6 @@ def get_files(walk_dir_name, ext = ""):
             files[full_name] = (dirname, file_base, file_extension)
     return files
 
-
 def check_if_verb():
     try:
         if sys.argv[2] == "-ver":
@@ -28,22 +27,12 @@ def check_if_verb():
         return False
     return False
 
-
 start_dir = sys.argv[1]
 print("Start from %s" % start_dir)
 print("Getting file names")
 
 all_dirs = set()
-base_complement_translator = bytes.maketrans(b"ACGTRYMK", b"TGCAYRKM")
 
-
-def revcomp(sequence):
-    reversed = str(sequence[::-1])
-    return reversed.translate(base_complement_translator)
-
-
-# fq_files = get_files("/xraid2-2/sequencing/Illumina", ".fastq.gz")
-# "/xraid2-2/sequencing/Illumina/20151014ns"
 fq_files = get_files(start_dir, ".fastq.gz")
 print("Found %s fastq.gz files" % (len(fq_files)))
 
@@ -59,18 +48,8 @@ for file_name in fq_files:
         f_input = fq.FastQSource(file_name, True)
         f_output = fq.FastQOutput(file_name + ".out")
         print("len(f_input)")
-        # for _ in range(12048491):
         while f_input.next(raw = True):
-            # f_input.next(raw = True)
             e = f_input.entry
-            seq_len = len(e.sequence)
-            qual_scores_len = len(e.qual_scores)
-            # print(e.header_line)
-            if (seq_len != qual_scores_len):
-                print("WARNING, sequence and qual_scores_line have different length in %s" % file_name)
-                all_dirs.add(fq_files[file_name][0])
-            # e.sequence = revcomp(e.sequence)
-            # e.qual_scores = str(e.qual_scores[::-1])
             e.sequence = e.sequence[5:]
             e.qual_scores = e.qual_scores[5:]
             f_output.store_entry(e)
@@ -81,9 +60,22 @@ for file_name in fq_files:
             print(sys.exc_info()[0])
     except:
         print("Unexpected error:", sys.exc_info())
-        # print(e)
         next
 
 print(all_dirs)
 
+if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir_name',
+                        required = True, action = 'store', dest = 'start_dir',
+                        help = '''Start directory name''')
+    parser.add_argument("-ve", "--verbatim",
+                        required = False, action = "store_true", dest = "is_verbatim",
+                        help = """Print an additional information""")
+
+    args = parser.parse_args()
+    print('args = ')
+    print(args)
+
+    is_verbatim = args.is_verbatim
