@@ -52,6 +52,8 @@ check_if_verb = check_if_verb()
 for file_name in fq_files:
     if (check_if_verb):
         print(file_name)
+    log_f_name = "barcode_files.log"
+    log_f = open(log_f_name, "a")
 
     try:
         f_input = fq.FastQSource(file_name, True)
@@ -72,6 +74,7 @@ for file_name in fq_files:
             e.sequence = e.sequence[5:]
             e.qual_scores = e.qual_scores[5:]
             f_output.store_entry(e)
+            log_f.write("%s: %s\n" % (file_name, e.sequence[0:5]))
 
     except RuntimeError:
         if (check_if_verb):
