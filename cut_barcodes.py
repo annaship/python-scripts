@@ -16,20 +16,23 @@ def get_files(walk_dir_name, ext = ""):
             files[full_name] = (dirname, file_base, file_extension)
     return files
 
-def check_if_verb():
-    try:
-        if sys.argv[2] == "-ver":
-            return True
-    except IndexError:
-        return False
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-        return False
-    return False
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dir_name',
+                        required = True, action = 'store', dest = 'start_dir',
+                        help = """Start directory name""")
+    parser.add_argument("-ve", "--verbatim",
+                        required = False, action = "store_true", dest = "is_verbatim",
+                        help = """Print an additional information""")
+
+    args = parser.parse_args()
+    print('args = ')
+    print(args)
+    return args
 
 def cut_barcodes():
     for file_name in fq_files:
-        if (check_if_verb):
+        if (is_verbatim):
             print(file_name)
         log_f_name = "barcode_files.log"
         log_f = open(log_f_name, "a")
@@ -45,7 +48,7 @@ def cut_barcodes():
                 log_f.write("%s: %s\n" % (file_name, e.sequence[0:5]))
 
         except RuntimeError:
-            if (check_if_verb):
+            if (is_verbatim):
                 print(sys.exc_info()[0])
         except:
             print("Unexpected error:", sys.exc_info())
@@ -53,29 +56,14 @@ def cut_barcodes():
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dir_name',
-                        required = True, action = 'store', dest = 'start_dir',
-                        help = '''Start directory name''')
-    parser.add_argument("-ve", "--verbatim",
-                        required = False, action = "store_true", dest = "is_verbatim",
-                        help = """Print an additional information""")
-
-    args = parser.parse_args()
-    print('args = ')
-    print(args)
+    args = parse_args()
 
     is_verbatim = args.is_verbatim
 
-    # start_dir = sys.argv[1]
     start_dir = args.start_dir
     print("Start from %s" % start_dir)
     print("Getting file names")
-
-    all_dirs = set()
-
     fq_files = get_files(start_dir, ".fastq.gz")
     print("Found %s fastq.gz files" % (len(fq_files)))
 
-    check_if_verb = check_if_verb()
     cut_barcodes()
