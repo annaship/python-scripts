@@ -17,7 +17,10 @@ def get_files(walk_dir_name, ext = ""):
     return files
 
 def parse_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description = """Input: gzipped fastq files. 
+    Cuts the first 5 characters from sequences and quality lines. 
+    Output: the new shortened fastq entries and a log file with original file name and the cut 5nt sequences.""")
+
     parser.add_argument('-d', '--dir_name',
                         required = True, action = 'store', dest = 'start_dir',
                         help = """Start directory name""")
@@ -31,6 +34,8 @@ def parse_args():
     return args
 
 def go_trhough_fastq():
+    barcode_log = set()
+
     for file_name in fq_files:
         if (is_verbatim):
             print(file_name)
@@ -40,8 +45,8 @@ def go_trhough_fastq():
             f_output = fq.FastQOutput(file_name + ".out")
             while f_input.next(raw = True):
                 e = f_input.entry
+                barcode_log.add("%s: %s\n" % (file_name, e.sequence[0:5]))
                 cut_barcodes(e, f_output)
-                print_barcode_log(e, file_name)
 
         except RuntimeError:
             if (is_verbatim):
@@ -51,16 +56,19 @@ def go_trhough_fastq():
             print("Check if there are no '.out' files and remove if any.")
             next
 
+    print_barcode_log(barcode_log)
+
+
 def cut_barcodes(e, f_output):
     e.sequence = e.sequence[5:]
     e.qual_scores = e.qual_scores[5:]
     f_output.store_entry(e)
 
-def print_barcode_log(e, file_name):
+def print_barcode_log(barcode_log):
     log_f_name = "barcode_files.log"
     log_f = open(log_f_name, "a")
-    log_f.write("%s: %s\n" % (file_name, e.sequence[0:5]))
-
+    to_print = "".join(list(barcode_log))
+    log_f.write(str(to_print))
 
 if __name__ == '__main__':
 
