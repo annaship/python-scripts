@@ -1,4 +1,4 @@
-# ! /usr/bin/env python
+#! /usr/bin/env python
 
 import IlluminaUtils.lib.fastqlib as fq
 import os
