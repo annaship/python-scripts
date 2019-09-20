@@ -4,6 +4,7 @@ import IlluminaUtils.lib.fastqlib as fq
 import os
 import sys
 import argparse
+# from argparse import RawTextHelpFormatter
 
 def get_files(walk_dir_name, ext = ""):
     files = {}
@@ -19,9 +20,10 @@ def get_files(walk_dir_name, ext = ""):
     return files
 
 def parse_args():
-    parser = argparse.ArgumentParser(description = """Input: gzipped fastq files. 
-    Cuts the first 5 characters from sequences and quality lines. 
-    Output: the new shortened fastq entries and a log file with original file name and the cut 5nt sequences.""")
+
+    parser = argparse.ArgumentParser(description = """Cuts the first 5 characters from sequences and quality lines.
+Input: gzipped fastq files.
+Output: the new shortened fastq entries and a log file with original file name and the cut 5nt sequences.""", formatter_class = argparse.RawTextHelpFormatter)
 
     parser.add_argument('-d', '--dir_name',
                         required = True, action = 'store', dest = 'start_dir',
@@ -68,7 +70,7 @@ def cut_barcodes(e, f_output):
 
 def print_barcode_log(barcode_log):
     log_f_name = "barcode_files.log"
-    log_f = open(log_f_name, "a")
+    log_f = open(log_f_name, "w")
     to_print = "".join(list(barcode_log))
     log_f.write(str(to_print))
 
