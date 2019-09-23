@@ -6,13 +6,13 @@ import sys
 import argparse
 # from argparse import RawTextHelpFormatter
 
-def get_files(walk_dir_name, ext = ""):
+def get_files(walk_dir_name, ext = "test4_2.fastq.gz"):
     files = {}
     filenames = []
-    for dirname, dirnames, filenames in os.walk(walk_dir_name, followlinks = True):
+    for dirname, dirnames, filenames in os.walk(walk_dir_name, followlinks=True):
         if ext:
             filenames = [f for f in filenames if f.endswith(ext)]
-
+        
         for file_name in filenames:
             full_name = os.path.join(dirname, file_name)
             (file_base, file_extension) = os.path.splitext(os.path.join(dirname, file_name))
@@ -31,6 +31,10 @@ Output: the new shortened fastq entries and a log file with original file name a
     parser.add_argument("-ve", "--verbatim",
                         required = False, action = "store_true", dest = "is_verbatim",
                         help = """Print an additional information""")
+    parser.add_argument("-e", "--extension",
+                        required = False, action = "store", dest = "extension",
+                        help = """File(s) extension""")
+                        
 
     args = parser.parse_args()
     print('args = ')
@@ -82,8 +86,13 @@ if __name__ == '__main__':
 
     start_dir = args.start_dir
     print("Start from %s" % start_dir)
+
+    # min = a if a < b else b
+
+    ext = args.extension if args.extension else "test4_2.fastq.gz"
+
     print("Getting file names")
-    fq_files = get_files(start_dir, ".fastq.gz")
+    fq_files = get_files(start_dir, ext)
     print("Found %s fastq.gz files" % (len(fq_files)))
 
     go_trhough_fastq()
