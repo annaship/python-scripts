@@ -24,17 +24,18 @@ class Pep():
     return [l.strip() for l in data]
 
   def choose_entry(self):
-    temp_arr = []
+    # temp_arr = []
     for k, v_d in self.entries_dict.items():
       if any(e.endswith("[Signal peptide detected]") for e in v_d['Signal']):
-        temp_arr.append(v_d)
-
+        if any(e.startswith("Extracellular") for e in v_d['Final Prediction']):
+          self.good_res.append(v_d)
+        # [x for x in self.entries_dict.values() if any(e.startswith("Extracellular") for e in x['Final Prediction'])]
         # self.good_res = [v for k, v in d.items() for d in temp_arr]
 
     #       for d in pep.good_res:
     #     for k, v in d.items():
     #       print("\n".join(v))
-    self.good_res = [x for x in self.entries_dict.values() if any(e.startswith("Extracellular") for e in x['Final Prediction'])]
+    # self.good_res = [x for x in self.entries_dict.values() if any(e.startswith("Extracellular") for e in x['Final Prediction'])]
     # for x in pep.entries_dict.values():
     #   if any(e.startswith("Extracellular") for e in x['Final Prediction']):
 
@@ -83,13 +84,8 @@ if __name__ == "__main__":
   with open(file_in) as f_input:
     data = f_input.readlines()
 
-  # print(data[0:100])
   pep = Pep(data)
-  # result = list(pep.group(data, 'SeqID:'))
-  # [x for x in pep.entries_dict.values() if "Extracellular" in x['Final Prediction']]
 
-
-  # print(pep.good_res)
   for d in pep.good_res:
     for k, v in d.items():
       print("\n".join(v))
