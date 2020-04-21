@@ -10,7 +10,7 @@ class Pep():
     self.entries = list(self.group(str_data, 'SeqID:'))
     self.group_dict()
     # self.good_res = []
-    # self.choose_entry()
+    self.choose_entry()
 
   def strip_n(self, data):
     return [l.strip() for l in data]
@@ -24,16 +24,19 @@ class Pep():
       pass
 
   def group_dict(self):
-    temp_dict = {}
     for el in self.entries:
+      temp_dict = {}
       # print("TTTT")
       try:
         # if el[0].startswith("SeqID"):
-        self.entries_dict[el[0]] = []
+        self.entries_dict[el[0]] = {}
         r1 = list(self.group(el, 'Signal+'))
         r2 = list(self.group(r1[1], 'Final Prediction:'))
-        temp_arr = r1[0] + r2
-        self.entries_dict[el[0]].append(temp_arr)
+        # temp_arr = r1[0] + r2
+        temp_dict["First part"] = r1[0]
+        temp_dict["Signal"] = r2[0]
+        temp_dict["Final Prediction"] = r2[1]
+        self.entries_dict[el[0]] = temp_dict
         # self.entries_dict[el[0]].append(r2)
 
       except IndexError:
