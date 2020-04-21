@@ -9,19 +9,34 @@ class Pep():
     str_data = self.strip_n(data)
     self.entries = list(self.group(str_data, 'SeqID:'))
     self.group_dict()
-    # self.good_res = []
+    self.good_res = []
     self.choose_entry()
+    self.clean_res()
+
+  def clean_res(self):
+    pass
+    # for x in pep.entries_dict.values():
+    #   if any(e.startswith("Extracellular") for e in x['Final Prediction']):
+        # print(x['Final Prediction'])
+        # print(x)
 
   def strip_n(self, data):
     return [l.strip() for l in data]
 
   def choose_entry(self):
     temp_arr = []
-    for e in self.entries:
-      if any(x.strip().endswith("[Signal peptide detected]") for x in e):
-        temp_arr.append(e)
-    for e1 in temp_arr:
-      pass
+    for k, v_d in self.entries_dict.items():
+      if any(e.endswith("[Signal peptide detected]") for e in v_d['Signal']):
+        temp_arr.append(v_d)
+
+        # self.good_res = [v for k, v in d.items() for d in temp_arr]
+
+    #       for d in pep.good_res:
+    #     for k, v in d.items():
+    #       print("\n".join(v))
+    self.good_res = [x for x in self.entries_dict.values() if any(e.startswith("Extracellular") for e in x['Final Prediction'])]
+    # for x in pep.entries_dict.values():
+    #   if any(e.startswith("Extracellular") for e in x['Final Prediction']):
 
   def group_dict(self):
     for el in self.entries:
@@ -71,4 +86,10 @@ if __name__ == "__main__":
   # print(data[0:100])
   pep = Pep(data)
   # result = list(pep.group(data, 'SeqID:'))
-  # print(result)
+  # [x for x in pep.entries_dict.values() if "Extracellular" in x['Final Prediction']]
+
+
+  # print(pep.good_res)
+  for d in pep.good_res:
+    for k, v in d.items():
+      print("\n".join(v))
