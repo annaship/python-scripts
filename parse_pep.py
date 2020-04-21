@@ -1,11 +1,19 @@
 #! /usr/bin/env python
 
+from collections import defaultdict
+
 
 class Pep():
   def __init__(self, data):
-    self.entries = list(self.group(data, 'SeqID:'))
-    self.good_res = []
-    self.choose_entry()
+    self.entries_dict = defaultdict()
+    str_data = self.strip_n(data)
+    self.entries = list(self.group(str_data, 'SeqID:'))
+    self.group_dict()
+    # self.good_res = []
+    # self.choose_entry()
+
+  def strip_n(self, data):
+    return [l.strip() for l in data]
 
   def choose_entry(self):
     temp_arr = []
@@ -14,6 +22,31 @@ class Pep():
         temp_arr.append(e)
     for e1 in temp_arr:
       pass
+
+  def group_dict(self):
+    temp_dict = {}
+    for el in self.entries:
+      # print("TTTT")
+      try:
+        # if el[0].startswith("SeqID"):
+        self.entries_dict[el[0]] = []
+        r1 = list(self.group(el, 'Signal+'))
+        r2 = list(self.group(r1[1], 'Final Prediction:'))
+        temp_arr = r1[0] + r2
+        self.entries_dict[el[0]].append(temp_arr)
+        # self.entries_dict[el[0]].append(r2)
+
+      except IndexError:
+        pass
+      # if el.startswith(sep):
+      #   self.entries_dict[el.strip()] = []
+      # else:
+      #   temp_arr.append(el.strip())
+
+    #     yield temp_arr
+    #     temp_arr = []
+    #   temp_arr.append(el)
+    # yield temp_arr
 
   def group(self, seq, sep):
     temp_arr = []
