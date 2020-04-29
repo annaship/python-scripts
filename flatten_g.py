@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import argparse
+from collections import Iterable
 
 """Flatten the input text by 'SeqID' """
 
@@ -33,13 +34,23 @@ class Gene_data:
     self.entries_dict = defaultdict()
     str_data = self.strip_n(data)
     self.entries = list(self.group(str_data, 'SeqID:'))
-    self.group_dict()
+    # if key with search just search in entries and printout
     self.good_res = []
-    self.choose_entry()
     self.out_txt = ""
-    self.form_res()
+    self.search_str_res = []
 
     # self.print_res()
+
+  def flatten(self, collection):
+    for x in collection:
+      if isinstance(x, Iterable) and not isinstance(x, str):
+        yield from self.flatten(x)
+      else:
+        yield x
+
+  def search_in_entry(self, search_str):
+    for entry in self.entries:
+      self.search_str_res.append([entry for e in entry if e.startswith(search_str)])
 
   def form_res(self):
     for d in self.good_res:
@@ -103,6 +114,10 @@ if __name__ == "__main__":
                       required = True, action = "store", dest = "output_file",
                       help = """Output file name""")
 
+  parser.add_argument("-s", "--search_str", required = True, action = "append", nargs = 1,
+                      metavar = "search_str",
+                      help = """The category to search in and a String to search for, divided by #""")
+
   args = parser.parse_args()
 
   with open(args.input_file) as f_input:
@@ -110,5 +125,16 @@ if __name__ == "__main__":
 
   pep = Gene_data(data)
 
+  if args.search_str:
+    pep.search_in_entry(args.search_str)
+    if pep.search_str_res:
+      out_txt = "\n".join(pep.flatten(pep.search_str_res))
+  else:
+    pep.group_dict()
+    pep.choose_entry()
+    pep.form_res()
+    out_txt = pep.out_txt
+
   with open(args.output_file, 'w') as f_output:
-        f_output.write(pep.out_txt)
+        # f_output.write(pep.out_txt)
+        f_output.write(out_txt)
