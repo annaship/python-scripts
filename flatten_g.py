@@ -48,9 +48,9 @@ class Gene_data:
       else:
         yield x
 
-  def search_in_entry(self, search_str):
-    for entry in self.entries:
-      self.search_str_res.append([entry for e in entry if e.startswith(search_str)])
+  # def search_in_entry(self, search_str):
+  #   for entry in self.entries:
+  #     self.search_str_res.append([entry for e in entry if e.startswith(search_str)])
 
   def form_res(self):
     for d in self.good_res:
@@ -68,8 +68,23 @@ class Gene_data:
   def strip_n(self, data):
     return [line.strip() for line in data]
 
+  # def get_search_pairs(self, search_str_arr):
+  #   for x in search_str_arr:
+  #     if isinstance(x, Iterable) and not isinstance(x, str):
+  #       yield from self.flatten(x)
+  #     else:
+  #       yield x
+
   def get_search_pairs(self, search_str_arr):
-    return [list(self.group(arr, "#")) for arr in search_str_arr]
+    q = []
+    for el in search_str_arr:
+      try:
+        a = el[0].split("#")
+        q.append(a)
+      except AttributeError:
+        pass
+
+    # return [list(self.group(arr, "#")) ]
 
   def choose_entry(self, search_str_arr):
     self.get_search_pairs(search_str_arr)
