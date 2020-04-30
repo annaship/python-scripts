@@ -49,10 +49,10 @@ class Gene_data:
   def form_res(self):
     for d in self.good_res:
       all_arr = []
-      self.out_txt += "\n"
+      # self.out_txt += "\n"
       for k, v in d.items():
+        self.out_txt += k + "\n"
         for part in v.values():
-          # all_arr = all_arr + "\n".join(list(self.flatten(part)))
           all_arr = all_arr + part
       self.out_txt += "\n".join(all_arr)
 
