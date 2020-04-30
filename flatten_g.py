@@ -89,13 +89,17 @@ class Gene_data:
 
   def choose_entry(self, search_str_arr):
     self.get_search_pairs(search_str_arr)
-    for k, v_d in self.entries_dict.items():
-      try:
-        if any(e.endswith("[Signal peptide detected]") for e in v_d['Signal']):
-          if any(e.startswith("Extracellular") for e in v_d['Final Prediction']):
-            self.good_res.append(v_d)
-      except KeyError:
-        pass
+    for key_id, val_dict in self.entries_dict.items():
+      if key_id == "SeqID: bin.61.orig_c_000000000080_16 rank: A; bagr:BA6348_19975 beta-N-acetylglucosaminidase; K01197 (db=kegg)":
+        print("HHH")
+      for pair in self.search_str_res:
+        try:
+          if any(pair[1] in e for e in val_dict[pair[0]]):
+          # if any(e.endswith("[Signal peptide detected]") for e in v_d['Signal']):
+          #   if any(e.startswith("Extracellular") for e in v_d['Final Prediction']):
+            self.good_res.append({key_id: val_dict})
+        except KeyError:
+          pass
 
   def group_dict(self):
     for el in self.entries:
