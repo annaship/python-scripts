@@ -33,7 +33,7 @@ class Gene_data:
   def __init__(self, data):
     self.entries_dict = defaultdict()
     str_data = self.strip_n(data)
-    self.entries = list(self.group(str_data, 'SeqID:'))
+    self.entries = list(self.split_to_groups_by_sep(str_data, 'SeqID:'))
     self.good_res = []
     self.out_txt = ""
     self.search_str_res = []
@@ -44,16 +44,10 @@ class Gene_data:
       all_arr = []
       for k, v in d.items():
         all_arr.append(k)
-        # self.out_txt += "\n" + k + "\n"
         for part in v.values():
           all_arr = all_arr + part
       self.out_txt += "\n"
       self.out_txt += "\n".join(all_arr)
-
-  # def print_res(self):
-  #   for d in self.good_res:
-  #     for k, v in d.items():
-  #       print("\n".join(v))
 
   def strip_n(self, data):
     return [line.strip() for line in data]
@@ -73,46 +67,33 @@ class Gene_data:
       if all(test_list):
         self.good_res.append({key_id: val_dict})
 
-  def recursive_group_dict(self, test_element, temp_dict):
+  def dict_by_group_names(self, test_element, temp_dict):
     group_amnt = len(self.group_names)
-    res_current = []
     res_prev = []
     for group_number, group_name in enumerate(self.group_names):
       if group_number == 0:
-        res_current = list(self.group(test_element, self.group_names[group_number]))
-        # temp_dict[group_name] = res_current[1]
+        res_current = list(self.split_to_groups_by_sep(test_element, self.group_names[group_number]))
       elif group_number < group_amnt - 1:
-        res_current = list(self.group(res_prev[1], self.group_names[group_number]))
+        res_current = list(self.split_to_groups_by_sep(res_prev[1], self.group_names[group_number]))
         temp_dict[prev_group_name] = res_current[0]
       else:
-        res_current = list(self.group(res_prev[1], self.group_names[group_number]))
+        res_current = list(self.split_to_groups_by_sep(res_prev[1], self.group_names[group_number]))
         temp_dict[prev_group_name] = res_current[0]
         temp_dict[group_name]      = res_current[1]
         self.entries_dict[test_element[0]] = temp_dict
       res_prev = res_current
       prev_group_name = group_name
 
-
   def group_dict(self):
     for el in self.entries:
       temp_dict = {}
       try:
         self.entries_dict[el[0]] = {}
-        self.recursive_group_dict(el, temp_dict)
-          # self.recursive_group_dict(el[1:], temp_dict)
-          # temp_dict[group_name] = gr_res[0]
-          # gr1 = list(self.group(el, 'Analysis Report:'))
-          # gr2 = list(self.group(gr1[1], 'Localization Scores:'))
-          # temp_dict['Analysis Report'] = gr2[0]
-          # gr3 = list(self.group(gr2[1], 'Final Prediction:'))
-          # temp_dict['Localization Scores'] = gr3[0]
-          # temp_dict['Final Prediction'] = gr3[1]
-          # self.entries_dict[el[0]] = temp_dict
-
+        self.dict_by_group_names(el, temp_dict)
       except IndexError:
         pass
 
-  def group(self, seq, sep):
+  def split_to_groups_by_sep(self, seq, sep):
     temp_arr = []
     for el in seq:
       if el.startswith(sep):
