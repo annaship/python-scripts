@@ -36,11 +36,8 @@ class Gene_data:
     self.entries = list(self.group(str_data, 'SeqID:'))
     # if key with search just search in entries and printout
     self.good_res = []
-    self.test_mtrx = defaultdict(list)
     self.out_txt = ""
     self.search_str_res = []
-
-    # self.print_res()
 
   def flatten(self, collection):
     for x in collection:
@@ -49,16 +46,14 @@ class Gene_data:
       else:
         yield x
 
-  # def search_in_entry(self, search_str):
-  #   for entry in self.entries:
-  #     self.search_str_res.append([entry for e in entry if e.startswith(search_str)])
-
   def form_res(self):
     for d in self.good_res:
       all_arr = []
       self.out_txt += "\n"
       for k, v in d.items():
-        all_arr = all_arr + v
+        for part in v.values():
+          # all_arr = all_arr + "\n".join(list(self.flatten(part)))
+          all_arr = all_arr + part
       self.out_txt += "\n".join(all_arr)
 
   def print_res(self):
@@ -72,9 +67,8 @@ class Gene_data:
   def get_search_pairs(self, search_str_arr):
     self.search_str_res = [el[0].split("#") for el in search_str_arr]
 
-  def test_entries(self, search_str_arr):
+  def choose_entry(self, search_str_arr):
     self.get_search_pairs(search_str_arr)
-    # self.test_mtrx
     for key_id, val_dict in self.entries_dict.items():
       temp_list = []
       for pair in self.search_str_res:
@@ -85,23 +79,12 @@ class Gene_data:
       if all(temp_list):
         self.good_res.append({key_id: val_dict})
 
-  def choose_entry(self, search_str_arr):
-    self.get_search_pairs(search_str_arr)
-    for key_id, val_dict in self.entries_dict.items():
-      for pair in self.search_str_res:
-        try:
-          if any(pair[1] in e for e in val_dict[pair[0]]):
-            self.good_res.append({key_id: val_dict})
-        except KeyError:
-          pass
-
   def group_dict(self):
     for el in self.entries:
       temp_dict = {}
       try:
         self.entries_dict[el[0]] = {}
         r1 = list(self.group(el, 'Analysis Report:'))
-        # temp_dict["SeqID"] = r1[0]
         r2 = list(self.group(r1[1], 'Localization Scores:'))
         temp_dict["Analysis Report"] = r2[0]
         r3 = list(self.group(r2[1], 'Final Prediction:'))
@@ -136,7 +119,7 @@ if __name__ == "__main__":
 
   parser.add_argument("-s", "--search_str", required = True, action = "append", nargs = 1,
                       metavar = "search_str",
-                      help = """The category to search in and a String to search for, divided by '#' or comma""")
+                      help = """The category to search in and a String to search for, divided by '#'""")
 
   args = parser.parse_args()
 
@@ -151,7 +134,7 @@ if __name__ == "__main__":
   #     out_txt = "\n".join(pep.flatten(pep.search_str_res))
   # else:
   pep.group_dict()
-  pep.test_entries(args.search_str)
+  pep.choose_entry(args.search_str)
   pep.form_res()
   out_txt = pep.out_txt
 
