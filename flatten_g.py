@@ -76,13 +76,14 @@ class Gene_data:
   #       yield x
 
   def get_search_pairs(self, search_str_arr):
-    q = []
-    for el in search_str_arr:
-      try:
-        a = el[0].split("#")
-        q.append(a)
-      except AttributeError:
-        pass
+    self.search_str_res = [el[0].split("#") for el in search_str_arr]
+    # q = []
+    # for el in search_str_arr:
+    #   try:
+    #     a = el[0].split("#")
+    #     q.append(a)
+    #   except AttributeError:
+    #     pass
 
     # return [list(self.group(arr, "#")) ]
 
