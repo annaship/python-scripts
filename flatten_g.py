@@ -36,6 +36,7 @@ class Gene_data:
     self.entries = list(self.group(str_data, 'SeqID:'))
     # if key with search just search in entries and printout
     self.good_res = []
+    self.test_mtrx = defaultdict(list)
     self.out_txt = ""
     self.search_str_res = []
 
@@ -70,6 +71,19 @@ class Gene_data:
 
   def get_search_pairs(self, search_str_arr):
     self.search_str_res = [el[0].split("#") for el in search_str_arr]
+
+  def test_entries(self, search_str_arr):
+    self.get_search_pairs(search_str_arr)
+    # self.test_mtrx
+    for key_id, val_dict in self.entries_dict.items():
+      temp_list = []
+      for pair in self.search_str_res:
+        try:
+          temp_list.append(any(pair[1] in e for e in val_dict[pair[0]]))
+        except KeyError:
+          pass
+      if all(temp_list):
+        self.good_res.append({key_id: val_dict})
 
   def choose_entry(self, search_str_arr):
     self.get_search_pairs(search_str_arr)
@@ -137,7 +151,7 @@ if __name__ == "__main__":
   #     out_txt = "\n".join(pep.flatten(pep.search_str_res))
   # else:
   pep.group_dict()
-  pep.choose_entry(args.search_str)
+  pep.test_entries(args.search_str)
   pep.form_res()
   out_txt = pep.out_txt
 
