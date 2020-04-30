@@ -68,35 +68,15 @@ class Gene_data:
   def strip_n(self, data):
     return [line.strip() for line in data]
 
-  # def get_search_pairs(self, search_str_arr):
-  #   for x in search_str_arr:
-  #     if isinstance(x, Iterable) and not isinstance(x, str):
-  #       yield from self.flatten(x)
-  #     else:
-  #       yield x
-
   def get_search_pairs(self, search_str_arr):
     self.search_str_res = [el[0].split("#") for el in search_str_arr]
-    # q = []
-    # for el in search_str_arr:
-    #   try:
-    #     a = el[0].split("#")
-    #     q.append(a)
-    #   except AttributeError:
-    #     pass
-
-    # return [list(self.group(arr, "#")) ]
 
   def choose_entry(self, search_str_arr):
     self.get_search_pairs(search_str_arr)
     for key_id, val_dict in self.entries_dict.items():
-      if key_id == "SeqID: bin.61.orig_c_000000000080_16 rank: A; bagr:BA6348_19975 beta-N-acetylglucosaminidase; K01197 (db=kegg)":
-        print("HHH")
       for pair in self.search_str_res:
         try:
           if any(pair[1] in e for e in val_dict[pair[0]]):
-          # if any(e.endswith("[Signal peptide detected]") for e in v_d['Signal']):
-          #   if any(e.startswith("Extracellular") for e in v_d['Final Prediction']):
             self.good_res.append({key_id: val_dict})
         except KeyError:
           pass
