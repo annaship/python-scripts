@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 import argparse
-from collections import Iterable
+from collections.abc import Iterable
 
 """Flatten the input text by 'SeqID' """
 
@@ -37,7 +37,7 @@ class Gene_data:
     self.good_res = []
     self.out_txt = ""
     self.search_str_res = []
-    self.group_names = ['Analysis Report:', 'Localization Scores', 'Final Prediction:']
+    self.group_names = ['Analysis Report:', 'Localization Scores:', 'Final Prediction:']
 
   def form_res(self):
     for d in self.good_res:
@@ -74,24 +74,32 @@ class Gene_data:
         self.good_res.append({key_id: val_dict})
 
   def recursive_group_dict(self, test_element, temp_dict):
+    group_amnt = len(self.group_names)
+    res_current = []
+    res_prev = []
     for group_number, group_name in enumerate(self.group_names):
-      temp_res = []
-      # separate_id_from_body = list(self.group(test_element, group_name))
-      if group_number < len(self.group_names) - 1:
-        temp_res = list(self.group(test_element, self.group_names[group_number + 1]))
-        temp_dict[group_name] = temp_res[0]
-        self.recursive_group_dict(temp_res[1], temp_dict)
+      if group_number == 0:
+        res_current = list(self.group(test_element, self.group_names[group_number]))
+        # temp_dict[group_name] = res_current[1]
+      elif group_number < group_amnt - 1:
+        res_current = list(self.group(res_prev[1], self.group_names[group_number]))
+        temp_dict[prev_group_name] = res_current[0]
       else:
-        temp_dict[self.group_names[group_number + 1]] = temp_res[1]
+        res_current = list(self.group(res_prev[1], self.group_names[group_number]))
+        temp_dict[prev_group_name] = res_current[0]
+        temp_dict[group_name]      = res_current[1]
         self.entries_dict[test_element[0]] = temp_dict
+      res_prev = res_current
+      prev_group_name = group_name
+
 
   def group_dict(self):
     for el in self.entries:
       temp_dict = {}
       try:
         self.entries_dict[el[0]] = {}
-        self.recursive_group_dict(el[1:], temp_dict)
-
+        self.recursive_group_dict(el, temp_dict)
+          # self.recursive_group_dict(el[1:], temp_dict)
           # temp_dict[group_name] = gr_res[0]
           # gr1 = list(self.group(el, 'Analysis Report:'))
           # gr2 = list(self.group(gr1[1], 'Localization Scores:'))
