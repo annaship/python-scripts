@@ -68,7 +68,11 @@ class Gene_data:
   def strip_n(self, data):
     return [line.strip() for line in data]
 
-  def choose_entry(self):
+  def get_search_pairs(self, search_str_arr):
+    return [list(self.group(arr, "#")) for arr in search_str_arr]
+
+  def choose_entry(self, search_str_arr):
+    self.get_search_pairs(search_str_arr)
     for k, v_d in self.entries_dict.items():
       try:
         if any(e.endswith("[Signal peptide detected]") for e in v_d['Signal']):
@@ -82,11 +86,13 @@ class Gene_data:
       temp_dict = {}
       try:
         self.entries_dict[el[0]] = {}
-        r1 = list(self.group(el, 'Signal'))
-        r2 = list(self.group(r1[1], 'Final Prediction:'))
-        temp_dict["First part"] = r1[0]
-        temp_dict["Signal"] = r2[0]
-        temp_dict["Final Prediction"] = r2[1]
+        r1 = list(self.group(el, 'Analysis Report:'))
+        # temp_dict["SeqID"] = r1[0]
+        r2 = list(self.group(r1[1], 'Localization Scores:'))
+        temp_dict["Analysis Report"] = r2[0]
+        r3 = list(self.group(r2[1], 'Final Prediction:'))
+        temp_dict["Localization Scores"] = r3[0]
+        temp_dict["Final Prediction"] = r3[1]
         self.entries_dict[el[0]] = temp_dict
 
       except IndexError:
@@ -116,7 +122,7 @@ if __name__ == "__main__":
 
   parser.add_argument("-s", "--search_str", required = True, action = "append", nargs = 1,
                       metavar = "search_str",
-                      help = """The category to search in and a String to search for, divided by #""")
+                      help = """The category to search in and a String to search for, divided by '#' or comma""")
 
   args = parser.parse_args()
 
@@ -125,15 +131,15 @@ if __name__ == "__main__":
 
   pep = Gene_data(data)
 
-  if args.search_str:
-    pep.search_in_entry(args.search_str)
-    if pep.search_str_res:
-      out_txt = "\n".join(pep.flatten(pep.search_str_res))
-  else:
-    pep.group_dict()
-    pep.choose_entry()
-    pep.form_res()
-    out_txt = pep.out_txt
+  # if args.search_str:
+  #   pep.search_in_entry(args.search_str)
+  #   if pep.search_str_res:
+  #     out_txt = "\n".join(pep.flatten(pep.search_str_res))
+  # else:
+  pep.group_dict()
+  pep.choose_entry(args.search_str)
+  pep.form_res()
+  out_txt = pep.out_txt
 
   with open(args.output_file, 'w') as f_output:
         # f_output.write(pep.out_txt)
