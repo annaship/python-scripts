@@ -34,22 +34,13 @@ class Gene_data:
     self.entries_dict = defaultdict()
     str_data = self.strip_n(data)
     self.entries = list(self.group(str_data, 'SeqID:'))
-    # if key with search just search in entries and printout
     self.good_res = []
     self.out_txt = ""
     self.search_str_res = []
 
-  def flatten(self, collection):
-    for x in collection:
-      if isinstance(x, Iterable) and not isinstance(x, str):
-        yield from self.flatten(x)
-      else:
-        yield x
-
   def form_res(self):
     for d in self.good_res:
       all_arr = []
-      # self.out_txt += "\n"
       for k, v in d.items():
         self.out_txt += k + "\n"
         for part in v.values():
@@ -70,13 +61,13 @@ class Gene_data:
   def choose_entry(self, search_str_arr):
     self.get_search_pairs(search_str_arr)
     for key_id, val_dict in self.entries_dict.items():
-      temp_list = []
+      test_list = []
       for pair in self.search_str_res:
         try:
-          temp_list.append(any(pair[1] in e for e in val_dict[pair[0]]))
+          test_list.append(any(pair[1] in e for e in val_dict[pair[0]]))
         except KeyError:
           pass
-      if all(temp_list):
+      if all(test_list):
         self.good_res.append({key_id: val_dict})
 
   def group_dict(self):
@@ -128,16 +119,10 @@ if __name__ == "__main__":
 
   pep = Gene_data(data)
 
-  # if args.search_str:
-  #   pep.search_in_entry(args.search_str)
-  #   if pep.search_str_res:
-  #     out_txt = "\n".join(pep.flatten(pep.search_str_res))
-  # else:
   pep.group_dict()
   pep.choose_entry(args.search_str)
   pep.form_res()
   out_txt = pep.out_txt
 
   with open(args.output_file, 'w') as f_output:
-        # f_output.write(pep.out_txt)
         f_output.write(out_txt)
