@@ -88,7 +88,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='''Check fastq files reads and quality lines length.
-    Command line example: python %(prog)s -d/--dir DIRNAME -e/--extension -v --compressed/-c
+    Command line example: python %(prog)s -d/--dir DIRNAME -e/--extension --verbatim --compressed/-c
     ''')
     # todo: add user_config
     # parser.add_argument('--user_config', metavar = 'CONFIG_FILE',
@@ -101,7 +101,7 @@ if __name__ == '__main__':
                         help = 'Use if fastq compressed. Default is a %(default)s.')
     parser.add_argument('--quality_len', '-q', action = "store_true", default = False,
                         help = 'Print out the quality and read length. Default is a %(default)s.')
-    parser.add_argument('--verbatim', '-v', action = "store_true", default = False,
+    parser.add_argument('--verbatim', action = "store_true", default = False,
                         help = 'Print outs.')
 
     args = parser.parse_args()
