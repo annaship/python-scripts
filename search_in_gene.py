@@ -103,23 +103,43 @@ class Gene_data:
     yield temp_arr
 
 
+class Usage:
+  def __init__(self):
+    self.args = self.parse_args()
+
+  def parse_args(self):
+    myusage = """python %(prog)s [-h] -i INPUT_FILE -o OUTPUT_FILE -s search_str [-s search_str]
+
+One or more "-s" parameters provide a Category to search in and a String to search for, divided by '#'. 
+Categories are ['Analysis Report:', 'Localization Scores:', 'Final Prediction:'].
+Note that the first part of the "-s" parameter should be exactly as in the "Categories" above, including a colon.
+
+Usage examples:
+$ python %(prog)s -i CAZY_genes_psort_p.out -o CAZY_genes_psort_p.out.filtered -s "Final Prediction:#Extracellular"
+
+$ python %(prog)s -i Peptidase_pull_genes.fasta_renamed_psort_grampositive.out -o Peptidase_pull_genes.fasta_renamed_psort_grampositive.out.filtered -s "Analysis Report:#[Signal peptide detected]" -s "Final Prediction:#Extracellular"
+"""
+
+    parser = argparse.ArgumentParser(usage = myusage)
+
+    parser.add_argument('-i', '--input_file',
+                        required = True, action = 'store', dest = 'input_file',
+                        help = """Input file name"""),
+
+    parser.add_argument("-o", "--output_file",
+                        required = True, action = "store", dest = "output_file",
+                        help = """Output file name""")
+
+    parser.add_argument("-s", "--search_str", required = True, action = "append", nargs = 1,
+                        metavar = "search_str",
+                        help = """The Category to search in and a String to search for, divided by '#'""")
+
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-
-  parser = argparse.ArgumentParser()
-
-  parser.add_argument('-i', '--input_file',
-                      required = True, action = 'store', dest = 'input_file',
-                      help = """Input file name"""),
-
-  parser.add_argument("-o", "--output_file",
-                      required = True, action = "store", dest = "output_file",
-                      help = """Output file name""")
-
-  parser.add_argument("-s", "--search_str", required = True, action = "append", nargs = 1,
-                      metavar = "search_str",
-                      help = """The category to search in and a String to search for, divided by '#'""")
-
-  args = parser.parse_args()
+  usage = Usage()
+  args = usage.args
 
   with open(args.input_file) as f_input:
     data = f_input.readlines()
