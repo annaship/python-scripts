@@ -43,12 +43,14 @@ class Read_xml:
     self.all_xml = defaultdict(int)
 
     self.read_file()
+  
 
 
   def read_file(self):
     in_f = open(self.in_full_file_name, 'r')
-    while True:
-      line = in_f.readline()
+    for line in in_f:
+      # print(x)
+      # line = in_f.readline()
       if "?xml version=" in line:
         self.cnt += 1
         self.all_xml[self.cnt] = line
