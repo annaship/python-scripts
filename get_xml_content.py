@@ -65,7 +65,7 @@ class Read_xml:
     for n, val in self.all_xml.items():
       temp_val = re.sub(rep_reg, "", val)
       # temp_val.replace("\n", "")
-      self.all_xml[n] = temp_val.replace("\\n", " ")
+      self.all_xml[n] = temp_val.replace("\n", " ")
       # print("done")
 
   def get_content(self):
