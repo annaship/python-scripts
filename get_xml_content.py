@@ -46,16 +46,16 @@ class Read_xml:
 
 
   def read_file(self):
-    # in_f = open(self.in_full_file_name, 'r')
-    with open(self.in_full_file_name, 'r') as in_f:
+    in_f = open(self.in_full_file_name, 'r')
+    while True:
       line = in_f.readline()
-      if "xml" in line:
+      if "?xml version=" in line:
         self.cnt += 1
         self.all_xml[self.cnt] = line
       else:
         self.all_xml[self.cnt] = self.all_xml[self.cnt] + line
        
-
+    print("done")
 
   #
   #
