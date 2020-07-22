@@ -43,7 +43,9 @@ class Read_xml:
     self.all_xml = defaultdict(int)
 
     self.read_file()
-    self.clean_xml()
+
+    self.all_arrs = []
+    # self.clean_xml()
     self.get_content()
 
   def read_file(self):
@@ -53,11 +55,25 @@ class Read_xml:
       # line = in_f.readline()
       if "?xml version=" in line:
         self.cnt += 1
-        self.all_xml[self.cnt] = line
+        self.all_xml[self.cnt] = line.strip("\n")
       else:
-        self.all_xml[self.cnt] = self.all_xml[self.cnt] + line
+        self.all_xml[self.cnt] = self.all_xml[self.cnt] + line.strip("\n")
        
     # print("done")
+
+  def get_content(self):
+    for n, val in self.all_xml.items():
+      entries_arr = val.split("<entry>")
+      for e in entries_arr:
+        e_arr = e.split("</entry>")
+        for e1 in e_arr:
+          content_arr = e1.split("<content>")
+          for c in content_arr:
+            content_arr2 = c.split("</content>")
+            for arr in content_arr2:
+              if len(set(arr)) > 1:
+                self.all_arrs.append(content_arr2)
+    print("done")
 
   def clean_xml(self):
     rep_reg = "^ *\[\d+\] => "
@@ -68,7 +84,7 @@ class Read_xml:
       self.all_xml[n] = temp_val.replace("\n", " ")
       # print("done")
 
-  def get_content(self):
+  def get_xml_content(self):
     for n, val in self.all_xml.items():
       try:
         tree = ET.ElementTree(ET.fromstring(val))
