@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 
-# # from xml.dom import minidom
+import xml.etree.ElementTree as ET
 #
 # # parse an xml file by name
 # mydoc = minidom.parse('items.xml')
@@ -30,7 +31,6 @@ import os
 #     print(elem.firstChild.data)
 from collections import defaultdict
 
-
 class Read_xml:
   def __init__(self):
     self.f_path = "/Users/ashipunova/work/MCM/zotero_pulls/"
@@ -43,8 +43,8 @@ class Read_xml:
     self.all_xml = defaultdict(int)
 
     self.read_file()
-  
-
+    self.clean_xml()
+    self.get_content()
 
   def read_file(self):
     in_f = open(self.in_full_file_name, 'r')
@@ -57,7 +57,33 @@ class Read_xml:
       else:
         self.all_xml[self.cnt] = self.all_xml[self.cnt] + line
        
-    print("done")
+    # print("done")
+
+  def clean_xml(self):
+    rep_reg = "^ *\[\d+\] => "
+    # rep_reg2 = ">\s+<"
+    for n, val in self.all_xml.items():
+      temp_val = re.sub(rep_reg, "", val)
+      # temp_val.replace("\n", "")
+      self.all_xml[n] = temp_val.replace("\\n", " ")
+      # print("done")
+
+  def get_content(self):
+    for n, val in self.all_xml.items():
+      try:
+        tree = ET.ElementTree(ET.fromstring(val))
+        el = ET.fromstring(val)
+        el.findall('entity')
+
+      except ET.ParseError:
+        print(val)
+        raise
+      for entity in el.findall('entity'):
+          rank = entity.find('creators').text
+          name = entity.get('date')
+          print(name, rank)
+
+      print("done")
 
   #
   #
