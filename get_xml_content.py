@@ -42,64 +42,132 @@ class Read_xml:
     self.cnt = 0
     self.all_xml = defaultdict(int)
 
-    self.read_file()
-
     self.all_arrs = []
+    self.all_tags = set()
+    self.all_fields = set()
+    self.all_fields_content = set()
+
+    self.read_file()
+    self.print_res()
+
     # self.clean_xml()
-    self.get_content()
+    # self.get_content()
+    # self.parse_res_arr()
+
+
+  def print_res(self):
+    print("self.all_fields_content")
+    print(self.all_fields_content)
+
+    print("done")
+
+    # print("self.all_tags")
+    # print(self.all_tags)
+    #
+    # print("self.all_fields")
+    # print(self.all_fields)
 
   def read_file(self):
     in_f = open(self.in_full_file_name, 'r')
     for line in in_f:
-      # print(x)
-      # line = in_f.readline()
-      if "?xml version=" in line:
-        self.cnt += 1
-        self.all_xml[self.cnt] = line.strip("\n")
-      else:
-        self.all_xml[self.cnt] = self.all_xml[self.cnt] + line.strip("\n")
-       
-    # print("done")
+      self.get_fields_content(line)
+      # self.get_tags(line)
+      # self.get_fields(line)
+
+  # def read_all_file(self):
+  #   in_f = open(self.in_full_file_name, 'r')
+  #   for line in in_f:
+  #     # print(x)
+  #     # line = in_f.readline()
+  #     if "?xml version=" in line:
+  #       self.cnt += 1
+  #       self.all_xml[self.cnt] = line.strip("\n")
+  #     else:
+  #       self.all_xml[self.cnt] = self.all_xml[self.cnt] + line.strip("\n")
+  #
+  #   # print("done")
+  #
+  # def get_split_content(self):
+  #   for n, val in self.all_xml.items():
+  #     entries_arr = val.split("<entry>")
+  #     for e in entries_arr:
+  #       e_arr = e.split("</entry>")
+  #       for e1 in e_arr:
+  #         json_arr = e1.split('zapi:type="json"')
+  #         for arr in json_arr:
+  #           content_arr1 = arr.split("<content>")
+  #           for c in content_arr1:
+  #             content_arr2 = c.split("</content>")
+  #             if len(set(arr)) > 1:
+  #               self.all_arrs.append(content_arr2)
+  #   print("done")
+
+  def get_tags(self, string):
+    tag_re = "</[^>]+>"
+    tags = re.findall(tag_re, string)
+    self.all_tags.update(tags)
+
+  def get_fields(self, string):
+    field_re = '"\w+":'
+    fields = re.findall(field_re, string)
+    self.all_fields.update(fields)
+
+  def get_fields_content(self, string):
+    field_c_re = '"\w+":.+".+"'
+    field_content = re.findall(field_c_re, string)
+    self.all_fields_content.update(field_content)
 
   def get_content(self):
     for n, val in self.all_xml.items():
-      entries_arr = val.split("<entry>")
-      for e in entries_arr:
-        e_arr = e.split("</entry>")
-        for e1 in e_arr:
-          content_arr = e1.split("<content>")
-          for c in content_arr:
-            content_arr2 = c.split("</content>")
-            for arr in content_arr2:
-              if len(set(arr)) > 1:
-                self.all_arrs.append(content_arr2)
-    print("done")
+      # for entry in self.all_arrs:
+      tag_re = "<\w+>"
+      tags = re.findall(tag_re, val)
+      self.all_tags.update(tags)
 
-  def clean_xml(self):
-    rep_reg = "^ *\[\d+\] => "
-    # rep_reg2 = ">\s+<"
-    for n, val in self.all_xml.items():
-      temp_val = re.sub(rep_reg, "", val)
-      # temp_val.replace("\n", "")
-      self.all_xml[n] = temp_val.replace("\n", " ")
-      # print("done")
+      field_re = '"\w+":'
+      fields = re.findall(field_re, val)
+      self.all_fields.update(fields)
 
-  def get_xml_content(self):
-    for n, val in self.all_xml.items():
-      try:
-        tree = ET.ElementTree(ET.fromstring(val))
-        el = ET.fromstring(val)
-        el.findall('entity')
+    print("self.all_tags")
+    print(self.all_tags)
 
-      except ET.ParseError:
-        print(val)
-        raise
-      for entity in el.findall('entity'):
-          rank = entity.find('creators').text
-          name = entity.get('date')
-          print(name, rank)
+    print("self.all_fields")
+    print(self.all_fields)
 
-      print("done")
+  # def parse_res_arr(self):
+  #   for entry in self.all_arrs:
+  #     tags_re = "<\w>"
+  #     tags = re.findall(tags_re, entry)
+  #
+  #
+  #     print("done")
+
+
+  # def clean_xml(self):
+  #   rep_reg = "^ *\[\d+\] => "
+  #   # rep_reg2 = ">\s+<"
+  #   for n, val in self.all_xml.items():
+  #     temp_val = re.sub(rep_reg, "", val)
+  #     # temp_val.replace("\n", "")
+  #     self.all_xml[n] = temp_val.replace("\n", " ")
+  #     # print("done")
+
+  # def get_xml_content(self):
+  #   for n, val in self.all_xml.items():
+  #     try:
+  #       tree = ET.ElementTree(ET.fromstring(val))
+  #       el = ET.fromstring(val)
+  #       el.findall('entity')
+  #
+  #     except ET.ParseError:
+  #       print(val)
+  #       raise
+  #     for entity in el.findall('entity'):
+  #         rank = entity.find('creators').text
+  #         name = entity.get('date')
+  #         print(name, rank)
+  #
+  #     print("done")
 
   #
   #
