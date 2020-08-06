@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+
 import util
 try:
     import mysqlclient as mysql
@@ -391,39 +393,62 @@ class Metadata:
 
 class Upload:
 
+  table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format", "identifier", "language", "role"]
+  table_names_comb = {
+    "content"              : ["title", "content", "content_url", "description"],
+    "entry"                : ["content_id", "country_id", "creator_id", "creator_other_id",
+                              "data_type_id", "digitization_specifications_id", "entry_subject_id", "format_id",
+                              "language_id", "manual_identifier_ref_id", "person_id", "season_id", "source_id"],
+    "entry_subject"        : ["place_id", "associated_place_id", "subject_academic_field_id"],  # subject_associated_places,
+    "person"               : ["first_name", "last_name"],
+    "place"                : ["place_name", "lat", "long"],
+    "season"               : ["season", "exact_date", "digital_date", "date_season__yyyy_"],
+    "source"               : ["source", "publisher", "publisher_location", "bibliographic_citation", "rights"],
+  }
+
   def __init__(self):
     print("EEE metadata_update")
     # print(metadata_update)
+    self.query_simple_dict = defaultdict()
+    self.query_comb_dict = defaultdict()
 
     self.update_metadata()
-    # # custom 1
-    # self.add_fields_to_custom_metadata_table()
-    # # custom 2
-    # self.add_fields_to_custom_metadata_fields()
-    # # custom 3
-    # # insert dataset_id if ot there
-    # self.insert_dataset_id_custom_metadata()
-    # # custom 4
-    # self.update_custom_metadata()
 
   def update_metadata(self):
-    for dataset_id in metadata.csv_file_content_dict.keys():
-      table_name = "custom_metadata_" + str(project_id)
-      for field_name, field_value in custom_metadata_update[dataset_id].items():
-        query1 = """ UPDATE {}
-                    SET {}.{} = %s
-                    where dataset_id = %s
-                """.format(table_name, table_name, field_name)
-        values = [field_value, dataset_id]
-        if (is_verbatim):
-          print("UUU001 query1")
-          print(query1)
-          print("UUU001 values")
-          print(values)
-        res1 = mysql_utils.execute_no_fetch_w_values(query1, values)
-        if (is_verbatim):
-          print("UUU001 res1")
-          print(res1)
+    # self.get_all_ids()
+    # see update_required_metadata
+    temp_entry_info = defaultdict() #(get all ids)
+    for entry in metadata.csv_file_content_dict:
+      for k, v in entry.items():
+        if len(v) > 0:
+          if k in Upload.table_names_simple:
+            self.query_simple_dict[k] = v
+          else:
+          # elif k in Upload.table_names_comb.keys():
+            # TODO: search in values to get table_name or hardcode it
+            self.query_comb_dict[k] = v
+      # TODO: all together
+      # query = "INSERT IGNORE INTO {} ({}) VALUES ()".format(table_name)
+    # INSERT INTO custom_metadata_fields (project_id, field_name, field_units, example) VALUES ()
+    return
+
+    # for dataset_id in metadata.csv_file_content_dict.keys():
+    #   table_name = "custom_metadata_" + str(project_id)
+    #   for field_name, field_value in custom_metadata_update[dataset_id].items():
+    #     query1 = """ UPDATE {}
+    #                 SET {}.{} = %s
+    #                 where dataset_id = %s
+    #             """.format(table_name, table_name, field_name)
+    #     values = [field_value, dataset_id]
+    #     if (is_verbatim):
+    #       print("UUU001 query1")
+    #       print(query1)
+    #       print("UUU001 values")
+    #       print(values)
+    #     res1 = mysql_utils.execute_no_fetch_w_values(query1, values)
+    #     if (is_verbatim):
+    #       print("UUU001 res1")
+    #       print(res1)
 
   # # def update_required_metadata(self):
   # #   for dataset_id in required_metadata_update.keys():
