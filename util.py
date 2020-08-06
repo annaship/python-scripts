@@ -241,9 +241,10 @@ class Mysql_util:
           raise
 
 
-    def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE"):
+    def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE", sql = ""):
       try:
-        sql = "INSERT %s INTO %s (%s) VALUES (%s)" % (ignore, table_name, field_name, val_list)
+        if sql == "":
+          sql = "INSERT %s INTO %s (%s) VALUES (%s)" % (ignore, table_name, field_name, val_list)
 
         if self.cursor:
           self.cursor.execute(sql)
