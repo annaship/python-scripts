@@ -61,7 +61,7 @@ class Metadata:
     "Rights"                     : "rights"
   }
 
-  empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
+  # empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
 
   not_req_fields_from_csv = []
   csv_file_fields         = []
@@ -123,7 +123,7 @@ class Metadata:
     for idx, vals_l in enumerate(transposed_vals):
       all_val_for1_field = set(vals_l)
       field_name = Metadata.csv_file_fields[idx]
-      if (len(all_val_for1_field) == 1) and list(all_val_for1_field)[0].lower() in Metadata.empty_equivalents:
+      if (len(all_val_for1_field) == 1):
         removed_fields.append(field_name)
       else:
         good_fields.append(field_name)
@@ -420,9 +420,29 @@ class Upload:
     # 3) get ids
     # 4) upload tables with ids
 
+    self.upload_simple_tables()
+
+  def intersection(self, lst1, lst2):
+    return list(set(lst1) & set(lst2))
+
   def upload_simple_tables(self):
-    for table_name in Upload.table_names_simple:
-      mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
+    simple_names_present = self.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
+    for table_name in simple_names_present:
+      try:
+        val_list = ', '.join('("{0}")'.format(w) for w in set(Metadata.not_empty_csv_content_dict[table_name]))
+        try: # to a method
+          sql = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
+
+          if mysql_utils.cursor:
+            mysql_utils.cursor.execute(sql)
+            mysql_utils.conn.commit()
+            return (mysql_utils.cursor.rowcount, mysql_utils.cursor.lastrowid)
+        except:
+          utils.print_both(("ERROR: query = %s") % sql)
+          raise
+        # mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
+      except KeyError:
+        pass
 
 
   def update_metadata(self):
