@@ -420,6 +420,11 @@ class Upload:
     # 3) get ids
     # 4) upload tables with ids
 
+  def upload_simple_tables(self):
+    for table_name in Upload.table_names_simple:
+      mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
+
+
   def update_metadata(self):
 
     # self.get_all_ids()
