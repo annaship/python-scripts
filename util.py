@@ -478,6 +478,9 @@ class Utils:
     def slicedict(self, my_dict, key_list):
       return {k: v for k, v in my_dict.items() if k in key_list}
 
+    def intersection(self, lst1, lst2):
+      return list(set(lst1) & set(lst2))
+
     def benchmark_w_return_1(self, message):
       print( "\n")
       print("-" * 10)
