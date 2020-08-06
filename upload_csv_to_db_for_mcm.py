@@ -402,6 +402,8 @@ class Upload:
     "entry_subject"        : ["place_id", "associated_place_id", "subject_academic_field_id"],  # subject_associated_places,
     "person"               : ["first_name", "last_name"],
     "place"                : ["place_name", "lat", "long"],
+    # "person_role_ref": ["person_id", "role_id"],
+    # "ref": ["role"],
     "season"               : ["season", "exact_date", "digital_date", "date_season__yyyy_"],
     "source"               : ["source", "publisher", "publisher_location", "bibliographic_citation", "rights"],
   }
@@ -412,9 +414,14 @@ class Upload:
     self.query_simple_dict = defaultdict()
     self.query_comb_dict = defaultdict()
 
-    self.update_metadata()
+    # self.update_metadata()
+    # 1) upload simple tables (table_names_simple)
+    # 2) upload combine tables no foreign keys (content, person, place, season, source)
+    # 3) get ids
+    # 4) upload tables with ids
 
   def update_metadata(self):
+
     # self.get_all_ids()
     # see update_required_metadata
     temp_entry_info = defaultdict() #(get all ids)
