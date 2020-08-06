@@ -25,6 +25,40 @@ import re
 class Metadata:
   # parse csv
 
+  metadata_to_field = {
+    "Identifier"                 : "identifier",
+    "Title"                      : "title",
+    "Content"                    : "content",
+    "Content URL"                : "content_url",
+    "Creator"                    : "creator",
+    "Creator.Other"              : "creator_other",
+    "Subject.Place"              : "subject_place",
+    "Coverage.Lat"               : "coverage_lat",
+    "Coverage.Long"              : "coverage_long",
+    "Subject.Associated.Places"  : "subject_associated_places",
+    "Subject.People"             : "subject_people",
+    "Subject.Academic.Field"     : "subject_academic_field",
+    "Subject.Other"              : "subject_other",
+    "Subject.Season"             : "subject_season",
+    "Date.Season"                : "date_season",
+    "Date.Season (YYYY)"         : "date_season_yyyy",
+    "Date.Exact"                 : "date_exact",
+    "Date.Digital"               : "date_digital",
+    "Description"                : "description",
+    "Format"                     : "format",
+    "Digitization Specifications": "digitization_specifications",
+    "Contributor"                : "contributor",
+    "Type"                       : "type",
+    "Country"                    : "country",
+    "Language"                   : "language",
+    "Relation"                   : "relation",
+    "Source"                     : "source",
+    "Publisher"                  : "publisher",
+    "Publisher Location"         : "publisher_location",
+    "Bibliographic Citation"     : "bibliographic_citation",
+    "Rights"                     : "rights"
+  }
+
   empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
 
   not_req_fields_from_csv = []
@@ -45,11 +79,11 @@ class Metadata:
 
     Metadata.not_empty_csv_content_dict = self.check_for_empty_fields()
 
-    self.change_keys_in_csv_content_dict_to_const()
+    # self.change_keys_in_csv_content_dict_to_const()
     Metadata.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(Metadata.not_empty_csv_content_dict)
     Metadata.csv_file_fields = list(Metadata.not_empty_csv_content_dict.keys())
     # check for duplicate field names
-    Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
+    # Metadata.not_req_fields_from_csv = list(set(Metadata.csv_file_fields) - set(Metadata.req_fields_from_csv) - set(Metadata.required_fields_to_update_project))
 
     Metadata.csv_file_content_dict = self.format_not_empty_dict()
 
@@ -96,39 +130,18 @@ class Metadata:
 
     return not_empty_csv_content_dict
 
-  # def check_for_duplicate_field_names(self):
-  #   all_names_cnt = defaultdict(int)
-  #   all_names_dup = defaultdict(list)
-  #   for field_name in Metadata.csv_file_fields:
-  #     new_name = field_name.replace(".", "_").replace(" ", "_").lower()
-  #     all_names_cnt[new_name] += 1
-  #     all_names_dup[new_name].append(field_name)
-  #   duplicates = [k for k, v in all_names_cnt.items() if v > 1]
-  #
-  #   return all_names_cnt
-
-  def get_new_fields_units(self, field):
-    try:
-      new_col = field.split('--UNITS--')
-      if field != new_col[0]:
-        Metadata.field_names_equivalents_csv_db[field] = new_col[0]
-        Metadata.csv_fields_with_units[new_col[0]] = new_col[1]
-      #TODO: change field to new_col[0] in Metadata.csv_file_fields
-    except IndexError:
-      pass
-
-  def change_keys_in_csv_content_dict_to_const(self):
-    dictionary = Metadata.not_empty_csv_content_dict
-    for old_key, new_key in Metadata.field_names_equivalents_csv_db.items():
-      if old_key != new_key:
-        try:
-          dictionary[new_key] = dictionary[old_key]
-          del dictionary[old_key]
-        except KeyError:
-          pass
+  # def change_keys_in_csv_content_dict_to_const(self):
+  #   dictionary = Metadata.not_empty_csv_content_dict
+  #   for old_key, new_key in Metadata.field_names_equivalents_csv_db.items():
+  #     if old_key != new_key:
+  #       try:
+  #         dictionary[new_key] = dictionary[old_key]
+  #         del dictionary[old_key]
+  #       except KeyError:
+  #         pass
 
   def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
-    return {field_name.replace(".", "_").replace(" ", "_").lower(): val
+    return {field_name.replace(".", "_").replace(" ", "_").replace("(", "_").replace(")", "_").lower(): val
             for field_name, val in my_dict.items()}
 
 
@@ -378,40 +391,6 @@ class Metadata:
 
 class Upload:
 
-  metadata_to_field = {
-    "Identifier"                 : "identifier",
-    "Title"                      : "title",
-    "Content"                    : "content",
-    "Content URL"                : "content_url",
-    "Creator"                    : "creator",
-    "Creator.Other"              : "creator_other",
-    "Subject.Place"              : "subject_place",
-    "Coverage.Lat"               : "coverage_lat",
-    "Coverage.Long"              : "coverage_long",
-    "Subject.Associated.Places"  : "subject_associated_places",
-    "Subject.People"             : "subject_people",
-    "Subject.Academic.Field"     : "subject_academic_field",
-    "Subject.Other"              : "subject_other",
-    "Subject.Season"             : "subject_season",
-    "Date.Season"                : "date_season",
-    "Date.Season (YYYY)"         : "date_season_yyyy",
-    "Date.Exact"                 : "date_exact",
-    "Date.Digital"               : "date_digital",
-    "Description"                : "description",
-    "Format"                     : "format",
-    "Digitization Specifications": "digitization_specifications",
-    "Contributor"                : "contributor",
-    "Type"                       : "type",
-    "Country"                    : "country",
-    "Language"                   : "language",
-    "Relation"                   : "relation",
-    "Source"                     : "source",
-    "Publisher"                  : "publisher",
-    "Publisher Location"         : "publisher_location",
-    "Bibliographic Citation"     : "bibliographic_citation",
-    "Rights"                     : "rights"
-  }
-
   def __init__(self):
     print("EEE metadata_update")
     # print(metadata_update)
@@ -427,92 +406,8 @@ class Upload:
     # # custom 4
     # self.update_custom_metadata()
 
-  def update_required_metadata(self):
-    for dataset_id in required_metadata_update.keys():
-      set_str = ""
-      for field_name, field_value in required_metadata_update[dataset_id].items():
-        set_str += """required_metadata_info.%s = '%s', """ % (field_name, field_value)
-        # print('field_name = %s, field_value = %s' % (field_name, str(field_value)))
-      query = """ UPDATE required_metadata_info
-                  SET %s
-                      updated_at = Now()
-                  where dataset_id = '%s'
-              """ % (set_str, dataset_id)
-      if (is_verbatim):
-        print("UUU000 query")
-        print(query)
-      res = mysql_utils.execute_no_fetch(query)
-      if (is_verbatim):
-        print("RRR000 res")
-        print(res)
-
-  def add_fields_to_custom_metadata_table(self):
-    # QQQ2 = add_fields_to_db_dict
-    # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
-
-    long_fieds = ["reference", "project_abstract", "project_description"]
-    for f in long_fieds:
-      query = """ALTER TABLE custom_metadata_%s
-                ADD COLUMN `%s` text DEFAULT NULL
-            """ % (project_id, f)
-      if (is_verbatim):
-        print("UUU query")
-        print(query)
-      res = mysql_utils.execute_no_fetch(query)
-      if (is_verbatim):
-        print("res")
-        print(res)
-
-    for k, v in add_fields_to_db_dict.items():
-      query = """ALTER TABLE custom_metadata_%s
-                ADD COLUMN `%s` varchar(128) DEFAULT NULL
-            """ % (project_id, k)
-      if (is_verbatim):
-        print("UUU query")
-        print(query)
-      try:
-        res = mysql_utils.execute_no_fetch(query)
-      except mysql.InternalError as e:
-        print(e)
-        continue
-
-        # pymysql.err.InternalError: (1060, "Duplicate column name 'project_abstract'")
-
-      if (is_verbatim):
-        print("res")
-        print(res)
-
-  def add_fields_to_custom_metadata_fields(self):
-    # add_fields_to_db_dict:
-    # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
-
-    for k, v in add_fields_to_db_dict.items():
-      #96717	307	potassium	nanogram_per_liter	125000
-      try:
-        field_units = Metadata.csv_fields_with_units[k]
-      except KeyError:
-        field_units = ""
-
-      notes = ""
-      short_value = v
-      example_varchar = 128
-      if len(v) >= example_varchar:
-        short_value = v[:124] + "...";
-        notes = "Example was shortened"
-
-      query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES (%s, %s, %s, %s, %s)"""
-
-      values = [project_id, k, field_units, short_value, notes]
-      # print("UUU5 query.decode('utf-8')")
-      # print(query.decode('utf-8'))
-      res = mysql_utils.execute_no_fetch_w_values(query, values)
-      if (is_verbatim):
-        print("res")
-        print(res)
-
-  # TODO: combine with update_required_metadata
-  def update_custom_metadata(self):
-    for dataset_id in custom_metadata_update.keys():    
+  def update_metadata(self):
+    for dataset_id in metadata.csv_file_content_dict.keys():
       table_name = "custom_metadata_" + str(project_id)
       for field_name, field_value in custom_metadata_update[dataset_id].items():
         query1 = """ UPDATE {}
@@ -530,17 +425,120 @@ class Upload:
           print("UUU001 res1")
           print(res1)
 
-
-  def insert_dataset_id_custom_metadata(self):
-    query = "INSERT IGNORE INTO custom_metadata_{} (dataset_id) SELECT dataset_id FROM dataset WHERE project_id = %s;".format(project_id)
-    if (is_verbatim):
-      print("UUU7 query from insert_dataset_id_custom_metadata")
-      print(query)
-      print(project_id)
-    res = mysql_utils.execute_no_fetch_w_values(query, project_id)
-    if (is_verbatim):
-      print("res")
-      print(res)
+  # # def update_required_metadata(self):
+  # #   for dataset_id in required_metadata_update.keys():
+  # #     set_str = ""
+  # #     for field_name, field_value in required_metadata_update[dataset_id].items():
+  # #       set_str += """required_metadata_info.%s = '%s', """ % (field_name, field_value)
+  # #       # print('field_name = %s, field_value = %s' % (field_name, str(field_value)))
+  # #     query = """ UPDATE required_metadata_info
+  # #                 SET %s
+  # #                     updated_at = Now()
+  # #                 where dataset_id = '%s'
+  # #             """ % (set_str, dataset_id)
+  # #     if (is_verbatim):
+  # #       print("UUU000 query")
+  # #       print(query)
+  # #     res = mysql_utils.execute_no_fetch(query)
+  # #     if (is_verbatim):
+  # #       print("RRR000 res")
+  # #       print(res)
+  # #
+  # # def add_fields_to_custom_metadata_table(self):
+  # #   # QQQ2 = add_fields_to_db_dict
+  # #   # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
+  # #
+  # #   long_fieds = ["reference", "project_abstract", "project_description"]
+  # #   for f in long_fieds:
+  # #     query = """ALTER TABLE custom_metadata_%s
+  # #               ADD COLUMN `%s` text DEFAULT NULL
+  # #           """ % (project_id, f)
+  # #     if (is_verbatim):
+  # #       print("UUU query")
+  # #       print(query)
+  # #     res = mysql_utils.execute_no_fetch(query)
+  # #     if (is_verbatim):
+  # #       print("res")
+  # #       print(res)
+  # #
+  # #   for k, v in add_fields_to_db_dict.items():
+  # #     query = """ALTER TABLE custom_metadata_%s
+  # #               ADD COLUMN `%s` varchar(128) DEFAULT NULL
+  # #           """ % (project_id, k)
+  # #     if (is_verbatim):
+  # #       print("UUU query")
+  # #       print(query)
+  # #     try:
+  # #       res = mysql_utils.execute_no_fetch(query)
+  # #     except mysql.InternalError as e:
+  # #       print(e)
+  # #       continue
+  # #
+  # #       # pymysql.err.InternalError: (1060, "Duplicate column name 'project_abstract'")
+  # #
+  # #     if (is_verbatim):
+  # #       print("res")
+  # #       print(res)
+  # #
+  # # def add_fields_to_custom_metadata_fields(self):
+  # #   # add_fields_to_db_dict:
+  # #   # {'dna_quantitation': 'PicoGreen', 'project_abstract': 'DCO_GAI_CoDL_Gaidos_15_06_01.pdf,DCO_GAI_Gaidos_CoDL_11_03_03.pdf', 'column_name_1': 'row1 cell 2'})
+  # #
+  # #   for k, v in add_fields_to_db_dict.items():
+  # #     #96717	307	potassium	nanogram_per_liter	125000
+  # #     try:
+  # #       field_units = Metadata.csv_fields_with_units[k]
+  # #     except KeyError:
+  # #       field_units = ""
+  # #
+  # #     notes = ""
+  # #     short_value = v
+  # #     example_varchar = 128
+  # #     if len(v) >= example_varchar:
+  # #       short_value = v[:124] + "...";
+  # #       notes = "Example was shortened"
+  # #
+  # #     query = """REPLACE INTO custom_metadata_fields (project_id, field_name, field_units, example, notes) VALUES (%s, %s, %s, %s, %s)"""
+  # #
+  # #     values = [project_id, k, field_units, short_value, notes]
+  # #     # print("UUU5 query.decode('utf-8')")
+  # #     # print(query.decode('utf-8'))
+  # #     res = mysql_utils.execute_no_fetch_w_values(query, values)
+  # #     if (is_verbatim):
+  # #       print("res")
+  # #       print(res)
+  # #
+  # # # TODO: combine with update_required_metadata
+  # # def update_custom_metadata(self):
+  # #   for dataset_id in custom_metadata_update.keys():
+  # #     table_name = "custom_metadata_" + str(project_id)
+  # #     for field_name, field_value in custom_metadata_update[dataset_id].items():
+  # #       query1 = """ UPDATE {}
+  # #                   SET {}.{} = %s
+  # #                   where dataset_id = %s
+  # #               """.format(table_name, table_name, field_name)
+  # #       values = [field_value, dataset_id]
+  # #       if (is_verbatim):
+  # #         print("UUU001 query1")
+  # #         print(query1)
+  # #         print("UUU001 values")
+  # #         print(values)
+  # #       res1 = mysql_utils.execute_no_fetch_w_values(query1, values)
+  # #       if (is_verbatim):
+  # #         print("UUU001 res1")
+  # #         print(res1)
+  # #
+  #
+  # def insert_dataset_id_custom_metadata(self):
+  #   query = "INSERT IGNORE INTO custom_metadata_{} (dataset_id) SELECT dataset_id FROM dataset WHERE project_id = %s;".format(project_id)
+  #   if (is_verbatim):
+  #     print("UUU7 query from insert_dataset_id_custom_metadata")
+  #     print(query)
+  #     print(project_id)
+  #   res = mysql_utils.execute_no_fetch_w_values(query, project_id)
+  #   if (is_verbatim):
+  #     print("res")
+  #     print(res)
     
 
   # TODO:
@@ -564,12 +562,11 @@ if __name__ == '__main__':
   utils = util.Utils()
 
   if utils.is_local() == True:
-    mysql_utils = util.Mysql_util(host = 'localhost', db = 'vamps2', read_default_group = 'clienthome')
-    print("host = 'localhost', db = 'vamps2'")
+    mysql_utils = util.Mysql_util(host = 'localhost', db = 'mcm_history', read_default_group = 'clienthome')
+    print("host = 'localhost', db = 'mcm_history'")
   else:
-    mysql_utils = util.Mysql_util(host = 'vampsdb', db = 'vamps2', read_default_group = 'client')
-    # mysql_utils = util.Mysql_util(host = 'vampsdev', db = 'vamps2', read_default_group = 'client')
-    # print("host = 'vampsdev', db = 'vamps2'")
+    mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = 'mcm_history', read_default_group = 'client')
+    print("host = 'taylor.unm.edu', db = 'mcm_history'")
     
   parser = argparse.ArgumentParser()
 
@@ -587,27 +584,27 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args.input_file)
-  required_metadata = RequiredMetadata()
-  custom_metadata = CustomMetadata()
+  # required_metadata = RequiredMetadata()
+  # custom_metadata = CustomMetadata()
+  #
+  # required_metadata_update = required_metadata.required_metadata_update
+  #
+  # # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
+  # add_fields_to_db_dict = custom_metadata.fields_to_add_to_db
+  # # print("FFF6 custom_metadata.fields_to_add_to_db = ")
+  # # print(custom_metadata.fields_to_add_to_db)
+  #
+  # custom_metadata_update = custom_metadata.custom_metadata_update
+  # project_id = custom_metadata.project_id
 
-  required_metadata_update = required_metadata.required_metadata_update
-
-  # add as data to custom_metadata_fields for project_id = ## and as columns to custom_metadata_##
-  add_fields_to_db_dict = custom_metadata.fields_to_add_to_db
-  # print("FFF6 custom_metadata.fields_to_add_to_db = ")
-  # print(custom_metadata.fields_to_add_to_db)
-  
-  custom_metadata_update = custom_metadata.custom_metadata_update
-  project_id = custom_metadata.project_id
-
-  if (is_verbatim):
-    print('QQQ1 = required_metadata_update')
-    print(required_metadata_update)
-
-    print('QQQ2 = add_fields_to_db_dict')
-    print(add_fields_to_db_dict)
-
-    print('QQQ3 = custom_metadata_update')
-    print(custom_metadata_update)
+  # if (is_verbatim):
+  #   print('QQQ1 = required_metadata_update')
+  #   print(required_metadata_update)
+  #
+  #   print('QQQ2 = add_fields_to_db_dict')
+  #   print(add_fields_to_db_dict)
+  #
+  #   print('QQQ3 = custom_metadata_update')
+  #   print(custom_metadata_update)
 
   upload_metadata = Upload()
