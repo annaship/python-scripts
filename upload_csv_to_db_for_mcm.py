@@ -436,19 +436,35 @@ class Upload:
         pass
 
   def upload_combine_tables_no_foreign_keys(self):
-    names_no_f_keys_present = utils.intersection(Upload.table_names_no_f_keys, Metadata.not_empty_csv_content_dict.keys())
-    for table_name in names_no_f_keys_present:
-      # tables_comb
-        field_list = Upload.tables_comb[table_name]
-        for field_name in field_list:
-
-          try:
-            val_list = ', '.join('("{0}")'.format(w) for w in Metadata.not_empty_csv_content_dict[field_name])
-            insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
-
-            mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
-          except KeyError:
-            pass
+    # that's wrong because we want field names here
+    # names_no_f_keys_present = utils.intersection(Upload.table_names_no_f_keys, Metadata.not_empty_csv_content_dict.keys())
+    for d in Metadata.csv_file_content_dict:
+      for table_name in Upload.table_names_no_f_keys:
+        temp_dict = {}
+        try:
+          temp_dict = {field_name: d[field_name]
+                   for field_name in Upload.tables_comb[table_name]}
+        except KeyError:
+          pass
+        print(temp_dict)
+                   # if d[your_key].lower() not in Metadata.empty_equivalents}
+      # if any(temp_dict.values()):
+      #   self.required_metadata_update[dataset_id] = temp_dict
+    # t2 = time.time()
+    # print("Time elapsed 2 = ")
+    # print(t2 - t1)
+    # for table_name in names_no_f_keys_present:
+    #   # tables_comb
+    #     field_list = Upload.tables_comb[table_name]
+    #     for field_name in field_list:
+    #
+    #       try:
+    #         val_list = ', '.join('("{0}")'.format(w) for w in Metadata.not_empty_csv_content_dict[field_name])
+    #         insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
+    #
+    #         mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
+    #       except KeyError:
+    #         pass
 
   def update_metadata(self):
 
