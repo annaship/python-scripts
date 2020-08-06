@@ -394,7 +394,8 @@ class Metadata:
 class Upload:
 
   table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format", "identifier", "language", "role"]
-  table_names_comb = {
+  table_names_no_f_keys = ["content", "person", "place", "season", "source"]
+  tables_comb = {
     "content"              : ["title", "content", "content_url", "description"],
     "entry"                : ["content_id", "country_id", "creator_id", "creator_other_id",
                               "data_type_id", "digitization_specifications_id", "entry_subject_id", "format_id",
@@ -421,12 +422,10 @@ class Upload:
     # 4) upload tables with ids
 
     self.upload_simple_tables()
-
-  def intersection(self, lst1, lst2):
-    return list(set(lst1) & set(lst2))
+    self.upload_combine_tables_no_foreign_keys()
 
   def upload_simple_tables(self):
-    simple_names_present = self.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
+    simple_names_present = utils.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
     for table_name in simple_names_present:
       try:
         val_list = ', '.join('("{0}")'.format(w) for w in set(Metadata.not_empty_csv_content_dict[table_name]))
@@ -436,6 +435,20 @@ class Upload:
       except KeyError:
         pass
 
+  def upload_combine_tables_no_foreign_keys(self):
+    names_no_f_keys_present = utils.intersection(Upload.table_names_no_f_keys, Metadata.not_empty_csv_content_dict.keys())
+    for table_name in names_no_f_keys_present:
+      # tables_comb
+        field_list = Upload.tables_comb[table_name]
+        for field_name in field_list:
+
+          try:
+            val_list = ', '.join('("{0}")'.format(w) for w in Metadata.not_empty_csv_content_dict[field_name])
+            insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
+
+            mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
+          except KeyError:
+            pass
 
   def update_metadata(self):
 
