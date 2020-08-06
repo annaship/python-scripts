@@ -430,17 +430,9 @@ class Upload:
     for table_name in simple_names_present:
       try:
         val_list = ', '.join('("{0}")'.format(w) for w in set(Metadata.not_empty_csv_content_dict[table_name]))
-        try: # to a method
-          sql = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
+        insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
 
-          if mysql_utils.cursor:
-            mysql_utils.cursor.execute(sql)
-            mysql_utils.conn.commit()
-            return (mysql_utils.cursor.rowcount, mysql_utils.cursor.lastrowid)
-        except:
-          utils.print_both(("ERROR: query = %s") % sql)
-          raise
-        # mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
+        mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
       except KeyError:
         pass
 
