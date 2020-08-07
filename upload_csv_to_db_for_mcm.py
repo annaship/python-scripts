@@ -435,43 +435,30 @@ class Upload:
       except KeyError:
         pass
 
+  def get_field_names(self, d, table_name):
+    values = []
+
+    for field_name in Upload.tables_comb[table_name]:
+      try:
+        values.append(d[field_name])
+      except KeyError:
+        values.append("")
+    return values
+
   def upload_combine_tables_no_foreign_keys(self):
-    # that's wrong because we want field names here
-    # names_no_f_keys_present = utils.intersection(Upload.table_names_no_f_keys, Metadata.not_empty_csv_content_dict.keys())
     for d in Metadata.csv_file_content_dict:
       for table_name in Upload.table_names_no_f_keys:
-        values = []
-        if table_name == "season":
-          print("season")
-        for field_name in Upload.tables_comb[table_name]:
-          try:
-            values.append(d[field_name])
-          except KeyError:
-            values.append("")
+        values = self.get_field_names(d, table_name)
+        # if table_name == "season":
+        #   print("season")
+        # for field_name in Upload.tables_comb[table_name]:
+        #   try:
+        #     values.append(d[field_name])
+        #   except KeyError:
+        #     values.append("")
         field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
         val_list = ', '.join('"{0}"'.format(w) for w in values)
-        # insert_query = "INSERT %s INTO %s (%s) VALUES (%s)" % ('IGNORE', table_name, field_names, val_list)
         mysql_utils.execute_insert(table_name, field_names, val_list, ignore = "IGNORE")
-
-        # print(insert_query)
-                   # if d[your_key].lower() not in Metadata.empty_equivalents}
-      # if any(temp_dict.values()):
-      #   self.required_metadata_update[dataset_id] = temp_dict
-    # t2 = time.time()
-    # print("Time elapsed 2 = ")
-    # print(t2 - t1)
-    # for table_name in names_no_f_keys_present:
-    #   # tables_comb
-    #     field_list = Upload.tables_comb[table_name]
-    #     for field_name in field_list:
-    #
-    #       try:
-    #         val_list = ', '.join('("{0}")'.format(w) for w in Metadata.not_empty_csv_content_dict[field_name])
-    #         insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
-    #
-    #         mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
-    #       except KeyError:
-    #         pass
 
   def update_metadata(self):
 
