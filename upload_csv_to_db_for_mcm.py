@@ -140,7 +140,7 @@ class Upload:
     self.query_simple_dict = defaultdict()
     self.query_comb_dict = defaultdict()
     self.str_field_by_table_comb = []
-    self.field_by_table_comb = []
+    self.field_by_table = []
 
     # self.update_metadata()
     # 1) upload simple tables (table_names_simple)
@@ -148,14 +148,16 @@ class Upload:
     # 3) get ids
     # 4) upload tables with ids
 
+    self.simple_names_present = utils.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
+
     self.upload_simple_tables()
     self.get_info_combine_tables()
     self.upload_combine_tables_no_foreign_keys()
     self.get_ids()
+    print("here")
 
   def upload_simple_tables(self):
-    simple_names_present = utils.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
-    for table_name in simple_names_present:
+    for table_name in self.simple_names_present:
       try:
         val_list = ', '.join('("{0}")'.format(w) for w in set(Metadata.not_empty_csv_content_dict[table_name]))
         insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
@@ -163,6 +165,13 @@ class Upload:
         mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
       except KeyError:
         pass
+
+  def update_field_by_table(self):
+    for
+    simple_table_data = defaultdict()
+    self.field_by_table.append(simple_table_data)
+
+
 
   def get_values(self, d, table_name):
     values = []
@@ -180,14 +189,14 @@ class Upload:
       temp_dict_arr = defaultdict()
       for table_name in Upload.tables_comb.keys():
         values = self.get_values(d, table_name)
-        temp_dict_arr[table_name] = (Upload.tables_comb[table_name], values)
+        temp_dict_arr[table_name] = [Upload.tables_comb[table_name], values]
 
         field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
         val_list = ', '.join('"{0}"'.format(w) for w in values)
         temp_dict_str[table_name] = (field_names, val_list)
 
       self.str_field_by_table_comb.append(temp_dict_str)
-      self.field_by_table_comb.append(temp_dict_arr)
+      self.field_by_table.append(temp_dict_arr)
 
   def upload_combine_tables_no_foreign_keys(self):
     for ent in self.str_field_by_table_comb:
@@ -200,17 +209,20 @@ class Upload:
   def get_ids(self):
     table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
     for table_name in table_names_to_get_ids:
-      where_parts = []
-      for ent in self.field_by_table_comb:
+      id_name = table_name + "_id"
+      for idx, ent in enumerate(self.field_by_table):
+        where_parts = []
+        if table_name == "subject_academic_field":
+          print("HERE!!!")
         current_data = ent[table_name]
         current_val_by_field_dict = dict(zip(current_data[0], current_data[1]))
         for field_name, val in current_val_by_field_dict.items():
           where_parts.append(" {} = '{}' ".format(field_name, val))
-        where_txt = ' AND '.join(where_parts)
-        q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
-        # get_id(self, field_name, table_name, where_part, rows_affected = [0, 0]):
-        field_name = ""
-
+        where_txt = "WHERE "
+        where_txt += ' AND '.join(where_parts)
+        # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
+        id = mysql_utils.get_id(id_name, table_name, where_txt)
+        self.field_by_table[idx][table_name][id_name] = id
 
 
   # tables_comb = {
