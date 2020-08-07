@@ -451,14 +451,9 @@ class Upload:
         values = self.get_field_names(d, table_name)
         # if table_name == "season":
         #   print("season")
-        # for field_name in Upload.tables_comb[table_name]:
-        #   try:
-        #     values.append(d[field_name])
-        #   except KeyError:
-        #     values.append("")
         field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
         val_list = ', '.join('"{0}"'.format(w) for w in values)
-        mysql_utils.execute_insert(table_name, field_names, val_list, ignore = "IGNORE")
+        mysql_utils.execute_insert(table_name, field_names, val_list)
 
   def update_metadata(self):
 
