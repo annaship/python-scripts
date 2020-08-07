@@ -387,7 +387,7 @@ class Metadata:
 #     return int(project_id[0][1])
 #
 #   def get_custom_fields_from_db(self):
-#     custom_metadata_fields_t = mysql_utils.get_field_names('vamps2', self.custom_metadata_table_name)
+#     custom_metadata_fields_t = mysql_utils.get_values('vamps2', self.custom_metadata_table_name)
 #     return list(zip(*custom_metadata_fields_t[0]))
 
 
@@ -435,7 +435,7 @@ class Upload:
       except KeyError:
         pass
 
-  def get_field_names(self, d, table_name):
+  def get_values(self, d, table_name):
     values = []
 
     for field_name in Upload.tables_comb[table_name]:
@@ -448,9 +448,10 @@ class Upload:
   def upload_combine_tables_no_foreign_keys(self):
     for d in Metadata.csv_file_content_dict:
       for table_name in Upload.table_names_no_f_keys:
-        values = self.get_field_names(d, table_name)
+        values = self.get_values(d, table_name)
         # if table_name == "season":
         #   print("season")
+        # TODO: split here. Collect separately all above, then run all mysql
         field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
         val_list = ', '.join('"{0}"'.format(w) for w in values)
         mysql_utils.execute_insert(table_name, field_names, val_list)
