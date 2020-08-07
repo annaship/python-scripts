@@ -43,7 +43,7 @@ class Metadata:
     "Subject.Other"              : "subject_other",
     "Subject.Season"             : "subject_season",
     "Date.Season"                : "date_season",
-    "Date.Season (YYYY)"         : "date_season_yyyy",
+    "Date.Season (YYYY)"         : "date_season__yyyy_",
     "Date.Exact"                 : "date_exact",
     "Date.Digital"               : "date_digital",
     "Description"                : "description",
@@ -394,19 +394,19 @@ class Metadata:
 class Upload:
 
   table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format", "identifier", "language", "role"]
-  table_names_no_f_keys = ["content", "person", "place", "season", "source"]
+  table_names_no_f_keys = ["content", "person", "season", "source", "subject_place"]
   tables_comb = {
     "content"              : ["title", "content", "content_url", "description"],
     "entry"                : ["content_id", "country_id", "creator_id", "creator_other_id",
                               "data_type_id", "digitization_specifications_id", "entry_subject_id", "format_id",
                               "language_id", "manual_identifier_ref_id", "person_id", "season_id", "source_id"],
-    "entry_subject"        : ["place_id", "associated_place_id", "subject_academic_field_id"],  # subject_associated_places,
+    "entry_subject"        : ["subject_place_id", "subject_associated_places_id", "subject_people_id", "subject_academic_field_id", "subject_other", "subject_season_id"],
     "person"               : ["first_name", "last_name"],
-    "place"                : ["place_name", "lat", "long"],
     # "person_role_ref": ["person_id", "role_id"],
     # "ref": ["role"],
-    "season"               : ["season", "exact_date", "digital_date", "date_season__yyyy_"],
+    "season"               : ["date_season", "date_season__yyyy_", "date_exact", "date_digital"],
     "source"               : ["source", "publisher", "publisher_location", "bibliographic_citation", "rights"],
+    "subject_place": ["place_name", "coverage_lat", "coverage_long"],
   }
 
   def __init__(self):
@@ -440,13 +440,20 @@ class Upload:
     # names_no_f_keys_present = utils.intersection(Upload.table_names_no_f_keys, Metadata.not_empty_csv_content_dict.keys())
     for d in Metadata.csv_file_content_dict:
       for table_name in Upload.table_names_no_f_keys:
-        temp_dict = {}
-        try:
-          temp_dict = {field_name: d[field_name]
-                   for field_name in Upload.tables_comb[table_name]}
-        except KeyError:
-          pass
-        print(temp_dict)
+        values = []
+        if table_name == "season":
+          print("season")
+        for field_name in Upload.tables_comb[table_name]:
+          try:
+            values.append(d[field_name])
+          except KeyError:
+            values.append("")
+        field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
+        val_list = ', '.join('"{0}"'.format(w) for w in values)
+        # insert_query = "INSERT %s INTO %s (%s) VALUES (%s)" % ('IGNORE', table_name, field_names, val_list)
+        mysql_utils.execute_insert(table_name, field_names, val_list, ignore = "IGNORE")
+
+        # print(insert_query)
                    # if d[your_key].lower() not in Metadata.empty_equivalents}
       # if any(temp_dict.values()):
       #   self.required_metadata_update[dataset_id] = temp_dict
