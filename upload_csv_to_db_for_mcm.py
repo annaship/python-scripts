@@ -135,10 +135,11 @@ class Upload:
   }
 
   def __init__(self):
-    print("EEE metadata_update")
+    # print("EEE metadata_update")
     # print(metadata_update)
     self.query_simple_dict = defaultdict()
     self.query_comb_dict = defaultdict()
+    self.str_field_by_table_comb = []
     self.field_by_table_comb = []
 
     # self.update_metadata()
@@ -150,6 +151,7 @@ class Upload:
     self.upload_simple_tables()
     self.get_info_combine_tables()
     self.upload_combine_tables_no_foreign_keys()
+    self.get_ids()
 
   def upload_simple_tables(self):
     simple_names_present = utils.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
@@ -174,33 +176,56 @@ class Upload:
 
   def get_info_combine_tables(self):
     for d in Metadata.csv_file_content_dict:
-      temp_dict = defaultdict()
+      temp_dict_str = defaultdict()
+      temp_dict_arr = defaultdict()
       for table_name in Upload.tables_comb.keys():
         values = self.get_values(d, table_name)
+        temp_dict_arr[table_name] = (Upload.tables_comb[table_name], values)
+
         field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
         val_list = ', '.join('"{0}"'.format(w) for w in values)
-        temp_dict[table_name] = (field_names, val_list)
-      self.field_by_table_comb.append(temp_dict)
+        temp_dict_str[table_name] = (field_names, val_list)
+
+      self.str_field_by_table_comb.append(temp_dict_str)
+      self.field_by_table_comb.append(temp_dict_arr)
 
   def upload_combine_tables_no_foreign_keys(self):
-    for ent in self.field_by_table_comb:
+    for ent in self.str_field_by_table_comb:
       for table_name, info in ent.items():
         if table_name in Upload.table_names_no_f_keys:
           field_names = info[0]
           val_list = info[1]
           mysql_utils.execute_insert(table_name, field_names, val_list)
 
-  def update_metadata(self):
-    temp_entry_info = defaultdict()  # (get all ids)
-    for entry in metadata.csv_file_content_dict:
-      for k, v in entry.items():
-        if len(v) > 0:
-          if k in Upload.table_names_simple:
-            self.query_simple_dict[k] = v
-          else:
-            self.query_comb_dict[k] = v
-    return
+  def get_ids(self):
+    table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
+    for table_name in table_names_to_get_ids:
+      where_parts = []
+      for ent in self.field_by_table_comb:
+        current_data = ent[table_name]
+        current_val_by_field_dict = dict(zip(current_data[0], current_data[1]))
+        for field_name, val in current_val_by_field_dict.items():
+          where_parts.append(" {} = '{}' ".format(field_name, val))
+        where_txt = ' AND '.join(where_parts)
+        q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
+        # get_id(self, field_name, table_name, where_part, rows_affected = [0, 0]):
+        field_name = ""
 
+
+
+  # tables_comb = {
+
+  # def update_metadata(self):
+  #   temp_entry_info = defaultdict()  # (get all ids)
+  #   for entry in metadata.csv_file_content_dict:
+  #     for k, v in entry.items():
+  #       if len(v) > 0:
+  #         if k in Upload.table_names_simple:
+  #           self.query_simple_dict[k] = v
+  #         else:
+  #           self.query_comb_dict[k] = v
+  #   return
+  #
 
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
