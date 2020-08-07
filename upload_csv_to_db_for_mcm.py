@@ -232,9 +232,9 @@ class Upload:
   def get_ids(self):
     q = 0
     table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
-    for table_name in table_names_to_get_ids:
-      id_name = table_name + "_id"
-      for idx, ent in enumerate(self.field_by_table):
+    for idx, ent in enumerate(self.field_by_table):
+      for table_name in table_names_to_get_ids:
+        id_name = table_name + "_id"
         where_parts = []
         if table_name == "subject_academic_field":
           q += 1
