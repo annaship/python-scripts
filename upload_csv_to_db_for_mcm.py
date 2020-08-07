@@ -414,6 +414,7 @@ class Upload:
     # print(metadata_update)
     self.query_simple_dict = defaultdict()
     self.query_comb_dict = defaultdict()
+    self.field_by_table_comb = []
 
     # self.update_metadata()
     # 1) upload simple tables (table_names_simple)
@@ -422,6 +423,7 @@ class Upload:
     # 4) upload tables with ids
 
     self.upload_simple_tables()
+    self.get_info_combine_tables()
     self.upload_combine_tables_no_foreign_keys()
 
   def upload_simple_tables(self):
@@ -445,16 +447,23 @@ class Upload:
         values.append("")
     return values
 
-  def upload_combine_tables_no_foreign_keys(self):
+  def get_info_combine_tables(self):
     for d in Metadata.csv_file_content_dict:
-      for table_name in Upload.table_names_no_f_keys:
+      temp_dict = defaultdict()
+      for table_name in Upload.tables_comb.keys():
         values = self.get_values(d, table_name)
-        # if table_name == "season":
-        #   print("season")
-        # TODO: split here. Collect separately all above, then run all mysql
         field_names = ', '.join('{0}'.format(w) for w in Upload.tables_comb[table_name])
         val_list = ', '.join('"{0}"'.format(w) for w in values)
-        mysql_utils.execute_insert(table_name, field_names, val_list)
+        temp_dict[table_name] = (field_names, val_list)
+      self.field_by_table_comb.append(temp_dict)
+
+  def upload_combine_tables_no_foreign_keys(self):
+    for ent in self.field_by_table_comb:
+      for table_name, info in ent.items():
+        if table_name in Upload.table_names_no_f_keys:
+          field_names = info[0]
+          val_list = info[1]
+          mysql_utils.execute_insert(table_name, field_names, val_list)
 
   def update_metadata(self):
 
