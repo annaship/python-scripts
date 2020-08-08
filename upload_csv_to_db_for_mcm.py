@@ -119,6 +119,8 @@ class Upload:
   table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format",
                         "identifier", "language", "role"]
   table_names_no_f_keys = ["content", "person", "season", "source", "subject_place"]
+  table_names_w_ids = ["entry_subject", "entry"]
+
   tables_comb = {
     "content"      : ["title", "content", "content_url", "description"],
     "entry"        : ["content_id", "country_id", "creator_id", "creator_other_id",
@@ -229,17 +231,25 @@ class Upload:
           val_list = info[1]
           mysql_utils.execute_insert(table_name, field_names, val_list)
 
+  def upload_combine_tables_all(self):
+    for ent in self.self.field_by_table:
+      for table_name, info in ent.items():
+        if table_name in Upload.table_names_no_f_keys:
+          field_names = info[0]
+          val_list = info[1]
+          mysql_utils.execute_insert(table_name, field_names, val_list)
+
   def get_ids(self):
-    q = 0
+    # q = 0
     table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
     for idx, ent in enumerate(self.field_by_table):
       for table_name in table_names_to_get_ids:
         id_name = table_name + "_id"
         where_parts = []
         if table_name == "subject_academic_field":
-          q += 1
-          if q == 10:
-            print("HERE!!!")
+          # q += 1
+          # if q == 10:
+          #   print("HERE!!!")
         current_data = ent[table_name]
         current_val_by_field_dict = dict(zip(current_data[0], current_data[1]))
         for field_name, val in current_val_by_field_dict.items():
