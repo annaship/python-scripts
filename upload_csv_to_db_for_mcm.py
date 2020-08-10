@@ -136,6 +136,8 @@ class Upload:
     "subject_place": ["place_name", "coverage_lat", "coverage_long"],
   }
 
+  foreign_key_tables = defaultdict(dict)
+
   def __init__(self):
     # print("EEE metadata_update")
     # print(metadata_update)
@@ -144,6 +146,8 @@ class Upload:
     self.str_field_by_table_comb = []
     self.field_by_table = []
 
+    self.get_table_foreign_key_names("entry_subject")
+    self.get_table_foreign_key_names("entry")
     # self.update_metadata()
     # 1) upload simple tables (table_names_simple)
     # 2) upload combine tables no foreign keys (content, person, place, season, source)
@@ -157,7 +161,17 @@ class Upload:
     self.get_info_combine_tables()
     self.upload_combine_tables_no_foreign_keys()
     self.get_ids()
+    self.upload_combine_tables_all()
     print("here")
+
+  def get_table_foreign_key_names(self, table_name_to_strip):
+    for table_id_name in Upload.tables_comb[table_name_to_strip]:
+      if table_id_name.endswith("_id"):
+        table_name = table_id_name.rstrip("_id")
+        try:
+          Upload.foreign_key_tables[table_name_to_strip][table_name] = table_id_name
+        except:
+          raise
 
   def populate_all_simple_tables(self):
     for table_name in Upload.table_names_simple:
@@ -232,12 +246,17 @@ class Upload:
           mysql_utils.execute_insert(table_name, field_names, val_list)
 
   def upload_combine_tables_all(self):
-    for ent in self.self.field_by_table:
+    # table_names_w_ids = ["entry_subject", "entry"]
+    table_to_fill_1 = Upload.table_names_w_ids[0] #"entry_subject"
+    table_to_fill_2 = Upload.table_names_w_ids[1] #"entry"
+    for ent in self.field_by_table:
+      fields_to_fill = Upload.tables_comb["entry_subject"]
       for table_name, info in ent.items():
-        if table_name in Upload.table_names_no_f_keys:
-          field_names = info[0]
+        # if table_name in Upload.table_names_w_ids:
+        for field_name in fields_to_fill:
+          entry_field_names = info[0]
           val_list = info[1]
-          mysql_utils.execute_insert(table_name, field_names, val_list)
+          mysql_utils.execute_insert(table_name, entry_field_names, val_list)
 
   def get_ids(self):
     # q = 0
@@ -246,7 +265,8 @@ class Upload:
       for table_name in table_names_to_get_ids:
         id_name = table_name + "_id"
         where_parts = []
-        if table_name == "subject_academic_field":
+        # if table_name == "subject_academic_field":
+        #   print("EEE1")
           # q += 1
           # if q == 10:
           #   print("HERE!!!")
