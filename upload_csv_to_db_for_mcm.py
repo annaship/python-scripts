@@ -117,7 +117,7 @@ class Metadata:
 
 class Upload:
   table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format",
-                        "identifier", "language", "role"]
+                        "identifier", "language", "role", "subject_associated_places", "subject_people"]
   table_names_no_f_keys = ["content", "person", "season", "source", "subject_place"]
   table_names_w_ids = ["entry_subject", "entry"]
 
@@ -250,9 +250,12 @@ class Upload:
     for idx, ent in enumerate(self.field_by_table):
       for table_name_w_ids, in_dict in Upload.foreign_key_tables.items():
         for field_name_to_fill, id_name_to_fill in in_dict.items():
+          # if field_name_to_fill == "subject_associated_places":
+          #   print("EEE1")
+          # q += 1
           # KeyError: 'subject_associated_places'
-          current_id = ent[field_name_to_fill][2]
-          self.field_by_table[idx][table_name].append({current_id: id})
+          current_id = ent[field_name_to_fill][id_name_to_fill]
+          self.field_by_table[idx][table_name_w_ids][id_name_to_fill] = current_id
         fields_to_fill = Upload.tables_comb[table_name_w_ids]
         for table_name, info in ent.items():
           # if table_name in Upload.table_names_w_ids:
@@ -261,20 +264,21 @@ class Upload:
             val_list = info[1]
             mysql_utils.execute_insert(table_name, entry_field_names, val_list)
 
-  def get_ids(self):
+  # def print_out_err(self, ):
     # q = 0
+    # if table_name == "subject_academic_field":
+    #   print("EEE1")
+    # q += 1
+    # if q == 10:
+    #   print("HERE!!!")
+
+  def get_ids(self):
     table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
     for idx, ent in enumerate(self.field_by_table):
       for table_name in table_names_to_get_ids:
         id_name = table_name + "_id"
         where_parts = []
-        # if table_name == "subject_academic_field":
-        #   print("EEE1")
-          # q += 1
-          # if q == 10:
-          #   print("HERE!!!")
         current_data = ent[table_name]
-        # current_val_by_field_dict = dict(zip(current_data[0], current_data[1]))
         for field_name, val in current_data.items():
           where_parts.append(" {} = '{}' ".format(field_name, val))
         where_txt = "WHERE "
@@ -283,20 +287,6 @@ class Upload:
         id = mysql_utils.get_id(id_name, table_name, where_txt)
         self.field_by_table[idx][table_name][id_name] = id
 
-
-  # tables_comb = {
-
-  # def update_metadata(self):
-  #   temp_entry_info = defaultdict()  # (get all ids)
-  #   for entry in metadata.csv_file_content_dict:
-  #     for k, v in entry.items():
-  #       if len(v) > 0:
-  #         if k in Upload.table_names_simple:
-  #           self.query_simple_dict[k] = v
-  #         else:
-  #           self.query_comb_dict[k] = v
-  #   return
-  #
 
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
