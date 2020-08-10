@@ -236,7 +236,6 @@ class Upload:
         temp_dict_str[table_name] = (field_names, val_list)
 
       self.str_field_by_table_comb.append(temp_dict_str)
-      # self.field_by_table.append(temp_dict_arr)
 
   def upload_combine_tables_no_foreign_keys(self):
     for ent in self.str_field_by_table_comb:
@@ -275,14 +274,14 @@ class Upload:
           # if q == 10:
           #   print("HERE!!!")
         current_data = ent[table_name]
-        current_val_by_field_dict = dict(zip(current_data[0], current_data[1]))
-        for field_name, val in current_val_by_field_dict.items():
+        # current_val_by_field_dict = dict(zip(current_data[0], current_data[1]))
+        for field_name, val in current_data.items():
           where_parts.append(" {} = '{}' ".format(field_name, val))
         where_txt = "WHERE "
         where_txt += ' AND '.join(where_parts)
         # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
         id = mysql_utils.get_id(id_name, table_name, where_txt)
-        self.field_by_table[idx][table_name].append({id_name: id})
+        self.field_by_table[idx][table_name][id_name] = id
 
 
   # tables_comb = {
