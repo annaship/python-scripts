@@ -59,7 +59,7 @@ class Metadata:
   }
 
   # empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
-
+  #TODO: mv to init with self
   not_req_fields_from_csv = []
   csv_file_fields = []
   csv_file_content_list = []
@@ -77,6 +77,7 @@ class Metadata:
     Metadata.csv_file_fields = list(Metadata.not_empty_csv_content_dict.keys())
 
     Metadata.csv_file_content_dict = self.format_not_empty_dict()
+    self.transposed_values = []
 
   def get_data_from_csv(self, input_file):
     Metadata.csv_file_content_list = utils.read_csv_into_list(input_file, "\t")
@@ -85,8 +86,8 @@ class Metadata:
   def format_not_empty_dict(self):
     temp_list_of_dict = []
     keys = list(Metadata.not_empty_csv_content_dict.keys())
-    transposed_values = list(map(list, zip(*Metadata.not_empty_csv_content_dict.values())))
-    for line in transposed_values:
+    self.transposed_values = list(map(list, zip(*Metadata.not_empty_csv_content_dict.values())))
+    for line in self.transposed_values:
       temp_dict = {}
       for idx, v in enumerate(line):
         key = keys[idx]
@@ -134,7 +135,7 @@ class Upload:
     # "ref": ["role"],
     "season"       : ["date_season", "date_season__yyyy_", "date_exact", "date_digital"], #TODO: rm date_season__yyyy_, use "season"
     "source"       : ["source", "publisher", "publisher_location", "bibliographic_citation", "rights"],
-    "place": ["place_name", "coverage_lat", "coverage_long"],
+    "place": ["place", "coverage_lat", "coverage_long"],
   }
 
   where_to_look = {
@@ -154,20 +155,22 @@ class Upload:
     self.query_simple_dict = defaultdict()
     self.query_comb_dict = defaultdict()
     self.str_field_by_table_comb = []
-    self.field_by_table = []
+    self.data_by_row = []
       # defaultdict()
 
     self.get_table_foreign_key_names("entry_subject")
     self.get_table_foreign_key_names("entry")
     # self.update_metadata()
+    # 0) from transpose upload all data, except ids
     # 1) upload simple tables (table_names_simple)
     # 2) upload combine tables no foreign keys (content, person, place, season, source)
     # 3) get ids
     # 4) upload tables with ids
 
+    self.upload_all_but_ids()
     self.populate_all_simple_tables()
     self.simple_names_present = utils.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
-    self.update_field_by_table()
+    self.update_data_by_row()
     self.upload_simple_tables()
     self.get_info_combine_tables()
     self.upload_combine_tables_no_foreign_keys()
@@ -188,6 +191,8 @@ class Upload:
           id = mysql_utils.get_id(id_name, table_name, where_txt)
           raise
 
+  def upload_all_but_ids(self):
+
   def populate_all_simple_tables(self):
     for table_name in Upload.table_names_simple:
       val_list = "''"
@@ -203,7 +208,7 @@ class Upload:
       except KeyError:
         pass
 
-  def update_field_by_table(self):
+  def update_data_by_row(self):
     all_table_names = list(Upload.tables_comb.keys()) + Upload.table_names_simple
     for row_entry_d in Metadata.csv_file_content_dict:
       temp_dict_arr = defaultdict()
@@ -213,13 +218,13 @@ class Upload:
         try:
           temp_dict_arr[table_name] = dict(zip(field_names_for_table, values))
         except KeyError:
-          table_name = Upload.where_to_look[table_id_name]
+          table_name = Upload.where_to_look[table_name]
           id_name = table_name + "_id"
           where_txt = Metadata.csv_file_content_dict
           # id = mysql_utils.get_id(id_name, table_name, where_txt)
           temp_dict_arr[table_name] = {}
 
-      self.field_by_table.append(temp_dict_arr)
+      self.data_by_row.append(temp_dict_arr)
 
   def get_field_names_per_table(self, table_name):
     try:
@@ -269,7 +274,7 @@ class Upload:
           "subject_people_id": "person",
           "subject_season_id": "season"}
 
-    # for idx, ent in enumerate(self.field_by_table):
+    # for idx, ent in enumerate(self.data_by_row):
     #   for table_name in table_names_to_get_ids:
     #     id_name = table_name + "_id"
     #     where_parts = []
@@ -280,13 +285,13 @@ class Upload:
     #     where_txt += ' AND '.join(where_parts)
     #     # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
     #     id = mysql_utils.get_id(id_name, table_name, where_txt)
-    #     self.field_by_table[idx][table_name][id_name] = id
+    #     self.data_by_row[idx][table_name][id_name] = id
 
 
 
   def upload_combine_tables_all(self):
     # ["entry_subject", "entry"]
-    for idx, ent in enumerate(self.field_by_table):
+    for idx, ent in enumerate(self.data_by_row):
       for table_name_w_ids, in_dict in Upload.foreign_key_tables.items():
         for field_name_to_fill, id_name_to_fill in in_dict.items():
           """
@@ -296,20 +301,35 @@ class Upload:
           "subject_people_id"
           "subject_season_id"
           """
-          self.get_id_by_csv_val()
-          # if field_name_to_fill == "subject_academic_field":
-          #   print("EEE1")
-          # q += 1
-          # KeyError: 'subject_academic_fiel'
-          current_id = ent[field_name_to_fill][id_name_to_fill]
-          self.field_by_table[idx][table_name_w_ids][id_name_to_fill] = current_id
-        fields_to_fill = Upload.tables_comb[table_name_w_ids]
-        for table_name, info in ent.items():
-          # if table_name in Upload.table_names_w_ids:
-          for field_name in fields_to_fill:
-            entry_field_names = info[0]
-            val_list = info[1]
-            mysql_utils.execute_insert(table_name, entry_field_names, val_list)
+          # self.get_id_by_csv_val()
+          try:
+            current_id = ent[field_name_to_fill][id_name_to_fill]
+          except KeyError:
+            table_name = Upload.where_to_look[id_name_to_fill]
+            field_name = table_name + "_id"
+
+            subject_place_id_value = Metadata.csv_file_content_dict[idx][field_name_to_fill]
+            # field_name = "place_id"
+            # table_name = "place"
+            val_list = "'{}'".format(subject_place_id_value)
+            res = mysql_utils.execute_insert(table_name, field_name, val_list)
+
+            if res[0] == 1:
+              current_id = res[1]
+            else:
+              where_part = "WHERE {} = '{}'".format(field_name, subject_place_id_value)
+              current_id = mysql_utils.get_id(field_name, table_name, where_part)
+              print(current_id)
+            # raise
+          self.data_by_row[idx][table_name_w_ids][id_name_to_fill] = current_id
+
+        # fields_to_fill = Upload.tables_comb[table_name_w_ids]
+        # for table_name, info in ent.items():
+        #   # if table_name in Upload.table_names_w_ids:
+        #   for field_name in fields_to_fill:
+        #     entry_field_names = info[0]
+        #     val_list = info[1]
+        #     mysql_utils.execute_insert(table_name, entry_field_names, val_list)
 
   # def print_out_err(self, ):
     # q = 0
@@ -321,7 +341,7 @@ class Upload:
 
   def get_ids(self):
     table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
-    for idx, ent in enumerate(self.field_by_table):
+    for idx, ent in enumerate(self.data_by_row):
       for table_name in table_names_to_get_ids:
         id_name = table_name + "_id"
         where_parts = []
@@ -332,7 +352,7 @@ class Upload:
         where_txt += ' AND '.join(where_parts)
         # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
         id = mysql_utils.get_id(id_name, table_name, where_txt)
-        self.field_by_table[idx][table_name][id_name] = id
+        self.data_by_row[idx][table_name][id_name] = id
 
 
 if __name__ == '__main__':
