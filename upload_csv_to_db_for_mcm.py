@@ -171,30 +171,24 @@ class Upload:
     "rights": "source.rights"
   }
 
-  # where_to_look = {
-  #   "subject_place_id"            : "place",
-  #   "subject_associated_places_id": "place",
-  #   "subject_people_id"           : "person",
-  #   "subject_season_id"           : "season",
-  #   "creator_id"                  : "person",
-  #   "creator_other_id"            : "person",
-  # }
+  where_to_look_for_id = {
+    "subject_place_id"            : "place",
+    "subject_associated_places_id": "place",
+    "subject_people_id"           : "person",
+    "subject_season_id"           : "season",
+    "creator_id"                  : "person",
+    "creator_other_id"            : "person",
+  }
 
   foreign_key_tables = defaultdict(dict)
 
   def __init__(self):
-    # print("EEE metadata_update")
-    # print(metadata_update)
     self.query_simple_dict = defaultdict()
     self.query_comb_dict = defaultdict()
-    self.str_field_by_table_comb = []
     self.data_by_row = []
-      # defaultdict()
 
     self.get_table_foreign_key_names("entry_subject")
     self.get_table_foreign_key_names("entry")
-    # self.update_metadata()
-    # 0) from transpose upload all data, except ids
     # 1) upload simple tables (table_names_simple)
     # 2) upload combine tables no foreign keys (content, person, place, season, source)
     # 3) get ids
@@ -205,14 +199,9 @@ class Upload:
     self.get_ids()
     self.update_data_matrix_dict()
 
-    # self.populate_all_simple_tables()
-    # self.simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_csv_content_dict.keys())
-    # self.update_data_by_row()
-    # self.upload_simple_tables()
-    # self.get_info_combine_tables()
-    # self.upload_combine_tables_no_foreign_keys()
-    # self.get_ids()
-    # self.upload_combine_tables_all()
+    self.upload_combine_tables_no_foreign_keys()
+    self.get_ids()
+    self.upload_combine_tables_all()
     print("here")
 
   def fill_special_table(self, field_name):
@@ -228,43 +217,21 @@ class Upload:
     #   raise
 
   def upload_all_from_csv(self):
-    for field_name, val_arr in metadata.not_empty_csv_content_dict.items():
-      table_name = field_name
-      if field_name in self.where_to_look_if_not_the_same:
-        self.fill_special_table(field_name)
+    self.upload_simple_tables()
+    self.upload_combine_tables_no_foreign_keys()
 
-        # field_name_special = table_name
-      val_list = ', '.join('("{0}")'.format(w) for w in set(val_arr))
-      insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
-
-      try:
-        mysql_utils.execute_insert(table_name, field_name, val_list, ignore = "IGNORE", sql = insert_query)
-      except mysql.ProgrammingError: #pymysql.err.ProgrammingError
-        pass #for now
-      # mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
-
-      # print("VVV")
-
-  def get_table_foreign_key_names(self, table_name_to_strip):
-    for table_id_name in Upload.tables_comb[table_name_to_strip]:
-      if table_id_name.endswith("_id"):
-        table_name = re.sub("_id", "", table_id_name)
-        try:
-          Upload.foreign_key_tables[table_name_to_strip][table_name] = table_id_name
-        except:
-          table_name = Upload.where_to_look[table_id_name]
-          id_name = table_name + "_id"
-          where_txt = metadata.csv_file_content_dict
-          id = mysql_utils.get_id(id_name, table_name, where_txt)
-          raise
-
-  def populate_all_simple_tables(self):
-    for table_name in Upload.table_names_simple:
-      val_list = "''"
-      mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
+  def upload_combine_tables_no_foreign_keys(self):
+    str_field_by_table_comb = self.get_info_combine_tables()
+    for ent in str_field_by_table_comb:
+      for table_name, info in ent.items():
+        if table_name in Upload.table_names_no_f_keys:
+          field_names = info[0]
+          val_list = info[1]
+          mysql_utils.execute_insert(table_name, field_names, val_list)
 
   def upload_simple_tables(self):
-    for table_name in self.simple_names_present:
+    simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_csv_content_dict.keys())
+    for table_name in simple_names_present:
       try:
         val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[table_name]))
         insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
@@ -310,28 +277,20 @@ class Upload:
     return values
 
   def get_info_combine_tables(self):
+    str_field_by_table_comb = []
+
     for d in metadata.csv_file_content_dict:
       temp_dict_str = defaultdict()
-      # temp_dict_arr = defaultdict()
       for table_name in Upload.tables_comb.keys():
         values = self.get_values(d, table_name)
         field_names_for_table = self.get_field_names_per_table(table_name)
-
-        # temp_dict_arr[table_name] = [field_names_for_table, values]
 
         field_names = ', '.join('{0}'.format(w) for w in field_names_for_table)
         val_list = ', '.join('"{0}"'.format(w) for w in values)
         temp_dict_str[table_name] = (field_names, val_list)
 
-      self.str_field_by_table_comb.append(temp_dict_str)
-
-  def upload_combine_tables_no_foreign_keys(self):
-    for ent in self.str_field_by_table_comb:
-      for table_name, info in ent.items():
-        if table_name in Upload.table_names_no_f_keys:
-          field_names = info[0]
-          val_list = info[1]
-          mysql_utils.execute_insert(table_name, field_names, val_list)
+      str_field_by_table_comb.append(temp_dict_str)
+    return str_field_by_table_comb
 
   def get_id_by_csv_val(self):
     where_to_look = {"subject_place_id": "place",
@@ -339,6 +298,18 @@ class Upload:
           "subject_people_id": "person",
           "subject_season_id": "season"}
 
+    def get_table_foreign_key_names(self, table_name_to_strip):
+      for table_id_name in Upload.tables_comb[table_name_to_strip]:
+        if table_id_name.endswith("_id"):
+          table_name = re.sub("_id", "", table_id_name)
+          try:
+            Upload.foreign_key_tables[table_name_to_strip][table_name] = table_id_name
+          except:
+            table_name = Upload.where_to_look[table_id_name]
+            id_name = table_name + "_id"
+            where_txt = metadata.csv_file_content_dict
+            id = mysql_utils.get_id(id_name, table_name, where_txt)
+            raise
     # for idx, ent in enumerate(self.data_by_row):
     #   for table_name in table_names_to_get_ids:
     #     id_name = table_name + "_id"
