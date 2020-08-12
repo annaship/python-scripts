@@ -19,6 +19,7 @@ except ImportError:
 import argparse
 from collections import defaultdict
 import re
+from itertools import chain
 
 
 class Metadata:
@@ -224,6 +225,7 @@ class Upload:
 
   def upload_all_from_csv_but_id(self):
     self.upload_simple_tables()
+    self.upload_many_values_to_one_field()
     self.upload_combine_tables_no_foreign_keys()
 
   def upload_combine_tables_no_foreign_keys(self):
@@ -246,6 +248,24 @@ class Upload:
         print(table_name)
       except KeyError:
         pass
+
+  def upload_many_values_to_one_field(self):
+    csv_field_names_all = utils.flatten_2d_list(self.many_values_to_one_field.values())
+    value_present = utils.intersection(csv_field_names_all, metadata.not_empty_csv_content_dict.keys())
+
+    for table_name, csv_field_names in self.many_values_to_one_field.items():
+    # for csv_field_name in value_present:
+      for csv_field_names
+      try:
+        val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[table_name]))
+        insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
+
+        mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
+        print(table_name)
+      except KeyError:
+        pass
+
+
 
   def make_data_matrix_dict(self):
     pass
