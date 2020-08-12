@@ -134,7 +134,7 @@ class Upload:
     # "ref": ["role"],
     "season"       : ["date_season", "date_season__yyyy_", "date_exact", "date_digital"], #TODO: rm date_season__yyyy_, use "season"
     "source"       : ["source", "publisher", "publisher_location", "bibliographic_citation", "rights"],
-    "place": ["place", "coverage_lat", "coverage_long"],
+    "place"        : ["place", "coverage_lat", "coverage_long"],
   }
 
   where_to_look_if_not_the_same = {
@@ -165,10 +165,10 @@ class Upload:
     # "language": "language",
     # "relation": "relation",
     # "source": "source",
-    # "publisher": "publisher",
-    # "publisher_location": "publisher_location",
-    # "bibliographic_citation": "bibliographic_citation",
-    # "rights": "rights"
+    "publisher": "publisher",
+    "publisher_location": "source.publisher_location",
+    "bibliographic_citation": "source.bibliographic_citation",
+    "rights": "source.rights"
   }
 
   # where_to_look = {
@@ -215,19 +215,35 @@ class Upload:
     # self.upload_combine_tables_all()
     print("here")
 
+  def fill_special_table(self, field_name):
+    """
+    Get all info for each row in the table
+    :return:
+    """
+    pass
+    # try:
+    #   full_name = self.where_to_look_if_not_the_same[field_name]
+    #   table_name, field_name = full_name.split(".")
+    # except:
+    #   raise
+
   def upload_all_from_csv(self):
     for field_name, val_arr in metadata.not_empty_csv_content_dict.items():
       table_name = field_name
       if field_name in self.where_to_look_if_not_the_same:
-        table_name = self.where_to_look_if_not_the_same[field_name]
-        field_name_special = table_name
+        self.fill_special_table(field_name)
+
+        # field_name_special = table_name
       val_list = ', '.join('("{0}")'.format(w) for w in set(val_arr))
       insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
 
-      mysql_utils.execute_insert(table_name, field_name, val_list, ignore = "IGNORE", sql = insert_query)
+      try:
+        mysql_utils.execute_insert(table_name, field_name, val_list, ignore = "IGNORE", sql = insert_query)
+      except mysql.ProgrammingError: #pymysql.err.ProgrammingError
+        pass #for now
       # mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
 
-      print("VVV")
+      # print("VVV")
 
   def get_table_foreign_key_names(self, table_name_to_strip):
     for table_id_name in Upload.tables_comb[table_name_to_strip]:
