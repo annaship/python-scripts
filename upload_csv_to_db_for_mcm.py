@@ -307,10 +307,14 @@ class Upload:
 
   def get_db_names_by_csv_field_name(self, csv_field_name):
     if csv_field_name in self.where_to_look_if_not_the_same.keys():
-      (field_name, table_name) = self.where_to_look_if_not_the_same[csv_field_name]
+      try:
+        (table_name, field_name) = self.where_to_look_if_not_the_same[csv_field_name].split(".") #like "content.content_url"
+      except ValueError: # like "person" same name
+        table_name = self.where_to_look_if_not_the_same[csv_field_name]
+        field_name = table_name
     else:
-      field_name = csv_field_name
       table_name = csv_field_name
+      field_name = table_name
     return (field_name, table_name)
 
 
@@ -320,8 +324,8 @@ class Upload:
       row = defaultdict()
       for csv_field_name, current_value in current_dict.items():
         (field_name, table_name) = self.get_db_names_by_csv_field_name(csv_field_name)
-        where_part = "WHERE {} = '{}'".format(field_name, current_value)
-        field_name_id = field_name + "_id"
+        where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
+        field_name_id = table_name + "_id"
         current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
         row[csv_field_name] = current_value_id
     """
