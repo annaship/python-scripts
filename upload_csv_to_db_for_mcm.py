@@ -60,34 +60,33 @@ class Metadata:
 
   # empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
   #TODO: mv to init with self
-  not_req_fields_from_csv = []
-  csv_file_fields = []
-  csv_file_content_list = []
-  csv_file_content_dict = []
-  not_empty_csv_content_dict = {}
+
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
+    # self.not_req_fields_from_csv = []
+    # self.csv_file_fields = []
+    # self.csv_file_content_list = []
+    # self.csv_file_content_dict = []
+    # self.not_empty_csv_content_dict = {}
+    self.csv_file_fields = self.csv_file_content_list[0]
+    self.not_empty_csv_content_dict = self.check_for_empty_fields()
 
-    Metadata.csv_file_fields = Metadata.csv_file_content_list[0]
-    Metadata.not_empty_csv_content_dict = self.check_for_empty_fields()
+    self.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(
+      self.not_empty_csv_content_dict)
+    self.csv_file_fields = list(self.not_empty_csv_content_dict.keys())
 
-    Metadata.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(
-      Metadata.not_empty_csv_content_dict)
-    Metadata.csv_file_fields = list(Metadata.not_empty_csv_content_dict.keys())
-
-    Metadata.csv_file_content_dict = self.format_not_empty_dict()
-    self.transposed_values = []
+    self.csv_file_content_dict = self.format_not_empty_dict()
 
   def get_data_from_csv(self, input_file):
-    Metadata.csv_file_content_list = utils.read_csv_into_list(input_file, "\t")
-    Metadata.csv_file_content_dict = utils.read_csv_into_dict(input_file, "\t")
+    self.csv_file_content_list = utils.read_csv_into_list(input_file, "\t")
+    self.csv_file_content_dict = utils.read_csv_into_dict(input_file, "\t")
 
   def format_not_empty_dict(self):
     temp_list_of_dict = []
-    keys = list(Metadata.not_empty_csv_content_dict.keys())
-    self.transposed_values = list(map(list, zip(*Metadata.not_empty_csv_content_dict.values())))
-    for line in self.transposed_values:
+    keys = list(self.not_empty_csv_content_dict.keys())
+    transposed_values = list(map(list, zip(*self.not_empty_csv_content_dict.values())))
+    for line in transposed_values:
       temp_dict = {}
       for idx, v in enumerate(line):
         key = keys[idx]
@@ -99,10 +98,10 @@ class Metadata:
     removed_fields = []
     clean_matrix = []
     good_fields = []
-    transposed_vals = list(map(list, zip(*Metadata.csv_file_content_list[1])))
+    transposed_vals = list(map(list, zip(*self.csv_file_content_list[1])))
     for idx, vals_l in enumerate(transposed_vals):
       all_val_for1_field = set(vals_l)
-      field_name = Metadata.csv_file_fields[idx]
+      field_name = self.csv_file_fields[idx]
       if len(all_val_for1_field) == 1:
         removed_fields.append(field_name)
       else:
@@ -138,14 +137,48 @@ class Upload:
     "place": ["place", "coverage_lat", "coverage_long"],
   }
 
-  where_to_look = {
-    "subject_place_id"            : "place",
-    "subject_associated_places_id": "place",
-    "subject_people_id"           : "person",
-    "subject_season_id"           : "season",
-    "creator_id"                  : "person",
-    "creator_other_id"            : "person",
+  where_to_look_if_not_the_same = {
+    # "identifier": "identifier",
+    "title": "content.title",
+    # "content": "content",
+    "content_url": "content.content_url",
+    # "creator": "creator",
+    "creator_other": "person",
+    "subject_place": "place",
+    # "coverage_lat": "coverage_lat",
+    # "coverage_long": "coverage_long",
+    "subject_associated_places": "place",
+    "subject_people": "person",
+    # "subject_academic_field": "subject_academic_field",
+    # "subject_other": "subject_other",
+    "subject_season": "season",
+    "date_season": "season",
+    "date_season__yyyy_": "season",
+    "date_exact": "season",
+    "date_digital": "season",
+    "description": "content.description",
+    # "format": "format",
+    # "digitization_specifications": "digitization_specifications",
+    "contributor": "person",
+    # "type": "type",
+    # "country": "country",
+    # "language": "language",
+    # "relation": "relation",
+    # "source": "source",
+    # "publisher": "publisher",
+    # "publisher_location": "publisher_location",
+    # "bibliographic_citation": "bibliographic_citation",
+    # "rights": "rights"
   }
+
+  # where_to_look = {
+  #   "subject_place_id"            : "place",
+  #   "subject_associated_places_id": "place",
+  #   "subject_people_id"           : "person",
+  #   "subject_season_id"           : "season",
+  #   "creator_id"                  : "person",
+  #   "creator_other_id"            : "person",
+  # }
 
   foreign_key_tables = defaultdict(dict)
 
@@ -167,16 +200,34 @@ class Upload:
     # 3) get ids
     # 4) upload tables with ids
 
-    self.upload_all_but_ids()
-    self.populate_all_simple_tables()
-    self.simple_names_present = utils.intersection(Upload.table_names_simple, Metadata.not_empty_csv_content_dict.keys())
-    self.update_data_by_row()
-    self.upload_simple_tables()
-    self.get_info_combine_tables()
-    self.upload_combine_tables_no_foreign_keys()
+    self.upload_all_from_csv()
+    self.make_data_matrix_dict()
     self.get_ids()
-    self.upload_combine_tables_all()
+    self.update_data_matrix_dict()
+
+    # self.populate_all_simple_tables()
+    # self.simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_csv_content_dict.keys())
+    # self.update_data_by_row()
+    # self.upload_simple_tables()
+    # self.get_info_combine_tables()
+    # self.upload_combine_tables_no_foreign_keys()
+    # self.get_ids()
+    # self.upload_combine_tables_all()
     print("here")
+
+  def upload_all_from_csv(self):
+    for field_name, val_arr in metadata.not_empty_csv_content_dict.items():
+      table_name = field_name
+      if field_name in self.where_to_look_if_not_the_same:
+        table_name = self.where_to_look_if_not_the_same[field_name]
+        field_name_special = table_name
+      val_list = ', '.join('("{0}")'.format(w) for w in set(val_arr))
+      insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_list)
+
+      mysql_utils.execute_insert(table_name, field_name, val_list, ignore = "IGNORE", sql = insert_query)
+      # mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE")
+
+      print("VVV")
 
   def get_table_foreign_key_names(self, table_name_to_strip):
     for table_id_name in Upload.tables_comb[table_name_to_strip]:
@@ -187,11 +238,9 @@ class Upload:
         except:
           table_name = Upload.where_to_look[table_id_name]
           id_name = table_name + "_id"
-          where_txt = Metadata.csv_file_content_dict
+          where_txt = metadata.csv_file_content_dict
           id = mysql_utils.get_id(id_name, table_name, where_txt)
           raise
-
-  def upload_all_but_ids(self):
 
   def populate_all_simple_tables(self):
     for table_name in Upload.table_names_simple:
@@ -201,7 +250,7 @@ class Upload:
   def upload_simple_tables(self):
     for table_name in self.simple_names_present:
       try:
-        val_list = ', '.join('("{0}")'.format(w) for w in set(Metadata.not_empty_csv_content_dict[table_name]))
+        val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[table_name]))
         insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
 
         mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
@@ -210,7 +259,7 @@ class Upload:
 
   def update_data_by_row(self):
     all_table_names = list(Upload.tables_comb.keys()) + Upload.table_names_simple
-    for row_entry_d in Metadata.csv_file_content_dict:
+    for row_entry_d in metadata.csv_file_content_dict:
       temp_dict_arr = defaultdict()
       for table_name in all_table_names:
         values = self.get_values(row_entry_d, table_name)
@@ -220,7 +269,7 @@ class Upload:
         except KeyError:
           table_name = Upload.where_to_look[table_name]
           id_name = table_name + "_id"
-          where_txt = Metadata.csv_file_content_dict
+          where_txt = metadata.csv_file_content_dict
           # id = mysql_utils.get_id(id_name, table_name, where_txt)
           temp_dict_arr[table_name] = {}
 
@@ -245,7 +294,7 @@ class Upload:
     return values
 
   def get_info_combine_tables(self):
-    for d in Metadata.csv_file_content_dict:
+    for d in metadata.csv_file_content_dict:
       temp_dict_str = defaultdict()
       # temp_dict_arr = defaultdict()
       for table_name in Upload.tables_comb.keys():
@@ -308,7 +357,7 @@ class Upload:
             table_name = Upload.where_to_look[id_name_to_fill]
             field_name = table_name + "_id"
 
-            subject_place_id_value = Metadata.csv_file_content_dict[idx][field_name_to_fill]
+            subject_place_id_value = metadata.csv_file_content_dict[idx][field_name_to_fill]
             # field_name = "place_id"
             # table_name = "place"
             val_list = "'{}'".format(subject_place_id_value)
