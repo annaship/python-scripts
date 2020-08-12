@@ -266,7 +266,7 @@ class Mysql_util:
         return res[0]
 
     def execute_simple_select(self, field_name, table_name, where_part):
-      id_query  = "SELECT %s FROM %s %s" % (field_name, table_name, where_part)
+      id_query = "SELECT %s FROM %s %s" % (field_name, table_name, where_part)
       return self.execute_fetch_select(id_query)[0]
 
     def get_id(self, field_name, table_name, where_part, rows_affected = [0,0]):
