@@ -237,35 +237,32 @@ class Upload:
           val_list = info[1]
           mysql_utils.execute_insert(table_name, field_names, val_list)
 
+  def simple_mass_upload(self, table_name, field_name, val_str = ""):
+    try:
+      if val_str == "":
+        val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[field_name]))
+      insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
+
+      mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
+      print(table_name)
+    except KeyError:
+      pass
+
   def upload_simple_tables(self):
     simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_csv_content_dict.keys())
     for table_name in simple_names_present:
-      try:
-        val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[table_name]))
-        insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
+      self.simple_mass_upload(table_name, table_name)
 
-        mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
-        print(table_name)
-      except KeyError:
-        pass
 
   def upload_many_values_to_one_field(self):
-    csv_field_names_all = utils.flatten_2d_list(self.many_values_to_one_field.values())
-    value_present = utils.intersection(csv_field_names_all, metadata.not_empty_csv_content_dict.keys())
+    csv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
+    value_present = utils.intersection(csv_field_names_to_upload, metadata.not_empty_csv_content_dict.keys())
 
     for table_name, csv_field_names in self.many_values_to_one_field.items():
-    # for csv_field_name in value_present:
-      for csv_field_names
-      try:
-        val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[table_name]))
-        insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
-
-        mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
-        print(table_name)
-      except KeyError:
-        pass
-
-
+      for csv_field_name in csv_field_names:
+        if csv_field_name in value_present:
+          val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[csv_field_name]))
+          self.simple_mass_upload(table_name, table_name, val_list)
 
   def make_data_matrix_dict(self):
     pass
@@ -395,8 +392,8 @@ class Upload:
         #   # if table_name in Upload.table_names_w_ids:
         #   for field_name in fields_to_fill:
         #     entry_field_names = info[0]
-        #     val_list = info[1]
-        #     mysql_utils.execute_insert(table_name, entry_field_names, val_list)
+        #     val_str = info[1]
+        #     mysql_utils.execute_insert(table_name, entry_field_names, val_str)
 
   # def print_out_err(self, ):
     # q = 0
