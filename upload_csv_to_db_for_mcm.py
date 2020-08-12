@@ -118,10 +118,53 @@ class Metadata:
 
 
 class Upload:
+  """
+  4 table types (intersect is possible):
+  *) table_name equal field_name ("identifier"), see table_names_simple
+  *) many field_names correspond to one table_name = field_name ("place": ["subject_associated_places", "subject_place"]}), see many_values_to_one_field
+  *) tables with many columns, no foreign keys ("content")
+  *) tables with foreign keys, see table_names_w_ids
+  """
+
+  csv_field_to_db_field_if_not_the_same = {
+    "identifier"                 : "identifier",
+    "title"                      : "title",
+    "content"                    : "content",
+    "content_url"                : "content_url",
+    "creator"                    : "person",
+    "creator_other"              : "person",
+    "subject_place"              : "subject_place",
+    "coverage_lat"               : "coverage_lat",
+    "coverage_long"              : "coverage_long",
+    "subject_associated_places"  : "subject_associated_places",
+    "subject_people"             : "person",
+    "subject_academic_field"     : "subject_academic_field",
+    "subject_other"              : "subject_other",
+    "subject_season"             : "season",
+    "date_season"                : "season",
+    "date_season__yyyy_"         : "season",
+    "date_exact"                 : "season",
+    "date_digital"               : "season",
+    "description"                : "description",
+    "format"                     : "format",
+    "digitization_specifications": "digitization_specifications",
+    "contributor"                : "person",
+    "type"                       : "type",
+    "country"                    : "country",
+    "language"                   : "language",
+    "relation"                   : "relation",
+    "source"                     : "source",
+    "publisher"                  : "publisher",
+    "publisher_location"         : "publisher_location",
+    "bibliographic_citation"     : "bibliographic_citation",
+    "rights"                     : "rights",
+  }
+
   table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format",
                         "identifier", "language", "role"]
-  table_names_no_f_keys = ["content", "person", "season", "source", "place"]
-  table_names_w_ids = ["entry_subject", "entry"]
+  table_names_no_f_keys = ["content", "place"]
+  # table_names_no_f_keys = ["content", "person", "season", "source", "place"]
+  table_names_w_ids = ["entry", "entry_subject", "source"]
   many_values_to_one_field = {
     "season": ["date_season", "date_season__yyyy_", "date_exact", "date_digital"],
     "person": ["contributor", "creator_other", "subject_people"],
@@ -145,17 +188,17 @@ class Upload:
   }
 
   where_to_look_if_not_the_same = {
-
     "bibliographic_citation"   : "source.bibliographic_citation",
     "content_url"              : "content.content_url",
     "contributor"              : "person",
+    "creator"                  : "person",
     "creator_other"            : "person",
     "date_digital"             : "season",
     "date_exact"               : "season",
     "date_season"              : "season",
     "date_season__yyyy_"       : "season",
     "description"              : "content.description",
-    "publisher_location"       : "source.publisher_location",
+    "publisher_location"       : "place",
     "rights"                   : "source.rights",
     "subject_associated_places": "place",
     "subject_people"           : "person",
@@ -166,7 +209,6 @@ class Upload:
     # "country": "country",
     # "coverage_lat": "coverage_lat",
     # "coverage_long": "coverage_long",
-    # "creator": "creator",
     # "digitization_specifications": "digitization_specifications",
     # "format": "format",
     # "identifier": "identifier",
@@ -253,7 +295,6 @@ class Upload:
     for table_name in simple_names_present:
       self.simple_mass_upload(table_name, table_name)
 
-
   def upload_many_values_to_one_field(self):
     csv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
     value_present = utils.intersection(csv_field_names_to_upload, metadata.not_empty_csv_content_dict.keys())
@@ -264,8 +305,42 @@ class Upload:
           val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[csv_field_name]))
           self.simple_mass_upload(table_name, table_name, val_list)
 
+  def get_db_names_by_csv_field_name(self, csv_field_name):
+    if csv_field_name in self.where_to_look_if_not_the_same.keys():
+      (field_name, table_name) = self.where_to_look_if_not_the_same[csv_field_name]
+    else:
+      field_name = csv_field_name
+      table_name = csv_field_name
+    return (field_name, table_name)
+
+
   def make_data_matrix_dict(self):
-    pass
+    data_matrix = []
+    for current_dict in metadata.csv_file_content_dict:
+      row = defaultdict()
+      for csv_field_name, current_value in current_dict.items():
+        (field_name, table_name) = self.get_db_names_by_csv_field_name(csv_field_name)
+        where_part = "WHERE {} = '{}'".format(field_name, current_value)
+        field_name_id = field_name + "_id"
+        current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
+        row[csv_field_name] = current_value_id
+    """
+        str_field_by_table_comb = []
+
+    for d in metadata.csv_file_content_dict:
+      temp_dict_str = defaultdict()
+      for table_name in Upload.tables_comb.keys():
+        values = self.get_values(d, table_name)
+        field_names_for_table = self.get_field_names_per_table(table_name)
+
+        field_names = ', '.join('{0}'.format(w) for w in field_names_for_table)
+        val_list = ', '.join('"{0}"'.format(w) for w in values)
+        temp_dict_str[table_name] = (field_names, val_list)
+
+      str_field_by_table_comb.append(temp_dict_str)
+    return str_field_by_table_comb
+    :return:
+    """
 
   def update_data_matrix_dict_with_ids(self):
     pass
@@ -307,6 +382,7 @@ class Upload:
     return values
 
   def get_info_combine_tables(self):
+    # TODO: check if all got into the dict, even with a "wrong" name
     str_field_by_table_comb = []
 
     for d in metadata.csv_file_content_dict:
