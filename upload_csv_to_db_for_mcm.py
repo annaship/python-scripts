@@ -121,6 +121,11 @@ class Upload:
                         "identifier", "language", "role"]
   table_names_no_f_keys = ["content", "person", "season", "source", "place"]
   table_names_w_ids = ["entry_subject", "entry"]
+  many_values_to_one_field = {
+    "season": ["date_season", "date_season__yyyy_", "date_exact", "date_digital"],
+    "person": ["contributor", "creator_other", "subject_people"],
+    "place":  ["subject_associated_places", "subject_place"]
+  }
 
   tables_comb = {
     "content"      : ["title", "content", "content_url", "description"],
@@ -129,46 +134,48 @@ class Upload:
                       "language_id", "manual_identifier_ref_id", "person_id", "season_id", "source_id"],
     "entry_subject": ["subject_place_id", "subject_associated_places_id", "subject_people_id",
                       "subject_academic_field_id", "subject_other", "subject_season_id"],
-    "person"       : ["first_name", "last_name"],
+    # "person"       : ["first_name", "last_name"],
     # "person_role_ref": ["person_id", "role_id"],
     # "ref": ["role"],
-    "season"       : ["date_season", "date_season__yyyy_", "date_exact", "date_digital"], #TODO: rm date_season__yyyy_, use "season"
-    "source"       : ["source", "publisher", "publisher_location", "bibliographic_citation", "rights"],
+    "source"       : ["source", "publisher_id", #person_id
+                      "publisher_location_id", #place_id
+                      "bibliographic_citation", "rights"],
     "place"        : ["place", "coverage_lat", "coverage_long"],
   }
 
   where_to_look_if_not_the_same = {
-    # "identifier": "identifier",
-    "title": "content.title",
+
+    "bibliographic_citation"   : "source.bibliographic_citation",
+    "content_url"              : "content.content_url",
+    "contributor"              : "person",
+    "creator_other"            : "person",
+    "date_digital"             : "season",
+    "date_exact"               : "season",
+    "date_season"              : "season",
+    "date_season__yyyy_"       : "season",
+    "description"              : "content.description",
+    "publisher_location"       : "source.publisher_location",
+    "rights"                   : "source.rights",
+    "subject_associated_places": "place",
+    "subject_people"           : "person",
+    "subject_place"            : "place",
+    "subject_season"           : "season",
+    "title"                    : "content.title",
     # "content": "content",
-    "content_url": "content.content_url",
-    # "creator": "creator",
-    "creator_other": "person",
-    "subject_place": "place",
+    # "country": "country",
     # "coverage_lat": "coverage_lat",
     # "coverage_long": "coverage_long",
-    "subject_associated_places": "place",
-    "subject_people": "person",
-    # "subject_academic_field": "subject_academic_field",
-    # "subject_other": "subject_other",
-    "subject_season": "season",
-    "date_season": "season",
-    "date_season__yyyy_": "season",
-    "date_exact": "season",
-    "date_digital": "season",
-    "description": "content.description",
-    # "format": "format",
+    # "creator": "creator",
     # "digitization_specifications": "digitization_specifications",
-    "contributor": "person",
-    # "type": "type",
-    # "country": "country",
+    # "format": "format",
+    # "identifier": "identifier",
     # "language": "language",
+    # "publisher"                : "publisher",
     # "relation": "relation",
     # "source": "source",
-    "publisher": "publisher",
-    "publisher_location": "source.publisher_location",
-    "bibliographic_citation": "source.bibliographic_citation",
-    "rights": "source.rights"
+    # "subject_academic_field": "subject_academic_field",
+    # "subject_other": "subject_other",
+    # "type": "type",
   }
 
   where_to_look_for_id = {
@@ -183,40 +190,39 @@ class Upload:
   foreign_key_tables = defaultdict(dict)
 
   def __init__(self):
-    self.query_simple_dict = defaultdict()
-    self.query_comb_dict = defaultdict()
-    self.data_by_row = []
+    """
+        1) upload simple tables (table_names_simple)
+        2) upload combine tables no foreign keys (content, person, place, season, source)
+        3) get ids
+        4) upload tables with ids
+    """
+    # self.query_simple_dict = defaultdict()
+    # self.query_comb_dict = defaultdict()
+    # self.data_by_row = []
 
-    self.get_table_foreign_key_names("entry_subject")
-    self.get_table_foreign_key_names("entry")
-    # 1) upload simple tables (table_names_simple)
-    # 2) upload combine tables no foreign keys (content, person, place, season, source)
-    # 3) get ids
-    # 4) upload tables with ids
+    # self.get_table_foreign_key_names("entry_subject")
+    # self.get_table_foreign_key_names("entry")
 
-    self.upload_all_from_csv()
+    self.upload_all_from_csv_but_id()
     self.make_data_matrix_dict()
     self.get_ids()
-    self.update_data_matrix_dict()
-
-    self.upload_combine_tables_no_foreign_keys()
-    self.get_ids()
+    self.update_data_matrix_dict_with_ids()
     self.upload_combine_tables_all()
     print("here")
 
-  def fill_special_table(self, field_name):
-    """
-    Get all info for each row in the table
-    :return:
-    """
-    pass
-    # try:
-    #   full_name = self.where_to_look_if_not_the_same[field_name]
-    #   table_name, field_name = full_name.split(".")
-    # except:
-    #   raise
+  # def fill_special_table(self, field_name):
+  #   """
+  #   Get all info for each row in the table
+  #   :return:
+  #   """
+  #   pass
+  #   # try:
+  #   #   full_name = self.where_to_look_if_not_the_same[field_name]
+  #   #   table_name, field_name = full_name.split(".")
+  #   # except:
+  #   #   raise
 
-  def upload_all_from_csv(self):
+  def upload_all_from_csv_but_id(self):
     self.upload_simple_tables()
     self.upload_combine_tables_no_foreign_keys()
 
@@ -237,26 +243,33 @@ class Upload:
         insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, table_name, val_list)
 
         mysql_utils.execute_insert(table_name, table_name, val_list, ignore = "IGNORE", sql = insert_query)
+        print(table_name)
       except KeyError:
         pass
 
-  def update_data_by_row(self):
-    all_table_names = list(Upload.tables_comb.keys()) + Upload.table_names_simple
-    for row_entry_d in metadata.csv_file_content_dict:
-      temp_dict_arr = defaultdict()
-      for table_name in all_table_names:
-        values = self.get_values(row_entry_d, table_name)
-        field_names_for_table = self.get_field_names_per_table(table_name)
-        try:
-          temp_dict_arr[table_name] = dict(zip(field_names_for_table, values))
-        except KeyError:
-          table_name = Upload.where_to_look[table_name]
-          id_name = table_name + "_id"
-          where_txt = metadata.csv_file_content_dict
-          # id = mysql_utils.get_id(id_name, table_name, where_txt)
-          temp_dict_arr[table_name] = {}
+  def make_data_matrix_dict(self):
+    pass
 
-      self.data_by_row.append(temp_dict_arr)
+  def update_data_matrix_dict_with_ids(self):
+    pass
+
+  # def update_data_by_row(self):
+  #   all_table_names = list(Upload.tables_comb.keys()) + Upload.table_names_simple
+  #   for row_entry_d in metadata.csv_file_content_dict:
+  #     temp_dict_arr = defaultdict()
+  #     for table_name in all_table_names:
+  #       values = self.get_values(row_entry_d, table_name)
+  #       field_names_for_table = self.get_field_names_per_table(table_name)
+  #       try:
+  #         temp_dict_arr[table_name] = dict(zip(field_names_for_table, values))
+  #       except KeyError:
+  #         table_name = Upload.where_to_look[table_name]
+  #         id_name = table_name + "_id"
+  #         where_txt = metadata.csv_file_content_dict
+  #         # id = mysql_utils.get_id(id_name, table_name, where_txt)
+  #         temp_dict_arr[table_name] = {}
+  #
+  #     self.data_by_row.append(temp_dict_arr)
 
   def get_field_names_per_table(self, table_name):
     try:
@@ -292,38 +305,36 @@ class Upload:
       str_field_by_table_comb.append(temp_dict_str)
     return str_field_by_table_comb
 
-  def get_id_by_csv_val(self):
-    where_to_look = {"subject_place_id": "place",
-          "subject_associated_places_id": "place",
-          "subject_people_id": "person",
-          "subject_season_id": "season"}
-
-    def get_table_foreign_key_names(self, table_name_to_strip):
-      for table_id_name in Upload.tables_comb[table_name_to_strip]:
-        if table_id_name.endswith("_id"):
-          table_name = re.sub("_id", "", table_id_name)
-          try:
-            Upload.foreign_key_tables[table_name_to_strip][table_name] = table_id_name
-          except:
-            table_name = Upload.where_to_look[table_id_name]
-            id_name = table_name + "_id"
-            where_txt = metadata.csv_file_content_dict
-            id = mysql_utils.get_id(id_name, table_name, where_txt)
-            raise
-    # for idx, ent in enumerate(self.data_by_row):
-    #   for table_name in table_names_to_get_ids:
-    #     id_name = table_name + "_id"
-    #     where_parts = []
-    #     current_data = ent[table_name]
-    #     for field_name, val in current_data.items():
-    #       where_parts.append(" {} = '{}' ".format(field_name, val))
-    #     where_txt = "WHERE "
-    #     where_txt += ' AND '.join(where_parts)
-    #     # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
-    #     id = mysql_utils.get_id(id_name, table_name, where_txt)
-    #     self.data_by_row[idx][table_name][id_name] = id
-
-
+  # def get_id_by_csv_val(self):
+  #   where_to_look = {"subject_place_id": "place",
+  #         "subject_associated_places_id": "place",
+  #         "subject_people_id": "person",
+  #         "subject_season_id": "season"}
+  #
+  #   def get_table_foreign_key_names(self, table_name_to_strip):
+  #     for table_id_name in Upload.tables_comb[table_name_to_strip]:
+  #       if table_id_name.endswith("_id"):
+  #         table_name = re.sub("_id", "", table_id_name)
+  #         try:
+  #           Upload.foreign_key_tables[table_name_to_strip][table_name] = table_id_name
+  #         except:
+  #           table_name = Upload.where_to_look[table_id_name]
+  #           id_name = table_name + "_id"
+  #           where_txt = metadata.csv_file_content_dict
+  #           id = mysql_utils.get_id(id_name, table_name, where_txt)
+  #           raise
+  #   # for idx, ent in enumerate(self.data_by_row):
+  #   #   for table_name in table_names_to_get_ids:
+  #   #     id_name = table_name + "_id"
+  #   #     where_parts = []
+  #   #     current_data = ent[table_name]
+  #   #     for field_name, val in current_data.items():
+  #   #       where_parts.append(" {} = '{}' ".format(field_name, val))
+  #   #     where_txt = "WHERE "
+  #   #     where_txt += ' AND '.join(where_parts)
+  #   #     # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
+  #   #     id = mysql_utils.get_id(id_name, table_name, where_txt)
+  #   #     self.data_by_row[idx][table_name][id_name] = id
 
   def upload_combine_tables_all(self):
     # ["entry_subject", "entry"]
