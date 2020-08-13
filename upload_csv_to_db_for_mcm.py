@@ -41,7 +41,7 @@ class Metadata:
     "Subject.Other"              : "subject_other",
     "Subject.Season"             : "subject_season",
     "Date.Season"                : "date_season",
-    "Date.Season (YYYY)"         : "date_season__yyyy_",
+    "Date.Season (YYYY)"         : "date_season_yyyy",
     "Date.Exact"                 : "date_exact",
     "Date.Digital"               : "date_digital",
     "Description"                : "description",
@@ -113,7 +113,7 @@ class Metadata:
     return not_empty_csv_content_dict
 
   def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
-    return {field_name.replace(".", "_").replace(" ", "_").replace("(", "_").replace(")", "_").lower(): val
+    return {field_name.replace(".", "_").replace(" ", "_").replace("(", "").replace(")", "").lower(): val
             for field_name, val in my_dict.items()}
 
 
@@ -126,47 +126,47 @@ class Upload:
   *) tables with foreign keys, see table_names_w_ids
   """
 
-  csv_field_to_db_field_if_not_the_same = {
-    "identifier"                 : "identifier",
-    "title"                      : "title",
-    "content"                    : "content",
-    "content_url"                : "content_url",
-    "creator"                    : "person",
-    "creator_other"              : "person",
-    "subject_place"              : "subject_place",
-    "coverage_lat"               : "coverage_lat",
-    "coverage_long"              : "coverage_long",
-    "subject_associated_places"  : "subject_associated_places",
-    "subject_people"             : "person",
-    "subject_academic_field"     : "subject_academic_field",
-    "subject_other"              : "subject_other",
-    "subject_season"             : "season",
-    "date_season"                : "season",
-    "date_season__yyyy_"         : "season",
-    "date_exact"                 : "season",
-    "date_digital"               : "season",
-    "description"                : "description",
-    "format"                     : "format",
-    "digitization_specifications": "digitization_specifications",
-    "contributor"                : "person",
-    "type"                       : "type",
-    "country"                    : "country",
-    "language"                   : "language",
-    "relation"                   : "relation",
-    "source"                     : "source",
-    "publisher"                  : "publisher",
-    "publisher_location"         : "publisher_location",
-    "bibliographic_citation"     : "bibliographic_citation",
-    "rights"                     : "rights",
-  }
+  # csv_field_to_db_field_if_not_the_same = {
+  #   "identifier"                 : "identifier",
+  #   "title"                      : "title",
+  #   "content"                    : "content",
+  #   "content_url"                : "content_url",
+  #   "creator"                    : "person",
+  #   "creator_other"              : "person",
+  #   "subject_place"              : "subject_place",
+  #   "coverage_lat"               : "coverage_lat",
+  #   "coverage_long"              : "coverage_long",
+  #   "subject_associated_places"  : "subject_associated_places",
+  #   "subject_people"             : "person",
+  #   "subject_academic_field"     : "subject_academic_field",
+  #   "subject_other"              : "subject_other",
+  #   "subject_season"             : "season",
+  #   "date_season"                : "season",
+  #   "date_season_yyyy_"         : "season",
+  #   "date_exact"                 : "season",
+  #   "date_digital"               : "season",
+  #   "description"                : "description",
+  #   "format"                     : "format",
+  #   "digitization_specifications": "digitization_specifications",
+  #   "contributor"                : "person",
+  #   "type"                       : "type",
+  #   "country"                    : "country",
+  #   "language"                   : "language",
+  #   "relation"                   : "relation",
+  #   "source"                     : "source",
+  #   "publisher"                  : "publisher",
+  #   "publisher_location"         : "publisher_location",
+  #   "bibliographic_citation"     : "bibliographic_citation",
+  #   "rights"                     : "rights",
+  # }
 
-  table_names_simple = ["subject_academic_field", "country", "data_type", "digitization_specifications", "format",
-                        "identifier", "language", "role"]
+  table_names_simple = ["subject_academic_field", "country", "type", "digitization_specifications", "format",
+                        "identifier", "language", "relation"] #, "role"
   table_names_no_f_keys = ["content", "place"]
   # table_names_no_f_keys = ["content", "person", "season", "source", "place"]
   table_names_w_ids = ["entry", "entry_subject", "source"]
   many_values_to_one_field = {
-    "season": ["date_season", "date_season__yyyy_", "date_exact", "date_digital"],
+    "season": ["date_season", "date_season_yyyy", "date_exact", "date_digital"],
     "person": ["contributor", "creator_other", "subject_people"],
     "place":  ["subject_associated_places", "subject_place"]
   }
@@ -174,8 +174,8 @@ class Upload:
   tables_comb = {
     "content"      : ["title", "content", "content_url", "description"],
     "entry"        : ["content_id", "country_id", "creator_id", "creator_other_id",
-                      "data_type_id", "digitization_specifications_id", "entry_subject_id", "format_id",
-                      "language_id", "manual_identifier_ref_id", "person_id", "season_id", "source_id"],
+                      "type_id", "digitization_specifications_id", "entry_subject_id", "format_id",
+                      "language_id", "manual_identifier_ref_id", "source_id", "date_season_id", "date_season_yyyy_id", "date_exact_id", "date_digital_id", "contributor_id"],
     "entry_subject": ["subject_place_id", "subject_associated_places_id", "subject_people_id",
                       "subject_academic_field_id", "subject_other", "subject_season_id"],
     # "person"       : ["first_name", "last_name"],
@@ -196,7 +196,7 @@ class Upload:
     "date_digital"             : "season",
     "date_exact"               : "season",
     "date_season"              : "season",
-    "date_season__yyyy_"       : "season",
+    "date_season_yyyy_"       : "season",
     "description"              : "content.description",
     "publisher_location"       : "place",
     "rights"                   : "source.rights",
@@ -317,14 +317,67 @@ class Upload:
       field_name = table_name
     return (field_name, table_name)
 
+  def get_all_sql_queries_for_ids(self):
+    # TODO: deal with it:
+    db_only_field_names = ["manual_identifier_ref_id", "entry_subject_id"]
+    """ 1) through combined tables
+        # TODO: WHERE should be by table, i.e "where publisher = 'American Geophysical Union Transactions' AND 'publisher_location' = US"
+
+        2) the rest
+        3) "entry" with all the ids
+    """
+    all_sql_queries_for_ids = []
+    for idx, current_dict in enumerate(metadata.csv_file_content_dict):
+      all_sql_queries_for_ids_for_row = defaultdict(list)
+      row = defaultdict()
+      csv_field_name = ""
+      where_part_arr = []
+      # 1) through combined tables, except "entry"
+      #  then do it again for "entry" with ids
+      for table_name, field_names in self.tables_comb.items():
+        use_names = list(set(field_names) - set(db_only_field_names)) + self.table_names_simple
+        for field_name in use_names:
+          csv_field_name = field_name
+          if field_name.endswith("_id"):
+            csv_field_name = field_name[:-3]
+            """TODO: look up foreign key instead of just stripping"""
+          #   KeyError: 'date_season_yyyy'
+          try:
+            current_value = current_dict[csv_field_name]
+          except KeyError:
+            # temp:
+            if csv_field_name in ["subject_associated_places", "place", "identifier"]:
+              pass
+            else:
+              raise
+          where_part = '{} = "{}"'.format(field_name, current_value)
+          where_part_arr.append(where_part)
+        where_part_and = " AND ".join(where_part_arr)
+        q = "SELECT {}_id FROM {} WHERE {}".format(table_name, table_name, where_part_and)
+        print("QQQ")
+        print(q)
+        all_sql_queries_for_ids_for_row[idx].append(q)
+      all_sql_queries_for_ids.append(all_sql_queries_for_ids_for_row)
+
+      # for csv_field_name, current_value in current_dict.items():
+      #   (field_name, table_name) = self.get_db_names_by_csv_field_name(csv_field_name)
+      #   where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
+      #   field_name_id = table_name + "_id"
+      #   current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
+      #   row[csv_field_name].append(current_value_id)
 
   def make_data_matrix_dict(self):
+    self.get_all_sql_queries_for_ids()
     data_matrix = []
     for current_dict in metadata.csv_file_content_dict:
       row = defaultdict()
+      self.combine_fields_by_table()
+      # 1) throw combined tables
+      #
       for csv_field_name, current_value in current_dict.items():
         (field_name, table_name) = self.get_db_names_by_csv_field_name(csv_field_name)
         where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
+        # TODO: WHERE should be by table, i.e "where publisher = 'American Geophysical Union Transactions' AND 'publisher_location' = US"
         field_name_id = table_name + "_id"
         current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
         row[csv_field_name] = current_value_id
