@@ -76,6 +76,7 @@ class Metadata:
     self.csv_file_fields = list(self.not_empty_csv_content_dict.keys())
 
     self.csv_file_content_dict = self.format_not_empty_dict()
+    self.check_for_empty_keys()
 
   def check_for_empty_keys(self):
     all_fields = self.csv_file_content_list[0]
