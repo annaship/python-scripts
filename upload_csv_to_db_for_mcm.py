@@ -220,18 +220,13 @@ class Upload:
     print("here")
 
   def upload_all_from_csv_into_temp_table(self):
-    # upload_all_query_list = []
-    field_names_arr = []
     table_name = "whole_csv_dump"
     for current_row_d in metadata.csv_file_content_dict:
-      # fields_num = len(current_row_d.values()) - 1
-      # the_last_el = list(current_row_d.values())[fields_num]
-      # if the_last_el == "":
-      #   field_names_arr = list(current_row_d.keys())[:-1]
-      #   values_arr      = list(current_row_d.values())[:-1]
+      field_names_arr = list(current_row_d.keys())
+      values_arr = list(current_row_d.values())
       field_names_str = ', '.join(field_names_arr)
       values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
-      upload_all_query = "INSERT IGNORE INTO {} ({}) VALUES ({})".format(table_name, field_names_str, values_str)
+      # upload_all_query = "INSERT IGNORE INTO {} ({}) VALUES ({})".format(table_name, field_names_str, values_str)
       mysql_utils.execute_insert(table_name, field_names_str, values_str)
     print("ttt")
 
