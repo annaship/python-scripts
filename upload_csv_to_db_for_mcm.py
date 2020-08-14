@@ -234,10 +234,13 @@ class Upload:
     for current_row_d in metadata.tsv_file_content_dict:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
+
+      # separate as insert_row
       field_names_str = ', '.join(field_names_arr)
       values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
       mysql_utils.execute_insert(table_name, field_names_str, values_str)
 
+      # separate as add_id_back
       where_part_for_id = self.select_id_back(field_names_arr, values_arr)
       current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
       current_row_d[table_name_id] = current_id
@@ -251,8 +254,10 @@ class Upload:
         field_name_id = field_name + "_id"
         where_part = 'WHERE {} = "{}"'.format(field_name, current_row_d[field_name])
         current_id = mysql_utils.get_id(field_name_id, table_name_w_id, where_part)
-        update_q = "UPDATE {} SET {} = {} WHERE {}".format(table_name_to_update, field_name_id, current_id, )
-    print("ttt")
+        table_name_to_update_current_id = current_row_d['whole_tsv_dump_id']
+        update_q = "UPDATE {} SET {} = {} WHERE {}_id = {}".format(table_name_to_update, field_name_id, current_id, table_name_to_update, table_name_to_update_current_id)
+        mysql_utils.execute_no_fetch(update_q)
+      print("ttt")
 
 
   def upload_all_from_tsv_but_id(self):
