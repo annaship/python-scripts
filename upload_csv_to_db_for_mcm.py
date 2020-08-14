@@ -209,8 +209,11 @@ class Upload:
         3) get ids
         4) upload tables with ids
     """
+    self.simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
+
     self.upload_simple_tables()
     self.upload_all_from_tsv_into_temp_table()
+    self.update_simple_ids()
 
     # self.upload_all_from_tsv_but_id()
     # self.make_data_matrix_dict()
@@ -219,6 +222,19 @@ class Upload:
     # self.upload_combine_tables_all()
     print("here")
 
+  def select_id_back(self, field_names_arr, values_arr):
+    # TODO: confirm that a "title" is unique and use just it to get an id
+    a = zip(field_names_arr, values_arr)
+    """list(zip(field_names_arr, values_arr)) = 
+    [('identifier', 'MCMEH-B000001'), ('title', 'Antarctic Dry Valley Drilling Project: Report on seminar 2.'), ('creator', ''), ('subject_place', 'McMurdo Dry Valleys'), ('subject_associated_places', ''), ('date_season', '1976'), ('date_season_yyyy', '1976'), ('description', 'An interdisciplinary science seminar on the jointly sponsored DVDP was held at the University of Wellington in January 1976. It was designed to be a forum to report on achievements of the project and to consider future drilling plans.'), ('format', 'Article'), ('source', ''), ('publisher', 'American Geophysical Union Transactions'), ('publisher_location', 'US'), ('bibliographic_citation', 'Antarctic Dry Valley Drilling Project: Report on seminar 2. American Geophysical Union Transactions 1976')]
+    """
+    text_q = 'WHERE '
+    couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
+
+    text_q = 'WHERE ' + ' AND '.join(couples_arr)
+    print(text_q)
+
+
   def upload_all_from_tsv_into_temp_table(self):
     table_name = "whole_tsv_dump"
     for current_row_d in metadata.tsv_file_content_dict:
@@ -226,9 +242,21 @@ class Upload:
       values_arr = list(current_row_d.values())
       field_names_str = ', '.join(field_names_arr)
       values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
-      # upload_all_query = "INSERT IGNORE INTO {} ({}) VALUES ({})".format(table_name, field_names_str, values_str)
       mysql_utils.execute_insert(table_name, field_names_str, values_str)
+      self.select_id_back(field_names_arr, values_arr)
+
+  def update_simple_ids(self):
+    table_name_to_update = "whole_tsv_dump"
+    # update metadata.tsv_file_content_dict with whole_tsv_dump_ids
+    for current_row_d in metadata.tsv_file_content_dict:
+      for field_name in self.simple_names_present:
+        table_name_w_id = field_name
+        field_name_id = field_name + "_id"
+        where_part = 'WHERE {} = "{}"'.format(field_name, current_row_d[field_name])
+        current_id = mysql_utils.get_id(field_name_id, table_name_w_id, where_part)
+        update_q = "UPDATE {} SET {} = {} WHERE {}".format(table_name_to_update, field_name_id, current_id, )
     print("ttt")
+
 
   def upload_all_from_tsv_but_id(self):
     self.upload_simple_tables()
@@ -256,8 +284,7 @@ class Upload:
       pass
 
   def upload_simple_tables(self):
-    simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
-    for table_name in simple_names_present:
+    for table_name in self.simple_names_present:
       self.simple_mass_upload(table_name, table_name)
 
   def upload_many_values_to_one_field(self):
