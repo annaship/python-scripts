@@ -67,12 +67,8 @@ class Metadata:
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
-    # self.not_req_fields_from_csv = []
-    # self.csv_file_fields = []
-    # self.csv_file_content_list = []
-    # self.csv_file_content_dict = []
-    # self.not_empty_csv_content_dict = {}
     self.csv_file_fields = self.csv_file_content_list[0]
+    self.transposed_vals = list(map(list, zip(*self.csv_file_content_list[1])))
     self.not_empty_csv_content_dict = self.check_for_empty_fields()
 
     self.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(
@@ -80,6 +76,37 @@ class Metadata:
     self.csv_file_fields = list(self.not_empty_csv_content_dict.keys())
 
     self.csv_file_content_dict = self.format_not_empty_dict()
+    self.change_keys_in_csv_list()
+    self.rm_last_empty_cell()
+
+  def change_keys_in_csv_list(self):
+    all_fields = self.csv_file_content_list[0]
+    return [field_name.replace(".", "_").replace(" ", "_").replace("(", "").replace(")", "").lower() for field_name in all_fields]
+
+  def rm_last_empty_cell(self):
+    all_fields_clean_key = self.change_keys_in_csv_list()
+    self.transposed_vals
+
+
+    current_row_d = {}
+    fields_num = len(current_row_d.values()) - 1
+    the_last_el = list(current_row_d.values())[fields_num]
+    if the_last_el == "":
+      field_names_arr = list(current_row_d.keys())[:-1]
+      values_arr = list(current_row_d.values())[:-1]
+
+    """
+    temp_list_of_dict = []
+    keys = list(self.not_empty_csv_content_dict.keys())
+    transposed_values = list(map(list, zip(*self.not_empty_csv_content_dict.values())))
+    for line in transposed_values:
+      temp_dict = {}
+      for idx, v in enumerate(line):
+        key = keys[idx]
+        temp_dict[key] = v
+      temp_list_of_dict.append(temp_dict)
+    return temp_list_of_dict
+    """
 
   def get_data_from_csv(self, input_file):
     self.csv_file_content_list = utils.read_csv_into_list(input_file, "\t")
@@ -101,8 +128,7 @@ class Metadata:
     removed_fields = []
     clean_matrix = []
     good_fields = []
-    transposed_vals = list(map(list, zip(*self.csv_file_content_list[1])))
-    for idx, vals_l in enumerate(transposed_vals):
+    for idx, vals_l in enumerate(self.transposed_vals):
       all_val_for1_field = set(vals_l)
       field_name = self.csv_file_fields[idx]
       if len(all_val_for1_field) == 1:
@@ -221,11 +247,11 @@ class Upload:
     # upload_all_query_list = []
     table_name = "whole_csv_dump"
     for current_row_d in metadata.csv_file_content_dict:
-      fields_num = len(current_row_d.values()) - 1
-      the_last_el = list(current_row_d.values())[fields_num]
-      if the_last_el == "":
-        field_names_arr = list(current_row_d.keys())[:-1]
-        values_arr      = list(current_row_d.values())[:-1]
+      # fields_num = len(current_row_d.values()) - 1
+      # the_last_el = list(current_row_d.values())[fields_num]
+      # if the_last_el == "":
+      #   field_names_arr = list(current_row_d.keys())[:-1]
+      #   values_arr      = list(current_row_d.values())[:-1]
       field_names_str = ', '.join(field_names_arr)
       values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
       upload_all_query = "INSERT IGNORE INTO {} ({}) VALUES ({})".format(table_name, field_names_str, values_str)
