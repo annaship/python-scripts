@@ -7,7 +7,7 @@ TODO: add type as a required parameter (photo etc)
 *) upload the whole csv into one table, separate, add ids
 *) whole_csv_dump should be temporary, clear after each upload
 """
-
+import sys
 import util
 
 try:
@@ -76,37 +76,12 @@ class Metadata:
     self.csv_file_fields = list(self.not_empty_csv_content_dict.keys())
 
     self.csv_file_content_dict = self.format_not_empty_dict()
-    self.change_keys_in_csv_list()
-    self.rm_last_empty_cell()
 
-  def change_keys_in_csv_list(self):
+  def check_for_empty_keys(self):
     all_fields = self.csv_file_content_list[0]
-    return [field_name.replace(".", "_").replace(" ", "_").replace("(", "").replace(")", "").lower() for field_name in all_fields]
-
-  def rm_last_empty_cell(self):
-    all_fields_clean_key = self.change_keys_in_csv_list()
-    self.transposed_vals
-
-
-    current_row_d = {}
-    fields_num = len(current_row_d.values()) - 1
-    the_last_el = list(current_row_d.values())[fields_num]
-    if the_last_el == "":
-      field_names_arr = list(current_row_d.keys())[:-1]
-      values_arr = list(current_row_d.values())[:-1]
-
-    """
-    temp_list_of_dict = []
-    keys = list(self.not_empty_csv_content_dict.keys())
-    transposed_values = list(map(list, zip(*self.not_empty_csv_content_dict.values())))
-    for line in transposed_values:
-      temp_dict = {}
-      for idx, v in enumerate(line):
-        key = keys[idx]
-        temp_dict[key] = v
-      temp_list_of_dict.append(temp_dict)
-    return temp_list_of_dict
-    """
+    if "" in all_fields:
+      print("ERROR: Column (field names) shouldn't be empty!")
+      sys.exit()
 
   def get_data_from_csv(self, input_file):
     self.csv_file_content_list = utils.read_csv_into_list(input_file, "\t")
@@ -245,6 +220,7 @@ class Upload:
 
   def upload_all_from_csv_into_temp_table(self):
     # upload_all_query_list = []
+    field_names_arr = []
     table_name = "whole_csv_dump"
     for current_row_d in metadata.csv_file_content_dict:
       # fields_num = len(current_row_d.values()) - 1
