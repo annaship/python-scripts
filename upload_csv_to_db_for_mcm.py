@@ -209,6 +209,7 @@ class Upload:
         3) get ids
         4) upload tables with ids
     """
+    self.table_name_temp_dump = "whole_tsv_dump"
     self.simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
 
     self.upload_simple_tables()
@@ -229,7 +230,7 @@ class Upload:
 
 
   def upload_all_from_tsv_into_temp_table(self):
-    table_name = "whole_tsv_dump"
+    table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict:
       field_names_arr = list(current_row_d.keys())
@@ -246,7 +247,7 @@ class Upload:
       current_row_d[table_name_id] = current_id
 
   def update_simple_ids(self):
-    table_name_to_update = "whole_tsv_dump"
+    table_name_to_update = self.table_name_temp_dump
     # update metadata.tsv_file_content_dict with whole_tsv_dump_ids
     for current_row_d in metadata.tsv_file_content_dict:
       for field_name in self.simple_names_present:
@@ -254,11 +255,11 @@ class Upload:
         field_name_id = field_name + "_id"
         where_part = 'WHERE {} = "{}"'.format(field_name, current_row_d[field_name])
         current_id = mysql_utils.get_id(field_name_id, table_name_w_id, where_part)
-        table_name_to_update_current_id = current_row_d['whole_tsv_dump_id']
+
+        table_name_to_update_current_id = current_row_d[table_name_to_update + '_id']
         update_q = "UPDATE {} SET {} = {} WHERE {}_id = {}".format(table_name_to_update, field_name_id, current_id, table_name_to_update, table_name_to_update_current_id)
         mysql_utils.execute_no_fetch(update_q)
       print("ttt")
-
 
   def upload_all_from_tsv_but_id(self):
     self.upload_simple_tables()
