@@ -5,7 +5,7 @@
 """
 TODO: add type as a required parameter (photo etc)
 *) upload the whole csv into one table, separate, add ids
-*) whole_csv_dump should be temporary, clear after each upload
+*) whole_tsv_dump should be temporary, clear after each upload
 """
 import sys
 import util
@@ -67,31 +67,31 @@ class Metadata:
 
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
-    self.csv_file_fields = self.csv_file_content_list[0]
-    self.transposed_vals = list(map(list, zip(*self.csv_file_content_list[1])))
-    self.not_empty_csv_content_dict = self.check_for_empty_fields()
+    self.tsv_file_fields = self.tsv_file_content_list[0]
+    self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
+    self.not_empty_tsv_content_dict = self.check_for_empty_fields()
 
-    self.not_empty_csv_content_dict = self.change_keys_in_csv_content_dict_clean_custom(
-      self.not_empty_csv_content_dict)
-    self.csv_file_fields = list(self.not_empty_csv_content_dict.keys())
+    self.not_empty_tsv_content_dict = self.change_keys_in_tsv_content_dict_clean_custom(
+      self.not_empty_tsv_content_dict)
+    self.tsv_file_fields = list(self.not_empty_tsv_content_dict.keys())
 
-    self.csv_file_content_dict = self.format_not_empty_dict()
+    self.tsv_file_content_dict = self.format_not_empty_dict()
     self.check_for_empty_keys()
 
   def check_for_empty_keys(self):
-    all_fields = self.csv_file_content_list[0]
+    all_fields = self.tsv_file_content_list[0]
     if "" in all_fields:
       print("ERROR: Column (field names) shouldn't be empty!")
       sys.exit()
 
   def get_data_from_csv(self, input_file):
-    self.csv_file_content_list = utils.read_csv_into_list(input_file, "\t")
-    self.csv_file_content_dict = utils.read_csv_into_dict(input_file, "\t")
+    self.tsv_file_content_list = utils.read_tsv_into_list(input_file, "\t")
+    self.tsv_file_content_dict = utils.read_tsv_into_dict(input_file, "\t")
 
   def format_not_empty_dict(self):
     temp_list_of_dict = []
-    keys = list(self.not_empty_csv_content_dict.keys())
-    transposed_values = list(map(list, zip(*self.not_empty_csv_content_dict.values())))
+    keys = list(self.not_empty_tsv_content_dict.keys())
+    transposed_values = list(map(list, zip(*self.not_empty_tsv_content_dict.values())))
     for line in transposed_values:
       temp_dict = {}
       for idx, v in enumerate(line):
@@ -106,17 +106,17 @@ class Metadata:
     good_fields = []
     for idx, vals_l in enumerate(self.transposed_vals):
       all_val_for1_field = set(vals_l)
-      field_name = self.csv_file_fields[idx]
+      field_name = self.tsv_file_fields[idx]
       if len(all_val_for1_field) == 1:
         removed_fields.append(field_name)
       else:
         good_fields.append(field_name)
         clean_matrix.append(vals_l)
-    not_empty_csv_content_dict = dict(zip(good_fields, clean_matrix)) or {}
+    not_empty_tsv_content_dict = dict(zip(good_fields, clean_matrix)) or {}
 
-    return not_empty_csv_content_dict
+    return not_empty_tsv_content_dict
 
-  def change_keys_in_csv_content_dict_clean_custom(self, my_dict):
+  def change_keys_in_tsv_content_dict_clean_custom(self, my_dict):
     return {field_name.replace(".", "_").replace(" ", "_").replace("(", "").replace(")", "").lower(): val
             for field_name, val in my_dict.items()}
 
@@ -210,18 +210,18 @@ class Upload:
         4) upload tables with ids
     """
     self.upload_simple_tables()
-    self.upload_all_from_csv_into_temp_table()
+    self.upload_all_from_tsv_into_temp_table()
 
-    # self.upload_all_from_csv_but_id()
+    # self.upload_all_from_tsv_but_id()
     # self.make_data_matrix_dict()
     # self.get_ids()
     # self.update_data_matrix_dict_with_ids()
     # self.upload_combine_tables_all()
     print("here")
 
-  def upload_all_from_csv_into_temp_table(self):
-    table_name = "whole_csv_dump"
-    for current_row_d in metadata.csv_file_content_dict:
+  def upload_all_from_tsv_into_temp_table(self):
+    table_name = "whole_tsv_dump"
+    for current_row_d in metadata.tsv_file_content_dict:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
       field_names_str = ', '.join(field_names_arr)
@@ -230,7 +230,7 @@ class Upload:
       mysql_utils.execute_insert(table_name, field_names_str, values_str)
     print("ttt")
 
-  def upload_all_from_csv_but_id(self):
+  def upload_all_from_tsv_but_id(self):
     self.upload_simple_tables()
     self.upload_many_values_to_one_field()
     self.upload_combine_tables_no_foreign_keys()
@@ -247,7 +247,7 @@ class Upload:
   def simple_mass_upload(self, table_name, field_name, val_str = ""):
     try:
       if val_str == "":
-        val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[field_name]))
+        val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
       insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
 
       mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
@@ -256,29 +256,29 @@ class Upload:
       pass
 
   def upload_simple_tables(self):
-    simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_csv_content_dict.keys())
+    simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
     for table_name in simple_names_present:
       self.simple_mass_upload(table_name, table_name)
 
   def upload_many_values_to_one_field(self):
-    csv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
-    value_present = utils.intersection(csv_field_names_to_upload, metadata.not_empty_csv_content_dict.keys())
+    tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
+    value_present = utils.intersection(tsv_field_names_to_upload, metadata.not_empty_tsv_content_dict.keys())
 
-    for table_name, csv_field_names in self.many_values_to_one_field.items():
-      for csv_field_name in csv_field_names:
-        if csv_field_name in value_present:
-          val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_csv_content_dict[csv_field_name]))
+    for table_name, tsv_field_names in self.many_values_to_one_field.items():
+      for tsv_field_name in tsv_field_names:
+        if tsv_field_name in value_present:
+          val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[tsv_field_name]))
           self.simple_mass_upload(table_name, table_name, val_list)
 
-  def get_db_names_by_csv_field_name(self, csv_field_name):
-    if csv_field_name in self.where_to_look_if_not_the_same.keys():
+  def get_db_names_by_tsv_field_name(self, tsv_field_name):
+    if tsv_field_name in self.where_to_look_if_not_the_same.keys():
       try:
-        (table_name, field_name) = self.where_to_look_if_not_the_same[csv_field_name].split(".") #like "content.content_url"
+        (table_name, field_name) = self.where_to_look_if_not_the_same[tsv_field_name].split(".") #like "content.content_url"
       except ValueError: # like "person" same name
-        table_name = self.where_to_look_if_not_the_same[csv_field_name]
+        table_name = self.where_to_look_if_not_the_same[tsv_field_name]
         field_name = table_name
     else:
-      table_name = csv_field_name
+      table_name = tsv_field_name
       field_name = table_name
     return (field_name, table_name)
 
@@ -292,26 +292,26 @@ class Upload:
         3) "entry" with all the ids
     """
     all_sql_queries_for_ids = []
-    for idx, current_dict in enumerate(metadata.csv_file_content_dict):
+    for idx, current_dict in enumerate(metadata.tsv_file_content_dict):
       all_sql_queries_for_ids_for_row = defaultdict(lambda : defaultdict(list))
       row = defaultdict()
-      csv_field_name = ""
+      tsv_field_name = ""
       where_part_arr = []
       # 1) through combined tables, except "entry"
       #  then do it again for "entry" with ids
       for table_name, field_names in self.tables_comb.items():
         use_names = list(set(field_names) - set(db_only_field_names)) + self.table_names_simple
         for field_name in use_names:
-          csv_field_name = field_name
+          tsv_field_name = field_name
           if field_name.endswith("_id"):
-            csv_field_name = field_name[:-3]
+            tsv_field_name = field_name[:-3]
             """TODO: look up foreign key instead of just stripping"""
           #   KeyError: 'date_season_yyyy'
           try:
-            current_value = current_dict[csv_field_name]
+            current_value = current_dict[tsv_field_name]
           except KeyError:
             # temp:
-            if csv_field_name in ["subject_associated_places", "place", "identifier"]:
+            if tsv_field_name in ["subject_associated_places", "place", "identifier"]:
               pass
             else:
               raise
@@ -324,32 +324,32 @@ class Upload:
         all_sql_queries_for_ids_for_row[idx][table_name].append(q)
       all_sql_queries_for_ids.append(all_sql_queries_for_ids_for_row)
 
-      # for csv_field_name, current_value in current_dict.items():
-      #   (field_name, table_name) = self.get_db_names_by_csv_field_name(csv_field_name)
+      # for tsv_field_name, current_value in current_dict.items():
+      #   (field_name, table_name) = self.get_db_names_by_tsv_field_name(tsv_field_name)
       #   where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
       #   field_name_id = table_name + "_id"
       #   current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
-      #   row[csv_field_name].append(current_value_id)
+      #   row[tsv_field_name].append(current_value_id)
 
   def make_data_matrix_dict(self):
     self.get_all_sql_queries_for_ids()
     data_matrix = []
-    for current_dict in metadata.csv_file_content_dict:
+    for current_dict in metadata.tsv_file_content_dict:
       row = defaultdict()
       self.combine_fields_by_table()
       # 1) throw combined tables
       #
-      for csv_field_name, current_value in current_dict.items():
-        (field_name, table_name) = self.get_db_names_by_csv_field_name(csv_field_name)
+      for tsv_field_name, current_value in current_dict.items():
+        (field_name, table_name) = self.get_db_names_by_tsv_field_name(tsv_field_name)
         where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
         # TODO: WHERE should be by table, i.e "where publisher = 'American Geophysical Union Transactions' AND 'publisher_location' = US"
         field_name_id = table_name + "_id"
         current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
-        row[csv_field_name] = current_value_id
+        row[tsv_field_name] = current_value_id
     """
         str_field_by_table_comb = []
 
-    for d in metadata.csv_file_content_dict:
+    for d in metadata.tsv_file_content_dict:
       temp_dict_str = defaultdict()
       for table_name in Upload.tables_comb.keys():
         values = self.get_values(d, table_name)
@@ -369,7 +369,7 @@ class Upload:
 
   # def update_data_by_row(self):
   #   all_table_names = list(Upload.tables_comb.keys()) + Upload.table_names_simple
-  #   for row_entry_d in metadata.csv_file_content_dict:
+  #   for row_entry_d in metadata.tsv_file_content_dict:
   #     temp_dict_arr = defaultdict()
   #     for table_name in all_table_names:
   #       values = self.get_values(row_entry_d, table_name)
@@ -379,7 +379,7 @@ class Upload:
   #       except KeyError:
   #         table_name = Upload.where_to_look[table_name]
   #         id_name = table_name + "_id"
-  #         where_txt = metadata.csv_file_content_dict
+  #         where_txt = metadata.tsv_file_content_dict
   #         # id = mysql_utils.get_id(id_name, table_name, where_txt)
   #         temp_dict_arr[table_name] = {}
   #
@@ -407,7 +407,7 @@ class Upload:
     # TODO: check if all got into the dict, even with a "wrong" name
     str_field_by_table_comb = []
 
-    for d in metadata.csv_file_content_dict:
+    for d in metadata.tsv_file_content_dict:
       temp_dict_str = defaultdict()
       for table_name in Upload.tables_comb.keys():
         values = self.get_values(d, table_name)
@@ -420,7 +420,7 @@ class Upload:
       str_field_by_table_comb.append(temp_dict_str)
     return str_field_by_table_comb
 
-  # def get_id_by_csv_val(self):
+  # def get_id_by_tsv_val(self):
   #   where_to_look = {"subject_place_id": "place",
   #         "subject_associated_places_id": "place",
   #         "subject_people_id": "person",
@@ -435,7 +435,7 @@ class Upload:
   #         except:
   #           table_name = Upload.where_to_look[table_id_name]
   #           id_name = table_name + "_id"
-  #           where_txt = metadata.csv_file_content_dict
+  #           where_txt = metadata.tsv_file_content_dict
   #           id = mysql_utils.get_id(id_name, table_name, where_txt)
   #           raise
   #   # for idx, ent in enumerate(self.data_by_row):
@@ -463,14 +463,14 @@ class Upload:
           "subject_people_id"
           "subject_season_id"
           """
-          # self.get_id_by_csv_val()
+          # self.get_id_by_tsv_val()
           try:
             current_id = ent[field_name_to_fill][id_name_to_fill]
           except KeyError:
             table_name = Upload.where_to_look[id_name_to_fill]
             field_name = table_name + "_id"
 
-            subject_place_id_value = metadata.csv_file_content_dict[idx][field_name_to_fill]
+            subject_place_id_value = metadata.tsv_file_content_dict[idx][field_name_to_fill]
             # field_name = "place_id"
             # table_name = "place"
             val_list = "'{}'".format(subject_place_id_value)
