@@ -85,8 +85,8 @@ class Metadata:
       sys.exit()
 
   def get_data_from_csv(self, input_file):
-    self.tsv_file_content_list = utils.read_tsv_into_list(input_file, "\t")
-    self.tsv_file_content_dict = utils.read_tsv_into_dict(input_file, "\t")
+    self.tsv_file_content_list = utils.read_csv_into_list(input_file, "\t")
+    self.tsv_file_content_dict = utils.read_csv_into_dict(input_file, "\t")
 
   def format_not_empty_dict(self):
     temp_list_of_dict = []
