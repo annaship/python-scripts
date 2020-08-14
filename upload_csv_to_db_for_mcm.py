@@ -4,6 +4,8 @@
 
 """
 TODO: add type as a required parameter (photo etc)
+*) upload the whole csv into one table, separate, add ids
+*) whole_csv_dump should be temporary, clear after each upload
 """
 
 import util
@@ -126,40 +128,6 @@ class Upload:
   *) tables with foreign keys, see table_names_w_ids
   """
 
-  # csv_field_to_db_field_if_not_the_same = {
-  #   "identifier"                 : "identifier",
-  #   "title"                      : "title",
-  #   "content"                    : "content",
-  #   "content_url"                : "content_url",
-  #   "creator"                    : "person",
-  #   "creator_other"              : "person",
-  #   "subject_place"              : "subject_place",
-  #   "coverage_lat"               : "coverage_lat",
-  #   "coverage_long"              : "coverage_long",
-  #   "subject_associated_places"  : "subject_associated_places",
-  #   "subject_people"             : "person",
-  #   "subject_academic_field"     : "subject_academic_field",
-  #   "subject_other"              : "subject_other",
-  #   "subject_season"             : "season",
-  #   "date_season"                : "season",
-  #   "date_season_yyyy_"         : "season",
-  #   "date_exact"                 : "season",
-  #   "date_digital"               : "season",
-  #   "description"                : "description",
-  #   "format"                     : "format",
-  #   "digitization_specifications": "digitization_specifications",
-  #   "contributor"                : "person",
-  #   "type"                       : "type",
-  #   "country"                    : "country",
-  #   "language"                   : "language",
-  #   "relation"                   : "relation",
-  #   "source"                     : "source",
-  #   "publisher"                  : "publisher",
-  #   "publisher_location"         : "publisher_location",
-  #   "bibliographic_citation"     : "bibliographic_citation",
-  #   "rights"                     : "rights",
-  # }
-
   table_names_simple = ["subject_academic_field", "country", "type", "digitization_specifications", "format",
                         "identifier", "language", "relation"] #, "role"
   table_names_no_f_keys = ["content", "place"]
@@ -239,31 +207,30 @@ class Upload:
         3) get ids
         4) upload tables with ids
     """
-    # self.query_simple_dict = defaultdict()
-    # self.query_comb_dict = defaultdict()
-    # self.data_by_row = []
+    self.upload_simple_tables()
+    self.upload_all_from_csv_into_temp_table()
 
-    # self.get_table_foreign_key_names("entry_subject")
-    # self.get_table_foreign_key_names("entry")
-
-    self.upload_all_from_csv_but_id()
-    self.make_data_matrix_dict()
-    self.get_ids()
-    self.update_data_matrix_dict_with_ids()
-    self.upload_combine_tables_all()
+    # self.upload_all_from_csv_but_id()
+    # self.make_data_matrix_dict()
+    # self.get_ids()
+    # self.update_data_matrix_dict_with_ids()
+    # self.upload_combine_tables_all()
     print("here")
 
-  # def fill_special_table(self, field_name):
-  #   """
-  #   Get all info for each row in the table
-  #   :return:
-  #   """
-  #   pass
-  #   # try:
-  #   #   full_name = self.where_to_look_if_not_the_same[field_name]
-  #   #   table_name, field_name = full_name.split(".")
-  #   # except:
-  #   #   raise
+  def upload_all_from_csv_into_temp_table(self):
+    # upload_all_query_list = []
+    table_name = "whole_csv_dump"
+    for current_row_d in metadata.csv_file_content_dict:
+      fields_num = len(current_row_d.values()) - 1
+      the_last_el = list(current_row_d.values())[fields_num]
+      if the_last_el == "":
+        field_names_arr = list(current_row_d.keys())[:-1]
+        values_arr      = list(current_row_d.values())[:-1]
+      field_names_str = ', '.join(field_names_arr)
+      values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
+      upload_all_query = "INSERT IGNORE INTO {} ({}) VALUES ({})".format(table_name, field_names_str, values_str)
+      mysql_utils.execute_insert(table_name, field_names_str, values_str)
+    print("ttt")
 
   def upload_all_from_csv_but_id(self):
     self.upload_simple_tables()
