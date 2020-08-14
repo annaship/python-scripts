@@ -328,7 +328,7 @@ class Upload:
     """
     all_sql_queries_for_ids = []
     for idx, current_dict in enumerate(metadata.csv_file_content_dict):
-      all_sql_queries_for_ids_for_row = defaultdict(list)
+      all_sql_queries_for_ids_for_row = defaultdict(lambda : defaultdict(list))
       row = defaultdict()
       csv_field_name = ""
       where_part_arr = []
@@ -356,7 +356,7 @@ class Upload:
         q = "SELECT {}_id FROM {} WHERE {}".format(table_name, table_name, where_part_and)
         print("QQQ")
         print(q)
-        all_sql_queries_for_ids_for_row[idx].append(q)
+        all_sql_queries_for_ids_for_row[idx][table_name].append(q)
       all_sql_queries_for_ids.append(all_sql_queries_for_ids_for_row)
 
       # for csv_field_name, current_value in current_dict.items():
