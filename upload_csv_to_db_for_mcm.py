@@ -224,26 +224,23 @@ class Upload:
 
   def select_id_back(self, field_names_arr, values_arr):
     # TODO: confirm that a "title" is unique and use just it to get an id
-    a = zip(field_names_arr, values_arr)
-    """list(zip(field_names_arr, values_arr)) = 
-    [('identifier', 'MCMEH-B000001'), ('title', 'Antarctic Dry Valley Drilling Project: Report on seminar 2.'), ('creator', ''), ('subject_place', 'McMurdo Dry Valleys'), ('subject_associated_places', ''), ('date_season', '1976'), ('date_season_yyyy', '1976'), ('description', 'An interdisciplinary science seminar on the jointly sponsored DVDP was held at the University of Wellington in January 1976. It was designed to be a forum to report on achievements of the project and to consider future drilling plans.'), ('format', 'Article'), ('source', ''), ('publisher', 'American Geophysical Union Transactions'), ('publisher_location', 'US'), ('bibliographic_citation', 'Antarctic Dry Valley Drilling Project: Report on seminar 2. American Geophysical Union Transactions 1976')]
-    """
-    text_q = 'WHERE '
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
-
-    text_q = 'WHERE ' + ' AND '.join(couples_arr)
-    print(text_q)
+    return 'WHERE ' + ' AND '.join(couples_arr)
 
 
   def upload_all_from_tsv_into_temp_table(self):
     table_name = "whole_tsv_dump"
+    table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
       field_names_str = ', '.join(field_names_arr)
       values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
       mysql_utils.execute_insert(table_name, field_names_str, values_str)
-      self.select_id_back(field_names_arr, values_arr)
+
+      where_part_for_id = self.select_id_back(field_names_arr, values_arr)
+      current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
+      current_row_d[table_name_id] = current_id
 
   def update_simple_ids(self):
     table_name_to_update = "whole_tsv_dump"
