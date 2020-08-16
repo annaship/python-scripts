@@ -217,7 +217,7 @@ class Upload:
     self.update_simple_ids()
 
     self.upload_many_values_to_one_field()
-    self.update_many_values_to_one_field_ids()
+    # self.update_many_values_to_one_field_ids()
 
     self.upload_other_tables()
     self.update_other_ids()
@@ -294,26 +294,25 @@ class Upload:
   def update_many_values_to_one_field_ids(self):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
-    where_to_look_if_not_the_same
+    for current_row_d in metadata.tsv_file_content_dict:
+      table_name_to_update_current_id = current_row_d[table_name_to_update + '_id']
 
+      for tsv_field_name in tsv_field_names_to_upload:
+        try:
+          current_value = current_row_d[tsv_field_name]
+        except KeyError:
+          continue
+        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+        where_part = 'WHERE {} = "{}"'.format(table_name_w_id, current_value)
+        current_id = mysql_utils.get_id(table_name_w_id + "_id", table_name_w_id, where_part)
+        # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
+        update_q = "UPDATE {} SET {} = {} WHERE {}_id = {}".format(table_name_to_update, tsv_field_name + "_id", current_id, table_name_to_update, table_name_to_update_current_id)
+        mysql_utils.execute_no_fetch(update_q)
 
-    # for current_row_d in metadata.tsv_file_content_dict:
-    #   table_name_to_update_current_id = current_row_d[table_name_to_update + '_id']
-    #
-    #   for tsv_field_name in tsv_field_names_to_upload:
-    #     try:
-    #       current_value = current_row_d[tsv_field_name]
-    #     except KeyError:
-    #       continue
-    #     table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-    #     where_part = 'WHERE {} = "{}"'.format(table_name_w_id, current_value)
-    #     current_id = mysql_utils.get_id(table_name_w_id + "_id", table_name_w_id, where_part)
-    #     # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
-    #     update_q = "UPDATE {} SET {} = {} WHERE {}_id = {}".format(table_name_to_update, tsv_field_name + "_id", current_id, table_name_to_update, table_name_to_update_current_id)
-    #     mysql_utils.execute_no_fetch(update_q)
-    #
-    #   print("ttt")
+      print("ttt")
 
+  def upload_other_tables(self):
+    
 
 # def upload_all_from_tsv_but_id(self):
   #   self.upload_simple_tables()
