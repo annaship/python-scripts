@@ -244,10 +244,10 @@ class Upload:
     except KeyError:
       pass
 
-  def select_id_back(self, field_names_arr, values_arr):
+  def make_field_val_couple_where(self, field_names_arr, values_arr):
     # TODO: confirm that a "title" is unique and use just it to get an id
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
-    return 'WHERE ' + ' AND '.join(couples_arr)
+    return ' AND '.join(couples_arr)
 
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
@@ -262,7 +262,7 @@ class Upload:
       mysql_utils.execute_insert(table_name, field_names_str, values_str)
 
       # separate as add_id_back
-      where_part_for_id = self.select_id_back(field_names_arr, values_arr)
+      where_part_for_id = 'WHERE ' + self.make_field_val_couple_where(field_names_arr, values_arr)
       current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
       current_row_d[table_name_id] = current_id
 
@@ -311,8 +311,45 @@ class Upload:
 
       print("ttt")
 
+  def make_arr_even_if_empty_val(self, field_names_arr, data_dictionary):
+    res_arr = []
+    for field_name in field_names_arr:
+      try:
+        val = data_dictionary[field_name]
+      except KeyError:
+        val = ""
+      res_arr.append(val)
+    return res_arr
+
   def upload_other_tables(self):
-    
+    ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
+    for current_row_d in metadata.tsv_file_content_dict:
+      for table_name in ordered_tables_comb_names[0]:
+        field_names_arr = self.tables_comb[table_name]
+        values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
+        AND_part = self.make_field_val_couple_where(field_names_arr, values_arr)
+
+  #           # ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
+  #         # return 'WHERE ' + ' AND '.join(couples_arr)
+
+  def update_id_or_other_tables(self):
+    ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
+    for current_row_d in metadata.tsv_file_content_dict:
+      where_parts = []
+      for table_name in ordered_tables_comb_names[0]:
+        field_names_arr = self.tables_comb[table_name]
+
+        for field_name in field_names_arr:
+          try:
+            val = current_row_d[field_name]
+          except KeyError:
+            val = ""
+          where_parts.append(" {} = '{}' ".format(field_name, val))
+        where_txt = "WHERE "
+        where_txt += ' AND '.join(where_parts)
+        val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
+        insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
+
 
 # def upload_all_from_tsv_but_id(self):
   #   self.upload_simple_tables()
