@@ -249,6 +249,14 @@ class Upload:
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
     return ' AND '.join(couples_arr)
 
+  def insert_row(self, table_name, field_names_arr, values_arr):
+    field_names_str = ', '.join(field_names_arr)
+    values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
+    mysql_utils.execute_insert(table_name, field_names_str, values_str)
+
+
+  # def add_id_back(self):
+
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
@@ -257,9 +265,7 @@ class Upload:
       values_arr = list(current_row_d.values())
 
       # separate as insert_row
-      field_names_str = ', '.join(field_names_arr)
-      values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
-      mysql_utils.execute_insert(table_name, field_names_str, values_str)
+      self.insert_row(table_name, field_names_arr, values_arr)
 
       # separate as add_id_back
       where_part_for_id = 'WHERE ' + self.make_field_val_couple_where(field_names_arr, values_arr)
@@ -327,10 +333,8 @@ class Upload:
       for table_name in ordered_tables_comb_names[0]:
         field_names_arr = self.tables_comb[table_name]
         values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
+        self.insert_row(table_name, field_names_arr, values_arr)
 
-        field_names_str = ', '.join(field_names_arr)
-        values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
-        mysql_utils.execute_insert(table_name, field_names_str, values_str)
 
         #TODO: get_id ahere nd add to temp
 
