@@ -327,7 +327,14 @@ class Upload:
       for table_name in ordered_tables_comb_names[0]:
         field_names_arr = self.tables_comb[table_name]
         values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
-        AND_part = self.make_field_val_couple_where(field_names_arr, values_arr)
+
+        field_names_str = ', '.join(field_names_arr)
+        values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
+        mysql_utils.execute_insert(table_name, field_names_str, values_str)
+
+        #TODO: get_id ahere nd add to temp
+
+        # AND_part = self.make_field_val_couple_where(field_names_arr, values_arr)
 
   #           # ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
   #         # return 'WHERE ' + ' AND '.join(couples_arr)
