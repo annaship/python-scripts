@@ -247,7 +247,7 @@ class Upload:
   def make_field_val_couple_where(self, field_names_arr, values_arr):
     # TODO: confirm that a "title" is unique and use just it to get an id
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
-    return ' AND '.join(couples_arr)
+    return 'WHERE ' + ' AND '.join(couples_arr)
 
   def insert_row(self, table_name, field_names_arr, values_arr):
     field_names_str = ', '.join(field_names_arr)
@@ -268,7 +268,7 @@ class Upload:
       self.insert_row(table_name, field_names_arr, values_arr)
 
       # separate as add_id_back
-      where_part_for_id = 'WHERE ' + self.make_field_val_couple_where(field_names_arr, values_arr)
+      where_part_for_id = self.make_field_val_couple_where(field_names_arr, values_arr)
       current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
       current_row_d[table_name_id] = current_id
 
@@ -328,17 +328,21 @@ class Upload:
     return res_arr
 
   def upload_other_tables(self):
-    ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
+    table_name_to_update = self.table_name_temp_dump
+    ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject', 'entry']]
     for current_row_d in metadata.tsv_file_content_dict:
       for table_name in ordered_tables_comb_names[0]:
         field_names_arr = self.tables_comb[table_name]
         values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
         self.insert_row(table_name, field_names_arr, values_arr)
 
+        # TODO: get_id here nd add to temp
+        where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
+        new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
 
-        #TODO: get_id ahere nd add to temp
-
-        # AND_part = self.make_field_val_couple_where(field_names_arr, values_arr)
+        #  TODO: update temp table sid
+        update_q = "UPDATE {} SET {} = {} {}".format(table_name_to_update, table_name + "_id", new_id, where_txt)
+        mysql_utils.execute_no_fetch(update_q)
 
   #           # ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
   #         # return 'WHERE ' + ' AND '.join(couples_arr)
