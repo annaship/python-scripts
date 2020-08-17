@@ -69,14 +69,24 @@ class Metadata:
     self.get_data_from_csv(input_file)
     self.tsv_file_fields = self.tsv_file_content_list[0]
     self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
+
     self.not_empty_tsv_content_dict = self.check_for_empty_fields()
 
     self.not_empty_tsv_content_dict = self.change_keys_in_tsv_content_dict_clean_custom(
       self.not_empty_tsv_content_dict)
     self.tsv_file_fields = list(self.not_empty_tsv_content_dict.keys())
 
-    self.tsv_file_content_dict = self.format_not_empty_dict()
+    self.tsv_file_content_dict_no_empty = self.format_not_empty_dict()
     self.check_for_empty_keys()
+
+    self.tsv_file_content_dict_clean_keys = self.clean_keys_in_tsv_file_content_dict()
+
+  def clean_keys_in_tsv_file_content_dict(self):
+    res_d = []
+    for curr_d in self.tsv_file_content_dict:
+      clean_d = self.change_keys_in_tsv_content_dict_clean_custom(curr_d)
+      res_d.append(clean_d)
+    return res_d
 
   def check_for_empty_keys(self):
     all_fields = self.tsv_file_content_list[0]
@@ -151,7 +161,7 @@ class Upload:
     # "person"       : ["first_name", "last_name"],
     # "person_role_ref": ["person_id", "role_id"],
     # "ref": ["role"],
-    "source"       : ["source", "publisher_id", #person_id
+    "source"       : ["source", "publisher", #person_id
                       "publisher_location_id", #place_id
                       "bibliographic_citation", "rights"],
     "place"        : ["place", "coverage_lat", "coverage_long"],
@@ -186,7 +196,7 @@ class Upload:
     # "publisher"                : "publisher",
     # "relation": "relation",
     # "source": "source",
-    # "subject_academic_field": "subject_academic_field",
+    "subject_academic_field": "subject_academic_field",
     # "subject_other": "subject_other",
     # "type": "type",
   }
@@ -210,7 +220,7 @@ class Upload:
         4) upload tables with ids
     """
     self.table_name_temp_dump = "whole_tsv_dump"
-    self.simple_names_present = utils.intersection(Upload.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
+    self.simple_names_present = utils.intersection(self.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
 
     self.upload_simple_tables()
     self.upload_all_from_tsv_into_temp_table()
@@ -231,6 +241,8 @@ class Upload:
 
   def upload_simple_tables(self):
     for table_name in self.simple_names_present:
+      if table_name == "subject_academic_field":
+        print("subject_academic_field")
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_str = ""):
@@ -260,7 +272,7 @@ class Upload:
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
-    for current_row_d in metadata.tsv_file_content_dict:
+    for current_row_d in metadata.tsv_file_content_dict_no_empty:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
@@ -274,8 +286,7 @@ class Upload:
 
   def update_simple_ids(self):
     table_name_to_update = self.table_name_temp_dump
-    # update metadata.tsv_file_content_dict with whole_tsv_dump_ids
-    for current_row_d in metadata.tsv_file_content_dict:
+    for current_row_d in metadata.tsv_file_content_dict_no_empty:
       for field_name in self.simple_names_present:
         table_name_w_id = field_name
         field_name_id = field_name + "_id"
@@ -300,7 +311,7 @@ class Upload:
   def update_many_values_to_one_field_ids(self):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
-    for current_row_d in metadata.tsv_file_content_dict:
+    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       table_name_to_update_current_id = current_row_d[table_name_to_update + '_id']
 
       for tsv_field_name in tsv_field_names_to_upload:
@@ -343,32 +354,43 @@ class Upload:
 
   def upload_other_tables(self):
     table_name_to_update = self.table_name_temp_dump
-    ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject', 'entry']]
-    for current_row_d in metadata.tsv_file_content_dict:
+    ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject'], ['entry']]
+    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       self.upload_other_tables_1(ordered_tables_comb_names[0], current_row_d)
-      # for table_name in ordered_tables_comb_names[1]:
-
-
-  #           # ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
-  #         # return 'WHERE ' + ' AND '.join(couples_arr)
-
-  def update_id_or_other_tables(self):
-    ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
-    for current_row_d in metadata.tsv_file_content_dict:
-      where_parts = []
-      for table_name in ordered_tables_comb_names[0]:
+      for table_name in ordered_tables_comb_names[1]:
         field_names_arr = self.tables_comb[table_name]
+        values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
+        for idx, field_name in enumerate(field_names_arr):
+          if field_name.endswith("_id"):
+            db_field_name_no_id = field_name[:-3]
+            table_name_for_id = self.where_to_look_if_not_the_same[db_field_name_no_id]
+            if db_field_name_no_id == "subject_academic_field":
+              print("EEE")
+            val = current_row_d[db_field_name_no_id] or ""
+            # KeyError: 'subject_people'
+            where_part = 'WHERE {} = "{}"'.format(table_name_for_id, val)
+            # 'SELECT publisher_location_id FROM source WHERE place = "US"'
+            current_field_id = mysql_utils.get_id(table_name_for_id + "_id", table_name_for_id, where_part)
+            values_arr[idx] = current_field_id
+        self.insert_row(table_name, field_names_arr, values_arr)
 
-        for field_name in field_names_arr:
-          try:
-            val = current_row_d[field_name]
-          except KeyError:
-            val = ""
-          where_parts.append(" {} = '{}' ".format(field_name, val))
-        where_txt = "WHERE "
-        where_txt += ' AND '.join(where_parts)
-        val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
-        insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
+  # def update_id_or_other_tables(self):
+  #   ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
+  #   for current_row_d in metadata.tsv_file_content_dict:
+  #     where_parts = []
+  #     for table_name in ordered_tables_comb_names[0]:
+  #       field_names_arr = self.tables_comb[table_name]
+  #
+  #       for field_name in field_names_arr:
+  #         try:
+  #           val = current_row_d[field_name]
+  #         except KeyError:
+  #           val = ""
+  #         where_parts.append(" {} = '{}' ".format(field_name, val))
+  #       where_txt = "WHERE "
+  #       where_txt += ' AND '.join(where_parts)
+  #       val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
+  #       insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
 
 
 # def upload_all_from_tsv_but_id(self):
