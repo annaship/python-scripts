@@ -228,6 +228,7 @@ class Upload:
     self.table_name_temp_dump = "whole_tsv_dump"
     # self.simple_names_present = utils.intersection(self.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
 
+    self.upload_empty()
     self.upload_simple_tables()
     self.upload_all_from_tsv_into_temp_table()
     self.update_simple_ids()
@@ -245,6 +246,18 @@ class Upload:
     # self.upload_combine_tables_all()
     print("here")
 
+  def upload_empty(self):
+    all_table_names_query = """
+      SELECT TABLE_NAME
+      FROM INFORMATION_SCHEMA.tables
+      WHERE TABLE_SCHEMA='{}';
+    """.format('mcm_history')
+    all_table_names_res = mysql_utils.execute_fetch_select(all_table_names_query)
+    all_table_names = list(utils.extract(all_table_names_res[0]))
+    for table_name in all_table_names:
+      insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
+      mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
+
   def upload_simple_tables(self):
     for table_name in self.table_names_simple:
       self.simple_mass_upload(table_name, table_name)
@@ -259,7 +272,7 @@ class Upload:
 
     mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
 
-    print(table_name)
+    # print(table_name)
 
 
   def make_field_val_couple_where(self, field_names_arr, values_arr):
@@ -344,7 +357,7 @@ class Upload:
       res_arr.append(val)
     return res_arr
 
-  def upload_other_tables_1(self, table_names, current_row_d):
+  def upload_other_tables_part_1(self, table_names, current_row_d):
     for table_name in table_names: #ordered_tables_comb_names[0]:
       field_names_arr = self.tables_comb[table_name]
       values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
@@ -354,31 +367,33 @@ class Upload:
       where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
       new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
 
-      #  TODO: update temp table sid
+      #  TODO: update temp table's id
       update_q = "UPDATE {} SET {} = {} {}".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt)
       mysql_utils.execute_no_fetch(update_q)
+
+  def upload_other_tables_part_1(self, table_names, current_row_d):
+    for table_name in table_names:
+      field_names_arr = self.tables_comb[table_name]
+      values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
+      for idx, field_name in enumerate(field_names_arr):
+        if field_name.endswith("_id"):
+          db_field_name_no_id = field_name[:-3]
+          table_name_for_id = self.where_to_look_if_not_the_same[db_field_name_no_id]
+          val = current_row_d[db_field_name_no_id] or ""
+          where_part = 'WHERE {} = "{}"'.format(table_name_for_id, val)
+          current_field_id = mysql_utils.get_id(table_name_for_id + "_id", table_name_for_id, where_part)
+          values_arr[idx] = current_field_id
+      self.insert_row(table_name, field_names_arr, values_arr)
 
   def upload_other_tables(self):
     table_name_to_update = self.table_name_temp_dump
     ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject'], ['entry']]
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      self.upload_other_tables_1(ordered_tables_comb_names[0], current_row_d)
-      for table_name in ordered_tables_comb_names[1]:
-        field_names_arr = self.tables_comb[table_name]
-        values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
-        for idx, field_name in enumerate(field_names_arr):
-          if field_name.endswith("_id"):
-            db_field_name_no_id = field_name[:-3]
-            table_name_for_id = self.where_to_look_if_not_the_same[db_field_name_no_id]
-            if db_field_name_no_id == 'subject_season_id':
-              print("EEE")
-            val = current_row_d[db_field_name_no_id] or ""
-            # KeyError: 'subject_people'
-            where_part = 'WHERE {} = "{}"'.format(table_name_for_id, val)
-            # 'SELECT publisher_location_id FROM source WHERE place = "US"'
-            current_field_id = mysql_utils.get_id(table_name_for_id + "_id", table_name_for_id, where_part)
-            values_arr[idx] = current_field_id
-        self.insert_row(table_name, field_names_arr, values_arr)
+      self.upload_other_tables_part_0(ordered_tables_comb_names[0], current_row_d)
+      self.upload_other_tables_part_1(ordered_tables_comb_names[1], current_row_d)
+
+
+  #       TODO: get id from entry_subject right away?
 
   # def update_id_or_other_tables(self):
   #   ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
