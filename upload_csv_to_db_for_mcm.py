@@ -226,7 +226,7 @@ class Upload:
         4) upload tables with ids
     """
     self.table_name_temp_dump = "whole_tsv_dump"
-    self.simple_names_present = utils.intersection(self.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
+    # self.simple_names_present = utils.intersection(self.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
 
     self.upload_simple_tables()
     self.upload_all_from_tsv_into_temp_table()
@@ -246,19 +246,21 @@ class Upload:
     print("here")
 
   def upload_simple_tables(self):
-    for table_name in self.simple_names_present:
+    for table_name in self.table_names_simple:
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_str = ""):
     try:
       if val_str == "":
         val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
-      insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
-
-      mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
-      print(table_name)
+      insert_query = "INSERT IGNORE INTO {} ({}) VALUES {}".format(table_name, field_name, val_str)
     except KeyError:
-      pass
+      insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
+
+    mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
+
+    print(table_name)
+
 
   def make_field_val_couple_where(self, field_names_arr, values_arr):
     # TODO: confirm that a "title" is unique and use just it to get an id
@@ -276,7 +278,7 @@ class Upload:
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
-    for current_row_d in metadata.tsv_file_content_dict_no_empty:
+    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
@@ -290,8 +292,8 @@ class Upload:
 
   def update_simple_ids(self):
     table_name_to_update = self.table_name_temp_dump
-    for current_row_d in metadata.tsv_file_content_dict_no_empty:
-      for field_name in self.simple_names_present:
+    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
+      for field_name in self.table_names_simple:
         table_name_w_id = field_name
         field_name_id = field_name + "_id"
         where_part = 'WHERE {} = "{}"'.format(field_name, current_row_d[field_name])
@@ -368,7 +370,7 @@ class Upload:
           if field_name.endswith("_id"):
             db_field_name_no_id = field_name[:-3]
             table_name_for_id = self.where_to_look_if_not_the_same[db_field_name_no_id]
-            if db_field_name_no_id == "subject_academic_field":
+            if db_field_name_no_id == 'subject_season_id':
               print("EEE")
             val = current_row_d[db_field_name_no_id] or ""
             # KeyError: 'subject_people'
