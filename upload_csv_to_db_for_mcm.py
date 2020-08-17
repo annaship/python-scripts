@@ -140,8 +140,8 @@ class Upload:
   *) tables with foreign keys, see table_names_w_ids
   """
 
-  table_names_simple = ["subject_academic_field", "country", "type", "digitization_specifications", "format",
-                        "identifier", "language", "relation"] #, "role"
+  table_names_simple = ["subject_academic_field", "type", "digitization_specifications", "format",
+                        "identifier", "language", "relation"] #, "role", "country",
   table_names_no_f_keys = ["content", "place"]
   # table_names_no_f_keys = ["content", "person", "season", "source", "place"]
   table_names_w_ids = ["entry", "entry_subject", "source"]
@@ -172,7 +172,7 @@ class Upload:
     # "content": "content",
     # "content_url"              : "content.content_url",
     "contributor"                 : "person",
-    # "country": "country",
+    "country"                     : "place",
     # "coverage_lat": "coverage_lat",
     # "coverage_long": "coverage_long",
     "creator"                     : "person",
@@ -234,7 +234,7 @@ class Upload:
     self.update_simple_ids()
 
     self.upload_many_values_to_one_field()
-    # self.update_many_values_to_one_field_ids()
+    self.update_many_values_to_one_field_ids()
 
     self.upload_other_tables()
     self.update_other_ids()
@@ -246,7 +246,7 @@ class Upload:
     # self.upload_combine_tables_all()
     print("here")
 
-  def upload_empty(self):
+  def upload_empty(self): #TODO: refactor
     all_table_names_query = """
       SELECT TABLE_NAME
       FROM INFORMATION_SCHEMA.tables
@@ -328,11 +328,12 @@ class Upload:
           self.simple_mass_upload(table_name, table_name, val_list)
 
   def update_many_values_to_one_field_ids(self):
+    cnt = 0
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      table_name_to_update_current_id = current_row_d[table_name_to_update + '_id']
-
+      """TODO: go over each table values instead?     
+      for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
       for tsv_field_name in tsv_field_names_to_upload:
         try:
           current_value = current_row_d[tsv_field_name]
@@ -340,12 +341,13 @@ class Upload:
           continue
         table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
         where_part = 'WHERE {} = "{}"'.format(table_name_w_id, current_value)
-        current_id = mysql_utils.get_id(table_name_w_id + "_id", table_name_w_id, where_part)
+        current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
         # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
-        update_q = "UPDATE {} SET {} = {} WHERE {}_id = {}".format(table_name_to_update, tsv_field_name + "_id", current_id, table_name_to_update, table_name_to_update_current_id)
+        update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
         mysql_utils.execute_no_fetch(update_q)
-
-      print("ttt")
+      cnt += 1
+      if cnt == 13:
+        print("ttt = {}".format(cnt))
 
   def make_arr_even_if_empty_val(self, field_names_arr, data_dictionary):
     res_arr = []
@@ -357,7 +359,7 @@ class Upload:
       res_arr.append(val)
     return res_arr
 
-  def upload_other_tables_part_1(self, table_names, current_row_d):
+  def upload_other_tables_part_0(self, table_names, current_row_d):
     for table_name in table_names: #ordered_tables_comb_names[0]:
       field_names_arr = self.tables_comb[table_name]
       values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
@@ -385,15 +387,30 @@ class Upload:
           values_arr[idx] = current_field_id
       self.insert_row(table_name, field_names_arr, values_arr)
 
+      #       TODO: get id from entry_subject right away?
+
+      # TODO: get_id here and add to temp
+      where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
+      new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
+
+      #  TODO: update temp table's id
+      update_q = "UPDATE {} SET {} = {} {}".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt)
+      mysql_utils.execute_no_fetch(update_q)
+
+  # def update_temp_table_ids(self):
+
+
   def upload_other_tables(self):
     table_name_to_update = self.table_name_temp_dump
     ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject'], ['entry']]
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       self.upload_other_tables_part_0(ordered_tables_comb_names[0], current_row_d)
       self.upload_other_tables_part_1(ordered_tables_comb_names[1], current_row_d)
+      # self.update_temp_table_ids()
+      self.upload_other_tables_part_2(ordered_tables_comb_names[2], current_row_d)
 
 
-  #       TODO: get id from entry_subject right away?
+
 
   # def update_id_or_other_tables(self):
   #   ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
