@@ -213,7 +213,11 @@ class Mysql_util:
             self.cursor.execute(sql)
           except mysql.InternalError as e:
               print(e)
-              pass
+              raise
+              # pymysql.err.InternalError: (1054, "Unknown column 'place' in 'where clause'")
+          except mysql.ProgrammingError as e:
+            print(e)
+            raise
           self.conn.commit()
           # print(self.cursor.lastrowid)
           return (self.cursor.rowcount, self.cursor.lastrowid)
