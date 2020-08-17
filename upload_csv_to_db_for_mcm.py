@@ -327,22 +327,27 @@ class Upload:
       res_arr.append(val)
     return res_arr
 
+  def upload_other_tables_1(self, table_names, current_row_d):
+    for table_name in table_names: #ordered_tables_comb_names[0]:
+      field_names_arr = self.tables_comb[table_name]
+      values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
+      self.insert_row(table_name, field_names_arr, values_arr)
+
+      # TODO: get_id here and add to temp
+      where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
+      new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
+
+      #  TODO: update temp table sid
+      update_q = "UPDATE {} SET {} = {} {}".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt)
+      mysql_utils.execute_no_fetch(update_q)
+
   def upload_other_tables(self):
     table_name_to_update = self.table_name_temp_dump
     ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject', 'entry']]
     for current_row_d in metadata.tsv_file_content_dict:
-      for table_name in ordered_tables_comb_names[0]:
-        field_names_arr = self.tables_comb[table_name]
-        values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
-        self.insert_row(table_name, field_names_arr, values_arr)
+      self.upload_other_tables_1(ordered_tables_comb_names[0], current_row_d)
+      # for table_name in ordered_tables_comb_names[1]:
 
-        # TODO: get_id here and add to temp
-        where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
-        new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
-
-        #  TODO: update temp table sid
-        update_q = "UPDATE {} SET {} = {} {}".format(table_name_to_update, table_name + "_id", new_id, where_txt)
-        mysql_utils.execute_no_fetch(update_q)
 
   #           # ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
   #         # return 'WHERE ' + ' AND '.join(couples_arr)
