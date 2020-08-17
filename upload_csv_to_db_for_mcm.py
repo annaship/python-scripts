@@ -137,8 +137,8 @@ class Upload:
   table_names_w_ids = ["entry", "entry_subject", "source"]
   many_values_to_one_field = {
     "season": ["date_season", "date_season_yyyy", "date_exact", "date_digital"],
-    "person": ["contributor", "creator_other", "subject_people"],
-    "place":  ["subject_associated_places", "subject_place"]
+    "person": ["creator", "contributor", "creator_other", "subject_people"],
+    "place":  ["subject_associated_places", "subject_place", "country", "publisher_location"]
   }
 
   tables_comb = {
@@ -336,7 +336,7 @@ class Upload:
         values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
         self.insert_row(table_name, field_names_arr, values_arr)
 
-        # TODO: get_id here nd add to temp
+        # TODO: get_id here and add to temp
         where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
         new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
 
