@@ -281,7 +281,7 @@ class Mysql_util:
           id_result = int(id_result_full[0][0])
         except:
           self.utils.print_both("Unexpected:")
-          self.utils.print_both("field_name = {}, table_name = {}, where_part = {}".format(field_name, table_name, where_part))
+          self.utils.print_both('field_name = "{}", table_name = "{}", where_part = "{}"'.format(field_name, table_name, where_part))
           raise
 
       # self.utils.print_array_w_title(id_result, "=====\nid_result IN get_id")
