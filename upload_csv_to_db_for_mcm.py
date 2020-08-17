@@ -117,11 +117,11 @@ class Metadata:
     for idx, vals_l in enumerate(self.transposed_vals):
       all_val_for1_field = set(vals_l)
       field_name = self.tsv_file_fields[idx]
-      if len(all_val_for1_field) == 1:
-        removed_fields.append(field_name)
-      else:
+      if any(all_val_for1_field):
         good_fields.append(field_name)
         clean_matrix.append(vals_l)
+      else:
+        removed_fields.append(field_name)
     not_empty_tsv_content_dict = dict(zip(good_fields, clean_matrix)) or {}
 
     return not_empty_tsv_content_dict
@@ -241,8 +241,6 @@ class Upload:
 
   def upload_simple_tables(self):
     for table_name in self.simple_names_present:
-      if table_name == "subject_academic_field":
-        print("subject_academic_field")
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_str = ""):
