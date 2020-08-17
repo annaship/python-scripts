@@ -328,7 +328,6 @@ class Upload:
           self.simple_mass_upload(table_name, table_name, val_list)
 
   def update_many_values_to_one_field_ids(self):
-    cnt = 0
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
@@ -345,9 +344,6 @@ class Upload:
         # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
         update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
         mysql_utils.execute_no_fetch(update_q)
-      cnt += 1
-      if cnt == 13:
-        print("ttt = {}".format(cnt))
 
   def make_arr_even_if_empty_val(self, field_names_arr, data_dictionary):
     res_arr = []
