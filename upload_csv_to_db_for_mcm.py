@@ -362,11 +362,13 @@ class Upload:
       self.insert_row(table_name, field_names_arr, values_arr)
 
       # TODO: get_id here and add to temp
-      where_txt_0 = self.make_field_val_couple_where(field_names_arr, values_arr)
+      uniq_index_column_name_arr = mysql_utils.get_uniq_index_columns(db_schema, table_name)
+      uniq_index_column_val = current_row_d[uniq_index_column_name_arr[0]]
+      where_txt_0 = 'WHERE {} = "{}"'.format(uniq_index_column_name_arr[0], uniq_index_column_val)
+      #self.make_field_val_couple_where(field_names_arr, values_arr)
       new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt_0)
 
       #  TODO: update temp table's id
-      uniq_index_column = mysql_utils.get_uniq_index_columns(db_schema, table_name)
 
       # field_names_arr_from_temp = []
       # for f in field_names_arr:
@@ -377,10 +379,9 @@ class Upload:
       #   field_names_arr_from_temp.append(res)
         # [f for f in field_names_arr] # [x if x % 2 else None for x in items]
 
-      where_txt_1 = "WHERE {} = {}".format(uniq_index_column, current_row_d[uniq_index_column[0]])
+      # where_txt_1 = "WHERE {} = {}".format(uniq_index_column, current_row_d[uniq_index_column[0]])
       update_q = """UPDATE {}
-      JOIN {} USING({})
-      SET {} = {} {}""".format(self.table_name_temp_dump, table_name, uniq_index_column, table_name + "_id", new_id, where_txt_1)
+      SET {} = {} {}""".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt_0)
       # no "place" 'UPDATE whole_tsv_dump SET place_id = 1 WHERE place = "" AND coverage_lat = "" AND coverage_long = ""'
       mysql_utils.execute_no_fetch(update_q)
 
@@ -419,9 +420,6 @@ class Upload:
       self.upload_other_tables_part_1(ordered_tables_comb_names[1], current_row_d)
       # self.update_temp_table_ids()
       self.upload_other_tables_part_2(ordered_tables_comb_names[2], current_row_d)
-
-
-
 
   # def update_id_or_other_tables(self):
   #   ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
