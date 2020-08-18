@@ -301,9 +301,15 @@ class Mysql_util:
       # print(query)
       return self.execute_fetch_select(query)
 
+    """SELECT CONSTRAINT_NAME
+    FROM `TABLE_CONSTRAINTS` 
+    join INFORMATION_SCHEMA.KEY_COLUMN_USAGE using(CONSTRAINT_NAME, TABLE_SCHEMA, table_name)
+    WHERE 
+      TABLE_SCHEMA = 'mcm_history'
+    and `CONSTRAINT_TYPE` = 'unique' and table_name = 'content';"""
     def get_uniq_index_columns(self, table_schema, table_name):
-        query = """
-            SELECT DISTINCT COLUMN_NAME
+      query = """
+            SELECT DISTINCT CONSTRAINT_NAME
             FROM information_schema.KEY_COLUMN_USAGE
             JOIN information_schema.TABLE_CONSTRAINTS USING(CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME)
             WHERE
@@ -311,8 +317,21 @@ class Mysql_util:
               AND TABLE_NAME = '%s'
               AND CONSTRAINT_TYPE = 'UNIQUE';
         """ % (table_schema, table_name)
-        rows = self.execute_fetch_select(query)
-        return list(self.utils.extract(rows[0]))
+      rows = self.execute_fetch_select(query)
+      return list(self.utils.extract(rows[0]))
+
+  # def get_uniq_index_columns(self, table_schema, table_name):
+    #     query = """
+    #         SELECT DISTINCT COLUMN_NAME
+    #         FROM information_schema.KEY_COLUMN_USAGE
+    #         JOIN information_schema.TABLE_CONSTRAINTS USING(CONSTRAINT_NAME, TABLE_SCHEMA, TABLE_NAME)
+    #         WHERE
+    #           TABLE_SCHEMA = '%s'
+    #           AND TABLE_NAME = '%s'
+    #           AND CONSTRAINT_TYPE = 'UNIQUE';
+    #     """ % (table_schema, table_name)
+    #     rows = self.execute_fetch_select(query)
+    #     return list(self.utils.extract(rows[0]))
 
     def get_column_names(self, table_name):
         query = "SHOW columns FROM %s" % table_name

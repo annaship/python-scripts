@@ -251,7 +251,7 @@ class Upload:
       SELECT TABLE_NAME
       FROM INFORMATION_SCHEMA.tables
       WHERE TABLE_SCHEMA='{}';
-    """.format('mcm_history')
+    """.format(db_schema)
     all_table_names_res = mysql_utils.execute_fetch_select(all_table_names_query)
     all_table_names = list(utils.extract(all_table_names_res[0]))
     for table_name in all_table_names:
@@ -362,11 +362,26 @@ class Upload:
       self.insert_row(table_name, field_names_arr, values_arr)
 
       # TODO: get_id here and add to temp
-      where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
-      new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
+      where_txt_0 = self.make_field_val_couple_where(field_names_arr, values_arr)
+      new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt_0)
 
       #  TODO: update temp table's id
-      update_q = "UPDATE {} SET {} = {} {}".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt)
+      uniq_index_column = mysql_utils.get_uniq_index_columns(db_schema, table_name)
+
+      # field_names_arr_from_temp = []
+      # for f in field_names_arr:
+      #   if f == uniq_index_column:
+      #     res = '{0}.{0}'.format(table_name)
+      #   else:
+      #     res = f
+      #   field_names_arr_from_temp.append(res)
+        # [f for f in field_names_arr] # [x if x % 2 else None for x in items]
+
+      where_txt_1 = "WHERE {} = {}".format(uniq_index_column, current_row_d[uniq_index_column[0]])
+      update_q = """UPDATE {}
+      JOIN {} USING({})
+      SET {} = {} {}""".format(self.table_name_temp_dump, table_name, uniq_index_column, table_name + "_id", new_id, where_txt_1)
+      # no "place" 'UPDATE whole_tsv_dump SET place_id = 1 WHERE place = "" AND coverage_lat = "" AND coverage_long = ""'
       mysql_utils.execute_no_fetch(update_q)
 
   def upload_other_tables_part_1(self, table_names, current_row_d):
@@ -729,12 +744,14 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
+  db_schema = 'mcm_history'
+
   if utils.is_local() == True:
-    mysql_utils = util.Mysql_util(host = 'localhost', db = 'mcm_history', read_default_group = 'clienthome')
-    print("host = 'localhost', db = 'mcm_history'")
+    mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
+    print("host = 'localhost', db = {}".format(db_schema))
   else:
-    mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = 'mcm_history', read_default_group = 'client')
-    print("host = 'taylor.unm.edu', db = 'mcm_history'")
+    mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
+    print("host = 'taylor.unm.edu', db {}".format(db_schema))
 
   parser = argparse.ArgumentParser()
 
