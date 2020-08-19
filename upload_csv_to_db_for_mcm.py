@@ -281,11 +281,16 @@ class Upload:
 
       select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
       """.format(field_name, field_name_id, table_name, field_name, current_vals_str)
-      print(select_q)
-        # "SELECT val, current_id FROM table_name WHERE val in (current_vals)"
-      # SELECT language, language_id FROM language WHERE language in ("English", "")
-      # update_q = """UPDATE {} SET {} = {} WHERE {}_id = {}
-      #
+      sql_res = mysql_utils.execute_fetch_select(select_q)
+      print(sql_res)
+
+      # convert sql_res to tuples for update
+    print("DDD")
+
+      # update_q = """UPDATE {}
+      # SET {} = {} {}""".format(self.table_name_temp_dump, field_name_id, new_id, where_txt_0)
+      # # no "place" 'UPDATE whole_tsv_dump SET place_id = 1 WHERE place = "" AND coverage_lat = "" AND coverage_long = ""'
+      # mysql_utils.execute_no_fetch(update_q)
       # """.format(self.table_name_temp_dump, field_name_id, current_id,
       #                                                            table_name_to_update, table_name_to_update_current_id)
 
