@@ -192,7 +192,6 @@ class Upload:
     self.upload_empty()
     self.upload_simple_tables()
     self.upload_all_from_tsv_into_temp_table()
-    # self.update_simple_ids()
     self.mass_update_simple_ids()
 
     self.upload_many_values_to_one_field()
@@ -282,29 +281,6 @@ class Upload:
           WHERE {} = "{}"'''.format(self.table_name_temp_dump, field_name_id, val_id, field_name, val)
         mysql_utils.execute_no_fetch(update_q)
 
-    print("DDD")
-
-      # update_q = """UPDATE {}
-      # SET {} = {} {}""".format(self.table_name_temp_dump, field_name_id, new_id, where_txt_0)
-      # # no "place" 'UPDATE whole_tsv_dump SET place_id = 1 WHERE place = "" AND coverage_lat = "" AND coverage_long = ""'
-      # mysql_utils.execute_no_fetch(update_q)
-      # """.format(self.table_name_temp_dump, field_name_id, current_id,
-      #                                                            table_name_to_update, table_name_to_update_current_id)
-
-  def update_simple_ids(self):
-    table_name_to_update = self.table_name_temp_dump
-    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      for field_name in self.simple_tables:
-        table_name_w_id = field_name
-        field_name_id = field_name + "_id"
-        where_part = 'WHERE {} = "{}"'.format(field_name, current_row_d[field_name])
-        current_id = mysql_utils.get_id(field_name_id, table_name_w_id, where_part)
-
-        table_name_to_update_current_id = current_row_d[table_name_to_update + '_id']
-        update_q = "UPDATE {} SET {} = {} WHERE {}_id = {}".format(table_name_to_update, field_name_id, current_id, table_name_to_update, table_name_to_update_current_id)
-        mysql_utils.execute_no_fetch(update_q)
-      # print("ttt")
-
   def upload_many_values_to_one_field(self):
     tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
     value_present = utils.intersection(tsv_field_names_to_upload, metadata.not_empty_tsv_content_dict.keys())
@@ -333,99 +309,57 @@ class Upload:
         update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
         mysql_utils.execute_no_fetch(update_q)
 
-  def make_arr_even_if_empty_val(self, field_names_arr, data_dictionary):
-    res_arr = []
-    for field_name in field_names_arr:
-      try:
-        val = data_dictionary[field_name]
-      except KeyError:
-        val = ""
-      res_arr.append(val)
-    return res_arr
+  def make_id_values_arr(self, sql_res_d):
+    """'identifier_id' = {int} 2
+'title_id' = {int} 4
+'content_id' = {int} 0"""
+    sql_res_d_full = self.find_empty_ids(sql_res_d)
+    self.format_to_list(sql_res_d_full)
 
-  def upload_other_tables_part_0(self, table_names, current_row_d):
-    for table_name in table_names: #ordered_tables_comb_names[0]:
-      field_names_arr = self.tables_comb[table_name]
-      values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
-      self.insert_row(table_name, field_names_arr, values_arr)
+  def find_empty_ids(self, sql_res_d):
+    for field, val in sql_res_d.items():
+      if val == 0:
+        name_no_id = field[:-3]
+        '''select identifier_id from identifier where identifier = ""'''
+        select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
+        empty_id = mysql_utils.execute_fetch_select(select_q)
+        sql_res_d[field] = list(utils.extract(empty_id))[0]
+    return sql_res_d
 
-      # TODO: get_id here and add to temp
-      uniq_index_column_name_arr = mysql_utils.get_uniq_index_columns(db_schema, table_name)
-      uniq_index_column_val = current_row_d[uniq_index_column_name_arr[0]]
-      where_txt_0 = '{} = "{}"'.format(uniq_index_column_name_arr, uniq_index_column_val)
-      #self.make_field_val_couple_where(field_names_arr, values_arr)
-      new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt_0)
 
-      #  TODO: update temp table's id
+  def format_to_list(self, sql_res_d_full):
+    pass
 
-      # field_names_arr_from_temp = []
-      # for f in field_names_arr:
-      #   if f == uniq_index_column:
-      #     res = '{0}.{0}'.format(table_name)
-      #   else:
-      #     res = f
-      #   field_names_arr_from_temp.append(res)
-        # [f for f in field_names_arr] # [x if x % 2 else None for x in items]
+  def upload_other_tables(self):
+    table_name_to_update = self.table_names_w_ids[0] # ["entry"]
+    where_to_Look_for_ids = self.table_name_temp_dump
+    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
+      tsv_field_names_to_upload = current_row_d.keys()
+      tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
+      tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
+      unique_key = 'title'
+      select_q = '''SELECT {} FROM {} 
+        WHERE {} = "{}"'''.format(tsv_field_names_to_upload_ids_str, where_to_Look_for_ids, unique_key, current_row_d['title'])
+      sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
+      values_arr = self.make_id_values_arr(sql_res[0])
+      # IF empty and no id - get
+      self.insert_row(self, table_name_to_update, tsv_field_names_to_upload_ids, values_arr)
+      print("DDDA")
+      # insert_q = "INSERT IGNORE INTO `{}` ({}) VALUES ()".format(table_name, table_name + "_id")
+      # mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
 
-      # where_txt_1 = "WHERE {} = {}".format(uniq_index_column, current_row_d[uniq_index_column[0]])
-      update_q = """UPDATE {}
-      SET {} = {} {}""".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt_0)
-      # no "place" 'UPDATE whole_tsv_dump SET place_id = 1 WHERE place = "" AND coverage_lat = "" AND coverage_long = ""'
-      mysql_utils.execute_no_fetch(update_q)
-
-  def upload_other_tables_part_1(self, table_names, current_row_d):
-    for table_name in table_names:
-      field_names_arr = self.tables_comb[table_name]
-      values_arr = self.make_arr_even_if_empty_val(field_names_arr, current_row_d)
-      for idx, field_name in enumerate(field_names_arr):
-        if field_name.endswith("_id"):
-          db_field_name_no_id = field_name[:-3]
-          table_name_for_id = self.where_to_look_if_not_the_same[db_field_name_no_id]
-          val = current_row_d[db_field_name_no_id] or ""
-          where_part = 'WHERE {} = "{}"'.format(table_name_for_id, val)
-          current_field_id = mysql_utils.get_id(table_name_for_id + "_id", table_name_for_id, where_part)
-          values_arr[idx] = current_field_id
-      self.insert_row(table_name, field_names_arr, values_arr)
-
-      #       TODO: get id from entry_subject right away?
-
-      # TODO: get_id here and add to temp
-      where_txt = self.make_field_val_couple_where(field_names_arr, values_arr)
-      new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt)
-
-      #  TODO: update temp table's id
-      update_q = "UPDATE {} SET {} = {} {}".format(self.table_name_temp_dump, table_name + "_id", new_id, where_txt)
-      mysql_utils.execute_no_fetch(update_q)
-
-  # def update_temp_table_ids(self):
-
-  #
-  # def upload_other_tables(self):
-  #   table_name_to_update = self.table_name_temp_dump
-  #   ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject'], ['entry']]
-  #   for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-  #     self.upload_other_tables_part_0(ordered_tables_comb_names[0], current_row_d)
-  #     self.upload_other_tables_part_1(ordered_tables_comb_names[1], current_row_d)
-  #     # self.update_temp_table_ids()
-  #     self.upload_other_tables_part_2(ordered_tables_comb_names[2], current_row_d)
-
-  # def update_id_or_other_tables(self):
-  #   ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
-  #   for current_row_d in metadata.tsv_file_content_dict:
-  #     where_parts = []
-  #     for table_name in ordered_tables_comb_names[0]:
-  #       field_names_arr = self.tables_comb[table_name]
-  #
-  #       for field_name in field_names_arr:
-  #         try:
-  #           val = current_row_d[field_name]
-  #         except KeyError:
-  #           val = ""
-  #         where_parts.append(" {} = '{}' ".format(field_name, val))
-  #       where_txt = "WHERE "
-  #       where_txt += ' AND '.join(where_parts)
-  #       val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
-  #       insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
+      # for tsv_field_name in tsv_field_names_to_upload:
+      #   try:
+      #     current_value = current_row_d[tsv_field_name]
+      #   except KeyError:
+      #     continue
+      #   table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+      #   where_part = 'WHERE {} = "{}"'.format(table_name_w_id, current_value)
+      #   current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
+      #   # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
+      #   update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id',
+      #                                                             current_id, tsv_field_name, current_value)
+      #   mysql_utils.execute_no_fetch(update_q)
 
 
 if __name__ == '__main__':
