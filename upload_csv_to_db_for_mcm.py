@@ -275,8 +275,15 @@ class Upload:
         # is empty
         continue
 
-      field_name_id = table_name + "_id"
-      select_q = "SELECT val, current_id FROM table_name WHERE val in (current_vals)"
+      field_name = table_name
+      field_name_id = field_name + '_id'
+      current_vals_str = ', '.join('"{0}"'.format(w) for w in current_vals)
+
+      select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
+      """.format(field_name, field_name_id, table_name, field_name, current_vals_str)
+      print(select_q)
+        # "SELECT val, current_id FROM table_name WHERE val in (current_vals)"
+      # SELECT language, language_id FROM language WHERE language in ("English", "")
       # update_q = """UPDATE {} SET {} = {} WHERE {}_id = {}
       #
       # """.format(self.table_name_temp_dump, field_name_id, current_id,
