@@ -364,7 +364,7 @@ class Upload:
       # TODO: get_id here and add to temp
       uniq_index_column_name_arr = mysql_utils.get_uniq_index_columns(db_schema, table_name)
       uniq_index_column_val = current_row_d[uniq_index_column_name_arr[0]]
-      where_txt_0 = 'WHERE {} = "{}"'.format(uniq_index_column_name_arr[0], uniq_index_column_val)
+      where_txt_0 = '{} = "{}"'.format(uniq_index_column_name_arr, uniq_index_column_val)
       #self.make_field_val_couple_where(field_names_arr, values_arr)
       new_id = mysql_utils.get_id(table_name + "_id", table_name, where_txt_0)
 
