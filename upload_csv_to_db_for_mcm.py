@@ -61,10 +61,6 @@ class Metadata:
     "Rights"                     : "rights"
   }
 
-  # empty_equivalents = ['none', 'undefined', 'please choose one', 'unknown', 'null', 'unidentified', 'select...', '']
-  #TODO: mv to init with self
-
-
   def __init__(self, input_file):
     self.get_data_from_csv(input_file)
     self.tsv_file_fields = self.tsv_file_content_list[0]
@@ -139,14 +135,12 @@ class Upload:
   *) tables with foreign keys, see table_names_w_ids
   """
 
-  # table_names_simple = ["subject_academic_field", "type", "digitization_specifications", "format",
-  #                       "identifier", "language", "relation"]
   table_names_w_ids = ["entry"]
   table_name_temp_dump = "whole_tsv_dump"
   many_values_to_one_field = {
-    "season": ["date_season", "date_season_yyyy", "date_exact", "date_digital"],
-    "person": ["creator", "contributor", "creator_other", "subject_people"],
-    "place":  ["subject_associated_places", "subject_place", "country", "publisher_location"]
+    "season": [ "date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+    "person": ["contributor", "creator", "creator_other", "subject_people"],
+    "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
   }
 
   where_to_look_if_not_the_same = {
@@ -268,7 +262,6 @@ class Upload:
 
   def mass_update_simple_ids(self):
     for table_name in self.simple_tables:
-      current_vals = []
       try:
         current_vals = set(metadata.not_empty_tsv_content_dict[table_name])
       except KeyError:
@@ -282,9 +275,13 @@ class Upload:
       select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
       """.format(field_name, field_name_id, table_name, field_name, current_vals_str)
       sql_res = mysql_utils.execute_fetch_select(select_q)
-      print(sql_res)
 
-      # convert sql_res to tuples for update
+      for (val, val_id) in sql_res[0]:
+        update_q = '''UPDATE {}
+          SET {} = {} 
+          WHERE {} = "{}"'''.format(self.table_name_temp_dump, field_name_id, val_id, field_name, val)
+        mysql_utils.execute_no_fetch(update_q)
+
     print("DDD")
 
       # update_q = """UPDATE {}
