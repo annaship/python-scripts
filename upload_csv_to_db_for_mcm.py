@@ -194,12 +194,12 @@ class Upload:
     """
     self.special_tables = self.get_special_tables()
     self.simple_tables = list(all_tables_set - set(self.special_tables))
-    # self.simple_names_present = utils.intersection(self.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
 
     self.upload_empty()
     self.upload_simple_tables()
     self.upload_all_from_tsv_into_temp_table()
-    self.update_simple_ids()
+    # self.update_simple_ids()
+    self.mass_update_simple_ids()
 
     self.upload_many_values_to_one_field()
     self.update_many_values_to_one_field_ids()
@@ -251,9 +251,6 @@ class Upload:
     values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
     mysql_utils.execute_insert(table_name, field_names_str, values_str)
 
-
-  # def add_id_back(self):
-
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
@@ -268,6 +265,22 @@ class Upload:
       where_part_for_id = self.make_field_val_couple_where(field_names_arr, values_arr)
       current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
       current_row_d[table_name_id] = current_id
+
+  def mass_update_simple_ids(self):
+    for table_name in self.simple_tables:
+      current_vals = []
+      try:
+        current_vals = set(metadata.not_empty_tsv_content_dict[table_name])
+      except KeyError:
+        # is empty
+        continue
+
+      field_name_id = table_name + "_id"
+      select_q = "SELECT val, current_id FROM table_name WHERE val in (current_vals)"
+      # update_q = """UPDATE {} SET {} = {} WHERE {}_id = {}
+      #
+      # """.format(self.table_name_temp_dump, field_name_id, current_id,
+      #                                                            table_name_to_update, table_name_to_update_current_id)
 
   def update_simple_ids(self):
     table_name_to_update = self.table_name_temp_dump
@@ -377,15 +390,15 @@ class Upload:
 
   # def update_temp_table_ids(self):
 
-
-  def upload_other_tables(self):
-    table_name_to_update = self.table_name_temp_dump
-    ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject'], ['entry']]
-    for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      self.upload_other_tables_part_0(ordered_tables_comb_names[0], current_row_d)
-      self.upload_other_tables_part_1(ordered_tables_comb_names[1], current_row_d)
-      # self.update_temp_table_ids()
-      self.upload_other_tables_part_2(ordered_tables_comb_names[2], current_row_d)
+  #
+  # def upload_other_tables(self):
+  #   table_name_to_update = self.table_name_temp_dump
+  #   ordered_tables_comb_names = [['content', 'place'], ['source', 'entry_subject'], ['entry']]
+  #   for current_row_d in metadata.tsv_file_content_dict_clean_keys:
+  #     self.upload_other_tables_part_0(ordered_tables_comb_names[0], current_row_d)
+  #     self.upload_other_tables_part_1(ordered_tables_comb_names[1], current_row_d)
+  #     # self.update_temp_table_ids()
+  #     self.upload_other_tables_part_2(ordered_tables_comb_names[2], current_row_d)
 
   # def update_id_or_other_tables(self):
   #   ordered_tables_comb_names = [['content', 'source', 'place'], ['entry_subject', 'entry']]
