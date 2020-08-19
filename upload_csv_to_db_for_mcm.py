@@ -309,13 +309,6 @@ class Upload:
         update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
         mysql_utils.execute_no_fetch(update_q)
 
-  def make_id_values_arr(self, sql_res_d):
-    """'identifier_id' = {int} 2
-'title_id' = {int} 4
-'content_id' = {int} 0"""
-    sql_res_d_full = self.find_empty_ids(sql_res_d)
-    self.format_to_list(sql_res_d_full)
-
   def find_empty_ids(self, sql_res_d):
     for field, val in sql_res_d.items():
       if val == 0:
@@ -325,10 +318,6 @@ class Upload:
         empty_id = mysql_utils.execute_fetch_select(select_q)
         sql_res_d[field] = list(utils.extract(empty_id))[0]
     return sql_res_d
-
-
-  def format_to_list(self, sql_res_d_full):
-    pass
 
   def upload_other_tables(self):
     table_name_to_update = self.table_names_w_ids[0] # ["entry"]
@@ -341,9 +330,9 @@ class Upload:
       select_q = '''SELECT {} FROM {} 
         WHERE {} = "{}"'''.format(tsv_field_names_to_upload_ids_str, where_to_Look_for_ids, unique_key, current_row_d['title'])
       sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
-      values_arr = self.make_id_values_arr(sql_res[0])
+      dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
-      self.insert_row(self, table_name_to_update, tsv_field_names_to_upload_ids, values_arr)
+      self.insert_row(table_name_to_update, list(dict_w_all_ids.keys()), list(dict_w_all_ids.values()))
       print("DDDA")
       # insert_q = "INSERT IGNORE INTO `{}` ({}) VALUES ()".format(table_name, table_name + "_id")
       # mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
