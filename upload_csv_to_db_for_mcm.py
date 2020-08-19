@@ -133,8 +133,8 @@ class Metadata:
 
 class Upload:
   """
-  4 table types (intersect is possible):
-  *) table_name equal field_name ("identifier"), see table_names_simple
+  table types (intersect is possible):
+  *) table_name equal field_name ("identifier")
   *) many field_names correspond to one table_name = field_name ("place": ["subject_associated_places", "subject_place"]}), see many_values_to_one_field
   *) tables with foreign keys, see table_names_w_ids
   """
@@ -220,14 +220,13 @@ class Upload:
     return special_tables + self.table_names_w_ids + list(self.many_values_to_one_field.keys())
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
-  def upload_empty(self): #TODO: refactor
-    all_table_names = list(utils.extract(all_table_names_res[0]))
-    for table_name in all_table_names:
+  def upload_empty(self):
+    for table_name in list(all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
 
   def upload_simple_tables(self):
-    for table_name in self.table_names_simple:
+    for table_name in self.simple_tables:
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_str = ""):
@@ -273,7 +272,7 @@ class Upload:
   def update_simple_ids(self):
     table_name_to_update = self.table_name_temp_dump
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      for field_name in self.table_names_simple:
+      for field_name in self.simple_tables:
         table_name_w_id = field_name
         field_name_id = field_name + "_id"
         where_part = 'WHERE {} = "{}"'.format(field_name, current_row_d[field_name])
@@ -407,303 +406,6 @@ class Upload:
   #       insert_query = "INSERT %s INTO %s (%s) VALUES %s" % ('IGNORE', table_name, field_name, val_str)
 
 
-# def upload_all_from_tsv_but_id(self):
-  #   self.upload_simple_tables()
-  #   self.upload_many_values_to_one_field()
-  #   self.upload_combine_tables_no_foreign_keys()
-
-  # def upload_combine_tables_no_foreign_keys(self):
-  #   str_field_by_table_comb = self.get_info_combine_tables()
-  #   for ent in str_field_by_table_comb:
-  #     for table_name, info in ent.items():
-  #       if table_name in Upload.table_names_no_f_keys:
-  #         field_names = info[0]
-  #         val_list = info[1]
-  #         mysql_utils.execute_insert(table_name, field_names, val_list)
-
-  # def add_data_toCOmb_tables(self):
-  #
-  # def update_other_ids(self):
-  #   ordered_tables_comb_names = ['content', 'source', 'place', 'entry_subject', 'entry']
-  #   table_name_to_update = self.table_name_temp_dump
-  #   for current_row_d in metadata.tsv_file_content_dict:
-  #     for table_comb_name in ordered_tables_comb_names:
-  #       field_names = self.tables_comb[table_comb_name]
-  #       # for field_name in field_names:
-  #       self.make_where_and_query(current_row_d)
-  #       #   {k:d[k] for k in l if k in d}
-  #
-  #
-  # def make_where_and_query(self, current_data_dict):
-  #   where_parts = []
-  #   for field_name, val in current_data_dict.items():
-  #     if field_name in
-  #     where_parts.append(" {} = '{}' ".format(field_name, val))
-  #   where_txt = "WHERE "
-  #   where_txt += ' AND '.join(where_parts)
-  #   # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
-  #   # id = mysql_utils.get_id(id_name, table_name, where_txt)
-  # #   {k:d[k] for k in current_data_dict.keys() if k in d}
-  #
-
-
-  # def upload_many_values_to_one_field(self):
-  #   tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
-  #   value_present = utils.intersection(tsv_field_names_to_upload, metadata.not_empty_tsv_content_dict.keys())
-  #
-  #   for table_name, tsv_field_names in self.many_values_to_one_field.items():
-  #     for tsv_field_name in tsv_field_names:
-  #       if tsv_field_name in value_present:
-  #         val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[tsv_field_name]))
-  #         self.simple_mass_upload(table_name, table_name, val_list)
-
-  # def get_db_names_by_tsv_field_name(self, tsv_field_name):
-  #   if tsv_field_name in self.where_to_look_if_not_the_same.keys():
-  #     try:
-  #       (table_name, field_name) = self.where_to_look_if_not_the_same[tsv_field_name].split(".") #like "content.content_url"
-  #     except ValueError: # like "person" same name
-  #       table_name = self.where_to_look_if_not_the_same[tsv_field_name]
-  #       field_name = table_name
-  #   else:
-  #     table_name = tsv_field_name
-  #     field_name = table_name
-  #   return (field_name, table_name)
-
-  # def get_all_sql_queries_for_ids(self):
-  #   # TODO: deal with it:
-  #   db_only_field_names = ["manual_identifier_ref_id", "entry_subject_id"]
-  #   """ 1) through combined tables
-  #       # TODO: WHERE should be by table, i.e "where publisher = 'American Geophysical Union Transactions' AND 'publisher_location' = US"
-  #
-  #       2) the rest
-  #       3) "entry" with all the ids
-  #   """
-  #   all_sql_queries_for_ids = []
-  #   for idx, current_dict in enumerate(metadata.tsv_file_content_dict):
-  #     all_sql_queries_for_ids_for_row = defaultdict(lambda : defaultdict(list))
-  #     row = defaultdict()
-  #     tsv_field_name = ""
-  #     where_part_arr = []
-  #     # 1) through combined tables, except "entry"
-  #     #  then do it again for "entry" with ids
-  #     for table_name, field_names in self.tables_comb.items():
-  #       use_names = list(set(field_names) - set(db_only_field_names)) + self.table_names_simple
-  #       for field_name in use_names:
-  #         tsv_field_name = field_name
-  #         if field_name.endswith("_id"):
-  #           tsv_field_name = field_name[:-3]
-  #           """TODO: look up foreign key instead of just stripping"""
-  #         #   KeyError: 'date_season_yyyy'
-  #         try:
-  #           current_value = current_dict[tsv_field_name]
-  #         except KeyError:
-  #           # temp:
-  #           if tsv_field_name in ["subject_associated_places", "place", "identifier"]:
-  #             pass
-  #           else:
-  #             raise
-  #         where_part = '{} = "{}"'.format(field_name, current_value)
-  #         where_part_arr.append(where_part)
-  #       where_part_and = " AND ".join(where_part_arr)
-  #       q = "SELECT {}_id FROM {} WHERE {}".format(table_name, table_name, where_part_and)
-  #       print("QQQ")
-  #       print(q)
-  #       all_sql_queries_for_ids_for_row[idx][table_name].append(q)
-  #     all_sql_queries_for_ids.append(all_sql_queries_for_ids_for_row)
-  #
-  #     # for tsv_field_name, current_value in current_dict.items():
-  #     #   (field_name, table_name) = self.get_db_names_by_tsv_field_name(tsv_field_name)
-  #     #   where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
-  #     #   field_name_id = table_name + "_id"
-  #     #   current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
-  #     #   row[tsv_field_name].append(current_value_id)
-
-  # def make_data_matrix_dict(self):
-  #   self.get_all_sql_queries_for_ids()
-  #   data_matrix = []
-  #   for current_dict in metadata.tsv_file_content_dict:
-  #     row = defaultdict()
-  #     self.combine_fields_by_table()
-  #     # 1) throw combined tables
-  #     #
-  #     for tsv_field_name, current_value in current_dict.items():
-  #       (field_name, table_name) = self.get_db_names_by_tsv_field_name(tsv_field_name)
-  #       where_part = 'WHERE {} = "{}"'.format(field_name, current_value)
-  #       # TODO: WHERE should be by table, i.e "where publisher = 'American Geophysical Union Transactions' AND 'publisher_location' = US"
-  #       field_name_id = table_name + "_id"
-  #       current_value_id = mysql_utils.get_id(field_name_id, table_name, where_part)
-  #       row[tsv_field_name] = current_value_id
-  #   """
-  #       str_field_by_table_comb = []
-  #
-  #   for d in metadata.tsv_file_content_dict:
-  #     temp_dict_str = defaultdict()
-  #     for table_name in Upload.tables_comb.keys():
-  #       values = self.get_values(d, table_name)
-  #       field_names_for_table = self.get_field_names_per_table(table_name)
-  #
-  #       field_names = ', '.join('{0}'.format(w) for w in field_names_for_table)
-  #       val_list = ', '.join('"{0}"'.format(w) for w in values)
-  #       temp_dict_str[table_name] = (field_names, val_list)
-  #
-  #     str_field_by_table_comb.append(temp_dict_str)
-  #   return str_field_by_table_comb
-  #   :return:
-  #   """
-
-  # def update_data_matrix_dict_with_ids(self):
-  #   pass
-
-  # def update_data_by_row(self):
-  #   all_table_names = list(Upload.tables_comb.keys()) + Upload.table_names_simple
-  #   for row_entry_d in metadata.tsv_file_content_dict:
-  #     temp_dict_arr = defaultdict()
-  #     for table_name in all_table_names:
-  #       values = self.get_values(row_entry_d, table_name)
-  #       field_names_for_table = self.get_field_names_per_table(table_name)
-  #       try:
-  #         temp_dict_arr[table_name] = dict(zip(field_names_for_table, values))
-  #       except KeyError:
-  #         table_name = Upload.where_to_look[table_name]
-  #         id_name = table_name + "_id"
-  #         where_txt = metadata.tsv_file_content_dict
-  #         # id = mysql_utils.get_id(id_name, table_name, where_txt)
-  #         temp_dict_arr[table_name] = {}
-  #
-  #     self.data_by_row.append(temp_dict_arr)
-
-  # def get_field_names_per_table(self, table_name):
-  #   try:
-  #     field_names_for_table = Upload.tables_comb[table_name]
-  #   except KeyError:
-  #     field_names_for_table = [table_name]
-  #   return field_names_for_table
-
-  # def get_values(self, d, table_name):
-  #   values = []
-  #   field_names_for_table = self.get_field_names_per_table(table_name)
-  #
-  #   for field_name in field_names_for_table:
-  #     try:
-  #       values.append(d[field_name])
-  #     except KeyError:
-  #       values.append("")
-  #   return values
-
-  # def get_info_combine_tables(self):
-  #   # TODO: check if all got into the dict, even with a "wrong" name
-  #   str_field_by_table_comb = []
-  #
-  #   for d in metadata.tsv_file_content_dict:
-  #     temp_dict_str = defaultdict()
-  #     for table_name in Upload.tables_comb.keys():
-  #       values = self.get_values(d, table_name)
-  #       field_names_for_table = self.get_field_names_per_table(table_name)
-  #
-  #       field_names = ', '.join('{0}'.format(w) for w in field_names_for_table)
-  #       val_list = ', '.join('"{0}"'.format(w) for w in values)
-  #       temp_dict_str[table_name] = (field_names, val_list)
-  #
-  #     str_field_by_table_comb.append(temp_dict_str)
-  #   return str_field_by_table_comb
-
-  # def get_id_by_tsv_val(self):
-  #   where_to_look = {"subject_place_id": "place",
-  #         "subject_associated_places_id": "place",
-  #         "subject_people_id": "person",
-  #         "subject_season_id": "season"}
-  #
-  #   def get_table_foreign_key_names(self, table_name_to_strip):
-  #     for table_id_name in Upload.tables_comb[table_name_to_strip]:
-  #       if table_id_name.endswith("_id"):
-  #         table_name = re.sub("_id", "", table_id_name)
-  #         try:
-  #           Upload.foreign_key_tables[table_name_to_strip][table_name] = table_id_name
-  #         except:
-  #           table_name = Upload.where_to_look[table_id_name]
-  #           id_name = table_name + "_id"
-  #           where_txt = metadata.tsv_file_content_dict
-  #           id = mysql_utils.get_id(id_name, table_name, where_txt)
-  #           raise
-  #   # for idx, ent in enumerate(self.data_by_row):
-  #   #   for table_name in table_names_to_get_ids:
-  #   #     id_name = table_name + "_id"
-  #   #     where_parts = []
-  #   #     current_data = ent[table_name]
-  #   #     for field_name, val in current_data.items():
-  #   #       where_parts.append(" {} = '{}' ".format(field_name, val))
-  #   #     where_txt = "WHERE "
-  #   #     where_txt += ' AND '.join(where_parts)
-  #   #     # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
-  #   #     id = mysql_utils.get_id(id_name, table_name, where_txt)
-  #   #     self.data_by_row[idx][table_name][id_name] = id
-
-  # def upload_combine_tables_all(self):
-  #   # ["entry_subject", "entry"]
-  #   for idx, ent in enumerate(self.data_by_row):
-  #     for table_name_w_ids, in_dict in Upload.foreign_key_tables.items():
-  #       for field_name_to_fill, id_name_to_fill in in_dict.items():
-  #         """
-  #         get ids by csv val
-  #         "subject_place_id"
-  #         "subject_associated_places_id"
-  #         "subject_people_id"
-  #         "subject_season_id"
-  #         """
-  #         # self.get_id_by_tsv_val()
-  #         try:
-  #           current_id = ent[field_name_to_fill][id_name_to_fill]
-  #         except KeyError:
-  #           table_name = Upload.where_to_look[id_name_to_fill]
-  #           field_name = table_name + "_id"
-  #
-  #           subject_place_id_value = metadata.tsv_file_content_dict[idx][field_name_to_fill]
-  #           # field_name = "place_id"
-  #           # table_name = "place"
-  #           val_list = "'{}'".format(subject_place_id_value)
-  #           res = mysql_utils.execute_insert(table_name, field_name, val_list)
-  #
-  #           if res[0] == 1:
-  #             current_id = res[1]
-  #           else:
-  #             where_part = "WHERE {} = '{}'".format(field_name, subject_place_id_value)
-  #             current_id = mysql_utils.get_id(field_name, table_name, where_part)
-  #             print(current_id)
-  #           # raise
-  #         self.data_by_row[idx][table_name_w_ids][id_name_to_fill] = current_id
-  #
-  #       # fields_to_fill = Upload.tables_comb[table_name_w_ids]
-  #       # for table_name, info in ent.items():
-  #       #   # if table_name in Upload.table_names_w_ids:
-  #       #   for field_name in fields_to_fill:
-  #       #     entry_field_names = info[0]
-  #       #     val_str = info[1]
-  #       #     mysql_utils.execute_insert(table_name, entry_field_names, val_str)
-
-  # def print_out_err(self, ):
-    # q = 0
-    # if table_name == "subject_academic_field":
-    #   print("EEE1")
-    # q += 1
-    # if q == 10:
-    #   print("HERE!!!")
-
-  # def get_ids(self):
-  #   table_names_to_get_ids = Upload.table_names_no_f_keys + Upload.table_names_simple
-  #   for idx, ent in enumerate(self.data_by_row):
-  #     for table_name in table_names_to_get_ids:
-  #       id_name = table_name + "_id"
-  #       where_parts = []
-  #       current_data = ent[table_name]
-  #       for field_name, val in current_data.items():
-  #         where_parts.append(" {} = '{}' ".format(field_name, val))
-  #       where_txt = "WHERE "
-  #       where_txt += ' AND '.join(where_parts)
-  #       # q = "SELECT {0}_id FROM {0} WHERE {1}".format(table_name, where_txt)
-  #       id = mysql_utils.get_id(id_name, table_name, where_txt)
-  #       self.data_by_row[idx][table_name][id_name] = id
-
-
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
 
@@ -719,8 +421,7 @@ if __name__ == '__main__':
     print("host = 'taylor.unm.edu', db {}".format(db_schema))
 
   all_tables_sql_res = mysql_utils.get_table_names(db_schema)
-  all_tables_set = set([x[0] for x in all_tables_sql_res[0]])
-
+  all_tables_set = set(utils.extract(all_tables_sql_res[0]))
 
   parser = argparse.ArgumentParser()
 
