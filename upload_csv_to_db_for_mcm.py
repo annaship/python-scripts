@@ -136,35 +136,17 @@ class Upload:
   4 table types (intersect is possible):
   *) table_name equal field_name ("identifier"), see table_names_simple
   *) many field_names correspond to one table_name = field_name ("place": ["subject_associated_places", "subject_place"]}), see many_values_to_one_field
-  *) tables with many columns, no foreign keys ("content")
   *) tables with foreign keys, see table_names_w_ids
   """
 
-  table_names_simple = ["subject_academic_field", "type", "digitization_specifications", "format",
-                        "identifier", "language", "relation"] #, "role", "country",
-  table_names_no_f_keys = ["content", "place"]
-  # table_names_no_f_keys = ["content", "person", "season", "source", "place"]
-  table_names_w_ids = ["entry", "entry_subject", "source"]
+  # table_names_simple = ["subject_academic_field", "type", "digitization_specifications", "format",
+  #                       "identifier", "language", "relation"]
+  table_names_w_ids = ["entry"]
+  table_name_temp_dump = "whole_tsv_dump"
   many_values_to_one_field = {
     "season": ["date_season", "date_season_yyyy", "date_exact", "date_digital"],
     "person": ["creator", "contributor", "creator_other", "subject_people"],
     "place":  ["subject_associated_places", "subject_place", "country", "publisher_location"]
-  }
-
-  tables_comb = {
-    "content"      : ["title", "content", "content_url", "description"],
-    "entry"        : ["content_id", "country_id", "creator_id", "creator_other_id",
-                      "type_id", "digitization_specifications_id", "entry_subject_id", "format_id",
-                      "language_id", "manual_identifier_ref_id", "source_id", "date_season_id", "date_season_yyyy_id", "date_exact_id", "date_digital_id", "contributor_id"],
-    "entry_subject": ["subject_place_id", "subject_associated_places_id", "subject_people_id",
-                      "subject_academic_field_id", "subject_other", "subject_season_id"],
-    # "person"       : ["first_name", "last_name"],
-    # "person_role_ref": ["person_id", "role_id"],
-    # "ref": ["role"],
-    "source"       : ["source", "publisher", #person_id
-                      "publisher_location_id", #place_id
-                      "bibliographic_citation", "rights"],
-    "place"        : ["place", "coverage_lat", "coverage_long"],
   }
 
   where_to_look_if_not_the_same = {
@@ -176,9 +158,7 @@ class Upload:
     # "coverage_lat": "coverage_lat",
     # "coverage_long": "coverage_long",
     "creator"                     : "person",
-    "creator_id"                  : "person",
     "creator_other"               : "person",
-    "creator_other_id"            : "person",
     "date_digital"                : "season",
     "date_exact"                  : "season",
     "date_season"                 : "season",
@@ -195,26 +175,13 @@ class Upload:
     # "source": "source",
     "subject_academic_field"      : "subject_academic_field",
     "subject_associated_places"   : "place",
-    "subject_associated_places_id": "place",
     # "subject_other": "subject_other",
     "subject_people"              : "person",
-    "subject_people_id"           : "person",
     "subject_place"               : "place",
-    "subject_place_id"            : "place",
     "subject_season"              : "season",
-    "subject_season_id"           : "season",
     # "title"                    : "content.title",
     # "type": "type",
   }
-
-  # where_to_look_for_id = {
-  #   "subject_place_id"            : "place",
-  #   "subject_associated_places_id": "place",
-  #   "subject_people_id"           : "person",
-  #   "subject_season_id"           : "season",
-  #   "creator_id"                  : "person",
-  #   "creator_other_id"            : "person",
-  # }
 
   foreign_key_tables = defaultdict(dict)
 
@@ -225,7 +192,8 @@ class Upload:
         3) get ids
         4) upload tables with ids
     """
-    self.table_name_temp_dump = "whole_tsv_dump"
+    self.special_tables = self.get_special_tables()
+    self.simple_tables = list(all_tables_set - set(self.special_tables))
     # self.simple_names_present = utils.intersection(self.table_names_simple, metadata.not_empty_tsv_content_dict.keys())
 
     self.upload_empty()
@@ -246,13 +214,13 @@ class Upload:
     # self.upload_combine_tables_all()
     print("here")
 
+  def get_special_tables(self):
+    special_tables = []
+    special_tables.append(self.table_name_temp_dump)
+    return special_tables + self.table_names_w_ids + list(self.many_values_to_one_field.keys())
+    # ["entry", "person", "place", "season", "whole_tsv_dump"]
+
   def upload_empty(self): #TODO: refactor
-    all_table_names_query = """
-      SELECT TABLE_NAME
-      FROM INFORMATION_SCHEMA.tables
-      WHERE TABLE_SCHEMA='{}';
-    """.format(db_schema)
-    all_table_names_res = mysql_utils.execute_fetch_select(all_table_names_query)
     all_table_names = list(utils.extract(all_table_names_res[0]))
     for table_name in all_table_names:
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
@@ -273,7 +241,6 @@ class Upload:
     mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
 
     # print(table_name)
-
 
   def make_field_val_couple_where(self, field_names_arr, values_arr):
     # TODO: confirm that a "title" is unique and use just it to get an id
@@ -750,6 +717,10 @@ if __name__ == '__main__':
   else:
     mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
     print("host = 'taylor.unm.edu', db {}".format(db_schema))
+
+  all_tables_sql_res = mysql_utils.get_table_names(db_schema)
+  all_tables_set = set([x[0] for x in all_tables_sql_res[0]])
+
 
   parser = argparse.ArgumentParser()
 
