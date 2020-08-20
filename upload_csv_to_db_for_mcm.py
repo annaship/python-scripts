@@ -212,8 +212,36 @@ class Upload:
     mysql_utils.execute_no_fetch(drop_query)
 
   def create_temp_table(self):
-    pass
+    create_table_q = """
+    CREATE TABLE IF NOT EXISTS `{0}` (
+      `{0}_id` int(11) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
+      `created` datetime DEFAULT current_timestamp(),
+      `updated` datetime DEFAULT NULL
+    ) ENGINE=InnoDB;
+    """.format(self.table_name_temp_dump)
+    mysql_utils.execute_no_fetch(create_table_q)
 
+    column_names_w_ids = [x + "_id" for x in self.simple_tables]
+    #           ADD COLUMN `ping_status` INT(1) NOT NULL AFTER
+    #   `bibliographic_citation` varchar(512) DEFAULT '',
+    #   `bibliographic_citation_id` int(11) unsigned NOT NULL,
+    column_names_arr = []
+    column_names_str_begin = "ALTER TABLE {}".format(self.table_name_temp_dump)
+    column_names_str_end = " ADD UNIQUE KEY title (title)"
+    # column_names_arr.append(column_names_str_begin)
+    for c_name_w_id in column_names_w_ids:
+      add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL".format(c_name_w_id)
+      column_names_arr.append(add_col_str_w_id)
+    for c_name in self.simple_tables:
+      add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
+      column_names_arr.append(add_col_str)
+
+    column_names_arr.append(column_names_str_end)
+    column_names_str = ", ".join(column_names_arr)
+    add_columns_q = column_names_str_begin + column_names_str
+    mysql_utils.execute_no_fetch(add_columns_q)
+
+    print("QQ")
 
   def get_special_tables(self):
     special_tables = []
@@ -261,7 +289,6 @@ class Upload:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
-      # separate as insert_row
       self.insert_row(table_name, field_names_arr, values_arr)
 
       # separate as add_id_back
