@@ -28,6 +28,7 @@ class Metadata:
   # parse csv
 
   metadata_to_field = {
+    "Metadata.Type"              : "metadata_type",
     "Identifier"                 : "identifier",
     "Title"                      : "title",
     "Content"                    : "content",
@@ -136,6 +137,7 @@ class Upload:
   """
 
   table_names_w_ids = ["entry"]
+  table_names_to_ignore= ["entry_view"]
   table_name_temp_dump = "whole_tsv_dump"
   many_values_to_one_field = {
     "season": [ "date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
@@ -204,11 +206,12 @@ class Upload:
   def get_special_tables(self):
     special_tables = []
     special_tables.append(self.table_name_temp_dump)
-    return special_tables + self.table_names_w_ids + list(self.many_values_to_one_field.keys())
+    return special_tables + self.table_names_to_ignore + self.table_names_w_ids + list(self.many_values_to_one_field.keys())
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
   def upload_empty(self):
-    all_tables_set.discard("entry")
+    all_tables_set.discard(self.table_names_w_ids[0])
+    all_tables_set.discard(self.table_names_to_ignore[0])
     for table_name in list(all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
