@@ -188,8 +188,12 @@ class Upload:
         3) get ids
         4) upload tables with ids
     """
+
     self.special_tables = self.get_special_tables()
     self.simple_tables = list(all_tables_set - set(self.special_tables))
+
+    self.drop_temp_table()
+    self.create_temp_table()
 
     self.upload_empty()
     self.upload_simple_tables()
@@ -202,6 +206,14 @@ class Upload:
     self.upload_other_tables()
 
     print("here")
+
+  def drop_temp_table(self):
+    drop_query = "DROP TABLE IF EXISTS {}".format(self.table_name_temp_dump)
+    mysql_utils.execute_no_fetch(drop_query)
+
+  def create_temp_table(self):
+    pass
+
 
   def get_special_tables(self):
     special_tables = []
