@@ -198,13 +198,7 @@ class Upload:
     self.update_many_values_to_one_field_ids()
 
     self.upload_other_tables()
-    self.update_other_ids()
 
-    # self.upload_all_from_tsv_but_id()
-    # self.make_data_matrix_dict()
-    # self.get_ids()
-    # self.update_data_matrix_dict_with_ids()
-    # self.upload_combine_tables_all()
     print("here")
 
   def get_special_tables(self):
@@ -214,6 +208,7 @@ class Upload:
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
   def upload_empty(self):
+    all_tables_set.discard("entry")
     for table_name in list(all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
@@ -333,22 +328,6 @@ class Upload:
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
       self.insert_row(table_name_to_update, list(dict_w_all_ids.keys()), list(dict_w_all_ids.values()))
-      print("DDDA")
-      # insert_q = "INSERT IGNORE INTO `{}` ({}) VALUES ()".format(table_name, table_name + "_id")
-      # mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
-
-      # for tsv_field_name in tsv_field_names_to_upload:
-      #   try:
-      #     current_value = current_row_d[tsv_field_name]
-      #   except KeyError:
-      #     continue
-      #   table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-      #   where_part = 'WHERE {} = "{}"'.format(table_name_w_id, current_value)
-      #   current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
-      #   # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
-      #   update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id',
-      #                                                             current_id, tsv_field_name, current_value)
-      #   mysql_utils.execute_no_fetch(update_q)
 
 
 if __name__ == '__main__':
