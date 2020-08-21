@@ -265,39 +265,35 @@ class Upload:
     try:
       if not val_arr:
         val_arr = list(set(metadata.not_empty_tsv_content_dict[field_name]))
-      records_to_insert = list(set(metadata.not_empty_tsv_content_dict[field_name]))
-      # mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s)".format("IGNORE", table_name, field_name)
-      # mysql_utils.cursor.executemany(mySql_insert_query, records_to_insert)
-
       mysql_utils.execute_insert_many(table_name, field_name, val_arr)
 
     except KeyError:
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_no_fetch(insert_query)
 
-
-    # print(table_name)
-
   def make_field_val_couple_where(self, field_names_arr, values_arr):
     # TODO: confirm that a "title" is unique and use just it to get an id
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
     return 'WHERE ' + ' AND '.join(couples_arr)
 
-  def insert_row(self, table_name, field_names_arr, values_arr):
+  def insert_row(self, table_name, field_names_arr, values_tuple):
     field_names_str = ', '.join(field_names_arr)
-    values_str = ', '.join(['"{}"'.format(e) for e in values_arr])
-    mysql_utils.execute_insert(table_name, field_names_str, values_str)
+    values_str_pattern = ", ".join(['%s' for e in field_names_arr])
+
+    mySql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format("IGNORE", table_name, field_names_str, values_str_pattern)
+    mysql_utils.cursor.execute(mySql_insert_query, values_tuple)
+    # INSERT INTO Laptop (Id, Name, Price, Purchase_date) VALUES (%s, %s, %s, %s)
 
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       field_names_arr = list(current_row_d.keys())
-      values_arr = list(current_row_d.values())
 
-      self.insert_row(table_name, field_names_arr, values_arr)
+      self.insert_row(table_name, field_names_arr, tuple(current_row_d.values()))
 
       # separate as add_id_back
+      values_arr = list(current_row_d.values())
       where_part_for_id = self.make_field_val_couple_where(field_names_arr, values_arr)
       current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
       current_row_d[table_name_id] = current_id
@@ -331,8 +327,8 @@ class Upload:
     for table_name, tsv_field_names in self.many_values_to_one_field.items():
       for tsv_field_name in tsv_field_names:
         if tsv_field_name in value_present:
-          val_list = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[tsv_field_name]))
-          self.simple_mass_upload(table_name, table_name, val_list)
+          val_arr = list(set(metadata.not_empty_tsv_content_dict[tsv_field_name]))
+          self.simple_mass_upload(table_name, table_name, val_arr)
 
   def update_many_values_to_one_field_ids(self):
     table_name_to_update = self.table_name_temp_dump
