@@ -276,15 +276,6 @@ class Upload:
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
     return 'WHERE ' + ' AND '.join(couples_arr)
 
-  # def insert_row(self, table_name, field_names_arr, values_tuple):
-  #   field_names_str = ', '.join(field_names_arr)
-  #   values_str_pattern = ", ".join(['%s' for e in field_names_arr])
-
-    # mySql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format("IGNORE", table_name, field_names_str, values_str_pattern)
-
-    # mysql_utils.execute_insert_many(table_name, field_names_str, values_str_pattern)
-    # mysql_utils.cursor.execute(mySql_insert_query, values_tuple)
-
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
@@ -372,7 +363,6 @@ class Upload:
       sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
-      #     def execute_many_fields_one_record(self, table_name, field_names_arr, values_tuple, ignore = "IGNORE"):
       mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
 
 
