@@ -244,14 +244,16 @@ class Mysql_util:
           # self.utils.print_both(("ERROR: query = %s") % sql)
           raise
 
-
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE", sql = ""):
       try:
         if sql == "":
-          sql = "INSERT %s INTO %s (%s) VALUES (%s)" % (ignore, table_name, field_name, val_list)
+          # sql = "INSERT %s INTO %s (%s) VALUES (%s)" % (ignore, table_name, field_name, val_list)
+          sql = "INSERT %s INTO %s (%s) VALUES (%s)"
+        # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
 
         if self.cursor:
-          self.cursor.execute(sql)
+          self.cursor.execute(sql, (ignore, table_name, field_name, val_list))
+          # self.cursor.execute(sql)
           self.conn.commit()
           return (self.cursor.rowcount, self.cursor.lastrowid)
       except:

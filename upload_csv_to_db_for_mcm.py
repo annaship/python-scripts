@@ -255,7 +255,9 @@ class Upload:
     all_tables_set.discard(self.table_names_to_ignore[0])
     for table_name in list(all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
-      mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
+      mysql_utils.execute_no_fetch(insert_query)
+      # mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
+      # mysql_utils.execute_insert(table_name, table_name, "NULL")
 
   def upload_simple_tables(self):
     for table_name in self.simple_tables:
