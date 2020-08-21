@@ -55,6 +55,7 @@ class Metadata:
     "Country"                    : "country",
     "Language"                   : "language",
     "Relation"                   : "relation",
+    "Metadata.Type"              : "metadata_type",
     "Source"                     : "source",
     "Publisher"                  : "publisher",
     "Publisher Location"         : "publisher_location",
@@ -189,6 +190,7 @@ class Upload:
         4) upload tables with ids
     """
 
+    self.many_values_to_one_field_column_names = utils.flatten_2d_list(self.many_values_to_one_field.values())
     self.special_tables = self.get_special_tables()
     self.simple_tables = list(all_tables_set - set(self.special_tables))
 
@@ -221,27 +223,28 @@ class Upload:
     """.format(self.table_name_temp_dump)
     mysql_utils.execute_no_fetch(create_table_q)
 
-    column_names_w_ids = [x + "_id" for x in self.simple_tables]
+    all_fields = metadata.metadata_to_field.values()
+    column_names_w_ids = [x + "_id" for x in all_fields]
     #           ADD COLUMN `ping_status` INT(1) NOT NULL AFTER
     #   `bibliographic_citation` varchar(512) DEFAULT '',
     #   `bibliographic_citation_id` int(11) unsigned NOT NULL,
     column_names_arr = []
     column_names_str_begin = "ALTER TABLE {}".format(self.table_name_temp_dump)
-    column_names_str_end = " ADD UNIQUE KEY title (title)"
-    # column_names_arr.append(column_names_str_begin)
     for c_name_w_id in column_names_w_ids:
       add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL".format(c_name_w_id)
       column_names_arr.append(add_col_str_w_id)
-    for c_name in self.simple_tables:
+    for c_name in all_fields:
       add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
       column_names_arr.append(add_col_str)
 
+    column_names_str_end = " ADD UNIQUE KEY title (title)"
     column_names_arr.append(column_names_str_end)
+
     column_names_str = ", ".join(column_names_arr)
     add_columns_q = column_names_str_begin + column_names_str
     mysql_utils.execute_no_fetch(add_columns_q)
 
-    print("QQ")
+    # print("QQ")
 
   def get_special_tables(self):
     special_tables = []
@@ -319,7 +322,7 @@ class Upload:
         mysql_utils.execute_no_fetch(update_q)
 
   def upload_many_values_to_one_field(self):
-    tsv_field_names_to_upload = utils.flatten_2d_list(self.many_values_to_one_field.values())
+    tsv_field_names_to_upload = self.many_values_to_one_field_column_names
     value_present = utils.intersection(tsv_field_names_to_upload, metadata.not_empty_tsv_content_dict.keys())
 
     for table_name, tsv_field_names in self.many_values_to_one_field.items():
