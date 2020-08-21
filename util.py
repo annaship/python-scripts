@@ -244,6 +244,18 @@ class Mysql_util:
           # self.utils.print_both(("ERROR: query = %s") % sql)
           raise
 
+    def execute_insert_many(self, table_name, field_name, records_to_insert_arr, ignore = "IGNORE"):
+      try:
+        mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
+
+        if self.cursor:
+          self.cursor.executemany(mySql_insert_query, records_to_insert_arr)
+          self.conn.commit()
+          return (self.cursor.rowcount, self.cursor.lastrowid)
+      except:
+        self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(mySql_insert_query, records_to_insert_arr))
+        raise
+
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE", sql = ""):
       try:
         if sql == "":
