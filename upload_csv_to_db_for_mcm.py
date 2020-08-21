@@ -20,8 +20,6 @@ except ImportError:
 
 import argparse
 from collections import defaultdict
-import re
-from itertools import chain
 
 
 class Metadata:
@@ -139,10 +137,10 @@ class Upload:
   """
 
   table_names_w_ids = ["entry"]
-  table_names_to_ignore= ["entry_view"]
+  table_names_to_ignore = ["entry_view"]
   table_name_temp_dump = "whole_tsv_dump"
   many_values_to_one_field = {
-    "season": [ "date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+    "season": ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
     "person": ["contributor", "creator", "creator_other", "subject_people"],
     "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
   }
@@ -248,8 +246,7 @@ class Upload:
     # print("QQ")
 
   def get_special_tables(self):
-    special_tables = []
-    special_tables.append(self.table_name_temp_dump)
+    special_tables = [self.table_name_temp_dump]
     return special_tables + self.table_names_to_ignore + self.table_names_w_ids + list(self.many_values_to_one_field.keys())
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
@@ -362,14 +359,14 @@ class Upload:
 
   def upload_other_tables(self):
     table_name_to_update = self.table_names_w_ids[0] # ["entry"]
-    where_to_Look_for_ids = self.table_name_temp_dump
+    where_to_look_for_ids = self.table_name_temp_dump
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
       unique_key = 'title'
       select_q = '''SELECT {} FROM {} 
-        WHERE {} = "{}"'''.format(tsv_field_names_to_upload_ids_str, where_to_Look_for_ids, unique_key, current_row_d['title'])
+        WHERE {} = "{}"'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, unique_key, current_row_d['title'])
       sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
