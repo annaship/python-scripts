@@ -362,7 +362,6 @@ class Upload:
         WHERE {} = "{}"'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, unique_key, current_row_d['title'])
       sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
-      # IF empty and no id - get
       mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
 
 
@@ -371,7 +370,7 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
-  db_schema = 'mcm_history'
+  db_schema = 'mcmurdohistory_metadata'
 
   if utils.is_local():
     mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
