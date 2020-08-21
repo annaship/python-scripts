@@ -233,7 +233,7 @@ class Upload:
       add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL".format(c_name_w_id)
       column_names_arr.append(add_col_str_w_id)
     for c_name in all_fields:
-      add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
+      add_col_str = ' ADD COLUMN {} text DEFAULT ""'.format(c_name)
       column_names_arr.append(add_col_str)
 
     column_names_str_end = " ADD UNIQUE KEY title (title)"
@@ -370,12 +370,12 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
-  db_schema = 'mcmurdohistory_metadata'
-
   if utils.is_local():
+    db_schema = 'mcm_history'
     mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
     print("host = 'localhost', db = {}".format(db_schema))
   else:
+    db_schema = 'mcmurdohistory_metadata'
     mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
     print("host = 'taylor.unm.edu', db {}".format(db_schema))
 
