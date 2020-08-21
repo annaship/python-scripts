@@ -256,8 +256,6 @@ class Upload:
     for table_name in list(all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_no_fetch(insert_query)
-      # mysql_utils.execute_insert(table_name, table_name, "", sql = insert_query)
-      # mysql_utils.execute_insert(table_name, table_name, "NULL")
 
   def upload_simple_tables(self):
     for table_name in self.simple_tables:
@@ -267,11 +265,20 @@ class Upload:
     try:
       if val_str == "":
         val_str = ', '.join('("{0}")'.format(w) for w in set(metadata.not_empty_tsv_content_dict[field_name]))
-      insert_query = "INSERT IGNORE INTO {} ({}) VALUES {}".format(table_name, field_name, val_str)
+      # insert_query = "INSERT IGNORE INTO {} ({}) VALUES {}".format(table_name, field_name, val_str)
+      # mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
+      # self.cursor.execute(sql, (ignore, table_name, field_name, val_list))
+      # 'INSERT \'IGNORE\' INTO \'metadata_type\' (\'metadata_type\') VALUES (\'(\\"bibliography\\")\')'
+      records_to_insert = list(set(metadata.not_empty_tsv_content_dict[field_name]))
+      mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s)".format("IGNORE", table_name, field_name)
+      mysql_utils.cursor.executemany(mySql_insert_query, records_to_insert)
+
+      # mysql_utils.execute_insert(table_name, field_name, val_arr)
+
     except KeyError:
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
+      mysql_utils.execute_no_fetch(insert_query)
 
-    mysql_utils.execute_insert(table_name, field_name, val_str, ignore = "IGNORE", sql = insert_query)
 
     # print(table_name)
 

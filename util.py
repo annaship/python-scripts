@@ -248,16 +248,16 @@ class Mysql_util:
       try:
         if sql == "":
           # sql = "INSERT %s INTO %s (%s) VALUES (%s)" % (ignore, table_name, field_name, val_list)
-          sql = "INSERT %s INTO %s (%s) VALUES (%s)"
+          sql = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
         # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
-
+        # 'INSERT \'IGNORE\' INTO \'metadata_type\' (\'metadata_type\') VALUES (\'(\\"bibliography\\")\')'
         if self.cursor:
-          self.cursor.execute(sql, (ignore, table_name, field_name, val_list))
+          self.cursor.execute(sql, (val_list))
           # self.cursor.execute(sql)
           self.conn.commit()
           return (self.cursor.rowcount, self.cursor.lastrowid)
       except:
-        self.utils.print_both(("ERROR: query = %s") % sql)
+        self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(sql, val_list))
         raise
 
     def get_all_name_id(self, table_name, id_name = "", field_name = "", where_part = ""):
