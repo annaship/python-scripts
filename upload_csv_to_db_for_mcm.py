@@ -55,7 +55,6 @@ class Metadata:
     "Country"                    : "country",
     "Language"                   : "language",
     "Relation"                   : "relation",
-    "Metadata.Type"              : "metadata_type",
     "Source"                     : "source",
     "Publisher"                  : "publisher",
     "Publisher Location"         : "publisher_location",
@@ -64,6 +63,8 @@ class Metadata:
   }
 
   def __init__(self, input_file):
+    self.tsv_file_content_list = []
+    self.tsv_file_content_dict = {}
     self.get_data_from_csv(input_file)
     self.tsv_file_fields = self.tsv_file_content_list[0]
     self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
@@ -382,7 +383,7 @@ if __name__ == '__main__':
 
   db_schema = 'mcm_history'
 
-  if utils.is_local() == True:
+  if utils.is_local():
     mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
     print("host = 'localhost', db = {}".format(db_schema))
   else:
