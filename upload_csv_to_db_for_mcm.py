@@ -276,13 +276,14 @@ class Upload:
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
     return 'WHERE ' + ' AND '.join(couples_arr)
 
-  def insert_row(self, table_name, field_names_arr, values_tuple):
-    field_names_str = ', '.join(field_names_arr)
-    values_str_pattern = ", ".join(['%s' for e in field_names_arr])
+  # def insert_row(self, table_name, field_names_arr, values_tuple):
+  #   field_names_str = ', '.join(field_names_arr)
+  #   values_str_pattern = ", ".join(['%s' for e in field_names_arr])
 
-    mySql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format("IGNORE", table_name, field_names_str, values_str_pattern)
-    mysql_utils.cursor.execute(mySql_insert_query, values_tuple)
-    # INSERT INTO Laptop (Id, Name, Price, Purchase_date) VALUES (%s, %s, %s, %s)
+    # mySql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format("IGNORE", table_name, field_names_str, values_str_pattern)
+
+    # mysql_utils.execute_insert_many(table_name, field_names_str, values_str_pattern)
+    # mysql_utils.cursor.execute(mySql_insert_query, values_tuple)
 
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
@@ -290,7 +291,7 @@ class Upload:
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       field_names_arr = list(current_row_d.keys())
 
-      self.insert_row(table_name, field_names_arr, tuple(current_row_d.values()))
+      mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(current_row_d.values()))
 
       # separate as add_id_back
       values_arr = list(current_row_d.values())
@@ -371,7 +372,8 @@ class Upload:
       sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
-      self.insert_row(table_name_to_update, list(dict_w_all_ids.keys()), list(dict_w_all_ids.values()))
+      #     def execute_many_fields_one_record(self, table_name, field_names_arr, values_tuple, ignore = "IGNORE"):
+      mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
 
 
 if __name__ == '__main__':

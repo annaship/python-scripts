@@ -244,6 +244,13 @@ class Mysql_util:
           # self.utils.print_both(("ERROR: query = %s") % sql)
           raise
 
+    def execute_many_fields_one_record(self, table_name, field_names_arr, values_tuple, ignore = "IGNORE"):
+      field_names_str = ', '.join(field_names_arr)
+      values_str_pattern = ", ".join(['%s' for e in field_names_arr])
+
+      my_sql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format(ignore, table_name, field_names_str, values_str_pattern)
+      self.cursor.execute(my_sql_insert_query, values_tuple)
+
     def execute_insert_many(self, table_name, field_name, records_to_insert_arr, ignore = "IGNORE"):
       try:
         mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
@@ -259,13 +266,9 @@ class Mysql_util:
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE", sql = ""):
       try:
         if sql == "":
-          # sql = "INSERT %s INTO %s (%s) VALUES (%s)" % (ignore, table_name, field_name, val_list)
           sql = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
-        # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
-        # 'INSERT \'IGNORE\' INTO \'metadata_type\' (\'metadata_type\') VALUES (\'(\\"bibliography\\")\')'
         if self.cursor:
-          self.cursor.execute(sql, (val_list))
-          # self.cursor.execute(sql)
+          self.cursor.execute(sql, val_list)
           self.conn.commit()
           return (self.cursor.rowcount, self.cursor.lastrowid)
       except:
