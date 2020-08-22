@@ -252,24 +252,26 @@ class Mysql_util:
       my_sql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format(ignore, table_name, field_names_str, values_str_pattern)
 
       try:
-        warnings.filterwarnings('error', category = mysql.Warning)
+        # warnings.filterwarnings('error', category = mysql.Warning)
         self.cursor.execute(my_sql_insert_query, values_tuple)
+        self.conn.commit()
+
       except mysql.Error as err:
         print("Failed executing query: {}".format(err))
         raise
-      except mysql.Warning as wrn:
-        if wrn.args[0] == 1265:
-          print("Warning executing query: {}".format(wrn))
-          for x in values_tuple:
-            if len(x) > 1000:
-              print("x = {}, len = {}".format(x, len(x)))
-      finally:
-        warnings.resetwarnings()
+      # except mysql.Warning as wrn:
+      #   if wrn.args[0] == 1265:
+      #     print("Warning executing query: {}".format(wrn))
+      #     for x in values_tuple:
+      #       if len(x) > 1000:
+      #         print("x = {}, len = {}".format(x, len(x)))
+      # finally:
+      #   warnings.resetwarnings()
         # return 0
 
     def execute_insert_many(self, table_name, field_name, records_to_insert_arr, ignore = "IGNORE"):
       try:
-        warnings.filterwarnings('error', category = mysql.Warning)
+        # warnings.filterwarnings('error', category = mysql.Warning)
 
         mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
 
@@ -277,19 +279,19 @@ class Mysql_util:
           self.cursor.executemany(mySql_insert_query, records_to_insert_arr)
           self.conn.commit()
           return (self.cursor.rowcount, self.cursor.lastrowid)
-      except mysql.Warning as wrn:
-        if wrn.args[0] == 1265:
-          print("Warning executing query: {}".format(wrn))
-          for x in records_to_insert_arr:
-            if len(x) > 1000:
-              print("x = {}, len = {}".format(x, len(x)))
-        else:
-          pass
+      # except mysql.Warning as wrn:
+      #   if wrn.args[0] == 1265:
+      #     print("Warning executing query: {}".format(wrn))
+      #     for x in records_to_insert_arr:
+      #       if len(x) > 1000:
+      #         print("x = {}, len = {}".format(x, len(x)))
+      #   else:
+      #     pass
       except:
         self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(mySql_insert_query, records_to_insert_arr))
         raise
-      finally:
-        warnings.resetwarnings()
+      # finally:
+      #   warnings.resetwarnings()
 
     def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE", sql = ""):
       try:
@@ -320,19 +322,18 @@ class Mysql_util:
 
     def get_id(self, field_name, table_name, where_part, rows_affected = [0,0]):
       # self.utils.print_array_w_title(rows_affected, "=====\nrows_affected from def get_id")
-
-      if rows_affected[1] > 0:
-        id_result = int(rows_affected[1])
-      else:
-        try:
-          # id_query  = "SELECT %s FROM %s %s" % (field_name, table_name, where_part)
-          id_result_full = self.execute_simple_select(field_name, table_name, where_part)
-          id_result = int(id_result_full[0][0])
-        except:
-          self.utils.print_both("Unexpected:")
-          self.utils.print_both('field_name = "{}", table_name = "{}", where_part = "{}"'.format(field_name, table_name, where_part))
-          # raise
-          pass
+      # if rows_affected[1] > 0:
+      id_result = int(rows_affected[1])
+    # else:
+      try:
+        # id_query  = "SELECT %s FROM %s %s" % (field_name, table_name, where_part)
+        id_result_full = self.execute_simple_select(field_name, table_name, where_part)
+        id_result = int(id_result_full[0][0])
+      except:
+        self.utils.print_both("Unexpected:")
+        self.utils.print_both('field_name = "{}", table_name = "{}", where_part = "{}"'.format(field_name, table_name, where_part))
+        # raise
+        pass
       # self.utils.print_array_w_title(id_result, "=====\nid_result IN get_id")
       return id_result
 
