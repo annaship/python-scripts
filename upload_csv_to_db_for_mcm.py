@@ -391,16 +391,6 @@ if __name__ == '__main__':
     mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
     print("host = 'taylor.unm.edu', db {}".format(db_schema))
 
-
-  # db_schema = 'mcm_history'
-  #
-  # if utils.is_local():
-  #   mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
-  #   print("host = 'localhost', db = {}".format(db_schema))
-  # else:
-  #   mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
-  #   print("host = 'taylor.unm.edu', db {}".format(db_schema))
-  #
   all_tables_sql_res = mysql_utils.get_table_names(db_schema)
   all_tables_set = set(utils.extract(all_tables_sql_res[0]))
 
