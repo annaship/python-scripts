@@ -233,10 +233,11 @@ class Upload:
       add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL".format(c_name_w_id)
       column_names_arr.append(add_col_str_w_id)
     for c_name in all_fields:
-      add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
+      # add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
+      add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""'.format(c_name)
       column_names_arr.append(add_col_str)
 
-    column_names_str_end = " ADD UNIQUE KEY title (title)"
+    column_names_str_end = " ADD UNIQUE KEY title (title(767))"
     column_names_arr.append(column_names_str_end)
 
     column_names_str = ", ".join(column_names_arr)
@@ -289,9 +290,12 @@ class Upload:
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
+      # if not current_row_d['title']:
+      #   continue
       field_names_arr = list(current_row_d.keys())
 
-      mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(current_row_d.values()))
+      res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(current_row_d.values()))
+      print("execute_many_fields_one_record FROM upload_all_from_tsv_into_temp_table res: {}".format(res))
 
       # separate as add_id_back
       values_arr = list(current_row_d.values())
