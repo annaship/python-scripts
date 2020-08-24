@@ -237,7 +237,7 @@ class Upload:
       add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""'.format(c_name)
       column_names_arr.append(add_col_str)
 
-    column_names_str_end = " ADD UNIQUE KEY title (title(767))"
+    column_names_str_end = " ADD UNIQUE KEY title_publisher (title(767), publisher(767))"
     column_names_arr.append(column_names_str_end)
 
     column_names_str = ", ".join(column_names_arr)
@@ -273,7 +273,7 @@ class Upload:
       mysql_utils.execute_no_fetch(insert_query)
 
   def make_field_val_couple_where(self, field_names_arr, values_arr):
-    # TODO: confirm that a "title" is unique and use just it to get an id
+    # TODO: confirm that a "title" is unique and use just it to get an id. For now use title_publisher
     couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
     return 'WHERE ' + ' AND '.join(couples_arr)
 
@@ -290,12 +290,13 @@ class Upload:
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      # if not current_row_d['title']:
-      #   continue
+      # if current_row_d['identifier'] == "MCMEH-B000242":
+        # continue
+        # print("identifier QQQ")
       field_names_arr = list(current_row_d.keys())
 
       res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(current_row_d.values()))
-      print("execute_many_fields_one_record FROM upload_all_from_tsv_into_temp_table res: {}".format(res))
+      # print("execute_many_fields_one_record FROM upload_all_from_tsv_into_temp_table res: {}".format(res))
 
       # separate as add_id_back
       values_arr = list(current_row_d.values())
@@ -354,10 +355,17 @@ class Upload:
         mysql_utils.execute_no_fetch(update_q)
 
   def find_empty_ids(self, sql_res_d):
+    """ TODO: correct names for
+    many_values_to_one_field = {
+    "season": ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+    "person": ["contributor", "creator", "creator_other", "subject_people"],
+    "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
+  }
+    """
     for field, val in sql_res_d.items():
       if val == 0:
         name_no_id = field[:-3]
-        '''select identifier_id from identifier where identifier = ""'''
+        # '''select identifier_id from identifier where identifier = ""'''
         select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
         empty_id = mysql_utils.execute_fetch_select(select_q)
         sql_res_d[field] = list(utils.extract(empty_id))[0]
@@ -370,9 +378,12 @@ class Upload:
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
-      unique_key = 'title'
+      unique_key = ['title', 'publisher']
+      where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_key]
+      where_part0 = " AND ".join(where_arr)
+
       select_q = '''SELECT {} FROM {} 
-        WHERE {} = "{}"'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, unique_key, current_row_d['title'])
+        WHERE {}'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, where_part0)
       sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
