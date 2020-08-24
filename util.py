@@ -253,7 +253,13 @@ class Mysql_util:
 
     my_sql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format(ignore, table_name, field_names_str,
                                                                       values_str_pattern)
-    self.cursor.execute(my_sql_insert_query, values_tuple)
+
+    print("my_sql_insert_query FROM util: {}, ".format(my_sql_insert_query, values_tuple))
+
+    res = self.cursor.execute(my_sql_insert_query, values_tuple)
+    self.conn.commit()
+
+    print("execute_many_fields_one_record FROM util res: {}".format(res))
 
   def execute_insert_many(self, table_name, field_name, records_to_insert_arr, ignore = "IGNORE"):
     try:
