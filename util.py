@@ -548,6 +548,7 @@ class Utils:
     return list(set(lst1) & set(lst2))
 
   def subtraction(self, lst1, lst2):
+    # return list(set(lst1) - set(lst2)) diff
     return [item for item in lst1 if item not in lst2]
 
   def benchmark_w_return_1(self, message):
