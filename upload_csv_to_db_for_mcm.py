@@ -78,6 +78,20 @@ class Metadata:
 
     self.tsv_file_content_dict_clean_keys = self.clean_keys_in_tsv_file_content_dict()
 
+    self.add_missing_fields()
+
+  def add_missing_fields(self):
+    missing_fields = utils.subtraction(self.metadata_to_field.values(), self.tsv_file_fields)
+    for curr_d in self.tsv_file_content_dict_clean_keys:
+      for f in missing_fields:
+        curr_d[f] = ""
+
+    # print("self.tsv_file_content_dict")
+    # return missing_fields_correct_names
+      # name_w_id = field_name_no_id + "_id"
+      # sql_res_d[name_no_id] = self.select_empty_id(name_w_id, field_name_no_id)
+      # Upload.select_empty_id(name_w_id, field_name_no_id)
+
   def clean_keys_in_tsv_file_content_dict(self):
     res_d = []
     for curr_d in self.tsv_file_content_dict:
@@ -140,15 +154,19 @@ class Upload:
   table_names_to_ignore = ["entry_view"]
   table_name_temp_dump = "whole_tsv_dump"
   many_values_to_one_field = {
+    "content_url": ["content_url", "content_url_audio", "content_url_transcript"],
     "season": ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
     "person": ["contributor", "creator", "creator_other", "subject_people"],
     "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
   }
 
+
   where_to_look_if_not_the_same = {
     # "bibliographic_citation"   : "source.bibliographic_citation",
     # "content": "content",
     # "content_url"              : "content.content_url",
+    "content_url_audio"     : "content_url",
+    "content_url_transcript": "content_url",
     "contributor"                 : "person",
     "country"                     : "place",
     # "coverage_lat": "coverage_lat",
