@@ -237,7 +237,7 @@ class Upload:
       add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""'.format(c_name)
       column_names_arr.append(add_col_str)
 
-    column_names_str_end = " ADD UNIQUE KEY title_publisher (title(767), publisher(767))"
+    column_names_str_end = """ ADD UNIQUE KEY `all_id` (metadata_type(16), identifier(16), title(512), content(16), content_url(16), creator(16), creator_other(16), subject_place(16), coverage_lat(16), coverage_long(16), subject_associated_places(16), subject_people(16), subject_academic_field(16), subject_other(16), subject_season(16), date_season(16), date_season_yyyy(16), date_exact(16), date_digital(16), description(512), format(16), digitization_specifications(16), contributor(16), type(16), country(16), language(16), relation(16), source(512), publisher(512), publisher_location(16), bibliographic_citation(512), rights(16)) """
     column_names_arr.append(column_names_str_end)
 
     column_names_str = ", ".join(column_names_arr)
@@ -290,9 +290,9 @@ class Upload:
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      # if current_row_d['identifier'] == "MCMEH-B000242":
-        # continue
-        # print("identifier QQQ")
+      # if current_row_d['identifier'] == "MCMEH-B000723":
+      #   # continue
+      #   print("identifier QQQ: {}".format(current_row_d['identifier']))
       field_names_arr = list(current_row_d.keys())
 
       res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(current_row_d.values()))
@@ -378,7 +378,8 @@ class Upload:
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
-      unique_key = ['title', 'publisher']
+      # unique_key = ['title', 'publisher']
+      unique_key = current_row_d.keys()
       where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_key]
       where_part0 = " AND ".join(where_arr)
 
