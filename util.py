@@ -257,6 +257,8 @@ class Mysql_util:
     # print("my_sql_insert_query FROM util: {}, ".format(my_sql_insert_query, values_tuple))
 
     res = self.cursor.execute(my_sql_insert_query, values_tuple)
+    self.cursor.execute('COMMIT')
+
     self.conn.commit()
 
     # print("execute_many_fields_one_record FROM util res: {}".format(res))
@@ -544,6 +546,9 @@ class Utils:
 
   def intersection(self, lst1, lst2):
     return list(set(lst1) & set(lst2))
+
+  def subtraction(self, lst1, lst2):
+    return [item for item in lst1 if item not in lst2]
 
   def benchmark_w_return_1(self, message):
     print("\n")
