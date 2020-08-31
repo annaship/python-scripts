@@ -314,14 +314,14 @@ class Upload:
       #   # continue
       #   print("identifier QQQ: {}".format(current_row_d['identifier']))
       field_names_arr = list(current_row_d.keys())
+      values_arr      = list(current_row_d.values())
 
-      res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(current_row_d.values()))
+      res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
       # print("execute_many_fields_one_record FROM upload_all_from_tsv_into_temp_table res: {}".format(res))
 
       # separate as add_id_back
-      values_arr = list(current_row_d.values())
-      where_part_for_id = self.make_field_val_couple_where(field_names_arr, values_arr)
-      current_id = mysql_utils.get_id(table_name_id, table_name, where_part_for_id)
+      # where_part_for_id = self.make_field_val_couple_where(field_names_arr, values_arr)
+      current_id = mysql_utils.get_id_esc(table_name_id, table_name, field_names_arr, values_arr)
       current_row_d[table_name_id] = current_id
 
   def mass_update_simple_ids(self):

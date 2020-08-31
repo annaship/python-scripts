@@ -149,7 +149,7 @@ class Mysql_util:
       self.utils.print_both(sys.exc_info()[0])
       raise  # re-throw caught exception
 
-  def execute_fetch_select(self, sql, params = ""):
+  def execute_fetch_select(self, sql, params = None):
     # print("+" * 20)
     # print(sql)
     if self.cursor:
@@ -303,7 +303,7 @@ class Mysql_util:
     return self.execute_fetch_select(id_query)[0]
 
   def make_where_part_template(self, where_fields):
-    and_template_arr = ['{} = "{{}}"'.format(field_name) for field_name in where_fields]
+    and_template_arr = ['{} = %s'.format(field_name) for field_name in where_fields]
     and_template_str = ' AND '.join(and_template_arr)
     return and_template_str
 
@@ -328,7 +328,7 @@ class Mysql_util:
       id_result = int(rows_affected[1])
     else:
       try:
-        id_query = "SELECT {} FROM {} WHERE {}" % (field_name, table_name, where_part_templ)
+        id_query = "SELECT {} FROM {} WHERE {}".format(field_name, table_name, where_part_templ)
         """
         
         return self.execute_fetch_select(id_query)[0]
@@ -343,14 +343,14 @@ class Mysql_util:
       self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(sql, val_list))
       raise
       """
-        id_result_full = self.execute_fetch_select(id_query)
+        id_result_full = self.execute_fetch_select(id_query, where_values)
 
         # id_result_full = self.execute_simple_select(field_name, table_name, where_part)where_values
-        id_result = int(id_result_full[0][0])
+        id_result = int(id_result_full[0][0][0])
       except:
         self.utils.print_both("Unexpected:")
         self.utils.print_both(
-          'field_name = "{}", table_name = "{}", where_part = "{}"'.format(field_name, table_name, where_part))
+          'field_name = "{}", table_name = "{}", id_query = "{}", where_values = "{}"'.format(field_name, table_name, id_query, where_values))
         raise
 
     # self.utils.print_array_w_title(id_result, "=====\nid_result IN get_id")
