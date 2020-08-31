@@ -149,16 +149,16 @@ class Mysql_util:
       self.utils.print_both(sys.exc_info()[0])
       raise  # re-throw caught exception
 
-  def execute_fetch_select(self, sql):
+  def execute_fetch_select(self, sql, params = ""):
     # print("+" * 20)
     # print(sql)
     if self.cursor:
       try:
-        self.cursor.execute(sql)
+        self.cursor.execute(sql, params)
         res = self.cursor.fetchall()
         field_names = [i[0] for i in self.cursor.description]
       except:
-        self.utils.print_both(("ERROR: query = %s") % sql)
+        self.utils.print_both("ERROR: query = {}, params = {}".format(sql, params))
         raise
       return (res, field_names)
 
@@ -301,6 +301,60 @@ class Mysql_util:
   def execute_simple_select(self, field_name, table_name, where_part):
     id_query = "SELECT %s FROM %s %s" % (field_name, table_name, where_part)
     return self.execute_fetch_select(id_query)[0]
+
+  def make_where_part_template(self, where_fields):
+    and_template_arr = ['{} = "{{}}"'.format(field_name) for field_name in where_fields]
+    and_template_str = ' AND '.join(and_template_arr)
+    return and_template_str
+
+
+  def get_id_esc(self, field_name, table_name, where_fields, where_values, rows_affected = [0, 0]):
+    # self.utils.print_array_w_title(rows_affected, "=====\nrows_affected from def get_id")
+    where_part_templ = self.make_where_part_template(where_fields)
+    """
+
+        field_names_str = ', '.join(field_names_arr)
+        values_str_pattern = ", ".join(['%s' for e in field_names_arr])
+
+    my_sql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format(ignore, table_name, field_names_str,
+                                                                      values_str_pattern)
+
+    res = self.cursor.execute(my_sql_insert_query, values_tuple)
+    self.cursor.execute('COMMIT')
+
+    self.conn.commit()
+    """
+    if rows_affected[1] > 0:
+      id_result = int(rows_affected[1])
+    else:
+      try:
+        id_query = "SELECT {} FROM {} WHERE {}" % (field_name, table_name, where_part_templ)
+        """
+        
+        return self.execute_fetch_select(id_query)[0]
+
+        sql = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
+
+        if self.cursor:
+          self.cursor.execute(sql, val_list)
+          self.conn.commit()
+          return (self.cursor.rowcount, self.cursor.lastrowid)
+    except:
+      self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(sql, val_list))
+      raise
+      """
+        id_result_full = self.execute_fetch_select(id_query)
+
+        # id_result_full = self.execute_simple_select(field_name, table_name, where_part)where_values
+        id_result = int(id_result_full[0][0])
+      except:
+        self.utils.print_both("Unexpected:")
+        self.utils.print_both(
+          'field_name = "{}", table_name = "{}", where_part = "{}"'.format(field_name, table_name, where_part))
+        raise
+
+    # self.utils.print_array_w_title(id_result, "=====\nid_result IN get_id")
+    return id_result
 
   def get_id(self, field_name, table_name, where_part, rows_affected = [0, 0]):
     # self.utils.print_array_w_title(rows_affected, "=====\nrows_affected from def get_id")
