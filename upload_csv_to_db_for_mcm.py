@@ -381,19 +381,19 @@ class Upload:
 
       unique_keys = current_row_d.keys()
       # TODO: use a template
-      templ_arr = ['%s'] * len(unique_keys)
-      templ = ", ".join(templ_arr)
+      # templ_arr = ['%s'] * len(unique_keys)
+      # templ = ", ".join(templ_arr)
       # select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
       # """.format(field_name, field_name_id, table_name, field_name, templ)
       # sql_res = mysql_utils.execute_fetch_select(select_q, current_vals)
 
-      utils.make_where_part_template(self, where_fields)
-      where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_keys]
-      where_part0 = " AND ".join(where_arr)
+      where_part0 = mysql_utils.make_where_part_template(unique_keys)
+      # where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_keys]
+      # where_part0 = " AND ".join(where_arr)
 
       select_q = '''SELECT {} FROM {} 
         WHERE {}'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, where_part0)
-      sql_res = mysql_utils.execute_fetch_select_to_dict(select_q)
+      sql_res = mysql_utils.execute_fetch_select_to_dict(select_q, current_row_d.values())
       dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get
       #     def execute_many_fields_one_record(self, table_name, field_names_arr, values_tuple, ignore = "IGNORE"):
