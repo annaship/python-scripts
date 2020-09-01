@@ -283,7 +283,6 @@ class Upload:
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_arr = []):
-    # TODO: use a template
     try:
       if not val_arr:
         val_arr = list(set(metadata.not_empty_tsv_content_dict[field_name]))
@@ -313,9 +312,6 @@ class Upload:
       except KeyError:
         # is empty
         continue
-
-      if table_name in ['identifier', "description", "title"]:
-        print("STOP here")
       field_name = table_name
       field_name_id = field_name + '_id'
       templ_arr = ['%s'] * len(current_vals)
@@ -352,8 +348,12 @@ class Upload:
         except KeyError:
           continue
         table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-        where_part = 'WHERE {} = "{}"'.format(table_name_w_id, current_value)
-        current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
+        # mysql_utils.make_where_part_template(self, where_fields)
+        # where_part = 'WHERE {} = %s'.format(table_name_w_id, current_value)
+        current_id = mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
+
+        # get_id_esc(self, field_name, table_name, where_fields, where_values, rows_affected = [0, 0])
+        # current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
         # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
         update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
         # TODO: use a template
@@ -383,10 +383,17 @@ class Upload:
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
-      # unique_key = ['title', 'publisher']
-      unique_key = current_row_d.keys()
+
+      unique_keys = current_row_d.keys()
       # TODO: use a template
-      where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_key]
+      templ_arr = ['%s'] * len(unique_keys)
+      templ = ", ".join(templ_arr)
+      # select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
+      # """.format(field_name, field_name_id, table_name, field_name, templ)
+      # sql_res = mysql_utils.execute_fetch_select(select_q, current_vals)
+
+      utils.make_where_part_template(self, where_fields)
+      where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_keys]
       where_part0 = " AND ".join(where_arr)
 
       select_q = '''SELECT {} FROM {} 
