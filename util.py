@@ -152,6 +152,8 @@ class Mysql_util:
   def execute_fetch_select(self, sql, params = None):
     # print("+" * 20)
     # print(sql)
+    # if params:
+    #   params = list(params)
     if self.cursor:
       try:
         self.cursor.execute(sql, params)
@@ -187,10 +189,10 @@ class Mysql_util:
       for result in results:
         yield result
 
-  def execute_fetchmany(self, sql, arraysize = 1000):
+  def execute_fetchmany(self, sql, arraysize = 1000, params = None):
     if self.cursor:
       print(sql)
-      self.cursor.execute(sql)
+      self.cursor.execute(sql, params)
       # print("self.cursor.lastrowid")
       # print(self.cursor.lastrowid)
       print("self.cursor.rowcount")
@@ -202,19 +204,19 @@ class Mysql_util:
 
       return data_from_db
 
-  def execute_no_fetch_w_info(self, sql):
+  def execute_no_fetch_w_info(self, sql, params = None):
     if self.cursor:
-      self.cursor.execute(sql)
+      self.cursor.execute(sql, params)
       self.conn.commit()
       try:
         return self.cursor._info
       except AttributeError as e:
         pass
 
-  def execute_no_fetch(self, sql):
+  def execute_no_fetch(self, sql, params = None):
     if self.cursor:
       try:
-        self.cursor.execute(sql)
+        self.cursor.execute(sql, params)
       except mysql.InternalError as e:
         print(e)
         raise
@@ -236,10 +238,10 @@ class Mysql_util:
       except:
         self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
 
-  def execute_fetch_select_to_dict(self, sql):
+  def execute_fetch_select_to_dict(self, sql, params = None):
     if self.dict_cursor:
       try:
-        self.dict_cursor.execute(sql)
+        self.dict_cursor.execute(sql, params)
         # print("DDD")
         # print(self.dict_cursor.description)
         return self.dict_cursor.fetchall()
@@ -311,41 +313,12 @@ class Mysql_util:
   def get_id_esc(self, field_name, table_name, where_fields, where_values, rows_affected = [0, 0]):
     # self.utils.print_array_w_title(rows_affected, "=====\nrows_affected from def get_id")
     where_part_templ = self.make_where_part_template(where_fields)
-    """
-
-        field_names_str = ', '.join(field_names_arr)
-        values_str_pattern = ", ".join(['%s' for e in field_names_arr])
-
-    my_sql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format(ignore, table_name, field_names_str,
-                                                                      values_str_pattern)
-
-    res = self.cursor.execute(my_sql_insert_query, values_tuple)
-    self.cursor.execute('COMMIT')
-
-    self.conn.commit()
-    """
     if rows_affected[1] > 0:
       id_result = int(rows_affected[1])
     else:
       try:
         id_query = "SELECT {} FROM {} WHERE {}".format(field_name, table_name, where_part_templ)
-        """
-        
-        return self.execute_fetch_select(id_query)[0]
-
-        sql = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
-
-        if self.cursor:
-          self.cursor.execute(sql, val_list)
-          self.conn.commit()
-          return (self.cursor.rowcount, self.cursor.lastrowid)
-    except:
-      self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(sql, val_list))
-      raise
-      """
         id_result_full = self.execute_fetch_select(id_query, where_values)
-
-        # id_result_full = self.execute_simple_select(field_name, table_name, where_part)where_values
         id_result = int(id_result_full[0][0][0])
       except:
         self.utils.print_both("Unexpected:")

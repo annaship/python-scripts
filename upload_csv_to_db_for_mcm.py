@@ -230,6 +230,7 @@ class Upload:
 
   def drop_temp_table(self):
     drop_query = "DROP TABLE IF EXISTS {}".format(self.table_name_temp_dump)
+    # TODO: use a template
     mysql_utils.execute_no_fetch(drop_query)
 
   def create_temp_table(self):
@@ -283,6 +284,7 @@ class Upload:
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_arr = []):
+    # TODO: use a template
     try:
       if not val_arr:
         val_arr = list(set(metadata.not_empty_tsv_content_dict[field_name]))
@@ -292,10 +294,10 @@ class Upload:
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_no_fetch(insert_query)
 
-  def make_field_val_couple_where(self, field_names_arr, values_arr):
-    # TODO: confirm that a "title" is unique and use just it to get an id. For now use title_publisher
-    couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
-    return 'WHERE ' + ' AND '.join(couples_arr)
+  # def make_field_val_couple_where(self, field_names_arr, values_arr):
+  #   # TODO: confirm that a "title" is unique and use just it to get an id. For now use title_publisher
+  #   couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
+  #   return 'WHERE ' + ' AND '.join(couples_arr)
 
   # def insert_row(self, table_name, field_names_arr, values_tuple):
   #   field_names_str = ', '.join(field_names_arr)
@@ -327,24 +329,27 @@ class Upload:
   def mass_update_simple_ids(self):
     for table_name in self.simple_tables:
       try:
-        current_vals = set(metadata.not_empty_tsv_content_dict[table_name])
+        current_vals = list(set(metadata.not_empty_tsv_content_dict[table_name]))
       except KeyError:
         # is empty
         continue
 
+      if table_name in ['identifier', "description", "title"]:
+        print("STOP here")
       field_name = table_name
       field_name_id = field_name + '_id'
-      current_vals_str = ', '.join('"{0}"'.format(w) for w in current_vals)
-
+      # current_vals_str = ', '.join('"{0}"'.format(w) for w in current_vals)
+      templ_arr = ['%s'] * len(current_vals)
+      templ = ", ".join(templ_arr)
       select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
-      """.format(field_name, field_name_id, table_name, field_name, current_vals_str)
-      sql_res = mysql_utils.execute_fetch_select(select_q)
+      """.format(field_name, field_name_id, table_name, field_name, templ)
+      sql_res = mysql_utils.execute_fetch_select(select_q, current_vals)
 
       for (val, val_id) in sql_res[0]:
         update_q = '''UPDATE {}
           SET {} = {} 
-          WHERE {} = "{}"'''.format(self.table_name_temp_dump, field_name_id, val_id, field_name, val)
-        mysql_utils.execute_no_fetch(update_q)
+          WHERE {} = %s'''.format(self.table_name_temp_dump, field_name_id, val_id, field_name)
+        mysql_utils.execute_no_fetch(update_q, val)
 
   def upload_many_values_to_one_field(self):
     tsv_field_names_to_upload = self.many_values_to_one_field_column_names
@@ -372,6 +377,7 @@ class Upload:
         current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
         # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
         update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
+        # TODO: use a template
         mysql_utils.execute_no_fetch(update_q)
 
   def find_empty_ids(self, sql_res_d):
@@ -400,6 +406,7 @@ class Upload:
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
       # unique_key = ['title', 'publisher']
       unique_key = current_row_d.keys()
+      # TODO: use a template
       where_arr = ['{} = "{}"'.format(f, current_row_d[f]) for f in unique_key]
       where_part0 = " AND ".join(where_arr)
 
