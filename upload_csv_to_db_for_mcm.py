@@ -348,12 +348,8 @@ class Upload:
         except KeyError:
           continue
         table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-        # mysql_utils.make_where_part_template(self, where_fields)
-        # where_part = 'WHERE {} = %s'.format(table_name_w_id, current_value)
         current_id = mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
 
-        # get_id_esc(self, field_name, table_name, where_fields, where_values, rows_affected = [0, 0])
-        # current_id = mysql_utils.get_id(table_name_w_id + '_id', table_name_w_id, where_part)
         # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
         update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
         # TODO: use a template
