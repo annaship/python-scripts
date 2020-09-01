@@ -351,9 +351,8 @@ class Upload:
         current_id = mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
 
         # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
-        update_q = 'UPDATE {} SET {} = {} WHERE {} = "{}"'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name, current_value)
-        # TODO: use a template
-        mysql_utils.execute_no_fetch(update_q)
+        update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name)
+        mysql_utils.execute_no_fetch(update_q, current_value)
 
   def find_empty_ids(self, sql_res_d):
     """ TODO: correct names for
