@@ -305,10 +305,11 @@ class Mysql_util:
     return self.execute_fetch_select(id_query)[0]
 
   def make_where_part_template(self, where_fields):
+    if isinstance(where_fields, str):
+      where_fields = [where_fields]
     and_template_arr = ['{} = %s'.format(field_name) for field_name in where_fields]
     and_template_str = ' AND '.join(and_template_arr)
     return and_template_str
-
 
   def get_id_esc(self, field_name, table_name, where_fields, where_values, rows_affected = [0, 0]):
     # self.utils.print_array_w_title(rows_affected, "=====\nrows_affected from def get_id")
