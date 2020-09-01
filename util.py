@@ -240,6 +240,8 @@ class Mysql_util:
 
   def execute_fetch_select_to_dict(self, sql, params = None):
     if self.dict_cursor:
+      if params and not isinstance(params, (tuple, list)):
+        params = list(params)
       try:
         self.dict_cursor.execute(sql, params)
         # print("DDD")
