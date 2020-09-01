@@ -230,7 +230,6 @@ class Upload:
 
   def drop_temp_table(self):
     drop_query = "DROP TABLE IF EXISTS {}".format(self.table_name_temp_dump)
-    # TODO: use a template
     mysql_utils.execute_no_fetch(drop_query)
 
   def create_temp_table(self):
@@ -294,35 +293,16 @@ class Upload:
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_no_fetch(insert_query)
 
-  # def make_field_val_couple_where(self, field_names_arr, values_arr):
-  #   # TODO: confirm that a "title" is unique and use just it to get an id. For now use title_publisher
-  #   couples_arr = ['{} = "{}"'.format(t[0], t[1]) for t in zip(field_names_arr, values_arr)]
-  #   return 'WHERE ' + ' AND '.join(couples_arr)
-
-  # def insert_row(self, table_name, field_names_arr, values_tuple):
-  #   field_names_str = ', '.join(field_names_arr)
-  #   values_str_pattern = ", ".join(['%s' for e in field_names_arr])
-
-    # mySql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format("IGNORE", table_name, field_names_str, values_str_pattern)
-
-    # mysql_utils.execute_insert_many(table_name, field_names_str, values_str_pattern)
-    # mysql_utils.cursor.execute(mySql_insert_query, values_tuple)
-
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
-      # if current_row_d['identifier'] == "MCMEH-B000723":
-      #   # continue
-      #   print("identifier QQQ: {}".format(current_row_d['identifier']))
       field_names_arr = list(current_row_d.keys())
       values_arr      = list(current_row_d.values())
 
       res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
-      # print("execute_many_fields_one_record FROM upload_all_from_tsv_into_temp_table res: {}".format(res))
 
       # separate as add_id_back
-      # where_part_for_id = self.make_field_val_couple_where(field_names_arr, values_arr)
       current_id = mysql_utils.get_id_esc(table_name_id, table_name, field_names_arr, values_arr)
       current_row_d[table_name_id] = current_id
 
@@ -338,7 +318,6 @@ class Upload:
         print("STOP here")
       field_name = table_name
       field_name_id = field_name + '_id'
-      # current_vals_str = ', '.join('"{0}"'.format(w) for w in current_vals)
       templ_arr = ['%s'] * len(current_vals)
       templ = ", ".join(templ_arr)
       select_q = """SELECT {}, {} FROM {} WHERE {} in ({});
