@@ -250,18 +250,21 @@ class Upload:
     column_names_arr = []
     column_names_str_begin = "ALTER TABLE {}".format(self.table_name_temp_dump)
     for c_name_w_id in column_names_w_ids:
-      add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL".format(c_name_w_id)
+      add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL\n".format(c_name_w_id)
       column_names_arr.append(add_col_str_w_id)
     for c_name in all_fields:
       # add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
-      add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""'.format(c_name)
+      add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""\n'.format(c_name)
+      # add_col_str = ' ADD COLUMN {} TEXT\n'.format(c_name)
       column_names_arr.append(add_col_str)
 
-    column_names_str_end = """ ADD UNIQUE KEY `all_id` (metadata_type(16), identifier(16), title(512), content(16), content_url(16), creator(16), creator_other(16), subject_place(16), coverage_lat(16), coverage_long(16), subject_associated_places(16), subject_people(16), subject_academic_field(16), subject_other(16), subject_season(16), date_season(16), date_season_yyyy(16), date_exact(16), date_digital(16), description(512), format(16), digitization_specifications(16), contributor(16), type(16), country(16), language(16), relation(16), source(512), publisher(512), publisher_location(16), bibliographic_citation(512), rights(16)) """
-    column_names_arr.append(column_names_str_end)
+    # column_names_str_end = """ ADD UNIQUE KEY `all_id` (metadata_type(16), identifier(16), title(512), content(16), content_url(16), creator(16), creator_other(16), subject_place(16), coverage_lat(16), coverage_long(16), subject_associated_places(16), subject_people(16), subject_academic_field(16), subject_other(16), subject_season(16), date_season(16), date_season_yyyy(16), date_exact(16), date_digital(16), description(512), format(16), digitization_specifications(16), contributor(16), type(16), country(16), language(16), relation(16), source(512), publisher(512), publisher_location(16), bibliographic_citation(512), rights(16)) """
+    # column_names_str_end = ""
+    # column_names_arr.append(column_names_str_end)
 
     column_names_str = ", ".join(column_names_arr)
     add_columns_q = column_names_str_begin + column_names_str
+    # print(add_columns_q)
     mysql_utils.execute_no_fetch(add_columns_q)
 
     # print("QQ")
@@ -395,15 +398,16 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
-
   if utils.is_local():
     db_schema = 'mcm_history'
     mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
     print("host = 'localhost', db = {}".format(db_schema))
   else:
     db_schema = 'mcmurdohistory_metadata'
-    mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
-    print("host = 'taylor.unm.edu', db {}".format(db_schema))
+    host = '127.0.0.1'
+    mysql_utils = util.Mysql_util(host = host, db = db_schema, read_default_group = 'client')
+    # mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
+    print("host = {}, db {}".format(host, db_schema))
 
   all_tables_sql_res = mysql_utils.get_table_names(db_schema)
   all_tables_set = set(utils.extract(all_tables_sql_res[0]))
