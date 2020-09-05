@@ -37,20 +37,27 @@ class Export:
       curr_keys = coll['data'].keys()
       self.all_coll_fields = self.all_coll_fields | set(curr_keys)
 
-  def get_all(self):
-    dump_all = open('dump_all.txt', 'w')
+  def get_all_items(self):
+    dump_all_items = open('dump_all_items.txt', 'w')
     # gen = self.zot.makeiter(self.zot.top(limit = 5))
     # gen.next()  # this will return the first five items
     # print(self.zot.everything(self.zot.top()))
-    print(self.zot.everything(self.zot.top()), file = dump_all)
-    dump_all.close()
+    print(self.zot.everything(self.zot.top()), file = dump_all_items)
+    dump_all_items.close()
+
+  def get_all_collections(self):
+    dump_all_collections = open('dump_all_collections.txt', 'w')
+    print(self.zot.collections(), file = dump_all_collections)
+    dump_all_collections.close()
+
 
 
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
 
   z = Export()
-  z.print_items_info()
+  # z.print_items_info()
   # z.all_items_keys()
-  z.all_coll()
-  z.get_all()
+  # z.all_coll()
+  # z.get_all()
+  z.get_all_collections()
