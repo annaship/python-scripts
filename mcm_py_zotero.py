@@ -10,6 +10,24 @@ from pyzotero import zotero
     [api_key] => U4CPfWiKzcs7iyJV9IdPnEZU
 """
 
+library_id = "1415490"
+library_type = "group"
+api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
+
+zot = zotero.Zotero(library_id, library_type, api_key)
+
+class Collections:
+  def __init__(self):
+    self.collections = {}
+    coll = ""
+    while (zot.nextCollection()):
+      key = coll.primary.key
+      # (coll.primary ? coll.primary: coll).key
+      # this.collections[key] = {
+      #   parent: coll.fields.parentKey,
+      #   name  : coll.name,
+      # };
+      # }
 
 class Export:
   def __init__(self):
@@ -46,8 +64,12 @@ class Export:
     dump_all_items.close()
 
   def get_all_collections(self):
-    dump_all_collections = open('dump_all_collections.txt', 'w')
-    print(self.zot.collections(), file = dump_all_collections)
+    dump_collections = open('dump_collections0.txt', 'w')
+    dump_all_collections = open('dump_all_collections0.txt', 'w')
+    print(self.zot.collections(), file = dump_collections)
+    print(self.zot.all_collections(), file = dump_all_collections)
+
+    dump_collections.close()
     dump_all_collections.close()
 
 
@@ -55,9 +77,10 @@ class Export:
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
 
-  z = Export()
+  c = Collections()
+  # z = Export()
   # z.print_items_info()
   # z.all_items_keys()
   # z.all_coll()
   # z.get_all()
-  z.get_all_collections()
+  # z.get_all_collections()
