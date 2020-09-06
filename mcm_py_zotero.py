@@ -3,6 +3,15 @@
 
 from pyzotero import zotero
 from collections import defaultdict
+import util
+
+try:
+  import mysqlclient as mysql
+except ImportError:
+  try:
+    import pymysql as mysql
+  except ImportError:
+    import MySQLdb as mysql
 
 """
     [account_type] => group
@@ -54,10 +63,6 @@ class ToMysql:
   """
 
   def __init__(self):
-    pass
-
-class Export:
-  def __init__(self):
     self.zotero_to_sql_fields = {
       'name'        : 'person.person',  # creator, #creator_other
       'firstName'   : 'person.first_name',  # creator, #creator_other
@@ -73,18 +78,27 @@ class Export:
       'volume'      : 'source.source',
     }
 
-    self.all_items_l_dict = []
+    self.make_upload_queries()
 
-    # self.all_items_dump = self.dump_all_items()
-    # debug short
-    self.all_items_dump = zot.top(limit = 5)
+  def make_query(self, k, v):
+    if isinstance(v, (tuple, list)):
+      pass
+      # for list_item in v:
+      #   self.make_query(temp_dict, list_item)
+    else:
+      try:
+        field_name = self.zotero_to_sql_fields[k]
+        # execute_insert(self, table_name, field_name, val_list
+        upload_q = "INSERT INTO"
+        temp_dict[field_name] = in_item_dict[k]
+      except KeyError:
+        temp_dict[k] = in_item_dict[k]
 
-    self.all_items_fields = set()
-    self.get_all_zotero_fields()
-
-    self.make_all_info_dict()
-
-    # self.all_coll_fields = set()
+  def make_upload_queries(self):
+    for item in export.all_items_dump:
+      for k, v in item:
+        if v:
+          self.make_query(k, v)
 
   def make_all_info_dict(self):
     for item in self.all_items_dump:
@@ -108,7 +122,7 @@ class Export:
 
   def make_temp_dict(self, temp_dict, in_item_dict):
     for k, v in in_item_dict.items():
-      if v: #(don't retain empty values')
+      if v:  # (don't retain empty values')
         if isinstance(v, (tuple, list)):
           for list_item in v:
             self.make_temp_dict(temp_dict, list_item)
@@ -120,13 +134,22 @@ class Export:
             temp_dict[k] = in_item_dict[k]
     return temp_dict
 
-  # def make_temp_dict(self, temp_dict, field_lookup, in_item_dict):
-  #   for k, v in field_lookup.items():
-  #     try:
-  #       temp_dict[v] = in_item_dict[k]
-  #     except KeyError:
-  #       pass
-  #   return temp_dict
+
+class Export:
+  def __init__(self):
+
+    self.all_items_l_dict = []
+
+    # self.all_items_dump = self.dump_all_items()
+    # debug short
+    self.all_items_dump = zot.top(limit = 5)
+
+    self.all_items_fields = set()
+    self.get_all_zotero_fields()
+
+    self.make_all_info_dict()
+
+    # self.all_coll_fields = set()
 
   def print_items_info(self):
     items = zot.top(limit = 5)
@@ -154,11 +177,24 @@ class Export:
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
 
+  utils = util.Utils()
+
+  if utils.is_local():
+    db_schema = 'mcm_history'
+    mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
+    print("host = 'localhost', db = {}".format(db_schema))
+  else:
+    db_schema = 'mcmurdohistory_metadata'
+    host = '127.0.0.1'
+    mysql_utils = util.Mysql_util(host = host, db = db_schema, read_default_group = 'client')
+    # mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
+    print("host = {}, db {}".format(host, db_schema))
+
   c = Collections()
-  z = Export()
-  # z.()
-  # z.print_items_info()
-  # z.all_items_fields()
-  # z.all_coll()
-  # z.get_all()
-  # z.get_all_collections()
+  export = Export()
+  # export.()
+  # export.print_items_info()
+  # export.all_items_fields()
+  # export.all_coll()
+  # export.get_all()
+  # export.get_all_collections()
