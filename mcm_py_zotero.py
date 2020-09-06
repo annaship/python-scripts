@@ -101,11 +101,6 @@ class Export:
  ...
       """
       temp_dict['key'] = item['data']['key']
-      # for k, v in self.zotero_to_sql_fields.items():
-      #   try:
-      #     temp_dict[v] = item['data'][k]
-      #   except KeyError:
-      #     pass
       temp_dict = self.make_temp_dict(temp_dict, self.zotero_to_sql_fields, item['data'])
 
       for creator in item['data']['creators']:
