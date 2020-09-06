@@ -103,22 +103,21 @@ class Export:
       temp_dict['key'] = item['data']['key']
       temp_dict = self.make_temp_dict(temp_dict, item['data'])
 
-      for creator in item['data']['creators']:
-        temp_dict['creatorType'] = creator['creatorType'] #'role'?
-        temp_dict = self.make_temp_dict(temp_dict, creator)
-
       self.all_items_l_dict.append(temp_dict)
       # self.zotero_to_sql_fields
 
   def make_temp_dict(self, temp_dict, in_item_dict):
     for k, v in in_item_dict.items():
-      if params and not isinstance(params, (tuple, list)):
-
-      try:
-        field_name = self.zotero_to_sql_fields[k]
-        temp_dict[field_name] = in_item_dict[k]
-      except KeyError:
-        temp_dict[k] = in_item_dict[k]
+      if v: #(don't retain empty values')
+        if isinstance(v, (tuple, list)):
+          for list_item in v:
+            self.make_temp_dict(temp_dict, list_item)
+        else:
+          try:
+            field_name = self.zotero_to_sql_fields[k]
+            temp_dict[field_name] = in_item_dict[k]
+          except KeyError:
+            temp_dict[k] = in_item_dict[k]
     return temp_dict
 
   # def make_temp_dict(self, temp_dict, field_lookup, in_item_dict):
