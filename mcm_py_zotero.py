@@ -100,9 +100,12 @@ class ToMysql:
   def update_first_last_names(self, val_list, db_id):
     names_tuples_list = [(d['lastName'], d['firstName']) for d in val_list]
 
+    (table_name, last_name) = self.zotero_to_sql_fields['lastName'].split(".")
+    (table_name, first_name) = self.zotero_to_sql_fields['firstName'].split(".")
+
     update_q = '''UPDATE {}
       SET {} = %s, {} = %s 
-      WHERE {} = {}'''.format("person", 'lastName', 'firstName', "person_id", db_id)
+      WHERE {} = {}'''.format(table_name, last_name, first_name, table_name + '_id', db_id)
     for t in names_tuples_list:
       mysql_utils.execute_no_fetch(update_q, t)
 
