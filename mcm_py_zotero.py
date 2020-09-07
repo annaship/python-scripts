@@ -94,8 +94,13 @@ class ToMysql:
   #   return mysql_utils.get_id_esc(field_name_id, table_name, where_fields, where_values)
 
   def make_full_names_list(self, val_list):
-    full_names = ["{}, {}".format(d['lastName'], d['firstName']) for d in val_list]
-    return "; ".join(full_names)
+    try:
+      full_names = ["{}, {}".format(d['lastName'], d['firstName']) for d in val_list]
+      return "; ".join(full_names)
+    except TypeError:
+      print("full_names err, not names?")
+      raise
+
 
   def update_first_last_names(self, val_list, db_id):
     names_tuples_list = [(d['lastName'], d['firstName']) for d in val_list]
@@ -124,30 +129,26 @@ class ToMysql:
       db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     return db_id
 
-  def make_entry_rows_dict_of_ids(self, k, v, z_key):
-    if isinstance(v, list):
-      db_id = self.parse_person_list(v)
-      self.entry_rows_dict[z_key]["person_id"] = db_id
+    """
+      value = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
+0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
+1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
+...
+    """
 
-      """
-        value = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
- 0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
- 1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
- ...
-      """
-    else:
-      try:
-        db_field_name = self.zotero_to_sql_fields[k]
-        (table_name, field_name) = db_field_name.split(".")
-        # try:
-        #   db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
-        # except IndexError:
-        #   mysql_utils.execute_insert(table_name, field_name, value)
-        #   db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+  def make_entry_rows_dict_of_ids(self, k, v, z_key):
+    try:
+      db_tbl_field_name = self.zotero_to_sql_fields[k]
+
+      if isinstance(v, list):
+        db_id = self.parse_person_list(v)
+        self.entry_rows_dict[z_key]["person_id"] = db_id
+      else:
+        (table_name, field_name) = db_tbl_field_name.split(".")
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
         self.entry_rows_dict[z_key][field_name + "_id"] = db_id
-      except KeyError:
-        pass # zotero field is not in the db field names list
+    except KeyError:
+      pass # zotero field is not in the db field names list
 
   def make_upload_queries(self):
     for entry in export.all_items_dump:
