@@ -67,6 +67,7 @@ class ToMysql:
 
   def __init__(self):
     self.zotero_to_sql_fields = {
+      'creators'    : 'role.role', #creator
       'name'        : 'person.person',  # creator, #creator_other
       'firstName'   : 'person.first_name',  # creator, #creator_other
       'lastName'    : 'person.last_name',  # creator, #creator_other
@@ -101,7 +102,6 @@ class ToMysql:
       print("full_names err, not names?")
       raise
 
-
   def update_first_last_names(self, val_list, db_id):
     names_tuples_list = [(d['lastName'], d['firstName']) for d in val_list]
 
@@ -116,9 +116,9 @@ class ToMysql:
 
   def parse_person_list(self, val_list):
     full_names_list = self.make_full_names_list(val_list)
-
     db_id = self.get_id_by_serch_or_insert("person", "person", full_names_list)
     self.update_first_last_names(val_list, db_id)
+    return db_id
 
   def get_id_by_serch_or_insert(self, table_name, field_name, value):
     field_name_id = field_name + "_id"
@@ -143,6 +143,13 @@ class ToMysql:
       if isinstance(v, list):
         db_id = self.parse_person_list(v)
         self.entry_rows_dict[z_key]["person_id"] = db_id
+
+        (table_name, field_name) = db_tbl_field_name.split(".")
+        # ('creatorType', 'author')
+        for d in v:
+          db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
+          self.entry_rows_dict[z_key][field_name + "_id"] = db_id1
+        # self.entry_rows_dict[z_key]["role_id"] = db_id
       else:
         (table_name, field_name) = db_tbl_field_name.split(".")
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
@@ -151,10 +158,10 @@ class ToMysql:
       pass # zotero field is not in the db field names list
 
   def make_upload_queries(self):
-    for entry in export.all_items_dump:
-      z_key = entry['key']
+    for z_entry in export.all_items_dump:
+      z_key = z_entry['key']
       self.entry_rows_dict[z_key] = defaultdict()
-      for k, v in entry['data'].items():
+      for k, v in z_entry['data'].items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
