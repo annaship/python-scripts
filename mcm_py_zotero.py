@@ -77,28 +77,61 @@ class ToMysql:
       'rights'      : 'rights.rights',
       'volume'      : 'source.source',
     }
-
+    """
+    add to temp_table first?
+    make an identifier
+    add to entry
+    
+    """
+    self.entry_rows_dict = defaultdict()
     self.make_upload_queries()
+    print("DONE")
 
-  def make_query(self, k, v):
-    if isinstance(v, (tuple, list)):
-      pass
+  # def get_id(self, field_name_id, table_name, where_fields, where_values):
+  #   return mysql_utils.get_id_esc(field_name_id, table_name, where_fields, where_values)
+
+  def create_person_list(self, val_list):
+    pass
+
+  def make_query(self, k, v, z_key):
+    if isinstance(v, list):
+      self.create_person_list(v)
+      """
+        v = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
+ 0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
+ 1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
+ ...
+      """
       # for list_item in v:
       #   self.make_query(temp_dict, list_item)
     else:
       try:
-        field_name = self.zotero_to_sql_fields[k]
-        # execute_insert(self, table_name, field_name, val_list
-        upload_q = "INSERT INTO"
-        temp_dict[field_name] = in_item_dict[k]
+        db_field_name = self.zotero_to_sql_fields[k]
+        (table_name, field_name) = db_field_name.split(".")
+        field_name_id = field_name + "_id"
+        try:
+          db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, v)
+          # self.get_id(field_name, table_name, table_name, v)
+          # if db_id:
+        except IndexError:
+          # raise
+          mysql_utils.execute_insert(table_name, field_name, v)
+          db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, v)
+        self.entry_rows_dict[z_key][field_name_id] = db_id
+
+        # upload_q = "INSERT INTO "
+        # temp_dict[field_name] = in_item_dict[k]
       except KeyError:
-        temp_dict[k] = in_item_dict[k]
+        pass
+        # temp_dict[k] = in_item_dict[k]
 
   def make_upload_queries(self):
-    for item in export.all_items_dump:
-      for k, v in item:
+    for entry in export.all_items_dump:
+      z_key = entry['key']
+      self.entry_rows_dict[z_key] = defaultdict()
+      for k, v in entry['data'].items():
         if v:
-          self.make_query(k, v)
+          self.make_query(k, v, z_key)
 
   def make_all_info_dict(self):
     for item in self.all_items_dump:
@@ -147,7 +180,7 @@ class Export:
     self.all_items_fields = set()
     self.get_all_zotero_fields()
 
-    self.make_all_info_dict()
+    # self.make_all_info_dict()
 
     # self.all_coll_fields = set()
 
@@ -192,6 +225,7 @@ if __name__ == '__main__':
 
   c = Collections()
   export = Export()
+  import_to_mysql = ToMysql()
   # export.()
   # export.print_items_info()
   # export.all_items_fields()
