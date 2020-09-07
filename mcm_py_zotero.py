@@ -26,18 +26,20 @@ api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
 
 zot = zotero.Zotero(library_id, library_type, api_key)
 
+
 class Collections:
   def __init__(self):
     self.collections = {}
+    self.all_coll_fields = set()
     # coll = ""
     # while (zot.nextCollection()):
     #   key = coll.primary.key
-      # (coll.primary ? coll.primary: coll).key
-      # this.collections[key] = {
-      #   parent: coll.fields.parentKey,
-      #   name  : coll.name,
-      # };
-      # }
+    # (coll.primary ? coll.primary: coll).key
+    # this.collections[key] = {
+    #   parent: coll.fields.parentKey,
+    #   name  : coll.name,
+    # };
+    # }
 
   def all_coll(self):
     all_coll = zot.all_collections()
@@ -53,6 +55,7 @@ class Collections:
 
     dump_collections.close()
     dump_all_collections.close()
+
 
 class ToMysql:
   """
@@ -90,14 +93,40 @@ class ToMysql:
   # def get_id(self, field_name_id, table_name, where_fields, where_values):
   #   return mysql_utils.get_id_esc(field_name_id, table_name, where_fields, where_values)
 
-  def create_person_list(self, val_list):
-    pass
+  def make_full_names_list(self, val_list):
+    full_names = ["{}, {}".format(d['lastName'], d['firstName']) for d in val_list]
+    return "; ".join(full_names)
+
+  def update_first_last_names(self, val_list, db_id):
+    names_tuples = [(d['lastName'], d['firstName']) for d in val_list]
+
+    update_q = '''UPDATE {}
+      SET {} = %s, {} = %s 
+      WHERE {} = {}'''.format("person", 'lastName', 'firstName', "person_id", db_id)
+    mysql_utils.execute_no_fetch(update_q, names_tuples)
+
+  def parse_person_list(self, val_list):
+    full_names_list = self.make_full_names_list(val_list)
+
+    db_id = self.get_id_by_serch_or_insert("person", "person", full_names_list)
+    self.update_first_last_names(val_list, db_id)
+
+  def get_id_by_serch_or_insert(self, table_name, field_name, value):
+    field_name_id = field_name + "_id"
+    try:
+      db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+    except IndexError:
+      mysql_utils.execute_insert(table_name, field_name, value)
+      db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+    return db_id
 
   def make_entry_rows_dict_of_ids(self, k, v, z_key):
     if isinstance(v, list):
-      self.create_person_list(v)
+      db_id = self.parse_person_list(v)
+      self.entry_rows_dict[z_key]["person_id"] = db_id
+
       """
-        v = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
+        value = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
  0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
  1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
  ...
@@ -106,13 +135,13 @@ class ToMysql:
       try:
         db_field_name = self.zotero_to_sql_fields[k]
         (table_name, field_name) = db_field_name.split(".")
-        field_name_id = field_name + "_id"
-        try:
-          db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, v)
-        except IndexError:
-          mysql_utils.execute_insert(table_name, field_name, v)
-          db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, v)
-        self.entry_rows_dict[z_key][field_name_id] = db_id
+        # try:
+        #   db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+        # except IndexError:
+        #   mysql_utils.execute_insert(table_name, field_name, value)
+        #   db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+        db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
+        self.entry_rows_dict[z_key][field_name + "_id"] = db_id
       except KeyError:
         pass # zotero field is not in the db field names list
 
@@ -194,8 +223,6 @@ class Export:
 
   def dump_all_items(self):
     return zot.everything(zot.top())
-
-      # all_items_l_dict[]
 
 
 if __name__ == '__main__':
