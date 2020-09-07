@@ -67,7 +67,7 @@ class ToMysql:
 
   def __init__(self):
     self.zotero_to_sql_fields = {
-      'creators'    : 'role.role', #creator
+      'creators'    : 'role.role', # creator
       'name'        : 'person.person',  # creator, #creator_other
       'firstName'   : 'person.first_name',  # creator, #creator_other
       'lastName'    : 'person.last_name',  # creator, #creator_other
@@ -91,33 +91,33 @@ class ToMysql:
     self.make_upload_queries()
     print("DONE")
 
-  # def get_id(self, field_name_id, table_name, where_fields, where_values):
-  #   return mysql_utils.get_id_esc(field_name_id, table_name, where_fields, where_values)
+  def make_full_name(self, val_d):
+    return "{}, {}".format(val_d['lastName'], val_d['firstName'])
 
-  def make_full_names_list(self, val_list):
-    try:
-      full_names = ["{}, {}".format(d['lastName'], d['firstName']) for d in val_list]
-      return "; ".join(full_names)
-    except TypeError:
-      print("full_names err, not names?")
-      raise
+  # def make_full_name(self, val_list):
+  #   try:
+  #     full_names = ["{}, {}".format(d['lastName'], d['firstName']) for d in val_list]
+  #     return "; ".join(full_names)
+  #   except TypeError:
+  #     print("full_names err, not names?")
+  #     raise
 
-  def update_first_last_names(self, val_list, db_id):
-    names_tuples_list = [(d['lastName'], d['firstName']) for d in val_list]
-
+  def update_first_last_names(self, val_d, db_id):
+    # names_tuples_list = [(d['lastName'], d['firstName']) for d in val_d]
+    names_tuple = (val_d['lastName'], val_d['firstName'])
     (table_name, last_name) = self.zotero_to_sql_fields['lastName'].split(".")
     (table_name, first_name) = self.zotero_to_sql_fields['firstName'].split(".")
 
     update_q = '''UPDATE {}
       SET {} = %s, {} = %s 
       WHERE {} = {}'''.format(table_name, last_name, first_name, table_name + '_id', db_id)
-    for t in names_tuples_list:
-      mysql_utils.execute_no_fetch(update_q, t)
+    # for t in names_tuple:
+    mysql_utils.execute_no_fetch(update_q, names_tuple)
 
-  def parse_person_list(self, val_list):
-    full_names_list = self.make_full_names_list(val_list)
-    db_id = self.get_id_by_serch_or_insert("person", "person", full_names_list)
-    self.update_first_last_names(val_list, db_id)
+  def parse_person_list(self, val_d):
+    full_name = self.make_full_name(val_d)
+    db_id = self.get_id_by_serch_or_insert("person", "person", full_name)
+    self.update_first_last_names(val_d, db_id)
     return db_id
 
   def get_id_by_serch_or_insert(self, table_name, field_name, value):
@@ -141,15 +141,18 @@ class ToMysql:
       db_tbl_field_name = self.zotero_to_sql_fields[k]
 
       if isinstance(v, list):
-        db_id = self.parse_person_list(v)
-        self.entry_rows_dict[z_key]["person_id"] = db_id
-
-        (table_name, field_name) = db_tbl_field_name.split(".")
-        # ('creatorType', 'author')
+        person_list = []
         for d in v:
-          db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
-          self.entry_rows_dict[z_key][field_name + "_id"] = db_id1
-        # self.entry_rows_dict[z_key]["role_id"] = db_id
+          person_db_id = self.parse_person_list(d)
+          # self.entry_rows_dict[z_key]["person_id"] = db_id
+
+          (table_name, field_name) = db_tbl_field_name.split(".")
+        # ('creatorType', 'author')
+          role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
+          person_list.append({"person_id": person_db_id, "role_id": role_db_id1})
+
+          # self.entry_rows_dict[z_key][field_name + "_id"] = role_db_id1
+        self.entry_rows_dict[z_key]["person"] = person_list
       else:
         (table_name, field_name) = db_tbl_field_name.split(".")
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
