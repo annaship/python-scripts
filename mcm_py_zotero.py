@@ -93,7 +93,7 @@ class ToMysql:
   def create_person_list(self, val_list):
     pass
 
-  def make_query(self, k, v, z_key):
+  def make_entry_rows_dict_of_ids(self, k, v, z_key):
     if isinstance(v, list):
       self.create_person_list(v)
       """
@@ -102,8 +102,6 @@ class ToMysql:
  1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
  ...
       """
-      # for list_item in v:
-      #   self.make_query(temp_dict, list_item)
     else:
       try:
         db_field_name = self.zotero_to_sql_fields[k]
@@ -111,19 +109,12 @@ class ToMysql:
         field_name_id = field_name + "_id"
         try:
           db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, v)
-          # self.get_id(field_name, table_name, table_name, v)
-          # if db_id:
         except IndexError:
-          # raise
           mysql_utils.execute_insert(table_name, field_name, v)
           db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, v)
         self.entry_rows_dict[z_key][field_name_id] = db_id
-
-        # upload_q = "INSERT INTO "
-        # temp_dict[field_name] = in_item_dict[k]
       except KeyError:
-        pass
-        # temp_dict[k] = in_item_dict[k]
+        pass # zotero field is not in the db field names list
 
   def make_upload_queries(self):
     for entry in export.all_items_dump:
@@ -131,7 +122,7 @@ class ToMysql:
       self.entry_rows_dict[z_key] = defaultdict()
       for k, v in entry['data'].items():
         if v:
-          self.make_query(k, v, z_key)
+          self.make_entry_rows_dict_of_ids(k, v, z_key)
 
   def make_all_info_dict(self):
     for item in self.all_items_dump:
