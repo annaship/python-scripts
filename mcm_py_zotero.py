@@ -98,12 +98,13 @@ class ToMysql:
     return "; ".join(full_names)
 
   def update_first_last_names(self, val_list, db_id):
-    names_tuples = [(d['lastName'], d['firstName']) for d in val_list]
+    names_tuples_list = [(d['lastName'], d['firstName']) for d in val_list]
 
     update_q = '''UPDATE {}
       SET {} = %s, {} = %s 
       WHERE {} = {}'''.format("person", 'lastName', 'firstName', "person_id", db_id)
-    mysql_utils.execute_no_fetch(update_q, names_tuples)
+    for t in names_tuples_list:
+      mysql_utils.execute_no_fetch(update_q, t)
 
   def parse_person_list(self, val_list):
     full_names_list = self.make_full_names_list(val_list)
