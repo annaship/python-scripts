@@ -162,7 +162,6 @@ class Upload:
     "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
   }
 
-
   where_to_look_if_not_the_same = {
     # "bibliographic_citation"   : "source.bibliographic_citation",
     # "content": "content",
@@ -201,7 +200,7 @@ class Upload:
 
   foreign_key_tables = defaultdict(dict)
 
-  def __init__(self):
+  def __init__(self, utils):
     """
         1) upload simple tables (table_names_simple)
         2) upload combine tables no foreign keys (content, person, place, season, source)
@@ -209,9 +208,12 @@ class Upload:
         4) upload tables with ids
     """
 
+    all_tables_sql_res = mysql_utils.get_table_names(db_schema)
+    self.all_tables_set = set(utils.extract(all_tables_sql_res[0]))
+
     self.many_values_to_one_field_column_names = utils.flatten_2d_list(self.many_values_to_one_field.values())
     self.special_tables = self.get_special_tables()
-    self.simple_tables = list(all_tables_set - set(self.special_tables))
+    self.simple_tables = list(self.all_tables_set - set(self.special_tables))
 
     self.drop_temp_table()
     self.create_temp_table()
@@ -275,9 +277,9 @@ class Upload:
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
   def upload_empty(self):
-    all_tables_set.discard(self.table_names_w_ids[0])
-    all_tables_set.discard(self.table_names_to_ignore[0])
-    for table_name in list(all_tables_set):
+    self.all_tables_set.discard(self.table_names_w_ids[0])
+    self.all_tables_set.discard(self.table_names_to_ignore[0])
+    for table_name in list(self.all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
       mysql_utils.execute_no_fetch(insert_query)
 
@@ -285,7 +287,9 @@ class Upload:
     for table_name in self.simple_tables:
       self.simple_mass_upload(table_name, table_name)
 
-  def simple_mass_upload(self, table_name, field_name, val_arr = []):
+  def simple_mass_upload(self, table_name, field_name, val_arr = None):
+    """Default argument values are evaluated only once at function definition time, which means that modifying the default value of the argument will affect all subsequent calls of the function.Jan 17, 2017
+    """
     try:
       if not val_arr:
         val_arr = list(set(metadata.not_empty_tsv_content_dict[field_name]))
@@ -302,7 +306,7 @@ class Upload:
       field_names_arr = list(current_row_d.keys())
       values_arr      = list(current_row_d.values())
 
-      res = mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
+      mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
 
       # separate as add_id_back
       current_id = mysql_utils.get_id_esc(table_name_id, table_name, field_names_arr, values_arr)
@@ -409,9 +413,6 @@ if __name__ == '__main__':
     # mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
     print("host = {}, db {}".format(host, db_schema))
 
-  all_tables_sql_res = mysql_utils.get_table_names(db_schema)
-  all_tables_set = set(utils.extract(all_tables_sql_res[0]))
-
   parser = argparse.ArgumentParser()
 
   parser.add_argument('-f', '--file_name',
@@ -419,7 +420,7 @@ if __name__ == '__main__':
                       help = '''Input file name''')
   parser.add_argument("-ve", "--verbatim",
                       required = False, action = "store_true", dest = "is_verbatim",
-                      help = """Print an additional inforamtion""")
+                      help = """Print an additional information""")
 
   args = parser.parse_args()
   print('args = ')
@@ -428,4 +429,4 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args.input_file)
-  upload_metadata = Upload()
+  upload_metadata = Upload(utils)
