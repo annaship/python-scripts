@@ -92,9 +92,25 @@ class ToMysql:
     self.insert_entry_row()
     print("DONE")
 
+  """TODO: If there more than one person
+  a) combine them in one row in "person" table and provide one id in entry
+  or
+  b) make as many entry rows as there are different persons
+  """
+  def insert_person_combination_and_get_id(self, person_list):
+    persons_str = "; ".join(sorted(person_list))
+    table_name = "person"
+    field_name = "person"
+    return self.get_id_by_serch_or_insert(table_name, field_name, persons_str)
+
   def insert_entry_row(self):
     for key, val_dict in self.entry_rows_dict.items():
-      if len(self.entry_rows_dict[key]) > 0:
+      if len(val_dict) > 0:
+        """
+        self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
+
+        """
+
         pass
 
 
@@ -102,7 +118,6 @@ class ToMysql:
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
 
   def update_first_last_names(self, val_d, db_id):
-    # names_tuples_list = [(d['lastName'], d['firstName']) for d in val_d]
     names_tuple = (val_d['lastName'], val_d['firstName'])
     (table_name, last_name) = self.zotero_to_sql_fields['lastName'].split(".")
     (table_name, first_name) = self.zotero_to_sql_fields['firstName'].split(".")
@@ -110,13 +125,12 @@ class ToMysql:
     update_q = '''UPDATE {}
       SET {} = %s, {} = %s 
       WHERE {} = {}'''.format(table_name, last_name, first_name, table_name + '_id', db_id)
-    # for t in names_tuple:
     mysql_utils.execute_no_fetch(update_q, names_tuple)
 
-  def parse_person_list(self, val_d):
-    full_name = self.make_full_name(val_d)
-    db_id = self.get_id_by_serch_or_insert("person", "person", full_name)
-    self.update_first_last_names(val_d, db_id)
+  def get_person_id(self, full_name):
+    table_name = "person"
+    field_name = "person"
+    db_id = self.get_id_by_serch_or_insert(table_name, field_name, full_name)
     return db_id
 
   def get_id_by_serch_or_insert(self, table_name, field_name, value):
@@ -140,14 +154,22 @@ class ToMysql:
       db_tbl_field_name = self.zotero_to_sql_fields[k]
 
       if isinstance(v, list):
-        person_list = []
+        person_id_list = []
+        current_persons_list = []
+
         for d in v:
-          person_db_id = self.parse_person_list(d)
+          full_name = self.make_full_name(d)
+
+          person_db_id = self.get_person_id(full_name)
+          self.update_first_last_names(d, person_db_id)
+
           (table_name, field_name) = db_tbl_field_name.split(".")
           role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
-          person_list.append({"person_id": person_db_id, "role_id": role_db_id1})
+          person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
+          current_persons_list.append(full_name)
 
-        self.entry_rows_dict[z_key]["person"] = person_list
+        all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
+        self.entry_rows_dict[z_key]["person"] = all_cur_persons_id
       else:
         (table_name, field_name) = db_tbl_field_name.split(".")
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
