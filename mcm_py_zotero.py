@@ -89,18 +89,17 @@ class ToMysql:
     """
     self.entry_rows_dict = defaultdict()
     self.make_upload_queries()
+    self.insert_entry_row()
     print("DONE")
+
+  def insert_entry_row(self):
+    for key, val_dict in self.entry_rows_dict.items():
+      if len(self.entry_rows_dict[key]) > 0:
+        pass
+
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
-
-  # def make_full_name(self, val_list):
-  #   try:
-  #     full_names = ["{}, {}".format(d['lastName'], d['firstName']) for d in val_list]
-  #     return "; ".join(full_names)
-  #   except TypeError:
-  #     print("full_names err, not names?")
-  #     raise
 
   def update_first_last_names(self, val_d, db_id):
     # names_tuples_list = [(d['lastName'], d['firstName']) for d in val_d]
@@ -144,14 +143,10 @@ class ToMysql:
         person_list = []
         for d in v:
           person_db_id = self.parse_person_list(d)
-          # self.entry_rows_dict[z_key]["person_id"] = db_id
-
           (table_name, field_name) = db_tbl_field_name.split(".")
-        # ('creatorType', 'author')
           role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
           person_list.append({"person_id": person_db_id, "role_id": role_db_id1})
 
-          # self.entry_rows_dict[z_key][field_name + "_id"] = role_db_id1
         self.entry_rows_dict[z_key]["person"] = person_list
       else:
         (table_name, field_name) = db_tbl_field_name.split(".")
