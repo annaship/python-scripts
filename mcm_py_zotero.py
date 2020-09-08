@@ -4,6 +4,7 @@
 from pyzotero import zotero
 from collections import defaultdict
 import util
+import upload_tsv_to_db_for_mcm
 
 try:
   import mysqlclient as mysql
@@ -109,6 +110,11 @@ class ToMysql:
         """
         self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
 
+        dict_w_all_ids = self.find_empty_ids(sql_res[0])
+        # IF empty and no id - get it
+        mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
+
+
         """
 
         pass
@@ -168,8 +174,10 @@ class ToMysql:
           person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
           current_persons_list.append(full_name)
 
+          self.entry_rows_dict[z_key]["role_id"] = role_db_id1 # TODO: check if different roles in one dict
+
         all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
-        self.entry_rows_dict[z_key]["person"] = all_cur_persons_id
+        self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
       else:
         (table_name, field_name) = db_tbl_field_name.split(".")
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
