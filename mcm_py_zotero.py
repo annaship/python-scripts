@@ -110,14 +110,21 @@ class ToMysql:
         """
         self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
 
+        TOD: DRY with upload_tsv_to_db_for_mcm.py
+        select_q = '''SELECT {} FROM {} 
+          WHERE {}'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, where_part0)
+        sql_res = mysql_utils.execute_fetch_select_to_dict(select_q, current_row_d.values())
         dict_w_all_ids = self.find_empty_ids(sql_res[0])
         # IF empty and no id - get it
         mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
 
-
+        dict_w_all_ids = upload.find_empty_ids(sql_res[0])
+        # IF empty and no id - get it
+        mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
         """
+        dict_w_all_ids = upload.find_empty_ids(val_dict)
 
-        pass
+        # pass
 
 
   def make_full_name(self, val_d):
@@ -280,6 +287,8 @@ if __name__ == '__main__':
     mysql_utils = util.Mysql_util(host = host, db = db_schema, read_default_group = 'client')
     # mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
     print("host = {}, db {}".format(host, db_schema))
+
+  upload = upload_tsv_to_db_for_mcm.Upload(utils)
 
   c = Collections()
   export = Export()
