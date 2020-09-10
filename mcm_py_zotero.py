@@ -4,7 +4,7 @@
 from pyzotero import zotero
 from collections import defaultdict
 import util
-import upload_tsv_to_db_for_mcm
+# import upload_tsv_to_db_for_mcm
 
 try:
   import mysqlclient as mysql
@@ -67,6 +67,8 @@ class ToMysql:
   """
 
   def __init__(self):
+    self.entry_table_name = "entry"
+
     self.zotero_to_sql_fields = {
       'creators'    : 'role.role', # creator
       'name'        : 'person.person',  # creator, #creator_other
@@ -88,6 +90,12 @@ class ToMysql:
     add to entry
     
     """
+    self.many_values_to_one_field = {
+      "content_url": ["content_url", "content_url_audio", "content_url_transcript"],
+      "season"     : ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+      "person"     : ["contributor", "creator", "creator_other", "subject_people"],
+      "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
+    }
     self.entry_rows_dict = defaultdict()
     self.make_upload_queries()
     self.insert_entry_row()
@@ -122,9 +130,35 @@ class ToMysql:
         # IF empty and no id - get it
         mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
         """
-        dict_w_all_ids = upload.find_empty_ids(val_dict)
+        dict_w_all_ids = self.find_empty_ids(val_dict)
 
         # pass
+
+  def get_entry_field_names(self):
+    entry_field_names_q = """
+    SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = %s 
+      AND table_schema = %s 
+      AND column_name <> %s
+    """
+    vals = (self.entry_table_name, db_schema, self.entry_table_name + "_id")
+    return mysql_utils.execute_fetch_select(entry_field_names_q, vals)
+
+  def find_empty_ids(self, id_res_d):
+    """ TODO: DRY with upload script
+    """
+    entry_field_names_sql_res = self.get_entry_field_names()
+    have_fiedl_names = id_res_d.keys()
+    # TODO: seems slow, benchmark and try with utils.subtraction
+    empty_field_names = list(set(utils.extract(entry_field_names_sql_res)) - set(id_res_d.keys()))
+    for field in empty_field_names:
+      name_no_id = field[:-3]
+      # '''select identifier_id from identifier where identifier = ""'''
+      select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
+      empty_id = mysql_utils.execute_fetch_select(select_q)
+      id_res_d[field] = list(utils.extract(empty_id))[0]
+    return id_res_d
 
 
   def make_full_name(self, val_d):
@@ -288,7 +322,7 @@ if __name__ == '__main__':
     # mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
     print("host = {}, db {}".format(host, db_schema))
 
-  upload = upload_tsv_to_db_for_mcm.Upload(utils)
+  # upload = upload_tsv_to_db_for_mcm.Upload(utils)
 
   c = Collections()
   export = Export()
