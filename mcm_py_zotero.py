@@ -96,6 +96,43 @@ class ToMysql:
       "person"     : ["contributor", "creator", "creator_other", "subject_people"],
       "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
     }
+
+    where_to_look_if_not_the_same = {
+      # "bibliographic_citation"   : "source.bibliographic_citation",
+      # "content": "content",
+      "content_url"              : "content_url",
+      "content_url_audio"        : "content_url",
+      "content_url_transcript"   : "content_url",
+      "contributor"              : "person",
+      "country"                  : "place",
+      # "coverage_lat": "coverage_lat",
+      # "coverage_long": "coverage_long",
+      "creator"                  : "person",
+      "creator_other"            : "person",
+      "date_digital"             : "season",
+      "date_exact"               : "season",
+      "date_season"              : "season",
+      "date_season_yyyy"         : "season",
+      # "description"              : "content.description",
+      # "digitization_specifications": "digitization_specifications",
+      # "format": "format",
+      # "identifier": "identifier",
+      # "language": "language",
+      # "publisher"                : "publisher",
+      "publisher_location"       : "place",
+      # "relation": "relation",
+      # "rights"                   : "source.rights",
+      # "source": "source",
+      "subject_academic_field"   : "subject_academic_field",
+      "subject_associated_places": "place",
+      # "subject_other": "subject_other",
+      "subject_people"           : "person",
+      "subject_place"            : "place",
+      "subject_season"           : "season",
+      # "title"                    : "content.title",
+      # "type": "type",
+    }
+
     self.entry_rows_dict = defaultdict()
     self.make_upload_queries()
     self.insert_entry_row()
@@ -113,19 +150,16 @@ class ToMysql:
     return self.get_id_by_serch_or_insert(table_name, field_name, persons_str)
 
   def insert_entry_row(self):
+    # TODO: get empty field names from entry table once here
     for key, val_dict in self.entry_rows_dict.items():
       if len(val_dict) > 0:
         """
         self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
 
-        TOD: DRY with upload_tsv_to_db_for_mcm.py
+        TODO: DRY with upload_tsv_to_db_for_mcm.py
         select_q = '''SELECT {} FROM {} 
           WHERE {}'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, where_part0)
         sql_res = mysql_utils.execute_fetch_select_to_dict(select_q, current_row_d.values())
-        dict_w_all_ids = self.find_empty_ids(sql_res[0])
-        # IF empty and no id - get it
-        mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
-
         dict_w_all_ids = upload.find_empty_ids(sql_res[0])
         # IF empty and no id - get it
         mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
@@ -134,7 +168,7 @@ class ToMysql:
 
         # pass
 
-  def get_entry_field_names(self):
+  def get_entry_table_field_names(self):
     entry_field_names_q = """
     SELECT column_name 
       FROM information_schema.columns 
@@ -145,20 +179,38 @@ class ToMysql:
     vals = (self.entry_table_name, db_schema, self.entry_table_name + "_id")
     return mysql_utils.execute_fetch_select(entry_field_names_q, vals)
 
-  def find_empty_ids(self, id_res_d):
+  def get_empty_field_names(self, current_row_dict):
+    entry_field_names_sql_res = self.get_entry_table_field_names()
+    have_field_names = current_row_dict.keys()
+    # TODO: seems slow, benchmark and try with utils.subtraction
+    empty_field_names = list(set(utils.extract(entry_field_names_sql_res)) - set(have_field_names))
+    res = self.convert_names_for_multy_named(empty_field_names)
+
+  def convert_names_for_multy_named(self, empty_field_names):
+    """
+        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+
+    :return:
+    """
+    for field_name in empty_field_names:
+      field_name_no_id = field_name[:-3] # TODO see below, DRY
+      table_name_w_id = self.where_to_look_if_not_the_same[field_name_no_id]
+
+  def find_empty_ids(self, current_row_dict):
     """ TODO: DRY with upload script
     """
-    entry_field_names_sql_res = self.get_entry_field_names()
-    have_fiedl_names = id_res_d.keys()
-    # TODO: seems slow, benchmark and try with utils.subtraction
-    empty_field_names = list(set(utils.extract(entry_field_names_sql_res)) - set(id_res_d.keys()))
+    # entry_field_names_sql_res = self.get_entry_table_field_names()
+    # have_fiedl_names = current_row_dict.keys()
+    # # TODO: seems slow, benchmark and try with utils.subtraction
+    empty_field_names = self.get_empty_field_names(current_row_dict)
+    # empty_field_names = list(set(utils.extract(entry_field_names_sql_res)) - set(current_row_dict.keys()))
     for field in empty_field_names:
       name_no_id = field[:-3]
       # '''select identifier_id from identifier where identifier = ""'''
       select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
       empty_id = mysql_utils.execute_fetch_select(select_q)
-      id_res_d[field] = list(utils.extract(empty_id))[0]
-    return id_res_d
+      current_row_dict[field] = list(utils.extract(empty_id))[0]
+    return current_row_dict
 
 
   def make_full_name(self, val_d):
