@@ -174,6 +174,14 @@ class ToMysql:
 
     return temp_dict
 
+  def check_if_exists(self, dict_w_all_ids):
+    where_part0 = mysql_utils.make_where_part_template(dict_w_all_ids.keys())
+
+    select_q = '''SELECT {} FROM {} 
+      WHERE {}'''.format(self.entry_table_name + "_id", self.entry_table_name, where_part0)
+
+    return mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
+
 
   def insert_entry_row(self):
     """
@@ -201,7 +209,15 @@ class ToMysql:
         # field_names_not_in_zot = self.field_names_not_in_zot(val_dict) #diff for each row
         current_output_dict = defaultdict()
         current_output_dict = self.correct_keys(val_dict)
-        dict_w_all_ids = self.find_empty_ids(val_dict)
+        dict_w_all_ids = self.find_empty_ids(current_output_dict)
+
+        entry_exists = self.check_if_exists(dict_w_all_ids)
+        # entry_exists = {tuple: 2} ((), ['entry_id'])
+        #  0 = {tuple: 0} ()
+        #  1 = {list: 1} ['entry_id']
+        # TODO: if identifier is empty - create!
+        mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
+                                                   tuple(dict_w_all_ids.values()))
 
         # pass
 
@@ -254,11 +270,13 @@ class ToMysql:
       try:
         empty_id = mysql_utils.execute_fetch_select(select_q)
         current_row_dict[field] = list(utils.extract(empty_id))[0]
-      except:
+      except mysql.err.ProgrammingError:
         # pymysql.err.ProgrammingError
-        raise
-        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-        select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, table_name_w_id, table_name_w_id)
+        # raise
+        table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
+        select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
+        empty_id = mysql_utils.execute_fetch_select(select_q)
+        current_row_dict[field] = list(utils.extract(empty_id))[0]
 
     return current_row_dict
 
