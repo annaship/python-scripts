@@ -79,7 +79,7 @@ class ToMysql:
       'title'       : 'title.title',
       'date'        : 'season.season',  # 'date_exact', 'date_season', 'date_season_yyyy',
       'language'    : 'language.language',
-      'publicationTitle': 'publisher.publisher',
+      'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
       'publisher'   : 'publisher.publisher',
       'rights'      : 'rights.rights',
       'volume'      : 'source.source',
@@ -97,7 +97,7 @@ class ToMysql:
       "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
     }
 
-    where_to_look_if_not_the_same = {
+    self.where_to_look_if_not_the_same = {
       # "bibliographic_citation"   : "source.bibliographic_citation",
       # "content": "content",
       "content_url"              : "content_url",
@@ -149,8 +149,42 @@ class ToMysql:
     field_name = "person"
     return self.get_id_by_serch_or_insert(table_name, field_name, persons_str)
 
+  # def field_names_not_in_zot(self, val_dict):
+
+    # all_field_names_in_zot = set()
+    # for k, d in self.entry_rows_dict.items():
+    #   all_field_names_in_zot = all_field_names_in_zot | set(d.keys())
+    # return all_field_names_in_zot
+
+  def correct_keys(self, val_dict):
+    temp_dict = defaultdict()
+    """
+    original zot row: [m['data'] for m in export.all_items_dump if m['key'] == key] 
+    """
+    # TODO: move to a dict up front person - creator, season - date_season
+    for k, v in val_dict.items():
+      if k[:-3] in self.many_values_to_one_field.keys():
+        if k == "person_id":
+          k_new = "creator_id"
+        elif k == "season_id":
+          k_new = "date_season_id"
+        temp_dict[k_new] = v
+      else:
+        temp_dict[k] = v
+
+    return temp_dict
+
+
   def insert_entry_row(self):
-    # TODO: get empty field names from entry table once here
+    """
+    *) get all "entry" table fields except primary key - get_entry_table_field_names
+    *) for data from zotero find correct field names for id (do that in class Export)
+    *) for all fields in "entry" table which are not in zotero dump find the "empty" id
+    *) for each field form a query
+    *) ? search if exists:
+         select_q = '''SELECT entry_id FROM entry WHERE {}'''.format(all_ids_row)
+    *) if not exists insert
+    """
     for key, val_dict in self.entry_rows_dict.items():
       if len(val_dict) > 0:
         """
@@ -164,6 +198,9 @@ class ToMysql:
         # IF empty and no id - get it
         mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
         """
+        # field_names_not_in_zot = self.field_names_not_in_zot(val_dict) #diff for each row
+        current_output_dict = defaultdict()
+        current_output_dict = self.correct_keys(val_dict)
         dict_w_all_ids = self.find_empty_ids(val_dict)
 
         # pass
@@ -183,18 +220,24 @@ class ToMysql:
     entry_field_names_sql_res = self.get_entry_table_field_names()
     have_field_names = current_row_dict.keys()
     # TODO: seems slow, benchmark and try with utils.subtraction
-    empty_field_names = list(set(utils.extract(entry_field_names_sql_res)) - set(have_field_names))
-    res = self.convert_names_for_multy_named(empty_field_names)
+    return list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names))
+    # res = self.convert_names_for_multy_named(empty_field_names)
 
-  def convert_names_for_multy_named(self, empty_field_names):
-    """
-        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-
-    :return:
-    """
-    for field_name in empty_field_names:
-      field_name_no_id = field_name[:-3] # TODO see below, DRY
-      table_name_w_id = self.where_to_look_if_not_the_same[field_name_no_id]
+  # def convert_names_for_multy_named(self, empty_field_names):
+  #   """
+  #     table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+  #
+  #     TODO: use role to get to correct field: author == creator?
+  #   """
+  #   correct_field_names = []
+  #   for field_name in empty_field_names:
+  #     field_name_no_id = field_name[:-3] # TODO see below, DRY
+  #     try:
+  #       table_name_w_id = self.where_to_look_if_not_the_same[field_name_no_id]
+  #       correct_field_names.append(table_name_w_id)
+  #     except KeyError:
+  #       correct_field_names.append(field_name)
+  #   return correct_field_names
 
   def find_empty_ids(self, current_row_dict):
     """ TODO: DRY with upload script
@@ -208,10 +251,16 @@ class ToMysql:
       name_no_id = field[:-3]
       # '''select identifier_id from identifier where identifier = ""'''
       select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
-      empty_id = mysql_utils.execute_fetch_select(select_q)
-      current_row_dict[field] = list(utils.extract(empty_id))[0]
-    return current_row_dict
+      try:
+        empty_id = mysql_utils.execute_fetch_select(select_q)
+        current_row_dict[field] = list(utils.extract(empty_id))[0]
+      except:
+        # pymysql.err.ProgrammingError
+        raise
+        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+        select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, table_name_w_id, table_name_w_id)
 
+    return current_row_dict
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
@@ -247,7 +296,7 @@ class ToMysql:
 1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
 ...
     """
-
+  # TODO: refactor - simplify
   def make_entry_rows_dict_of_ids(self, k, v, z_key):
     try:
       db_tbl_field_name = self.zotero_to_sql_fields[k]
@@ -286,25 +335,25 @@ class ToMysql:
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
-  def make_all_info_dict(self):
-    for item in self.all_items_dump:
-      temp_dict = defaultdict()
-      """
-      item['data'] = {dict: 32} {'key': 'JSQB7M8J', 'version': 3648, 'itemType': 'journalArticle', 'title': 'Abrasion in ice-free -TEST', 'creators': [{'creatorType': 'author', 'firstName': 'Michael C.', 'lastName': 'Malin'}], 'abstractNote': '', 'publicationTitle': 'Antarctic Journal of
- 'key' = {str} 'JSQB7M8J'
- 'version' = {int} 3648
- 'itemType' = {str} 'journalArticle'
- 'title' = {str} 'Abrasion in ice-free -TEST'
- 'creators' = {list: 1} [{'creatorType': 'author', 'firstName': 'Michael C.', 'lastName': 'Malin'}]
- 'abstractNote' = {str} ''
- 'publicationTitle' = {str} 'Antarctic Journal of the United States'
- ...
-      """
-      temp_dict['key'] = item['data']['key']
-      temp_dict = self.make_temp_dict(temp_dict, item['data'])
-
-      self.all_items_l_dict.append(temp_dict)
-      # self.zotero_to_sql_fields
+ #  def make_all_info_dict(self):
+ #    for item in self.all_items_dump:
+ #      temp_dict = defaultdict()
+ #      """
+ #      item['data'] = {dict: 32} {'key': 'JSQB7M8J', 'version': 3648, 'itemType': 'journalArticle', 'title': 'Abrasion in ice-free -TEST', 'creators': [{'creatorType': 'author', 'firstName': 'Michael C.', 'lastName': 'Malin'}], 'abstractNote': '', 'publicationTitle': 'Antarctic Journal of
+ # 'key' = {str} 'JSQB7M8J'
+ # 'version' = {int} 3648
+ # 'itemType' = {str} 'journalArticle'
+ # 'title' = {str} 'Abrasion in ice-free -TEST'
+ # 'creators' = {list: 1} [{'creatorType': 'author', 'firstName': 'Michael C.', 'lastName': 'Malin'}]
+ # 'abstractNote' = {str} ''
+ # 'publicationTitle' = {str} 'Antarctic Journal of the United States'
+ # ...
+ #      """
+ #      temp_dict['key'] = item['data']['key']
+ #      temp_dict = self.make_temp_dict(temp_dict, item['data'])
+ #
+ #      self.all_items_l_dict.append(temp_dict)
+ #      # self.zotero_to_sql_fields
 
   def make_temp_dict(self, temp_dict, in_item_dict):
     for k, v in in_item_dict.items():
@@ -324,8 +373,9 @@ class ToMysql:
 class Export:
   def __init__(self):
 
-    self.all_items_l_dict = []
+    # self.all_items_l_dict = []
 
+    # USE this for real:
     # self.all_items_dump = self.dump_all_items()
     # debug short
     self.all_items_dump = zot.top(limit = 5)
