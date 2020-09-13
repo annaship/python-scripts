@@ -184,8 +184,9 @@ class ToMysql:
     return mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
 
   def check_or_create_identifier(self, val_dict):
+    # TODO: split methods
     identifier_table_name = "identifier"
-    if not 'identifier' in val_dict.keys():
+    if 'identifier' not in val_dict.keys():
       # 1) get_last_id
       first_part = "MCMEH-B"
       """
@@ -193,24 +194,15 @@ class ToMysql:
       """
       get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
       get_last_id_q_res = mysql_utils.execute_fetch_select(get_last_id_q)
-      # last_num_res = utils.extract(get_last_id_q)[0]
-      # TypeError: 'generator' object is not subscriptable
       last_num_res = list(utils.extract(get_last_id_q_res))[0]
       last_num_res_arr = last_num_res.split("-")
       last_num = int(last_num_res_arr[1][1:])
       num_part = str(last_num + 1).zfill(6)
       curr_identifier = first_part + num_part
-      """
-      res = r.split("-")
-      res[1][1:]
-      Out[7]: '000799'
-      i = int(res[1][1:])
-      print(c.zfill(10))
-      """
       # 2) insert_identifier
       mysql_utils.execute_insert(identifier_table_name, identifier_table_name, curr_identifier)
+      # 3) get it's id
       db_id = mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
-      # 3) get its id
       # 4) add to current dict
       val_dict[identifier_table_name + "_id"] = db_id
       return val_dict
@@ -232,14 +224,11 @@ class ToMysql:
 
         TODO: DRY with upload_tsv_to_db_for_mcm.py
         """
-        # current_output_dict = defaultdict()
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
         dict_w_all_ids = self.find_empty_ids(current_output_dict)
         mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
                                                    tuple(dict_w_all_ids.values()))
-
-        # pass
 
   def get_entry_table_field_names(self):
     entry_field_names_q = """
@@ -257,30 +246,11 @@ class ToMysql:
     have_field_names = current_row_dict.keys()
     # TODO: seems slow, benchmark and try with utils.subtraction
     return list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names))
-    # res = self.convert_names_for_multy_named(empty_field_names)
-
-  # def convert_names_for_multy_named(self, empty_field_names):
-  #   """
-  #     table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-  #
-  #     TODO: use role to get to correct field: author == creator?
-  #   """
-  #   correct_field_names = []
-  #   for field_name in empty_field_names:
-  #     field_name_no_id = field_name[:-3] # TODO see below, DRY
-  #     try:
-  #       table_name_w_id = self.where_to_look_if_not_the_same[field_name_no_id]
-  #       correct_field_names.append(table_name_w_id)
-  #     except KeyError:
-  #       correct_field_names.append(field_name)
-  #   return correct_field_names
 
   def find_empty_ids(self, current_row_dict):
     """ TODO: DRY with upload script
     """
-    # entry_field_names_sql_res = self.get_entry_table_field_names()
-    # have_fiedl_names = current_row_dict.keys()
-    # # TODO: seems slow, benchmark and try with utils.subtraction
+    # TODO: seems slow, benchmark and try with utils.subtraction
     empty_field_names = self.get_empty_field_names(current_row_dict)
     for field in empty_field_names:
       name_no_id = field[:-3]
@@ -290,8 +260,6 @@ class ToMysql:
         empty_id = mysql_utils.execute_fetch_select(select_q)
         current_row_dict[field] = list(utils.extract(empty_id))[0]
       except mysql.err.ProgrammingError:
-        # pymysql.err.ProgrammingError
-        # raise
         table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
         select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
         empty_id = mysql_utils.execute_fetch_select(select_q)
