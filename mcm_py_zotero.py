@@ -134,6 +134,7 @@ class ToMysql:
     }
 
     self.entry_rows_dict = defaultdict()
+    self.empty_identifier = defaultdict()
     self.make_upload_queries()
     self.insert_entry_row()
     print("DONE")
@@ -161,7 +162,7 @@ class ToMysql:
     """
     original zot row: [m['data'] for m in export.all_items_dump if m['key'] == key] 
     """
-    # TODO: move to a dict up front person - creator, season - date_season
+    # TODO: move to a dict up front: person - creator, season - date_season
     for k, v in val_dict.items():
       if k[:-3] in self.many_values_to_one_field.keys():
         if k == "person_id":
@@ -182,6 +183,37 @@ class ToMysql:
 
     return mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
 
+  def check_or_create_identifier(self, val_dict):
+    identifier_table_name = "identifier"
+    if not 'identifier' in val_dict.keys():
+      # 1) get_last_id
+      first_part = "MCMEH-B"
+      """
+        "Bibliography"
+      """
+      get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
+      get_last_id_q_res = mysql_utils.execute_fetch_select(get_last_id_q)
+      # last_num_res = utils.extract(get_last_id_q)[0]
+      # TypeError: 'generator' object is not subscriptable
+      last_num_res = list(utils.extract(get_last_id_q_res))[0]
+      last_num_res_arr = last_num_res.split("-")
+      last_num = int(last_num_res_arr[1][1:])
+      num_part = str(last_num + 1).zfill(6)
+      curr_identifier = first_part + num_part
+      """
+      res = r.split("-")
+      res[1][1:]
+      Out[7]: '000799'
+      i = int(res[1][1:])
+      print(c.zfill(10))
+      """
+      # 2) insert_identifier
+      mysql_utils.execute_insert(identifier_table_name, identifier_table_name, curr_identifier)
+      db_id = mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
+      # 3) get its id
+      # 4) add to current dict
+      val_dict[identifier_table_name + "_id"] = db_id
+      return val_dict
 
   def insert_entry_row(self):
     """
@@ -199,23 +231,11 @@ class ToMysql:
         self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
 
         TODO: DRY with upload_tsv_to_db_for_mcm.py
-        select_q = '''SELECT {} FROM {} 
-          WHERE {}'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, where_part0)
-        sql_res = mysql_utils.execute_fetch_select_to_dict(select_q, current_row_d.values())
-        dict_w_all_ids = upload.find_empty_ids(sql_res[0])
-        # IF empty and no id - get it
-        mysql_utils.execute_many_fields_one_record(table_name_to_update, list(dict_w_all_ids.keys()), tuple(dict_w_all_ids.values()))
         """
-        # field_names_not_in_zot = self.field_names_not_in_zot(val_dict) #diff for each row
-        current_output_dict = defaultdict()
+        # current_output_dict = defaultdict()
         current_output_dict = self.correct_keys(val_dict)
+        current_output_dict = self.check_or_create_identifier(current_output_dict)
         dict_w_all_ids = self.find_empty_ids(current_output_dict)
-
-        entry_exists = self.check_if_exists(dict_w_all_ids)
-        # entry_exists = {tuple: 2} ((), ['entry_id'])
-        #  0 = {tuple: 0} ()
-        #  1 = {list: 1} ['entry_id']
-        # TODO: if identifier is empty - create!
         mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
                                                    tuple(dict_w_all_ids.values()))
 
@@ -262,7 +282,6 @@ class ToMysql:
     # have_fiedl_names = current_row_dict.keys()
     # # TODO: seems slow, benchmark and try with utils.subtraction
     empty_field_names = self.get_empty_field_names(current_row_dict)
-    # empty_field_names = list(set(utils.extract(entry_field_names_sql_res)) - set(current_row_dict.keys()))
     for field in empty_field_names:
       name_no_id = field[:-3]
       # '''select identifier_id from identifier where identifier = ""'''
