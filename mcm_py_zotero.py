@@ -230,10 +230,12 @@ class ToMysql:
     return mysql_utils.execute_fetch_select(entry_field_names_q, vals)
 
   def get_empty_field_names(self, current_row_dict):
+    except_fields = ["created", "updated"]
     entry_field_names_sql_res = self.get_entry_table_field_names()
     have_field_names = current_row_dict.keys()
     # TODO: seems slow, benchmark and try with utils.subtraction
-    return list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names))
+    res = list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
+    return res
 
   def find_empty_ids(self, current_row_dict):
     """ TODO: DRY with upload script
@@ -243,15 +245,18 @@ class ToMysql:
     for field in empty_field_names:
       name_no_id = field[:-3]
       # '''select identifier_id from identifier where identifier = ""'''
-      select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
+      # select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
       try:
-        empty_id = mysql_utils.execute_fetch_select(select_q)
-        current_row_dict[field] = list(utils.extract(empty_id))[0]
-      except mysql.err.ProgrammingError:
         table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
-        select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
-        empty_id = mysql_utils.execute_fetch_select(select_q)
-        current_row_dict[field] = list(utils.extract(empty_id))[0]
+        #
+        # empty_id = mysql_utils.execute_fetch_select(select_q)
+        # current_row_dict[field] = list(utils.extract(empty_id))[0]
+      except KeyError:
+        table_name_w_id = name_no_id
+
+      select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
+      empty_id = mysql_utils.execute_fetch_select(select_q)
+      current_row_dict[field] = list(utils.extract(empty_id))[0]
 
     return current_row_dict
 
