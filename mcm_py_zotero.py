@@ -59,12 +59,6 @@ class Collections:
 
 
 class ToMysql:
-  """
-    `person` text NOT NULL DEFAULT '',
-  `first_name` text DEFAULT '',
-  `last_name` text DEFAULT '',
-
-  """
 
   def __init__(self):
     self.entry_table_name = "entry"
@@ -143,19 +137,13 @@ class ToMysql:
   a) combine them in one row in "person" table and provide one id in entry
   or
   b) make as many entry rows as there are different persons
+  ?
   """
   def insert_person_combination_and_get_id(self, person_list):
     persons_str = "; ".join(sorted(person_list))
     table_name = "person"
     field_name = "person"
     return self.get_id_by_serch_or_insert(table_name, field_name, persons_str)
-
-  # def field_names_not_in_zot(self, val_dict):
-
-    # all_field_names_in_zot = set()
-    # for k, d in self.entry_rows_dict.items():
-    #   all_field_names_in_zot = all_field_names_in_zot | set(d.keys())
-    # return all_field_names_in_zot
 
   def correct_keys(self, val_dict):
     temp_dict = defaultdict()
@@ -339,26 +327,6 @@ class ToMysql:
       for k, v in z_entry['data'].items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
-
- #  def make_all_info_dict(self):
- #    for item in self.all_items_dump:
- #      temp_dict = defaultdict()
- #      """
- #      item['data'] = {dict: 32} {'key': 'JSQB7M8J', 'version': 3648, 'itemType': 'journalArticle', 'title': 'Abrasion in ice-free -TEST', 'creators': [{'creatorType': 'author', 'firstName': 'Michael C.', 'lastName': 'Malin'}], 'abstractNote': '', 'publicationTitle': 'Antarctic Journal of
- # 'key' = {str} 'JSQB7M8J'
- # 'version' = {int} 3648
- # 'itemType' = {str} 'journalArticle'
- # 'title' = {str} 'Abrasion in ice-free -TEST'
- # 'creators' = {list: 1} [{'creatorType': 'author', 'firstName': 'Michael C.', 'lastName': 'Malin'}]
- # 'abstractNote' = {str} ''
- # 'publicationTitle' = {str} 'Antarctic Journal of the United States'
- # ...
- #      """
- #      temp_dict['key'] = item['data']['key']
- #      temp_dict = self.make_temp_dict(temp_dict, item['data'])
- #
- #      self.all_items_l_dict.append(temp_dict)
- #      # self.zotero_to_sql_fields
 
   def make_temp_dict(self, temp_dict, in_item_dict):
     for k, v in in_item_dict.items():
