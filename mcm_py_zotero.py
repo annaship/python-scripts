@@ -282,12 +282,13 @@ class ToMysql:
 
   def get_id_by_serch_or_insert(self, table_name, field_name, value):
     field_name_id = field_name + "_id"
+    # value = "QUOTE({})".format(value)
     try:
       db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     except IndexError:
       mysql_utils.execute_insert(table_name, field_name, value)
       db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
-    except:
+    except: # TODO: add except for escaped single quote, use like% and cut?
       print("Unexpected error:", sys.exc_info()[0])
     return db_id
 
@@ -297,32 +298,57 @@ class ToMysql:
 1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
 ...
     """
+
+  def update_person(self, v, z_key, table_name, field_name):
+    """TODO: refactor as to not print out all absent names
+    Unexpected error:
+field_name = "person_id", table_name = "person", id_query = "SELECT person_id FROM person WHERE person = %s", where_values = "Ghent, Edward D.; Henderson, Robert A."
+    """
+    person_id_list = []
+    current_persons_list = []
+
+    for d in v:
+      full_name = self.make_full_name(d)
+
+      person_db_id = self.get_person_id(full_name)
+      self.update_first_last_names(d, person_db_id)
+
+      role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
+      person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
+      current_persons_list.append(full_name)
+
+      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles in one dict
+
+    all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
+    self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
+
   # TODO: refactor - simplify
   def make_entry_rows_dict_of_ids(self, k, v, z_key):
     try:
       db_tbl_field_name = self.zotero_to_sql_fields[k]
+      (table_name, field_name) = db_tbl_field_name.split(".")
 
       if isinstance(v, list):
-        person_id_list = []
-        current_persons_list = []
-
-        for d in v:
-          full_name = self.make_full_name(d)
-
-          person_db_id = self.get_person_id(full_name)
-          self.update_first_last_names(d, person_db_id)
-
-          (table_name, field_name) = db_tbl_field_name.split(".")
-          role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
-          person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
-          current_persons_list.append(full_name)
-
-          self.entry_rows_dict[z_key]["role_id"] = role_db_id1 # TODO: check if different roles in one dict
-
-        all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
-        self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
+        self.update_person(v, z_key, table_name, field_name) # TODO: change parameters
+        # person_id_list = []
+        # current_persons_list = []
+        #
+        # for d in v:
+        #   full_name = self.make_full_name(d)
+        #
+        #   person_db_id = self.get_person_id(full_name)
+        #   self.update_first_last_names(d, person_db_id)
+        #
+        #   (table_name, field_name) = db_tbl_field_name.split(".")
+        #   role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
+        #   person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
+        #   current_persons_list.append(full_name)
+        #
+        #   self.entry_rows_dict[z_key]["role_id"] = role_db_id1 # TODO: check if different roles in one dict
+        #
+        # all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
+        # self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
       else:
-        (table_name, field_name) = db_tbl_field_name.split(".")
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
         self.entry_rows_dict[z_key][field_name + "_id"] = db_id
     except KeyError:
@@ -331,9 +357,13 @@ class ToMysql:
   def make_upload_queries(self):
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
+      # if z_key == "M7TXRYBG":
+      #   print("z_key = {}".format(z_key))
       self.entry_rows_dict[z_key] = defaultdict()
       for k, v in z_entry['data'].items():
         if v:
+          # if k == 'abstractNote':
+          #   print("stop")
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
   def make_temp_dict(self, temp_dict, in_item_dict):
@@ -357,9 +387,9 @@ class Export:
     # self.all_items_l_dict = []
 
     # USE this for real:
-    self.all_items_dump = self.dump_all_items()
+    # self.all_items_dump = self.dump_all_items()
     # debug short
-    # self.all_items_dump = zot.top(limit = 5)
+    self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
