@@ -161,6 +161,7 @@ class Mysql_util:
         res = self.cursor.fetchall()
         field_names = [i[0] for i in self.cursor.description]
       except:
+        self.utils.print_both("Unexpected error:", sys.exc_info()[0])
         self.utils.print_both("ERROR: query = {}, params = {}".format(sql, params))
         raise
       return (res, field_names)
@@ -175,6 +176,7 @@ class Mysql_util:
         res = self.cursor.fetchall()
         field_names = [i[0] for i in self.cursor.description]
       except:
+        self.utils.print_both("Unexpected error:", sys.exc_info()[0])
         self.utils.print_both(("ERROR: query = %s, values = %s") % (sql, values))
         raise
       return (res, field_names)
@@ -289,6 +291,7 @@ class Mysql_util:
         self.conn.commit()
         return (self.cursor.rowcount, self.cursor.lastrowid)
     except:
+      self.utils.print_both("Unexpected error:", sys.exc_info()[0])
       self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(sql, val_list))
       raise
 
