@@ -145,7 +145,8 @@ class Mysql_util:
       self.utils.print_both("Error %d: %s" % (e.args[0], e.args[1]))
       raise
     except:  # catch everything
-      self.utils.print_both("Unexpected:")
+      # self.utils.print_both("Unexpected:")
+      self.utils.print_both("Unexpected error:", sys.exc_info()[0])
       self.utils.print_both(sys.exc_info()[0])
       raise  # re-throw caught exception
 
@@ -324,7 +325,8 @@ class Mysql_util:
         id_result_full = self.execute_fetch_select(id_query, where_values)
         id_result = int(id_result_full[0][0][0])
       except:
-        self.utils.print_both("Unexpected:")
+        self.utils.print_both("Unexpected error:", sys.exc_info()[0])
+        # self.utils.print_both("Unexpected:")
         self.utils.print_both(
           'field_name = "{}", table_name = "{}", id_query = "{}", where_values = "{}"'.format(field_name, table_name, id_query, where_values))
         raise
@@ -343,7 +345,7 @@ class Mysql_util:
         id_result_full = self.execute_simple_select(field_name, table_name, where_part)
         id_result = int(id_result_full[0][0])
       except:
-        self.utils.print_both("Unexpected:")
+        self.utils.print_both("Unexpected error:", sys.exc_info()[0])
         self.utils.print_both(
           'field_name = "{}", table_name = "{}", where_part = "{}"'.format(field_name, table_name, where_part))
         raise

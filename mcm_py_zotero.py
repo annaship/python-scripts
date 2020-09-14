@@ -4,6 +4,7 @@
 from pyzotero import zotero
 from collections import defaultdict
 import util
+import sys
 # import upload_tsv_to_db_for_mcm
 
 try:
@@ -286,6 +287,8 @@ class ToMysql:
     except IndexError:
       mysql_utils.execute_insert(table_name, field_name, value)
       db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+    except:
+      print("Unexpected error:", sys.exc_info()[0])
     return db_id
 
     """
@@ -354,9 +357,9 @@ class Export:
     # self.all_items_l_dict = []
 
     # USE this for real:
-    # self.all_items_dump = self.dump_all_items()
+    self.all_items_dump = self.dump_all_items()
     # debug short
-    self.all_items_dump = zot.top(limit = 5)
+    # self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
