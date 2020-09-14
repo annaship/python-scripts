@@ -299,7 +299,7 @@ class ToMysql:
 ...
     """
 
-  def update_person(self, v, z_key, table_name, field_name):
+  def update_person(self, val_dict, z_key, table_name, field_name):
     """TODO: refactor as to not print out all absent names
     Unexpected error:
 field_name = "person_id", table_name = "person", id_query = "SELECT person_id FROM person WHERE person = %s", where_values = "Ghent, Edward D.; Henderson, Robert A."
@@ -307,7 +307,7 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
     person_id_list = []
     current_persons_list = []
 
-    for d in v:
+    for d in val_dict:
       full_name = self.make_full_name(d)
 
       person_db_id = self.get_person_id(full_name)
@@ -317,39 +317,20 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
       person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
       current_persons_list.append(full_name)
 
-      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles in one dict
+      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles could be in one dict
 
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
 
-  # TODO: refactor - simplify
-  def make_entry_rows_dict_of_ids(self, k, v, z_key):
+  def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
-      db_tbl_field_name = self.zotero_to_sql_fields[k]
+      db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
 
-      if isinstance(v, list):
-        self.update_person(v, z_key, table_name, field_name) # TODO: change parameters
-        # person_id_list = []
-        # current_persons_list = []
-        #
-        # for d in v:
-        #   full_name = self.make_full_name(d)
-        #
-        #   person_db_id = self.get_person_id(full_name)
-        #   self.update_first_last_names(d, person_db_id)
-        #
-        #   (table_name, field_name) = db_tbl_field_name.split(".")
-        #   role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
-        #   person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
-        #   current_persons_list.append(full_name)
-        #
-        #   self.entry_rows_dict[z_key]["role_id"] = role_db_id1 # TODO: check if different roles in one dict
-        #
-        # all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
-        # self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
+      if isinstance(data_val_dict, list):
+        self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
       else:
-        db_id = self.get_id_by_serch_or_insert(table_name, field_name, v)
+        db_id = self.get_id_by_serch_or_insert(table_name, field_name, data_val_dict)
         self.entry_rows_dict[z_key][field_name + "_id"] = db_id
     except KeyError:
       pass # zotero field is not in the db field names list
