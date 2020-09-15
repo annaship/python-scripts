@@ -282,21 +282,14 @@ class ToMysql:
 
   def get_id_by_serch_or_insert(self, table_name, field_name, value):
     field_name_id = field_name + "_id"
-    # value = "QUOTE({})".format(value)
     try:
       db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     except IndexError:
       try:
         mysql_utils.execute_insert(table_name, field_name, value)
         db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
-      except IndexError: # A weird one with a single quote in utf8 vs. latin: man’s vs. man's
+      except IndexError: # A weird one with a single quote in utf8 (came from a tsv) vs. latin (came from Zotero): man’s vs. man's
         db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
-        # value_part = value.split("'")[0] + "%"
-        # id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name_id, table_name, field_name)
-        # id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
-        # db_id = list(utils.extract(id_result_full))[0]
-    # except: # TODO: add except for escaped single quote, use like% and cut?
-    #   print("Unexpected error:", sys.exc_info()[0])
     return db_id
 
   def single_quote_encoding_err_handle(self, table_name, field_name, value):
@@ -305,13 +298,13 @@ class ToMysql:
     id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
     db_id = list(utils.extract(id_result_full))[0]
     return db_id
+
     """
       value = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
 0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
 1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
 ...
     """
-
   def update_person(self, val_dict, z_key, table_name, field_name):
     """TODO: refactor as to not print out all absent names
     Unexpected error:
@@ -351,8 +344,8 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
   def make_upload_queries(self):
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
-      if z_key == "M7TXRYBG":
-        print("z_key = {}".format(z_key))
+      # if z_key == "M7TXRYBG":
+      #   print("z_key = {}".format(z_key))
       self.entry_rows_dict[z_key] = defaultdict()
       for k, v in z_entry['data'].items():
         if v:
