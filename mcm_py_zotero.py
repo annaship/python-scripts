@@ -290,11 +290,11 @@ class ToMysql:
         mysql_utils.execute_insert(table_name, field_name, value)
         db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
       except IndexError: # A weird one with a single quote in utf8 vs. latin: man’s vs. man's
-        # db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
-        value_part = value.split("'")[0] + "%"
-        id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name_id, table_name, field_name)
-        id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
-        db_id = list(utils.extract(id_result_full))[0]
+        db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
+        # value_part = value.split("'")[0] + "%"
+        # id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name_id, table_name, field_name)
+        # id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
+        # db_id = list(utils.extract(id_result_full))[0]
     # except: # TODO: add except for escaped single quote, use like% and cut?
     #   print("Unexpected error:", sys.exc_info()[0])
     return db_id
@@ -302,7 +302,7 @@ class ToMysql:
   def single_quote_encoding_err_handle(self, table_name, field_name, value):
     value_part = value.split("'")[0] + "%"
     id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name + "_id", table_name, field_name)
-    id_result_full = self.execute_fetch_select(id_query, value_part)
+    id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
     db_id = list(utils.extract(id_result_full))[0]
     return db_id
     """
