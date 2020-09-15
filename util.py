@@ -264,7 +264,7 @@ class Mysql_util:
     # print("my_sql_insert_query FROM util: {}, ".format(my_sql_insert_query, values_tuple))
 
     res = self.cursor.execute(my_sql_insert_query, values_tuple)
-    self.cursor.execute('COMMIT')
+    # self.cursor.execute('COMMIT')
 
     self.conn.commit()
 
