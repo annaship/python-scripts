@@ -286,12 +286,25 @@ class ToMysql:
     try:
       db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     except IndexError:
-      mysql_utils.execute_insert(table_name, field_name, value)
-      db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
-    except: # TODO: add except for escaped single quote, use like% and cut?
-      print("Unexpected error:", sys.exc_info()[0])
+      try:
+        mysql_utils.execute_insert(table_name, field_name, value)
+        db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+      except IndexError: # A weird one with a single quote in utf8 vs. latin: man’s vs. man's
+        # db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
+        value_part = value.split("'")[0] + "%"
+        id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name_id, table_name, field_name)
+        id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
+        db_id = list(utils.extract(id_result_full))[0]
+    # except: # TODO: add except for escaped single quote, use like% and cut?
+    #   print("Unexpected error:", sys.exc_info()[0])
     return db_id
 
+  def single_quote_encoding_err_handle(self, table_name, field_name, value):
+    value_part = value.split("'")[0] + "%"
+    id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name + "_id", table_name, field_name)
+    id_result_full = self.execute_fetch_select(id_query, value_part)
+    db_id = list(utils.extract(id_result_full))[0]
+    return db_id
     """
       value = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
 0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
@@ -338,8 +351,8 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
   def make_upload_queries(self):
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
-      # if z_key == "M7TXRYBG":
-      #   print("z_key = {}".format(z_key))
+      if z_key == "M7TXRYBG":
+        print("z_key = {}".format(z_key))
       self.entry_rows_dict[z_key] = defaultdict()
       for k, v in z_entry['data'].items():
         if v:
@@ -347,19 +360,19 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
           #   print("stop")
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
-  def make_temp_dict(self, temp_dict, in_item_dict):
-    for k, v in in_item_dict.items():
-      if v:  # (don't retain empty values')
-        if isinstance(v, (tuple, list)):
-          for list_item in v:
-            self.make_temp_dict(temp_dict, list_item)
-        else:
-          try:
-            field_name = self.zotero_to_sql_fields[k]
-            temp_dict[field_name] = in_item_dict[k]
-          except KeyError:
-            temp_dict[k] = in_item_dict[k]
-    return temp_dict
+  # def make_temp_dict(self, temp_dict, in_item_dict):
+  #   for k, v in in_item_dict.items():
+  #     if v:  # (don't retain empty values')
+  #       if isinstance(v, (tuple, list)):
+  #         for list_item in v:
+  #           self.make_temp_dict(temp_dict, list_item)
+  #       else:
+  #         try:
+  #           field_name = self.zotero_to_sql_fields[k]
+  #           temp_dict[field_name] = in_item_dict[k]
+  #         except KeyError:
+  #           temp_dict[k] = in_item_dict[k]
+  #   return temp_dict
 
 
 class Export:
@@ -368,9 +381,9 @@ class Export:
     # self.all_items_l_dict = []
 
     # USE this for real:
-    # self.all_items_dump = self.dump_all_items()
+    self.all_items_dump = self.dump_all_items()
     # debug short
-    self.all_items_dump = zot.top(limit = 5)
+    # self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
