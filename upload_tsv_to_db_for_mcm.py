@@ -207,7 +207,7 @@ class Upload:
         3) get ids
         4) upload tables with ids
     """
-
+    self.entry_table_name = self.table_names_w_ids[0]
     all_tables_sql_res = mysql_utils.get_table_names(db_schema)
     self.all_tables_set = set(utils.extract(all_tables_sql_res[0]))
 
@@ -277,7 +277,7 @@ class Upload:
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
   def upload_empty(self):
-    self.all_tables_set.discard(self.table_names_w_ids[0])
+    self.all_tables_set.discard(self.entry_table_name)
     self.all_tables_set.discard(self.table_names_to_ignore[0])
     for table_name in list(self.all_tables_set):
       insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
@@ -361,25 +361,67 @@ class Upload:
         update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name)
         mysql_utils.execute_no_fetch(update_q, current_value)
 
-  def find_empty_ids(self, sql_res_d):
-    """ TODO: correct names for
-    many_values_to_one_field = {
-    "season": ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
-    "person": ["contributor", "creator", "creator_other", "subject_people"],
-    "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
-  }
+  def get_entry_table_field_names(self):
+    entry_field_names_q = """
+    SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = %s 
+      AND table_schema = %s 
+      AND column_name <> %s
     """
-    for field, val in sql_res_d.items():
-      if val == 0:
-        name_no_id = field[:-3]
-        # '''select identifier_id from identifier where identifier = ""'''
-        select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
-        empty_id = mysql_utils.execute_fetch_select(select_q)
-        sql_res_d[field] = list(utils.extract(empty_id))[0]
-    return sql_res_d
+    vals = (self.entry_table_name, db_schema, self.entry_table_name + "_id")
+    return mysql_utils.execute_fetch_select(entry_field_names_q, vals)
+
+  def get_empty_field_names(self, current_row_dict):
+    except_fields = ["created", "updated"]
+    entry_field_names_sql_res = self.get_entry_table_field_names()
+    have_field_names = [k for k, v in current_row_dict.items() if v > 0]
+    # TODO: seems slow, benchmark and try with utils.subtraction
+    res = list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
+    return res
+
+  def find_empty_ids(self, current_row_dict):
+    """ TODO: DRY with upload script
+    """
+    # TODO: seems slow, benchmark and try with utils.subtraction
+    empty_field_names = self.get_empty_field_names(current_row_dict)
+    for field in empty_field_names:
+      name_no_id = field[:-3]
+      # '''select identifier_id from identifier where identifier = ""'''
+      # select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
+      try:
+        table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
+        #
+        # empty_id = mysql_utils.execute_fetch_select(select_q)
+        # current_row_dict[field] = list(utils.extract(empty_id))[0]
+      except KeyError:
+        table_name_w_id = name_no_id
+
+      select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
+      empty_id = mysql_utils.execute_fetch_select(select_q)
+      current_row_dict[field] = list(utils.extract(empty_id))[0]
+
+    return current_row_dict
+
+  # def find_empty_ids(self, sql_res_d):
+  #   """ TODO: correct names for
+  #   many_values_to_one_field = {
+  #   "season": ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+  #   "person": ["contributor", "creator", "creator_other", "subject_people"],
+  #   "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
+  # }
+  #   """
+  #   for field, val in sql_res_d.items():
+  #     if val == 0:
+  #       name_no_id = field[:-3]
+  #       # '''select identifier_id from identifier where identifier = ""'''
+  #       select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
+  #       empty_id = mysql_utils.execute_fetch_select(select_q)
+  #       sql_res_d[field] = list(utils.extract(empty_id))[0]
+  #   return sql_res_d
 
   def upload_other_tables(self):
-    table_name_to_update = self.table_names_w_ids[0] # ["entry"]
+    table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
     for current_row_d in metadata.tsv_file_content_dict_clean_keys:
       tsv_field_names_to_upload = current_row_d.keys()
