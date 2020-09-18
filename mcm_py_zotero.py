@@ -63,10 +63,6 @@ class Collections:
 class ToMysql(Upload):
   def __init__(self):
     Upload.__init__(self)
-
-  # def __init__(self):
-  #   self.entry_table_name = "entry"
-
     self.zotero_to_sql_fields = {
       'creators'    : 'role.role', # creator
       'name'        : 'person.person',  # creator, #creator_other
@@ -88,49 +84,9 @@ class ToMysql(Upload):
     add to entry
     
     """
-    # self.many_values_to_one_field = {
-    #   "content_url": ["content_url", "content_url_audio", "content_url_transcript"],
-    #   "season"     : ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
-    #   "person"     : ["contributor", "creator", "creator_other", "subject_people"],
-    #   "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
-    # }
-
-    # self.where_to_look_if_not_the_same = {
-    #   # "bibliographic_citation"   : "source.bibliographic_citation",
-    #   # "content": "content",
-    #   "content_url"              : "content_url",
-    #   "content_url_audio"        : "content_url",
-    #   "content_url_transcript"   : "content_url",
-    #   "contributor"              : "person",
-    #   "country"                  : "place",
-    #   # "coverage_lat": "coverage_lat",
-    #   # "coverage_long": "coverage_long",
-    #   "creator"                  : "person",
-    #   "creator_other"            : "person",
-    #   "date_digital"             : "season",
-    #   "date_exact"               : "season",
-    #   "date_season"              : "season",
-    #   "date_season_yyyy"         : "season",
-    #   # "description"              : "content.description",
-    #   # "digitization_specifications": "digitization_specifications",
-    #   # "format": "format",
-    #   # "identifier": "identifier",
-    #   # "language": "language",
-    #   # "publisher"                : "publisher",
-    #   "publisher_location"       : "place",
-    #   # "relation": "relation",
-    #   # "rights"                   : "source.rights",
-    #   # "source": "source",
-    #   "subject_academic_field"   : "subject_academic_field",
-    #   "subject_associated_places": "place",
-    #   # "subject_other": "subject_other",
-    #   "subject_people"           : "person",
-    #   "subject_place"            : "place",
-    #   "subject_season"           : "season",
-    #   # "title"                    : "content.title",
-    #   # "type": "type",
-    # }
-
+    self.metadata_type_table_name = "metadata_type"
+    self.metadata_type = "Bibliography"
+    self.metadata_type_id = self.get_metadata_type_id()
     self.entry_rows_dict = defaultdict()
     self.empty_identifier = defaultdict()
     self.make_upload_queries()
@@ -167,13 +123,17 @@ class ToMysql(Upload):
 
     return temp_dict
 
-  def check_if_exists(self, dict_w_all_ids):
-    where_part0 = self.mysql_utils.make_where_part_template(dict_w_all_ids.keys())
+  def get_metadata_type_id(self):
+    metadata_type_ins_res = self.mysql_utils.execute_insert(self.metadata_type_table_name, self.metadata_type_table_name,
+                                                          self.metadata_type)
+    metadata_type_id = metadata_type_ins_res[1]
+    if metadata_type_id == 0:
+      metadata_type_id = self.mysql_utils.get_id_esc(self.metadata_type_table_name + "_id", self.metadata_type_table_name, self.metadata_type_table_name, self.metadata_type)
+    return metadata_type_id
 
-    select_q = '''SELECT {} FROM {} 
-      WHERE {}'''.format(self.entry_table_name + "_id", self.entry_table_name, where_part0)
-
-    return self.mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
+  def add_metadata_type(self, val_dict):
+    val_dict[self.metadata_type_table_name + "_id"] = self.metadata_type_id
+    return val_dict
 
   def check_or_create_identifier(self, val_dict):
     # TODO: split methods
@@ -221,51 +181,10 @@ class ToMysql(Upload):
         """
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
+        current_output_dict = self.add_metadata_type(current_output_dict)
         dict_w_all_ids = self.find_empty_ids(current_output_dict)
         self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
                                                    tuple(dict_w_all_ids.values()))
-
-  # def get_entry_table_field_names(self):
-  #   entry_field_names_q = """
-  #   SELECT column_name 
-  #     FROM information_schema.columns 
-  #     WHERE table_name = %s 
-  #     AND table_schema = %s 
-  #     AND column_name <> %s
-  #   """
-  #   vals = (self.entry_table_name, db_schema, self.entry_table_name + "_id")
-  #   return self.mysql_utils.execute_fetch_select(entry_field_names_q, vals)
-
-  # def get_empty_field_names(self, current_row_dict):
-  #   except_fields = ["created", "updated"]
-  #   entry_field_names_sql_res = self.get_entry_table_field_names()
-  #   have_field_names = current_row_dict.keys()
-  #   # TODO: seems slow, benchmark and try with utils.subtraction
-  #   res = list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
-  #   return res
-
-  # def find_empty_ids(self, current_row_dict):
-  #   """ TODO: DRY with upload script
-  #   """
-  #   # TODO: seems slow, benchmark and try with utils.subtraction
-  #   empty_field_names = self.get_empty_field_names(current_row_dict)
-  #   for field in empty_field_names:
-  #     name_no_id = field[:-3]
-  #     # '''select identifier_id from identifier where identifier = ""'''
-  #     # select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
-  #     try:
-  #       table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
-  #       #
-  #       # empty_id = self.mysql_utils.execute_fetch_select(select_q)
-  #       # current_row_dict[field] = list(utils.extract(empty_id))[0]
-  #     except KeyError:
-  #       table_name_w_id = name_no_id
-  # 
-  #     select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
-  #     empty_id = self.mysql_utils.execute_fetch_select(select_q)
-  #     current_row_dict[field] = list(utils.extract(empty_id))[0]
-  # 
-  #   return current_row_dict
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
@@ -380,9 +299,9 @@ class Export:
     # self.all_items_l_dict = []
 
     # USE this for real:
-    # self.all_items_dump = self.dump_all_items()
+    self.all_items_dump = self.dump_all_items()
     # debug short
-    self.all_items_dump = zot.top(limit = 5)
+    # self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
