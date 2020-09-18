@@ -5,7 +5,7 @@ from pyzotero import zotero
 from collections import defaultdict
 import util
 import sys
-# import upload_tsv_to_db_for_mcm
+from mcm_upload_util import Upload
 
 try:
   import mysqlclient as mysql
@@ -59,10 +59,13 @@ class Collections:
     dump_all_collections.close()
 
 
-class ToMysql:
-
+# class ToMysql:
+class ToMysql(Upload):
   def __init__(self):
-    self.entry_table_name = "entry"
+    Upload.__init__(self)
+
+  # def __init__(self):
+  #   self.entry_table_name = "entry"
 
     self.zotero_to_sql_fields = {
       'creators'    : 'role.role', # creator
@@ -85,54 +88,54 @@ class ToMysql:
     add to entry
     
     """
-    self.many_values_to_one_field = {
-      "content_url": ["content_url", "content_url_audio", "content_url_transcript"],
-      "season"     : ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
-      "person"     : ["contributor", "creator", "creator_other", "subject_people"],
-      "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
-    }
+    # self.many_values_to_one_field = {
+    #   "content_url": ["content_url", "content_url_audio", "content_url_transcript"],
+    #   "season"     : ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+    #   "person"     : ["contributor", "creator", "creator_other", "subject_people"],
+    #   "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
+    # }
 
-    self.where_to_look_if_not_the_same = {
-      # "bibliographic_citation"   : "source.bibliographic_citation",
-      # "content": "content",
-      "content_url"              : "content_url",
-      "content_url_audio"        : "content_url",
-      "content_url_transcript"   : "content_url",
-      "contributor"              : "person",
-      "country"                  : "place",
-      # "coverage_lat": "coverage_lat",
-      # "coverage_long": "coverage_long",
-      "creator"                  : "person",
-      "creator_other"            : "person",
-      "date_digital"             : "season",
-      "date_exact"               : "season",
-      "date_season"              : "season",
-      "date_season_yyyy"         : "season",
-      # "description"              : "content.description",
-      # "digitization_specifications": "digitization_specifications",
-      # "format": "format",
-      # "identifier": "identifier",
-      # "language": "language",
-      # "publisher"                : "publisher",
-      "publisher_location"       : "place",
-      # "relation": "relation",
-      # "rights"                   : "source.rights",
-      # "source": "source",
-      "subject_academic_field"   : "subject_academic_field",
-      "subject_associated_places": "place",
-      # "subject_other": "subject_other",
-      "subject_people"           : "person",
-      "subject_place"            : "place",
-      "subject_season"           : "season",
-      # "title"                    : "content.title",
-      # "type": "type",
-    }
+    # self.where_to_look_if_not_the_same = {
+    #   # "bibliographic_citation"   : "source.bibliographic_citation",
+    #   # "content": "content",
+    #   "content_url"              : "content_url",
+    #   "content_url_audio"        : "content_url",
+    #   "content_url_transcript"   : "content_url",
+    #   "contributor"              : "person",
+    #   "country"                  : "place",
+    #   # "coverage_lat": "coverage_lat",
+    #   # "coverage_long": "coverage_long",
+    #   "creator"                  : "person",
+    #   "creator_other"            : "person",
+    #   "date_digital"             : "season",
+    #   "date_exact"               : "season",
+    #   "date_season"              : "season",
+    #   "date_season_yyyy"         : "season",
+    #   # "description"              : "content.description",
+    #   # "digitization_specifications": "digitization_specifications",
+    #   # "format": "format",
+    #   # "identifier": "identifier",
+    #   # "language": "language",
+    #   # "publisher"                : "publisher",
+    #   "publisher_location"       : "place",
+    #   # "relation": "relation",
+    #   # "rights"                   : "source.rights",
+    #   # "source": "source",
+    #   "subject_academic_field"   : "subject_academic_field",
+    #   "subject_associated_places": "place",
+    #   # "subject_other": "subject_other",
+    #   "subject_people"           : "person",
+    #   "subject_place"            : "place",
+    #   "subject_season"           : "season",
+    #   # "title"                    : "content.title",
+    #   # "type": "type",
+    # }
 
     self.entry_rows_dict = defaultdict()
     self.empty_identifier = defaultdict()
     self.make_upload_queries()
     self.insert_entry_row()
-    print("DONE")
+    print("DONE uploading Zotero")
 
   """TODO: If there more than one person
   a) combine them in one row in "person" table and provide one id in entry
@@ -165,12 +168,12 @@ class ToMysql:
     return temp_dict
 
   def check_if_exists(self, dict_w_all_ids):
-    where_part0 = mysql_utils.make_where_part_template(dict_w_all_ids.keys())
+    where_part0 = self.mysql_utils.make_where_part_template(dict_w_all_ids.keys())
 
     select_q = '''SELECT {} FROM {} 
-      WHERE {}'''.format(self.entry_table_name + "_id", self.entry_table_name, where_part0)
+      WHERE {}'''.format(self.table_names_w_ids + "_id", self.table_names_w_ids, where_part0)
 
-    return mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
+    return self.mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
 
   def check_or_create_identifier(self, val_dict):
     # TODO: split methods
@@ -182,16 +185,16 @@ class ToMysql:
         "Bibliography"
       """
       get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
-      get_last_id_q_res = mysql_utils.execute_fetch_select(get_last_id_q)
+      get_last_id_q_res = self.mysql_utils.execute_fetch_select(get_last_id_q)
       last_num_res = list(utils.extract(get_last_id_q_res))[0]
       last_num_res_arr = last_num_res.split("-")
       last_num = int(last_num_res_arr[1][1:])
       num_part = str(last_num + 1).zfill(6)
       curr_identifier = first_part + num_part
       # 2) insert_identifier
-      mysql_utils.execute_insert(identifier_table_name, identifier_table_name, curr_identifier)
+      self.mysql_utils.execute_insert(identifier_table_name, identifier_table_name, curr_identifier)
       # 3) get it's id
-      db_id = mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
+      db_id = self.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
       # 4) add to current dict
       val_dict[identifier_table_name + "_id"] = db_id
       return val_dict
@@ -216,7 +219,7 @@ class ToMysql:
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
         dict_w_all_ids = self.find_empty_ids(current_output_dict)
-        mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
+        self.mysql_utils.execute_many_fields_one_record(self.table_names_w_ids, list(dict_w_all_ids.keys()),
                                                    tuple(dict_w_all_ids.values()))
 
   def get_entry_table_field_names(self):
@@ -227,8 +230,8 @@ class ToMysql:
       AND table_schema = %s 
       AND column_name <> %s
     """
-    vals = (self.entry_table_name, db_schema, self.entry_table_name + "_id")
-    return mysql_utils.execute_fetch_select(entry_field_names_q, vals)
+    vals = (self.table_names_w_ids, db_schema, self.table_names_w_ids + "_id")
+    return self.mysql_utils.execute_fetch_select(entry_field_names_q, vals)
 
   def get_empty_field_names(self, current_row_dict):
     except_fields = ["created", "updated"]
@@ -250,13 +253,13 @@ class ToMysql:
       try:
         table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
         #
-        # empty_id = mysql_utils.execute_fetch_select(select_q)
+        # empty_id = self.mysql_utils.execute_fetch_select(select_q)
         # current_row_dict[field] = list(utils.extract(empty_id))[0]
       except KeyError:
         table_name_w_id = name_no_id
 
       select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
-      empty_id = mysql_utils.execute_fetch_select(select_q)
+      empty_id = self.mysql_utils.execute_fetch_select(select_q)
       current_row_dict[field] = list(utils.extract(empty_id))[0]
 
     return current_row_dict
@@ -272,7 +275,7 @@ class ToMysql:
     update_q = '''UPDATE {}
       SET {} = %s, {} = %s 
       WHERE {} = {}'''.format(table_name, last_name, first_name, table_name + '_id', db_id)
-    mysql_utils.execute_no_fetch(update_q, names_tuple)
+    self.mysql_utils.execute_no_fetch(update_q, names_tuple)
 
   def get_person_id(self, full_name):
     table_name = "person"
@@ -283,11 +286,11 @@ class ToMysql:
   def get_id_by_serch_or_insert(self, table_name, field_name, value):
     field_name_id = field_name + "_id"
     try:
-      db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+      db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     except IndexError:
       try:
-        mysql_utils.execute_insert(table_name, field_name, value)
-        db_id = mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
+        self.mysql_utils.execute_insert(table_name, field_name, value)
+        db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
       except IndexError: # A weird one with a single quote in utf8 (came from a tsv) vs. latin (came from Zotero): man’s vs. man's
         db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
     return db_id
@@ -295,7 +298,7 @@ class ToMysql:
   def single_quote_encoding_err_handle(self, table_name, field_name, value):
     value_part = value.split("'")[0] + "%"
     id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name + "_id", table_name, field_name)
-    id_result_full = mysql_utils.execute_fetch_select(id_query, value_part)
+    id_result_full = self.mysql_utils.execute_fetch_select(id_query, value_part)
     db_id = list(utils.extract(id_result_full))[0]
     return db_id
 
@@ -374,9 +377,9 @@ class Export:
     # self.all_items_l_dict = []
 
     # USE this for real:
-    self.all_items_dump = self.dump_all_items()
+    # self.all_items_dump = self.dump_all_items()
     # debug short
-    # self.all_items_dump = zot.top(limit = 5)
+    self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
@@ -411,21 +414,24 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
-  if utils.is_local():
-    db_schema = 'mcm_history'
-    mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
-    print("host = 'localhost', db = {}".format(db_schema))
-  else:
-    db_schema = 'mcmurdohistory_metadata'
-    host = '127.0.0.1'
-    mysql_utils = util.Mysql_util(host = host, db = db_schema, read_default_group = 'client')
-    # mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
-    print("host = {}, db {}".format(host, db_schema))
+  # if utils.is_local():
+  #   db_schema = 'mcm_history'
+  #   self.mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
+  #   print("host = 'localhost', db = {}".format(db_schema))
+  # else:
+  #   db_schema = 'mcmurdohistory_metadata'
+  #   host = '127.0.0.1'
+  #   self.mysql_utils = util.Mysql_util(host = host, db = db_schema, read_default_group = 'client')
+  #   # self.mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
+  #   print("host = {}, db {}".format(host, db_schema))
 
   # upload = upload_tsv_to_db_for_mcm.Upload(utils)
 
-  c = Collections()
+  # c = Collections()
   export = Export()
+  # upload_zotero_entries = mcm_upload_util.Upload()
+  # upload_zotero_entries = Upload_zotero_entries()
+
   import_to_mysql = ToMysql()
   # export.()
   # export.print_items_info()
