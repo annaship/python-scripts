@@ -171,7 +171,7 @@ class ToMysql(Upload):
     where_part0 = self.mysql_utils.make_where_part_template(dict_w_all_ids.keys())
 
     select_q = '''SELECT {} FROM {} 
-      WHERE {}'''.format(self.table_names_w_ids + "_id", self.table_names_w_ids, where_part0)
+      WHERE {}'''.format(self.entry_table_name + "_id", self.entry_table_name, where_part0)
 
     return self.mysql_utils.execute_fetch_select(select_q, list(dict_w_all_ids.values()))
 
@@ -187,6 +187,9 @@ class ToMysql(Upload):
       get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
       get_last_id_q_res = self.mysql_utils.execute_fetch_select(get_last_id_q)
       last_num_res = list(utils.extract(get_last_id_q_res))[0]
+      if not last_num_res:
+        last_num_res = "MCMEH-B100000" # arbitrary set it much higher then the existing MCMEH-B000799 from google docs
+      # MCMEH-B000799
       last_num_res_arr = last_num_res.split("-")
       last_num = int(last_num_res_arr[1][1:])
       num_part = str(last_num + 1).zfill(6)
@@ -219,50 +222,50 @@ class ToMysql(Upload):
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
         dict_w_all_ids = self.find_empty_ids(current_output_dict)
-        self.mysql_utils.execute_many_fields_one_record(self.table_names_w_ids, list(dict_w_all_ids.keys()),
+        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
                                                    tuple(dict_w_all_ids.values()))
 
-  def get_entry_table_field_names(self):
-    entry_field_names_q = """
-    SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = %s 
-      AND table_schema = %s 
-      AND column_name <> %s
-    """
-    vals = (self.table_names_w_ids, db_schema, self.table_names_w_ids + "_id")
-    return self.mysql_utils.execute_fetch_select(entry_field_names_q, vals)
+  # def get_entry_table_field_names(self):
+  #   entry_field_names_q = """
+  #   SELECT column_name 
+  #     FROM information_schema.columns 
+  #     WHERE table_name = %s 
+  #     AND table_schema = %s 
+  #     AND column_name <> %s
+  #   """
+  #   vals = (self.entry_table_name, db_schema, self.entry_table_name + "_id")
+  #   return self.mysql_utils.execute_fetch_select(entry_field_names_q, vals)
 
-  def get_empty_field_names(self, current_row_dict):
-    except_fields = ["created", "updated"]
-    entry_field_names_sql_res = self.get_entry_table_field_names()
-    have_field_names = current_row_dict.keys()
-    # TODO: seems slow, benchmark and try with utils.subtraction
-    res = list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
-    return res
+  # def get_empty_field_names(self, current_row_dict):
+  #   except_fields = ["created", "updated"]
+  #   entry_field_names_sql_res = self.get_entry_table_field_names()
+  #   have_field_names = current_row_dict.keys()
+  #   # TODO: seems slow, benchmark and try with utils.subtraction
+  #   res = list(set(utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
+  #   return res
 
-  def find_empty_ids(self, current_row_dict):
-    """ TODO: DRY with upload script
-    """
-    # TODO: seems slow, benchmark and try with utils.subtraction
-    empty_field_names = self.get_empty_field_names(current_row_dict)
-    for field in empty_field_names:
-      name_no_id = field[:-3]
-      # '''select identifier_id from identifier where identifier = ""'''
-      # select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
-      try:
-        table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
-        #
-        # empty_id = self.mysql_utils.execute_fetch_select(select_q)
-        # current_row_dict[field] = list(utils.extract(empty_id))[0]
-      except KeyError:
-        table_name_w_id = name_no_id
-
-      select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
-      empty_id = self.mysql_utils.execute_fetch_select(select_q)
-      current_row_dict[field] = list(utils.extract(empty_id))[0]
-
-    return current_row_dict
+  # def find_empty_ids(self, current_row_dict):
+  #   """ TODO: DRY with upload script
+  #   """
+  #   # TODO: seems slow, benchmark and try with utils.subtraction
+  #   empty_field_names = self.get_empty_field_names(current_row_dict)
+  #   for field in empty_field_names:
+  #     name_no_id = field[:-3]
+  #     # '''select identifier_id from identifier where identifier = ""'''
+  #     # select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
+  #     try:
+  #       table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
+  #       #
+  #       # empty_id = self.mysql_utils.execute_fetch_select(select_q)
+  #       # current_row_dict[field] = list(utils.extract(empty_id))[0]
+  #     except KeyError:
+  #       table_name_w_id = name_no_id
+  # 
+  #     select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
+  #     empty_id = self.mysql_utils.execute_fetch_select(select_q)
+  #     current_row_dict[field] = list(utils.extract(empty_id))[0]
+  # 
+  #   return current_row_dict
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
