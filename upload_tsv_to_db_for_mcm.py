@@ -9,7 +9,7 @@ TODO: add type as a required parameter (photo etc)
 """
 import sys
 import util
-import mcm_upload_util
+from mcm_upload_util import Upload
 
 # try:
 #   import mysqlclient as mysql
@@ -144,7 +144,24 @@ class Metadata:
     return {field_name.replace(".", "_").replace(" ", "_").replace("(", "").replace(")", "").lower(): val
             for field_name, val in my_dict.items()}
 
+class Upload_metadata(Upload):
+  def __init__(self, metadata):
+    Upload.__init__(self, metadata)
+    # self.mysql_utils = Upload.mysql_utils
+    self.drop_temp_table()
+    self.create_temp_table()
 
+    self.upload_empty()
+    self.upload_simple_tables()
+    self.upload_all_from_tsv_into_temp_table()
+    self.mass_update_simple_ids()
+
+    self.upload_many_values_to_one_field()
+    self.update_many_values_to_one_field_ids()
+
+    self.upload_other_tables()
+
+    print("END of metadata upload")
 
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
@@ -178,4 +195,4 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args.input_file)
-  upload_metadata = mcm_upload_util.Upload(metadata)
+  upload_metadata = Upload_metadata(metadata)

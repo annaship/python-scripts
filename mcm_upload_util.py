@@ -71,7 +71,7 @@ class Upload:
 
   foreign_key_tables = defaultdict(dict)
 
-  def __init__(self, metadata):
+  def __init__(self, metadata = None):
     """
         1) upload simple tables (table_names_simple)
         2) upload combine tables no foreign keys (content, person, place, season, source)
@@ -100,18 +100,18 @@ class Upload:
     self.special_tables = self.get_special_tables()
     self.simple_tables = list(self.all_tables_set - set(self.special_tables))
 
-    self.drop_temp_table()
-    self.create_temp_table()
-
-    self.upload_empty()
-    self.upload_simple_tables()
-    self.upload_all_from_tsv_into_temp_table()
-    self.mass_update_simple_ids()
-
-    self.upload_many_values_to_one_field()
-    self.update_many_values_to_one_field_ids()
-
-    self.upload_other_tables()
+    # self.drop_temp_table()
+    # self.create_temp_table()
+    #
+    # self.upload_empty()
+    # self.upload_simple_tables()
+    # self.upload_all_from_tsv_into_temp_table()
+    # self.mass_update_simple_ids()
+    #
+    # self.upload_many_values_to_one_field()
+    # self.update_many_values_to_one_field_ids()
+    #
+    # self.upload_other_tables()
 
     print("here")
 
