@@ -113,7 +113,7 @@ class Upload:
     #
     # self.upload_other_tables()
 
-    print("here")
+    print("End of Upload superclass")
 
   def drop_temp_table(self):
     drop_query = "DROP TABLE IF EXISTS {}".format(self.table_name_temp_dump)
