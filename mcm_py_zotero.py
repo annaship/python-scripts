@@ -87,6 +87,8 @@ class ToMysql(Upload):
     self.metadata_type_table_name = "metadata_type"
     self.metadata_type = "Bibliography"
     self.metadata_type_id = self.get_metadata_type_id()
+    """TODO: Change the above to hardcoding all the 'extra' data, maybe type?"""
+
     self.entry_rows_dict = defaultdict()
     self.empty_identifier = defaultdict()
     self.make_upload_queries()
@@ -211,7 +213,7 @@ class ToMysql(Upload):
       db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     except IndexError:
       try:
-        self.mysql_utils.execute_insert(table_name, field_name, value)
+        mysql_res = self.mysql_utils.execute_insert(table_name, field_name, value)
         db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
       except IndexError: # A weird one with a single quote in utf8 (came from a tsv) vs. latin (came from Zotero): man’s vs. man's
         db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
