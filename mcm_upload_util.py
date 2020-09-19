@@ -260,7 +260,12 @@ class Upload:
   def get_empty_field_names(self, current_row_dict):
     except_fields = ["created", "updated"]
     entry_field_names_sql_res = self.get_entry_table_field_names()
-    have_field_names = [k for k, v in current_row_dict.items() if v > 0]
+    try:
+      have_field_names = [k for k, v in current_row_dict.items() if v > 0]
+    except TypeError:
+      print("current_row_dict = {}".format(current_row_dict))
+      raise
+    
     # TODO: seems slow, benchmark and try with utils.subtraction
     res = list(set(self.utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
     return res
