@@ -126,7 +126,7 @@ class ToMysql(Upload):
     return temp_dict
 
   def get_metadata_type_id(self):
-    metadata_type_ins_res = self.mysql_utils.execute_insert(self.metadata_type_table_name, self.metadata_type_table_name,
+    metadata_type_ins_res = self.mysql_utils.execute_insert_mariadb(self.metadata_type_table_name, self.metadata_type_table_name,
                                                           self.metadata_type)
     metadata_type_id = metadata_type_ins_res[1]
     if metadata_type_id == 0:
@@ -153,7 +153,7 @@ class ToMysql(Upload):
       num_part = str(last_num + 1).zfill(6)
       curr_identifier = first_part + num_part
       # 2) insert_identifier
-      self.mysql_utils.execute_insert(identifier_table_name, identifier_table_name, curr_identifier)
+      self.mysql_utils.execute_insert_mariadb(identifier_table_name, identifier_table_name, curr_identifier)
       # 3) get it's id
       db_id = self.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
       # 4) add to current dict
