@@ -103,7 +103,7 @@ class Upload:
     # self.drop_temp_table()
     # self.create_temp_table()
     #
-    # self.upload_empty()
+    self.upload_empty()
     # self.upload_simple_tables()
     # self.upload_all_from_tsv_into_temp_table()
     # self.mass_update_simple_ids()
