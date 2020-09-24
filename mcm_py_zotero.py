@@ -209,7 +209,7 @@ class ToMysql(Upload):
       db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
     except IndexError:
       try:
-        mysql_res = self.mysql_utils.execute_insert(table_name, field_name, value)
+        mysql_res = self.mysql_utils.execute_insert_mariadb(table_name, field_name, value)
         db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
       except IndexError: # A weird one with a single quote in utf8 (came from a tsv) vs. latin (came from Zotero): man’s vs. man's
         db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)

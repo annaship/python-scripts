@@ -282,6 +282,22 @@ class Mysql_util:
       self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(mySql_insert_query, records_to_insert_arr))
       raise
 
+  # INSERT INTO ins_duplicate VALUES (1,'Antelope') ON DUPLICATE KEY UPDATE animal='Antelope';
+
+  def execute_insert_mariadb(self, table_name, field_name, val_list, sql = ""):
+    try:
+      if sql == "":
+        sql = "INSERT INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
+      if self.cursor:
+        self.cursor.execute(sql, (val_list, val_list))
+        self.conn.commit()
+        return (self.cursor.rowcount, self.cursor.lastrowid)
+    except:
+      self.utils.print_both("Unexpected error:", sys.exc_info()[0])
+      self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(sql, val_list))
+      raise
+
+
   def execute_insert(self, table_name, field_name, val_list, ignore = "IGNORE", sql = ""):
     try:
       if sql == "":
