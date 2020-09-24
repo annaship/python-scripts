@@ -84,8 +84,8 @@ class ToMysql(Upload):
     add to entry
     
     """
-    self.metadata_type_table_name = "metadata_type"
-    self.metadata_type = "Bibliography"
+    self.metadata_type_table_name = "type"
+    self.metadata_type = "Bibliographic Item"
     self.metadata_type_id = self.get_metadata_type_id()
     """TODO: Change the above to hardcoding all the 'extra' data, maybe type?"""
 
@@ -142,16 +142,12 @@ class ToMysql(Upload):
     identifier_table_name = "identifier"
     if 'identifier' not in val_dict.keys():
       # 1) get_last_id
-      first_part = "MCMEH-B"
-      """
-        "Bibliography"
-      """
+      first_part = "MCMEH-Z"
       get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
       get_last_id_q_res = self.mysql_utils.execute_fetch_select(get_last_id_q)
       last_num_res = list(utils.extract(get_last_id_q_res))[0]
       if not last_num_res:
-        last_num_res = "MCMEH-B100000" # arbitrary set it much higher then the existing MCMEH-B000799 from google docs
-      # MCMEH-B000799
+        last_num_res = "MCMEH-Z000000" # start with z
       last_num_res_arr = last_num_res.split("-")
       last_num = int(last_num_res_arr[1][1:])
       num_part = str(last_num + 1).zfill(6)
@@ -301,9 +297,9 @@ class Export:
     # self.all_items_l_dict = []
 
     # USE this for real:
-    self.all_items_dump = self.dump_all_items()
+    # self.all_items_dump = self.dump_all_items()
     # debug short
-    # self.all_items_dump = zot.top(limit = 5)
+    self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()

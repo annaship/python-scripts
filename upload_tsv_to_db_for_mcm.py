@@ -27,7 +27,6 @@ class Metadata:
   # parse csv
 
   metadata_to_field = {
-    "Metadata.Type"              : "metadata_type",
     "Identifier"                 : "identifier",
     "Title"                      : "title",
     "Content"                    : "content",
