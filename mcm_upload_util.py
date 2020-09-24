@@ -165,8 +165,16 @@ class Upload:
     self.all_tables_set.discard(self.entry_table_name)
     self.all_tables_set.discard(self.table_names_to_ignore[0])
     for table_name in list(self.all_tables_set):
-      insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
-      self.mysql_utils.execute_no_fetch(insert_query)
+      self.insert_null(table_name)
+      # sql = "INSERT INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
+      # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL) ".format(table_name, table_name + "_id")
+      # insert_query = "INSERT IGNORE INTO `{0}` (`{1}`) VALUES (NULL) ON DUPLICATE KEY UPDATE {1} = NULL".format(table_name, table_name + "_id")
+      # self.mysql_utils.execute_no_fetch(insert_query)
+
+  def insert_null(self, table_name):
+    insert_query = "INSERT IGNORE INTO `{0}` (`{1}`) VALUES (NULL) ON DUPLICATE KEY UPDATE {1} = NULL".format(
+      table_name, table_name + "_id")
+    self.mysql_utils.execute_no_fetch(insert_query)
 
   def upload_simple_tables(self):
     for table_name in self.simple_tables:
@@ -181,8 +189,9 @@ class Upload:
       self.mysql_utils.execute_insert_many(table_name, field_name, val_arr)
 
     except KeyError:
-      insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(table_name, table_name + "_id")
-      self.mysql_utils.execute_no_fetch(insert_query)
+      # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(c, table_name + "_id")
+      # self.mysql_utils.execute_no_fetch(insert_query)
+      self.insert_null(table_name)
 
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
