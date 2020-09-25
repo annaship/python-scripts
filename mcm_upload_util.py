@@ -137,7 +137,7 @@ class Upload:
     column_names_arr = []
     column_names_str_begin = "ALTER TABLE {}".format(self.table_name_temp_dump)
     for c_name_w_id in column_names_w_ids:
-      add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL\n".format(c_name_w_id)
+      add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL DEFAULT 0\n".format(c_name_w_id)
       column_names_arr.append(add_col_str_w_id)
     for c_name in all_fields:
       add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""\n'.format(c_name)
