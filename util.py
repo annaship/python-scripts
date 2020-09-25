@@ -282,8 +282,6 @@ class Mysql_util:
       self.utils.print_both(("ERROR: sql = {}, val_list = {}").format(mySql_insert_query, records_to_insert_arr))
       raise
 
-  # INSERT INTO ins_duplicate VALUES (1,'Antelope') ON DUPLICATE KEY UPDATE animal='Antelope';
-
   def execute_insert_mariadb(self, table_name, field_name, val_list, sql = ""):
     try:
       if sql == "":
