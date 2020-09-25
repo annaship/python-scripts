@@ -272,29 +272,11 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
       self.entry_rows_dict[z_key] = defaultdict()
       for k, v in z_entry['data'].items():
         if v:
-          # if k == 'abstractNote':
-          #   print("stop")
           self.make_entry_rows_dict_of_ids(k, v, z_key)
-
-  # def make_temp_dict(self, temp_dict, in_item_dict):
-  #   for k, v in in_item_dict.items():
-  #     if v:  # (don't retain empty values')
-  #       if isinstance(v, (tuple, list)):
-  #         for list_item in v:
-  #           self.make_temp_dict(temp_dict, list_item)
-  #       else:
-  #         try:
-  #           field_name = self.zotero_to_sql_fields[k]
-  #           temp_dict[field_name] = in_item_dict[k]
-  #         except KeyError:
-  #           temp_dict[k] = in_item_dict[k]
-  #   return temp_dict
 
 
 class Export:
   def __init__(self):
-
-    # self.all_items_l_dict = []
 
     # USE this for real:
     # self.all_items_dump = self.dump_all_items()
