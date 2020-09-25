@@ -140,21 +140,12 @@ class Upload:
       add_col_str_w_id = " ADD COLUMN {} int(11) UNSIGNED NOT NULL\n".format(c_name_w_id)
       column_names_arr.append(add_col_str_w_id)
     for c_name in all_fields:
-      # add_col_str = ' ADD COLUMN {} varchar(1024) DEFAULT ""'.format(c_name)
       add_col_str = ' ADD COLUMN {} TEXT DEFAULT ""\n'.format(c_name)
-      # add_col_str = ' ADD COLUMN {} TEXT\n'.format(c_name)
       column_names_arr.append(add_col_str)
-
-    # column_names_str_end = """ ADD UNIQUE KEY `all_id` (metadata_type(16), identifier(16), title(512), content(16), content_url(16), creator(16), creator_other(16), subject_place(16), coverage_lat(16), coverage_long(16), subject_associated_places(16), subject_people(16), subject_academic_field(16), subject_other(16), subject_season(16), date_season(16), date_season_yyyy(16), date_exact(16), date_digital(16), description(512), format(16), digitization_specifications(16), contributor(16), type(16), country(16), language(16), relation(16), source(512), publisher(512), publisher_location(16), bibliographic_citation(512), rights(16)) """
-    # column_names_str_end = ""
-    # column_names_arr.append(column_names_str_end)
 
     column_names_str = ", ".join(column_names_arr)
     add_columns_q = column_names_str_begin + column_names_str
-    # print(add_columns_q)
     self.mysql_utils.execute_no_fetch(add_columns_q)
-
-    # print("QQ")
 
   def get_special_tables(self):
     special_tables = [self.table_name_temp_dump]
@@ -166,10 +157,6 @@ class Upload:
     self.all_tables_set.discard(self.table_names_to_ignore[0])
     for table_name in list(self.all_tables_set):
       self.insert_null(table_name)
-      # sql = "INSERT INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
-      # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL) ".format(table_name, table_name + "_id")
-      # insert_query = "INSERT IGNORE INTO `{0}` (`{1}`) VALUES (NULL) ON DUPLICATE KEY UPDATE {1} = NULL".format(table_name, table_name + "_id")
-      # self.mysql_utils.execute_no_fetch(insert_query)
 
   def insert_null(self, table_name):
     insert_query = "INSERT IGNORE INTO `{0}` (`{1}`) VALUES (NULL) ON DUPLICATE KEY UPDATE {1} = NULL".format(
@@ -189,8 +176,6 @@ class Upload:
       self.mysql_utils.execute_insert_many(table_name, field_name, val_arr)
 
     except KeyError:
-      # insert_query = "INSERT IGNORE INTO `{}` (`{}`) VALUES (NULL)".format(c, table_name + "_id")
-      # self.mysql_utils.execute_no_fetch(insert_query)
       self.insert_null(table_name)
 
   def upload_all_from_tsv_into_temp_table(self):
