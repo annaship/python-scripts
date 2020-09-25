@@ -59,7 +59,6 @@ class Collections:
     dump_all_collections.close()
 
 
-# class ToMysql:
 class ToMysql(Upload):
   def __init__(self):
     Upload.__init__(self)
@@ -91,6 +90,7 @@ class ToMysql(Upload):
 
     self.entry_rows_dict = defaultdict()
     self.empty_identifier = defaultdict()
+    self.roles = defaultdict()
     self.make_upload_queries()
     self.insert_entry_row()
     print("DONE uploading Zotero")
@@ -242,7 +242,12 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
       person_db_id = self.get_person_id(full_name)
       self.update_first_last_names(d, person_db_id)
 
-      role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, d['creatorType'])
+      current_role = d['creatorType']
+      try:
+        role_db_id1 = self.roles[current_role]
+      except KeyError:
+        role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, current_role)
+        self.roles[current_role] = role_db_id1
       person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
       current_persons_list.append(full_name)
 
