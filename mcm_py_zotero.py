@@ -8,13 +8,13 @@ import sys
 import unicodedata
 from mcm_upload_util import Upload
 
-try:
-  import mysqlclient as mysql
-except ImportError:
-  try:
-    import pymysql as mysql
-  except ImportError:
-    import MySQLdb as mysql
+# try:
+#   import mysqlclient as mysql
+# except ImportError:
+#   try:
+#     import pymysql as mysql
+#   except ImportError:
+#     import MySQLdb as mysql
 
 """
     [account_type] => group
@@ -28,36 +28,6 @@ library_type = "group"
 api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
 
 zot = zotero.Zotero(library_id, library_type, api_key)
-
-
-class Collections:
-  def __init__(self):
-    self.collections = {}
-    self.all_coll_fields = set()
-    # coll = ""
-    # while (zot.nextCollection()):
-    #   key = coll.primary.key
-    # (coll.primary ? coll.primary: coll).key
-    # this.collections[key] = {
-    #   parent: coll.fields.parentKey,
-    #   name  : coll.name,
-    # };
-    # }
-
-  def all_coll(self):
-    all_coll = zot.all_collections()
-    for coll in all_coll:
-      curr_keys = coll['data'].keys()
-      self.all_coll_fields = self.all_coll_fields | set(curr_keys)
-
-  def get_all_collections(self):
-    dump_collections = open('dump_collections0.txt', 'w')
-    dump_all_collections = open('dump_all_collections0.txt', 'w')
-    print(zot.collections(), file = dump_collections)
-    print(zot.all_collections(), file = dump_all_collections)
-
-    dump_collections.close()
-    dump_all_collections.close()
 
 
 class ToMysql(Upload):
@@ -336,7 +306,7 @@ if __name__ == '__main__':
 
   # c = Collections()
   export = Export()
-  export.get_all_items_to_file()
+  # export.get_all_items_to_file()
   # upload_zotero_entries = mcm_upload_util.Upload()
   # upload_zotero_entries = Upload_zotero_entries()
 
