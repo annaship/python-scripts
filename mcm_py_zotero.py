@@ -7,14 +7,7 @@ import util
 import sys
 import unicodedata
 from mcm_upload_util import Upload
-
-# try:
-#   import mysqlclient as mysql
-# except ImportError:
-#   try:
-#     import pymysql as mysql
-#   except ImportError:
-#     import MySQLdb as mysql
+import requests
 
 """
     [account_type] => group
@@ -258,31 +251,30 @@ class Export:
     # self.all_items_dump = self.dump_all_items()
     # debug short
     self.all_items_dump = zot.top(limit = 5)
-    self.decoded_data = defaultdict()
-    self.go_over_all_entry_data_n_decode_to_utf8()
+    # self.decoded_data_list = []
+    # for entry in self.all_items_dump:
+    #   self.go_over_all_entry_data_n_decode_to_utf8(entry['data'])
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
 
-  def go_over_all_entry_data_n_decode_to_utf8(self):
+  def go_over_all_entry_data_n_decode_to_utf8(self, list_of_dict):
+    # TODO: call for entry['data'] only
     try:
-      for entry in self.all_items_dump:
+      for entry in list_of_dict:
         z_key = entry['key']
         temp_dict = defaultdict()
-        current_dict = self.decode_data_to_utf8(entry['data'], temp_dict)
-        self.decoded_data[z_key] = current_dict
+        for key, val in entry.items():
+          if isinstance(val, list):
+            for inner_dict in val:
+              self.go_over_all_entry_data_n_decode_to_utf8(val)
+            # self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
+          else:
+            decoded_val = self.decode(val)
+          temp_dict[key] = decoded_val
+        self.decoded_data_list.append(temp_dict)
     except:
       raise
-
-  def decode_data_to_utf8(self, current_dict, temp_dict):
-    for key, val in current_dict.items():
-      if isinstance(val, list):
-        decode_data_to_utf8
-        # self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
-      else:
-        decoded_val = self.decode(val)
-      temp_dict[key] = decoded_val
-    return temp_dict
 
   def print_items_info(self):
     items = zot.top(limit = 5)
@@ -320,6 +312,21 @@ class Export:
     return zot.everything(zot.top())
 
 
+class File_retrival:
+  def __init__(self):
+    url = 'https://www.facebook.com/favicon.ico'
+    r = requests.get(url, allow_redirects=True)
+    if url.find('/'):
+      print(url.rsplit('/', 1)[1])
+
+    print(r.headers.get('content-type'))
+    print(r.apparent_encoding)
+    # contentLength = r.headers.get('content-length', None)
+    # if contentLength and contentLength > 2e8:  # 200 mb approx
+
+    open('facebook.ico', 'wb').write(r.content)
+
+
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
 
@@ -330,7 +337,7 @@ if __name__ == '__main__':
   # export.get_all_items_to_file()
   # upload_zotero_entries = mcm_upload_util.Upload()
   # upload_zotero_entries = Upload_zotero_entries()
-
+  file_from_url = File_retrival()
   import_to_mysql = ToMysql()
   # export.()
   # export.print_items_info()
