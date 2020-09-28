@@ -324,7 +324,22 @@ class File_retrival:
     # contentLength = r.headers.get('content-length', None)
     # if contentLength and contentLength > 2e8:  # 200 mb approx
 
-    open('facebook.ico', 'wb').write(r.content)
+    if self.is_downloadable(url):
+      open('facebook.ico', 'wb').write(r.content)
+
+  def is_downloadable(self, url):
+    """
+    https://aviaryan.com/blog/gsoc/downloading-files-from-urls
+    Does the url contain a downloadable resource
+    """
+    h = requests.head(url, allow_redirects = True)
+    header = h.headers
+    content_type = header.get('content-type')
+    if 'text' in content_type.lower():
+      return False
+    if 'html' in content_type.lower():
+      return False
+    return True
 
 
 if __name__ == '__main__':
