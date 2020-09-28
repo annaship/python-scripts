@@ -259,27 +259,30 @@ class Export:
     # debug short
     self.all_items_dump = zot.top(limit = 5)
     self.decoded_data = defaultdict()
-    self.decode_all_data_to_utf8()
+    self.go_over_all_entry_data_n_decode_to_utf8()
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
 
-  def decode_all_data_to_utf8(self):
+  def go_over_all_entry_data_n_decode_to_utf8(self):
     try:
       for entry in self.all_items_dump:
         z_key = entry['key']
         temp_dict = defaultdict()
-        for key, val in entry['data'].items():
-          if isinstance(val, list):
-            pass
-            # self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
-          else:
-            decoded_val = self.decode(val)
-          temp_dict[key] = decoded_val
-
-        self.decoded_data[z_key] = temp_dict
+        current_dict = self.decode_data_to_utf8(entry['data'], temp_dict)
+        self.decoded_data[z_key] = current_dict
     except:
       raise
+
+  def decode_data_to_utf8(self, current_dict, temp_dict):
+    for key, val in current_dict.items():
+      if isinstance(val, list):
+        decode_data_to_utf8
+        # self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
+      else:
+        decoded_val = self.decode(val)
+      temp_dict[key] = decoded_val
+    return temp_dict
 
   def print_items_info(self):
     items = zot.top(limit = 5)
