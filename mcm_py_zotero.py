@@ -258,13 +258,28 @@ class Export:
     # self.all_items_dump = self.dump_all_items()
     # debug short
     self.all_items_dump = zot.top(limit = 5)
+    self.decoded_data = defaultdict()
+    self.decode_all_data_to_utf8()
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
 
-    # self.make_all_info_dict()
+  def decode_all_data_to_utf8(self):
+    try:
+      for entry in self.all_items_dump:
+        z_key = entry['key']
+        temp_dict = defaultdict()
+        for key, val in entry['data'].items():
+          if isinstance(val, list):
+            pass
+            # self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
+          else:
+            decoded_val = self.decode(val)
+          temp_dict[key] = decoded_val
 
-    # self.all_coll_fields = set()
+        self.decoded_data[z_key] = temp_dict
+    except:
+      raise
 
   def print_items_info(self):
     items = zot.top(limit = 5)
@@ -279,11 +294,14 @@ class Export:
   #             text = unicode(text, encoding)
   #     return unicodedata.normalize(normalization, text)
 
-  def decode(self, text, encoding='utf-8', normalization='NFC'):
+  def decode(self, text, encoding='utf-8', encoding_w='cp1252', normalization='NFC'):
     """Convert `text` to unicode."""
     if isinstance(text, str):
-      text = text.encode(encoding)
-    return unicodedata.normalize(normalization, text)
+      # text = text.decode(encoding)
+      res = unicodedata.normalize(normalization, text).encode(encoding_w).decode(encoding)
+    else:
+      res = text
+    return res
 
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
