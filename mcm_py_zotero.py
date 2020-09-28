@@ -5,6 +5,7 @@ from pyzotero import zotero
 from collections import defaultdict
 import util
 import sys
+import unicodedata
 from mcm_upload_util import Upload
 
 try:
@@ -303,9 +304,21 @@ class Export:
       self.all_items_fields.add(item['data']['key'])
       print('Item Type: %s | Key: %s' % (item['data']['itemType'], item['data']['key']))
 
+  #     if isinstance(text, str):
+  #         if not isinstance(text, unicode):
+  #             text = unicode(text, encoding)
+  #     return unicodedata.normalize(normalization, text)
+
+  def decode(self, text, encoding='utf-8', normalization='NFC'):
+    """Convert `text` to unicode."""
+    if isinstance(text, str):
+      text = text.encode(encoding)
+    return unicodedata.normalize(normalization, text)
+
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
-    print(zot.everything(zot.top()), file = dump_all_items)
+    all_text = self.decode(zot.everything(zot.top()))
+    print(all_text, file = dump_all_items)
     dump_all_items.close()
 
   def get_all_zotero_fields(self):
@@ -321,21 +334,9 @@ if __name__ == '__main__':
 
   utils = util.Utils()
 
-  # if utils.is_local():
-  #   db_schema = 'mcm_history'
-  #   self.mysql_utils = util.Mysql_util(host = 'localhost', db = db_schema, read_default_group = 'clienthome')
-  #   print("host = 'localhost', db = {}".format(db_schema))
-  # else:
-  #   db_schema = 'mcmurdohistory_metadata'
-  #   host = '127.0.0.1'
-  #   self.mysql_utils = util.Mysql_util(host = host, db = db_schema, read_default_group = 'client')
-  #   # self.mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = db_schema, read_default_group = 'client')
-  #   print("host = {}, db {}".format(host, db_schema))
-
-  # upload = upload_tsv_to_db_for_mcm.Upload(utils)
-
   # c = Collections()
   export = Export()
+  export.get_all_items_to_file()
   # upload_zotero_entries = mcm_upload_util.Upload()
   # upload_zotero_entries = Upload_zotero_entries()
 
