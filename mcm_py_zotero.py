@@ -339,6 +339,11 @@ class File_retrival:
       return False
     if 'html' in content_type.lower():
       return False
+
+    content_length = header.get('content-length', None)
+    if content_length and content_length > 2e8:  # 200 mb approx
+      return False
+
     return True
 
 
