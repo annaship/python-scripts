@@ -9,6 +9,8 @@ TODO: add type as a required parameter (photo etc)
 """
 import sys
 import util
+import requests
+import os
 from mcm_upload_util import Upload
 
 # try:
@@ -143,6 +145,7 @@ class Metadata:
     return {field_name.replace(".", "_").replace(" ", "_").replace("(", "").replace(")", "").lower(): val
             for field_name, val in my_dict.items()}
 
+
 class Upload_metadata(Upload):
   def __init__(self, metadata):
     Upload.__init__(self, metadata)
@@ -161,6 +164,92 @@ class Upload_metadata(Upload):
     self.upload_other_tables()
 
     print("END of metadata upload")
+
+
+class File_retrival:
+  def __init__(self):
+    self.download_all()
+    # url = 'https://www.facebook.com/favicon.ico'
+    # r = requests.get(url, allow_redirects=True)
+    # if url.find('/'):
+    #   print(url.rsplit('/', 1)[1])
+    #
+    # print(r.headers.get('content-type'))
+    # print(r.apparent_encoding)
+
+    # if self.is_downloadable(url):
+    #   open('facebook.ico', 'wb').write(r.content)
+
+  def download_from_dropbox(self):
+    import dropbox
+    acc_token = "sl.Aik6Wa8t_-q5lEqrDDNH2rpx1XNJhYjAVKJCcbay03Pp3Lo_HoOLBiOT-iDJWQ3bKHM-1xe_adPkJjJIvnWlGKq8hSaDHRGF90XWhr0kaW2Q3s4bE-fQ7odiWs1lCFfyv5YGhvA"
+    dbx = dropbox.Dropbox(acc_token)
+    for entry in dbx.files_list_folder('').entries:
+      print(entry.name)
+
+    # with open("Prime_Numbers.txt", "wb") as f:
+    #   metadata, res = dbx.files_download(path = "/Homework/math/Prime_Numbers.txt")
+    #   f.write(res.content)
+
+  def get_current_urls(self, entry_d):
+    url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
+    urls = []
+    for url_field in url_fields:
+      try:
+        url = entry_d[url_field]
+        if url and len(url) > 0:
+          urls.append(url)
+      except KeyError:
+        pass
+    return urls
+
+  def change_dl(self, urls):
+    return [url.replace('?dl=0', '?dl=1', 1) for url in urls]
+    # for url in urls:
+    #   url.replace('?dl=0', '?dl=1', 1)
+
+  def download_all(self):
+    url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
+    for entry_d in metadata.tsv_file_content_dict_no_empty:
+      urls = self.get_current_urls(entry_d)
+      urls = self.change_dl(urls)
+      for url in urls:
+        # file_name = self.get_file_name(url)
+        # print(url)
+        self.download_file(url)
+
+  def get_file_name(self, url):
+    # TODO: add server's path, get name if no /
+    file_name = ""
+    path = "/Users/ashipunova/work/MCM"
+    if url.find('/'):
+      file_name = url.rsplit('/', 1)[1].split('?', 1)[0]
+    return os.path.join(path, file_name)
+
+  def download_file(self, url):
+    r = requests.get(url, allow_redirects=True)
+    file_name = self.get_file_name(url)
+    open(file_name, 'wb').write(r.content)
+
+  def is_downloadable(self, url):
+    """
+    https://aviaryan.com/blog/gsoc/downloading-files-from-urls
+    Does the url contain a downloadable resource
+    """
+    h = requests.head(url, allow_redirects = True)
+    header = h.headers
+    content_type = header.get('content-type')
+    if 'text' in content_type.lower():
+      return False
+    if 'html' in content_type.lower():
+      return False
+
+    content_length = header.get('content-length', None)
+    if content_length and content_length > 2e8:  # 200 mb approx
+      return False
+
+    return True
+
 
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
@@ -194,4 +283,5 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args.input_file)
+  file_from_url = File_retrival()
   upload_metadata = Upload_metadata(metadata)
