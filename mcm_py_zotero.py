@@ -6,7 +6,7 @@ from collections import defaultdict
 import util
 import os
 import unicodedata
-from mcm_upload_util import Upload
+from mcm_upload_util import Upload, File_retrival
 import requests
 
 """
@@ -244,6 +244,29 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
 
+class Download_files_from_zotero(File_retrival):
+  def __init__(self):
+    File_retrival.__init__(self)
+    self.download_all_from_zotero()
+
+    print("END of File_retrival = download_files_from_zotero")
+
+  def download_all_from_zotero(self):
+    """'attachment': {'href': 'https://api.zotero.org/groups/1415490/items/M5BQR9VK', 'type': 'application/json', 'attachmentType': 'audio/mpeg', 'attachmentSize': 24740700}"""
+    for entry in export.all_items_dump:
+      attachment_d = entry['links']['attachment']
+      addr = attachment_d['href']
+      att_type = attachment_d['attachmentType']
+      att_size = attachment_d['attachmentSize']
+      item_id = addr.rsplit('/', 1)[1]
+
+      # Zotero.dump(itemID[, filename, path])
+      # zot.dump('M5BQR9VK')
+      # Zotero.item
+      zot.dump(item_id, path = )
+      # print(entry)
+
+
 class Export:
   def __init__(self):
 
@@ -252,9 +275,7 @@ class Export:
     # debug short
     self.all_items_dump = zot.top(limit = 5)
     # self.decoded_data_list = []
-    for entry in self.all_items_dump:
-      zot.dump('M5BQR9VK')
-      print(entry)
+
     #   self.go_over_all_entry_data_n_decode_to_utf8(entry['data'])
 
     self.all_items_fields = set()
@@ -324,7 +345,8 @@ if __name__ == '__main__':
   # export.get_all_items_to_file()
   # upload_zotero_entries = mcm_upload_util.Upload()
   # upload_zotero_entries = Upload_zotero_entries()
-  # file_from_url = File_retrival()
+  file_from_url = Download_files_from_zotero()
+
   import_to_mysql = ToMysql()
   # export.()
   # export.print_items_info()
