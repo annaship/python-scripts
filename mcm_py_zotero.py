@@ -4,7 +4,7 @@
 from pyzotero import zotero
 from collections import defaultdict
 import util
-import sys
+import os
 import unicodedata
 from mcm_upload_util import Upload
 import requests
@@ -312,41 +312,6 @@ class Export:
     return zot.everything(zot.top())
 
 
-class File_retrival:
-  def __init__(self):
-    url = 'https://www.facebook.com/favicon.ico'
-    r = requests.get(url, allow_redirects=True)
-    if url.find('/'):
-      print(url.rsplit('/', 1)[1])
-
-    print(r.headers.get('content-type'))
-    print(r.apparent_encoding)
-    # contentLength = r.headers.get('content-length', None)
-    # if contentLength and contentLength > 2e8:  # 200 mb approx
-
-    if self.is_downloadable(url):
-      open('facebook.ico', 'wb').write(r.content)
-
-  def is_downloadable(self, url):
-    """
-    https://aviaryan.com/blog/gsoc/downloading-files-from-urls
-    Does the url contain a downloadable resource
-    """
-    h = requests.head(url, allow_redirects = True)
-    header = h.headers
-    content_type = header.get('content-type')
-    if 'text' in content_type.lower():
-      return False
-    if 'html' in content_type.lower():
-      return False
-
-    content_length = header.get('content-length', None)
-    if content_length and content_length > 2e8:  # 200 mb approx
-      return False
-
-    return True
-
-
 if __name__ == '__main__':
   # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
 
@@ -357,7 +322,7 @@ if __name__ == '__main__':
   # export.get_all_items_to_file()
   # upload_zotero_entries = mcm_upload_util.Upload()
   # upload_zotero_entries = Upload_zotero_entries()
-  file_from_url = File_retrival()
+  # file_from_url = File_retrival()
   import_to_mysql = ToMysql()
   # export.()
   # export.print_items_info()
