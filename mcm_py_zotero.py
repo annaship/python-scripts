@@ -254,17 +254,22 @@ class Download_files_from_zotero(File_retrival):
   def download_all_from_zotero(self):
     """'attachment': {'href': 'https://api.zotero.org/groups/1415490/items/M5BQR9VK', 'type': 'application/json', 'attachmentType': 'audio/mpeg', 'attachmentSize': 24740700}"""
     for entry in export.all_items_dump:
-      attachment_d = entry['links']['attachment']
-      addr = attachment_d['href']
-      att_type = attachment_d['attachmentType']
-      att_size = attachment_d['attachmentSize']
-      item_id = addr.rsplit('/', 1)[1]
+      try:
+        attachment_d = entry['links']['attachment']
+        addr = attachment_d['href']
+        att_type = attachment_d['attachmentType']
+        att_size = attachment_d['attachmentSize']
+        item_id = addr.rsplit('/', 1)[1]
 
-      # Zotero.dump(itemID[, filename, path])
-      # zot.dump('M5BQR9VK')
-      # Zotero.item
-      zot.dump(item_id, path = )
-      # print(entry)
+        # Zotero.dump(itemID[, filename, path])
+        # zot.dump('M5BQR9VK')
+        # Zotero.item
+        #             filename = self.item(itemkey)["data"]["filename"]
+        zot.dump(item_id, path = self.files_path)
+        # print(entry)
+      except KeyError:
+        """ NO attachment """
+        pass
 
 
 class Export:
