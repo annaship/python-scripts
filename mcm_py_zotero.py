@@ -252,7 +252,9 @@ class Export:
     # debug short
     self.all_items_dump = zot.top(limit = 5)
     # self.decoded_data_list = []
-    # for entry in self.all_items_dump:
+    for entry in self.all_items_dump:
+      zot.dump('M5BQR9VK')
+      print(entry)
     #   self.go_over_all_entry_data_n_decode_to_utf8(entry['data'])
 
     self.all_items_fields = set()
