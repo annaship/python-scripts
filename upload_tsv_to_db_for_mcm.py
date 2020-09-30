@@ -189,5 +189,5 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args)
-  upload_metadata = Upload_metadata(metadata)
+  upload_metadata = UploadMetadata(metadata)
 
