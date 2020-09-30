@@ -323,16 +323,32 @@ class File_retrival:
       for url in urls:
         self.download_file(url)
 
-  def get_file_name(self, url):
+  def get_file_name(self, url, google_file_id):
     file_name = ""
-    if url.find('/'):
-      file_name = url.rsplit('/', 1)[1].split('?', 1)[0]
+
+    if google_file_id:
+      file_name = r.headers['Content-Disposition'].split(";")[1].rsplit('=', 1)[1]
+    else:
+      if url.find('/'):
+        file_name = url.rsplit('/', 1)[1].split('?', 1)[0]
     return os.path.join(self.files_path, file_name)
 
-  def download_file(self, url):
+  # def donload_from_google(self, file_id):
+  #   """https://developers.google.com/drive/api/v3/manage-downloads#python"""
+  #   file_id = '0BwwA4oUTeiV1UVNwOHItT0xfa2M'
+  #   DOC_URL = 'https://docs.google.com/spreadsheet/ccc?key=1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc&output=tsv'
+  #
+  #   csv_content = requests.get(DOC_URL).text
+  #   rr = requests.get(DOC_URL, allow_redirects=True)
+  #
+  #   """test for rr.headers['Content-Type'] == 'text/csv'"""
+
+  def download_file(self, url, google_file_id = None):
     try:
       r = requests.get(url, allow_redirects=True)
-      file_name = self.get_file_name(url)
+
+      file_name = self.get_file_name(url, google_file_id)
+
       open(file_name, 'wb').write(r.content)
     except requests.exceptions.MissingSchema:
       self.utils.print_both("Wrong URL: '{}'".format(url))
