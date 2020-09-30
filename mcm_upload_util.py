@@ -173,7 +173,12 @@ class Upload:
       field_names_arr = list(current_row_d.keys())
       values_arr      = list(current_row_d.values())
 
-      self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
+      try:
+        self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
+      #   pymysql.err.OperationalError: (1054, "Unknown column 'title_old' in 'field list'")
+      except mysql.OperationalError as e:
+        self.utils.print_both(e)
+        pass
 
       # separate as add_id_back
       current_id = self.mysql_utils.get_id_esc(table_name_id, table_name, field_names_arr, values_arr)
@@ -325,9 +330,15 @@ class File_retrival:
     return os.path.join(self.files_path, file_name)
 
   def download_file(self, url):
-    r = requests.get(url, allow_redirects=True)
-    file_name = self.get_file_name(url)
-    open(file_name, 'wb').write(r.content)
+    try:
+      r = requests.get(url, allow_redirects=True)
+      file_name = self.get_file_name(url)
+      open(file_name, 'wb').write(r.content)
+    except requests.exceptions.MissingSchema:
+      self.utils.print_both("Wrong URL: '{}'".format(url))
+      pass
+      # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
+
 
 
 if __name__ == '__main__':
