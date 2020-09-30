@@ -25,7 +25,7 @@ from collections import defaultdict
 
 
 class Metadata:
-  # parse csv
+  # parse tsv
 
   metadata_to_field = {
     "Identifier"                 : "identifier",
@@ -63,10 +63,12 @@ class Metadata:
     "Rights"                     : "rights"
   }
 
-  def __init__(self, input_file):
+  def __init__(self, args):
     self.tsv_file_content_list = []
     self.tsv_file_content_dict = {}
-    self.get_data_from_csv(input_file)
+
+    input_file = self.url_or_dest(args)
+    self.get_data_from_tsv(input_file)
     self.tsv_file_fields = self.tsv_file_content_list[0]
     self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
 
@@ -82,6 +84,11 @@ class Metadata:
     self.tsv_file_content_dict_clean_keys = self.clean_keys_in_tsv_file_content_dict()
 
     self.add_missing_fields()
+
+  def url_or_dest(self, args):
+    input = args.input_file
+    if args.input_file_url:
+      input = args.input_file_url
 
   def add_missing_fields(self):
     missing_fields = utils.subtraction(self.metadata_to_field.values(), self.tsv_file_fields)
@@ -108,9 +115,9 @@ class Metadata:
       print("ERROR: Column (field names) shouldn't be empty!")
       sys.exit()
 
-  def get_data_from_csv(self, input_file):
-    self.tsv_file_content_list = utils.read_csv_into_list(input_file, "\t")
-    self.tsv_file_content_dict = utils.read_csv_into_dict(input_file, "\t")
+  def get_data_from_tsv(self, input_file):
+    self.tsv_file_content_list = utils.read_tsv_into_list(input_file, "\t")
+    self.tsv_file_content_dict = utils.read_tsv_into_dict(input_file, "\t")
 
   def format_not_empty_dict(self):
     temp_list_of_dict = []
@@ -258,7 +265,7 @@ class Upload_metadata(Upload):
 
 
 if __name__ == '__main__':
-  # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
+  # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.tsv
 
   utils = util.Utils()
 
@@ -276,17 +283,25 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
 
   parser.add_argument('-f', '--file_name',
-                      required = True, action = 'store', dest = 'input_file',
+                      required = False, action = 'store', dest = 'input_file',
                       help = '''Input file name''')
+  parser.add_argument('-u', '--url',
+                      required = False, action = 'store', dest = 'input_file_url',
+                      help = '''Input file URL (on Google docs)''')
   parser.add_argument("-ve", "--verbatim",
                       required = False, action = "store_true", dest = "is_verbatim",
                       help = """Print an additional information""")
+  # self.download_file(url)
 
   args = parser.parse_args()
+  if not args.input_file and not args.input_file_url:
+    print("Please provide a tsv file name or its URL on Google docs")
+    sys.exit()
+
   print('args = ')
   print(args)
 
   is_verbatim = args.is_verbatim
 
-  metadata = Metadata(args.input_file)
+  metadata = Metadata(args)
   upload_metadata = Upload_metadata(metadata)
