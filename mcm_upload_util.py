@@ -323,14 +323,8 @@ class File_retrival:
       for url in urls:
         self.download_file(url)
 
-  def get_file_name(self, url, google_file_id):
-    file_name = ""
-
-    if google_file_id:
-      file_name = r.headers['Content-Disposition'].split(";")[1].rsplit('=', 1)[1]
-    else:
-      if url.find('/'):
-        file_name = url.rsplit('/', 1)[1].split('?', 1)[0]
+  def get_file_name(self, r_headers):
+    file_name = r_headers['Content-Disposition'].split(";")[1].rsplit('=', 1)[1]
     return os.path.join(self.files_path, file_name)
 
   # def donload_from_google(self, file_id):
@@ -347,7 +341,7 @@ class File_retrival:
     try:
       r = requests.get(url, allow_redirects=True)
 
-      file_name = self.get_file_name(url, google_file_id)
+      file_name = self.get_file_name(r.headers)
 
       open(file_name, 'wb').write(r.content)
     except requests.exceptions.MissingSchema:
