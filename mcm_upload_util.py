@@ -173,7 +173,12 @@ class Upload:
       field_names_arr = list(current_row_d.keys())
       values_arr      = list(current_row_d.values())
 
-      self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
+      try:
+        self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
+      #   pymysql.err.OperationalError: (1054, "Unknown column 'title_old' in 'field list'")
+      except mysql.OperationalError as e:
+        self.utils.print_both(e)
+        pass
 
       # separate as add_id_back
       current_id = self.mysql_utils.get_id_esc(table_name_id, table_name, field_names_arr, values_arr)
