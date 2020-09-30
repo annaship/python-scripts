@@ -53,11 +53,12 @@ class Metadata:
   }
 
   def __init__(self, args):
+    self.file_downloads = File_retrival()
     self.tsv_file_content_list = []
     self.tsv_file_content_dict = {}
 
-    input_file = self.url_or_dest(args)
-    self.get_data_from_tsv(input_file)
+    (input_file, delimiter) = self.url_or_dest(args)
+    self.get_data_from_tsv(input_file, delimiter)
     self.tsv_file_fields = self.tsv_file_content_list[0]
     self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
 
@@ -74,10 +75,30 @@ class Metadata:
 
     self.add_missing_fields()
 
+  def get_google_file_id_from_url(self, url):
+    # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
+    return url.split('spreadsheets/d')[1].split('/')[1]
+    # '1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc'
+    """'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'.split('spreadsheets/d', 1)
+    {list: 2} 
+      0 = {str} 'https://docs.google.com/'
+      1 = {str} '/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
+    """
+
   def url_or_dest(self, args):
     input = args.input_file
+    delimiter = "\t"
     if args.input_file_url:
-      input = args.input_file_url
+      delimiter = ","
+      input_url = args.input_file_url
+      file_id = self.get_google_file_id_from_url(input_url)
+      output_format = "csv"
+      doc_url = 'https://docs.google.com/spreadsheet/ccc?key={}&output={}'.format(file_id, output_format)
+
+      # doc_url = 'https://docs.google.com/spreadsheet/ccc?key=1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc&output=tsv'
+
+      self.file_downloads.download_file(doc_url, file_id)
+    return (input, delimiter)
 
   def add_missing_fields(self):
     missing_fields = utils.subtraction(self.metadata_to_field.values(), self.tsv_file_fields)
@@ -98,9 +119,9 @@ class Metadata:
       utils.print_both("ERROR: Column (field names) shouldn't be empty!")
       sys.exit()
 
-  def get_data_from_tsv(self, input_file):
-    self.tsv_file_content_list = utils.read_tsv_into_list(input_file, "\t")
-    self.tsv_file_content_dict = utils.read_tsv_into_dict(input_file, "\t")
+  def get_data_from_tsv(self, input_file, delimiter= "\t"):
+    self.tsv_file_content_list = utils.read_csv_into_list(input_file, delimiter)
+    self.tsv_file_content_dict = utils.read_csv_into_dict(input_file, delimiter)
 
   def format_not_empty_dict(self):
     temp_list_of_dict = []
@@ -189,5 +210,6 @@ if __name__ == '__main__':
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args)
+  
   upload_metadata = UploadMetadata(metadata)
 
