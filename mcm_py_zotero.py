@@ -4,10 +4,7 @@
 from pyzotero import zotero
 from collections import defaultdict
 import util
-import os
-import unicodedata
 from mcm_upload_util import Upload, File_retrival
-import requests
 
 """
     [account_type] => group
@@ -41,16 +38,10 @@ class ToMysql(Upload):
       'rights'      : 'rights.rights',
       'volume'      : 'source.source',
     }
-    """
-    add to temp_table first?
-    make an identifier
-    add to entry
-    
-    """
+
     self.metadata_type_table_name = "type"
     self.metadata_type = "Bibliographic Item"
     self.metadata_type_id = self.get_metadata_type_id()
-    """TODO: Change the above to hardcoding all the 'extra' data, maybe type?"""
 
     self.entry_rows_dict = defaultdict()
     self.empty_identifier = defaultdict()
@@ -59,12 +50,6 @@ class ToMysql(Upload):
     self.insert_entry_row()
     print("DONE uploading Zotero")
 
-  """TODO: If there more than one person
-  a) combine them in one row in "person" table and provide one id in entry
-  or
-  b) make as many entry rows as there are different persons
-  ?
-  """
   def insert_person_combination_and_get_id(self, person_list):
     persons_str = "; ".join(sorted(person_list))
     table_name = "person"
@@ -73,12 +58,9 @@ class ToMysql(Upload):
 
   def correct_keys(self, val_dict):
     temp_dict = defaultdict()
-    """
-    original zot row: [m['data'] for m in export.all_items_dump if m['key'] == key] 
-    """
-    # TODO: move to a dict up front: person - creator, season - date_season
     for k, v in val_dict.items():
       if k[:-3] in self.many_values_to_one_field.keys():
+        k_new = ""
         if k == "person_id":
           k_new = "creator_id"
         elif k == "season_id":
@@ -102,7 +84,6 @@ class ToMysql(Upload):
     return val_dict
 
   def check_or_create_identifier(self, val_dict):
-    # TODO: split methods
     identifier_table_name = "identifier"
     if 'identifier' not in val_dict.keys():
       # 1) get_last_id
@@ -138,8 +119,6 @@ class ToMysql(Upload):
       if len(val_dict) > 0:
         """
         self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
-
-        TODO: DRY with upload_tsv_to_db_for_mcm.py
         """
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
@@ -186,17 +165,7 @@ class ToMysql(Upload):
     db_id = list(utils.extract(id_result_full))[0]
     return db_id
 
-    """
-      value = 'creators' = {list: 8} [{'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}, {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}, {'creatorType': 'author', 'firstName': 'Fraser', 'lastName': 'Morgan'}, {'creatorType': 'author', 'firstName': 'Ben', 'lastName': 'Raymond'}, {'creatorType': 'author', 'firstName': 'Justine D.', 'lastName': 'Shaw'}, {'creatorType': 'author', 'firstName': 'Aleks', 'lastName': 'Terauds'}, {'creatorType': 'author', 'firstName': 'Kees', 'lastName': 'Bastmeijer'}, {'creatorType': 'author', 'firstName': 'Steven L.', 'lastName': 'Chown'}]
-0 = {dict: 3} {'creatorType': 'author', 'firstName': 'Rachel I.', 'lastName': 'Leihy'}
-1 = {dict: 3} {'creatorType': 'author', 'firstName': 'Bernard W. T.', 'lastName': 'Coetzee'}
-...
-    """
   def update_person(self, val_dict, z_key, table_name, field_name):
-    """TODO: refactor as to not print out all absent names
-    Unexpected error:
-field_name = "person_id", table_name = "person", id_query = "SELECT person_id FROM person WHERE person = %s", where_values = "Ghent, Edward D.; Henderson, Robert A."
-    """
     person_id_list = []
     current_persons_list = []
 
@@ -236,15 +205,13 @@ field_name = "person_id", table_name = "person", id_query = "SELECT person_id FR
   def make_upload_queries(self):
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
-      # if z_key == "M7TXRYBG":
-      #   print("z_key = {}".format(z_key))
       self.entry_rows_dict[z_key] = defaultdict()
       for k, v in z_entry['data'].items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
 
-class Download_files_from_zotero(File_retrival):
+class DownloadFilesFromZotero(File_retrival):
   def __init__(self):
     File_retrival.__init__(self)
     self.download_all_from_zotero()
@@ -261,14 +228,9 @@ class Download_files_from_zotero(File_retrival):
         att_size = attachment_d['attachmentSize']
         item_id = addr.rsplit('/', 1)[1]
 
-        # Zotero.dump(itemID[, filename, path])
-        # zot.dump('M5BQR9VK')
-        # Zotero.item
-        #             filename = self.item(itemkey)["data"]["filename"]
         zot.dump(item_id, path = self.files_path)
-        # print(entry)
       except KeyError:
-        """ NO attachment """
+        """ No attachment """
         pass
 
 
@@ -281,50 +243,8 @@ class Export:
     self.all_items_dump = zot.top(limit = 5)
     # self.decoded_data_list = []
 
-    #   self.go_over_all_entry_data_n_decode_to_utf8(entry['data'])
-
     self.all_items_fields = set()
     self.get_all_zotero_fields()
-
-  def go_over_all_entry_data_n_decode_to_utf8(self, list_of_dict):
-    # TODO: call for entry['data'] only
-    try:
-      for entry in list_of_dict:
-        z_key = entry['key']
-        temp_dict = defaultdict()
-        for key, val in entry.items():
-          if isinstance(val, list):
-            for inner_dict in val:
-              self.go_over_all_entry_data_n_decode_to_utf8(val)
-            # self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
-          else:
-            decoded_val = self.decode(val)
-          temp_dict[key] = decoded_val
-        self.decoded_data_list.append(temp_dict)
-    except:
-      raise
-
-  def print_items_info(self):
-    items = zot.top(limit = 5)
-    # we've retrieved the latest five top-level items in our library
-    # we can print each item's item type and ID
-    for item in items:
-      self.all_items_fields.add(item['data']['key'])
-      print('Item Type: %s | Key: %s' % (item['data']['itemType'], item['data']['key']))
-
-  #     if isinstance(text, str):
-  #         if not isinstance(text, unicode):
-  #             text = unicode(text, encoding)
-  #     return unicodedata.normalize(normalization, text)
-
-  def decode(self, text, encoding='utf-8', encoding_w='cp1252', normalization='NFC'):
-    """Convert `text` to unicode."""
-    if isinstance(text, str):
-      # text = text.decode(encoding)
-      res = unicodedata.normalize(normalization, text).encode(encoding_w).decode(encoding)
-    else:
-      res = text
-    return res
 
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
@@ -341,21 +261,9 @@ class Export:
 
 
 if __name__ == '__main__':
-  # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
-
   utils = util.Utils()
 
-  # c = Collections()
   export = Export()
-  # export.get_all_items_to_file()
-  # upload_zotero_entries = mcm_upload_util.Upload()
-  # upload_zotero_entries = Upload_zotero_entries()
-  file_from_url = Download_files_from_zotero()
+  file_from_url = DownloadFilesFromZotero()
 
   import_to_mysql = ToMysql()
-  # export.()
-  # export.print_items_info()
-  # export.all_items_fields()
-  # export.all_coll()
-  # export.get_all()
-  # export.get_all_collections()
