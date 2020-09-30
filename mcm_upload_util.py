@@ -101,18 +101,7 @@ class Upload:
     self.special_tables = self.get_special_tables()
     self.simple_tables = list(self.all_tables_set - set(self.special_tables))
 
-    # self.drop_temp_table()
-    # self.create_temp_table()
-    #
     self.upload_empty()
-    # self.upload_simple_tables()
-    # self.upload_all_from_tsv_into_temp_table()
-    # self.mass_update_simple_ids()
-    #
-    # self.upload_many_values_to_one_field()
-    # self.update_many_values_to_one_field_ids()
-    #
-    # self.upload_other_tables()
 
     self.utils.print_both("End of Upload superclass")
 
@@ -132,9 +121,7 @@ class Upload:
 
     all_fields = self.metadata.metadata_to_field.values()
     column_names_w_ids = [x + "_id" for x in all_fields]
-    #           ADD COLUMN `ping_status` INT(1) NOT NULL AFTER
-    #   `bibliographic_citation` varchar(512) DEFAULT '',
-    #   `bibliographic_citation_id` int(11) unsigned NOT NULL,
+
     column_names_arr = []
     column_names_str_begin = "ALTER TABLE {}".format(self.table_name_temp_dump)
     for c_name_w_id in column_names_w_ids:
@@ -169,7 +156,7 @@ class Upload:
       self.simple_mass_upload(table_name, table_name)
 
   def simple_mass_upload(self, table_name, field_name, val_arr = None):
-    """Default argument values are evaluated only once at function definition time, which means that modifying the default value of the argument will affect all subsequent calls of the function.Jan 17, 2017
+    """Default argument values are evaluated only once at function definition time, which means that modifying the default value of the argument will affect all subsequent calls of the function.
     """
     try:
       if not val_arr:
@@ -237,7 +224,6 @@ class Upload:
         table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
         current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
 
-        # TODO: update these in columns rather then in rows (all data_exact where == 1976 etc.)
         update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name)
         self.mysql_utils.execute_no_fetch(update_q, current_value)
 
@@ -261,24 +247,15 @@ class Upload:
       self.utils.print_both("current_row_dict = {}".format(current_row_dict))
       raise
     
-    # TODO: seems slow, benchmark and try with utils.subtraction
     res = list(set(self.utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
     return res
 
   def find_empty_ids(self, current_row_dict):
-    """ TODO: DRY with upload script
-    """
-    # TODO: seems slow, benchmark and try with utils.subtraction
     empty_field_names = self.get_empty_field_names(current_row_dict)
     for field in empty_field_names:
       name_no_id = field[:-3]
-      # '''select identifier_id from identifier where identifier = ""'''
-      # select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(field, name_no_id, name_no_id)
       try:
         table_name_w_id = self.where_to_look_if_not_the_same[name_no_id]
-        #
-        # empty_id = self.mysql_utils.execute_fetch_select(select_q)
-        # current_row_dict[field] = list (self.utils.extract(empty_id))[0]
       except KeyError:
         table_name_w_id = name_no_id
 
@@ -318,29 +295,6 @@ class File_retrival:
       self.files_path = "/home/ashipuno"
       # self.files_path = "~/mcmurdohistory/sites/default/files"
 
-  # def __init__(self):
-    # url = 'https://www.facebook.com/favicon.ico'
-    # r = requests.get(url, allow_redirects=True)
-    # if url.find('/'):
-    #   print(url.rsplit('/', 1)[1])
-    #
-    # print(r.headers.get('content-type'))
-    # print(r.apparent_encoding)
-
-    # if self.is_downloadable(url):
-    #   open('facebook.ico', 'wb').write(r.content)
-
-  # def download_from_dropbox(self):
-  #   import dropbox
-  #   acc_token = "sl.Aik6Wa8t_-q5lEqrDDNH2rpx1XNJhYjAVKJCcbay03Pp3Lo_HoOLBiOT-iDJWQ3bKHM-1xe_adPkJjJIvnWlGKq8hSaDHRGF90XWhr0kaW2Q3s4bE-fQ7odiWs1lCFfyv5YGhvA"
-  #   dbx = dropbox.Dropbox(acc_token)
-  #   for entry in dbx.files_list_folder('').entries:
-  #     print(entry.name)
-
-    # with open("Prime_Numbers.txt", "wb") as f:
-    #   metadata, res = dbx.files_download(path = "/Homework/math/Prime_Numbers.txt")
-    #   f.write(res.content)
-
   def get_current_urls(self, entry_d):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
     urls = []
@@ -365,7 +319,6 @@ class File_retrival:
         self.download_file(url)
 
   def get_file_name(self, url):
-    # TODO: add server's path, get name if no /
     file_name = ""
     if url.find('/'):
       file_name = url.rsplit('/', 1)[1].split('?', 1)[0]
@@ -376,38 +329,8 @@ class File_retrival:
     file_name = self.get_file_name(url)
     open(file_name, 'wb').write(r.content)
 
-  def is_downloadable(self, url):
-    """
-    https://aviaryan.com/blog/gsoc/downloading-files-from-urls
-    Does the url contain a downloadable resource
-    """
-    h = requests.head(url, allow_redirects = True)
-    header = h.headers
-    content_type = header.get('content-type')
-    if 'text' in content_type.lower():
-      return False
-    if 'html' in content_type.lower():
-      return False
-
-    content_length = header.get('content-length', None)
-    if content_length and content_length > 2e8:  # 200 mb approx
-      return False
-
-    return True
-
 
 if __name__ == '__main__':
-  # /Users/ashipunova/work/MCM/mysql_schema/Bibliography_test.csv
-
+  """Called from mcmPpy_zotero.py and upload_tsv_to_db_for_mcm.py"""
   pass
-  # upload = upload_tsv_to_db_for_mcm.Upload(utils)
 
-  # c = Collections()
-  # export = Export()
-  # import_to_mysql = ToMysql()
-  # export.()
-  # export.print_items_info()
-  # export.all_items_fields()
-  # export.all_coll()
-  # export.get_all()
-  # export.get_all_collections()
