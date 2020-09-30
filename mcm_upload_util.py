@@ -325,9 +325,15 @@ class File_retrival:
     return os.path.join(self.files_path, file_name)
 
   def download_file(self, url):
-    r = requests.get(url, allow_redirects=True)
-    file_name = self.get_file_name(url)
-    open(file_name, 'wb').write(r.content)
+    try:
+      r = requests.get(url, allow_redirects=True)
+      file_name = self.get_file_name(url)
+      open(file_name, 'wb').write(r.content)
+    except requests.exceptions.MissingSchema:
+      self.utils.print_both("Wrong URL: '{}'".format(url))
+      pass
+      # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
+
 
 
 if __name__ == '__main__':
