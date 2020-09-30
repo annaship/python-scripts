@@ -204,12 +204,12 @@ if __name__ == '__main__':
     print("Please provide a tsv file name or its URL on Google docs")
     sys.exit()
 
-  print('args = ')
-  print(args)
+  utils.print_both('args = ')
+  utils.print_both(args)
 
   is_verbatim = args.is_verbatim
 
   metadata = Metadata(args)
-  
+  file_from_url = DownloadFilesFromDropbox(metadata)
   upload_metadata = UploadMetadata(metadata)
 
