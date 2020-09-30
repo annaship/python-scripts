@@ -85,13 +85,13 @@ class Upload:
     if self.utils.is_local():
       self.db_schema = 'mcm_history'
       self.mysql_utils = util.Mysql_util(host = 'localhost', db = self.db_schema, read_default_group = 'clienthome')
-      print("host = 'localhost', db = {}".format(self.db_schema))
+      self.utils.print_both("host = 'localhost', db = {}".format(self.db_schema))
     else:
       self.db_schema = 'mcmurdohistory_metadata'
       host = '127.0.0.1'
       self.mysql_utils = util.Mysql_util(host = host, db = self.db_schema, read_default_group = 'client')
       # self.mysql_utils = util.Mysql_util(host = 'taylor.unm.edu', db = self.db_schema, read_default_group = 'client')
-      print("host = {}, db {}".format(host, self.db_schema))
+      self.utils.print_both("host = {}, db {}".format(host, self.db_schema))
 
     self.entry_table_name = self.table_names_w_ids[0]
     all_tables_sql_res = self.mysql_utils.get_table_names(self.db_schema)
@@ -114,7 +114,7 @@ class Upload:
     #
     # self.upload_other_tables()
 
-    print("End of Upload superclass")
+    self.utils.print_both("End of Upload superclass")
 
   def drop_temp_table(self):
     drop_query = "DROP TABLE IF EXISTS {}".format(self.table_name_temp_dump)
@@ -258,7 +258,7 @@ class Upload:
     try:
       have_field_names = [k for k, v in current_row_dict.items() if v > 0]
     except TypeError:
-      print("current_row_dict = {}".format(current_row_dict))
+      self.utils.print_both("current_row_dict = {}".format(current_row_dict))
       raise
     
     # TODO: seems slow, benchmark and try with utils.subtraction
@@ -362,8 +362,6 @@ class File_retrival:
       urls = self.get_current_urls(entry_d)
       urls = self.change_dl(urls)
       for url in urls:
-        # file_name = self.get_file_name(url)
-        # print(url)
         self.download_file(url)
 
   def get_file_name(self, url):
