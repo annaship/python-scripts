@@ -321,21 +321,12 @@ class File_retrival:
       urls = self.get_current_urls(entry_d)
       urls = self.change_dl(urls)
       for url in urls:
-        self.download_file(url)
+        file_name = self.download_file(url)
 
   def get_file_name(self, r_headers):
-    file_name = r_headers['Content-Disposition'].split(";")[1].rsplit('=', 1)[1]
+    file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
+    file_name = file_name.replace('"', '')
     return os.path.join(self.files_path, file_name)
-
-  # def donload_from_google(self, file_id):
-  #   """https://developers.google.com/drive/api/v3/manage-downloads#python"""
-  #   file_id = '0BwwA4oUTeiV1UVNwOHItT0xfa2M'
-  #   DOC_URL = 'https://docs.google.com/spreadsheet/ccc?key=1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc&output=tsv'
-  #
-  #   csv_content = requests.get(DOC_URL).text
-  #   rr = requests.get(DOC_URL, allow_redirects=True)
-  #
-  #   """test for rr.headers['Content-Type'] == 'text/csv'"""
 
   def download_file(self, url, google_file_id = None):
     try:
@@ -344,11 +335,11 @@ class File_retrival:
       file_name = self.get_file_name(r.headers)
 
       open(file_name, 'wb').write(r.content)
+      return file_name
     except requests.exceptions.MissingSchema:
       self.utils.print_both("Wrong URL: '{}'".format(url))
       pass
       # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
-
 
 
 if __name__ == '__main__':

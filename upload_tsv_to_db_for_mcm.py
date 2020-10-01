@@ -52,6 +52,8 @@ class Metadata:
     "Rights"                     : "rights"
   }
 
+  default_tsv_template_url = "https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0"
+
   def __init__(self, args):
     self.file_downloads = File_retrival()
     self.tsv_file_content_list = []
@@ -75,6 +77,7 @@ class Metadata:
 
     self.add_missing_fields()
 
+
   def get_google_file_id_from_url(self, url):
     # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
     return url.split('spreadsheets/d')[1].split('/')[1]
@@ -86,19 +89,24 @@ class Metadata:
     """
 
   def url_or_dest(self, args):
-    input = args.input_file
-    delimiter = "\t"
-    if args.input_file_url:
+    if args.input_file:
+      input_file_name = args.input_file
+      delimiter = "\t"
+    else:
+      # if not args.input_file and not args.input_file_url:
+      input_url = self.default_tsv_template_url
+      # utils.print_both("The default google spreadsheet will be used.")
+      if args.input_file_url:
+        input_url = args.input_file_url
       delimiter = ","
-      input_url = args.input_file_url
       file_id = self.get_google_file_id_from_url(input_url)
       output_format = "csv"
       doc_url = 'https://docs.google.com/spreadsheet/ccc?key={}&output={}'.format(file_id, output_format)
 
       # doc_url = 'https://docs.google.com/spreadsheet/ccc?key=1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc&output=tsv'
 
-      self.file_downloads.download_file(doc_url, file_id)
-    return (input, delimiter)
+      input_file_name = self.file_downloads.download_file(doc_url, file_id)
+    return (input_file_name, delimiter)
 
   def add_missing_fields(self):
     missing_fields = utils.subtraction(self.metadata_to_field.values(), self.tsv_file_fields)
@@ -200,9 +208,10 @@ if __name__ == '__main__':
   # self.download_file(url)
 
   args = parser.parse_args()
-  if not args.input_file and not args.input_file_url:
-    print("Please provide a tsv file name or its URL on Google docs")
-    sys.exit()
+  # if not args.input_file and not args.input_file_url:
+  #   default_tsv_template_url = "https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0"
+  #   print("Please provide a tsv file name or its URL on Google docs")
+  #   sys.exit()
 
   utils.print_both('args = ')
   utils.print_both(args)
