@@ -16,6 +16,38 @@ except ImportError:
     import MySQLdb as mysql
 
 
+class DataManaging:
+  """Clean data if needed"""
+  def __init__(self):
+    self.utils = util.Utils()
+    self.upload = Upload()  # assigns class1 to your first class
+
+  def check_type(self, type):
+    return type[0]
+
+  def check_or_create_identifier(self, type):
+    identifier_table_name = "identifier"
+    first_char = self.check_type(type)
+    # 1) get_last_id
+    first_part = "MCMEH-{}".format(first_char)
+    get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
+    # class1.method1()
+    get_last_id_q_res = self.upload.mysql_utils.execute_fetch_select(get_last_id_q)
+    last_num_res = list(self.utils.extract(get_last_id_q_res))[0]
+    if not last_num_res:
+      last_num_res = "{}000000".format(first_part)
+    last_num_res_arr = last_num_res.split("-")
+    last_num = int(last_num_res_arr[1][1:])
+    num_part = str(last_num + 1).zfill(6)
+    curr_identifier = first_part + num_part
+    # 2) insert_identifier
+    self.upload.mysql_utils.execute_insert_mariadb(identifier_table_name, identifier_table_name, curr_identifier)
+    # 3) get its id
+    db_id = self.upload.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
+
+    return (db_id, curr_identifier)
+
+
 class Upload:
   """
   table types (intersect is possible):
@@ -169,7 +201,7 @@ class Upload:
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
-    for current_row_d in self.metadata.tsv_file_content_dict_clean_keys:
+    for current_row_d in self.metadata.tsv_file_content_dict_ok:
       field_names_arr = list(current_row_d.keys())
       values_arr      = list(current_row_d.values())
 
@@ -218,7 +250,7 @@ class Upload:
   def update_many_values_to_one_field_ids(self):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
-    for current_row_d in self.metadata.tsv_file_content_dict_clean_keys:
+    for current_row_d in self.metadata.tsv_file_content_dict_ok:
       """TODO: go over each table values instead?     
       for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
       for tsv_field_name in tsv_field_names_to_upload:
@@ -273,7 +305,7 @@ class Upload:
   def upload_other_tables(self):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
-    for current_row_d in self.metadata.tsv_file_content_dict_clean_keys:
+    for current_row_d in self.metadata.tsv_file_content_dict_ok:
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
