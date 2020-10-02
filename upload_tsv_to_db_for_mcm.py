@@ -8,7 +8,7 @@
 """
 import sys
 import util
-from mcm_upload_util import Upload, File_retrival
+from mcm_upload_util import Upload, File_retrival, DataManaging
 
 import argparse
 
@@ -56,6 +56,7 @@ class Metadata:
 
   def __init__(self, args):
     self.file_downloads = File_retrival()
+    self.data_managing = DataManaging()
     self.tsv_file_content_list = []
     self.tsv_file_content_dict = {}
 
@@ -73,10 +74,19 @@ class Metadata:
     self.tsv_file_content_dict_no_empty = self.format_not_empty_dict()
     self.check_for_empty_keys()
 
-    self.tsv_file_content_dict_clean_keys = self.clean_keys_in_tsv_file_content_dict()
+    self.tsv_file_content_dict_ok = self.clean_keys_in_tsv_file_content_dict()
 
     self.add_missing_fields()
+    self.add_missing_identifier()
+    print("STOP")
 
+  def add_missing_identifier(self):
+    for idx, d in enumerate(self.tsv_file_content_dict_ok):
+      if not d['identifier']:
+        type = d['type']
+        (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(type)
+        d['identifier'] = curr_identifier
+        self.not_empty_tsv_content_dict['identifier'][idx] = curr_identifier
 
   def get_google_file_id_from_url(self, url):
     # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
@@ -110,7 +120,7 @@ class Metadata:
 
   def add_missing_fields(self):
     missing_fields = utils.subtraction(self.metadata_to_field.values(), self.tsv_file_fields)
-    for curr_d in self.tsv_file_content_dict_clean_keys:
+    for curr_d in self.tsv_file_content_dict_ok:
       for f in missing_fields:
         curr_d[f] = ""
 
