@@ -44,7 +44,7 @@ class ToMysql(Upload):
     self.metadata_type_id = self.get_metadata_type_id()
 
     self.entry_rows_dict = defaultdict()
-    self.empty_identifier = defaultdict()
+    # self.empty_identifier = defaultdict()
     self.roles = defaultdict()
     self.make_upload_queries()
     self.insert_entry_row()
@@ -99,7 +99,7 @@ class ToMysql(Upload):
       curr_identifier = first_part + num_part
       # 2) insert_identifier
       self.mysql_utils.execute_insert_mariadb(identifier_table_name, identifier_table_name, curr_identifier)
-      # 3) get it's id
+      # 3) get its id
       db_id = self.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
       # 4) add to current dict
       val_dict[identifier_table_name + "_id"] = db_id
