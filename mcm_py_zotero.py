@@ -4,7 +4,7 @@
 from pyzotero import zotero
 from collections import defaultdict
 import util
-from mcm_upload_util import Upload, File_retrival
+from mcm_upload_util import Upload, File_retrival, DataManaging
 
 """
     [account_type] => group
@@ -39,7 +39,9 @@ class ToMysql(Upload):
       'volume'      : 'source.source',
     }
 
+    self.data_managing = DataManaging()
     self.metadata_type_table_name = "type"
+    self.identifier_first_character = "Z"
     self.metadata_type = "Bibliographic Item"
     self.metadata_type_id = self.get_metadata_type_id()
 
@@ -84,25 +86,9 @@ class ToMysql(Upload):
     return val_dict
 
   def check_or_create_identifier(self, val_dict):
-    identifier_table_name = "identifier"
     if 'identifier' not in val_dict.keys():
-      # 1) get_last_id
-      first_part = "MCMEH-Z"
-      get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
-      get_last_id_q_res = self.mysql_utils.execute_fetch_select(get_last_id_q)
-      last_num_res = list(utils.extract(get_last_id_q_res))[0]
-      if not last_num_res:
-        last_num_res = "MCMEH-Z000000" # start with z
-      last_num_res_arr = last_num_res.split("-")
-      last_num = int(last_num_res_arr[1][1:])
-      num_part = str(last_num + 1).zfill(6)
-      curr_identifier = first_part + num_part
-      # 2) insert_identifier
-      self.mysql_utils.execute_insert_mariadb(identifier_table_name, identifier_table_name, curr_identifier)
-      # 3) get its id
-      db_id = self.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
-      # 4) add to current dict
-      val_dict[identifier_table_name + "_id"] = db_id
+      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character)
+      val_dict[self.data_managing.identifier_table_name + "_id"] = db_id
       return val_dict
 
   def insert_entry_row(self):
