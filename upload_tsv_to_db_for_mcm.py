@@ -78,7 +78,7 @@ class Metadata:
 
     self.add_missing_fields()
     self.add_missing_identifier()
-    print("STOP")
+    # print("STOP")
 
   def add_missing_identifier(self):
     for idx, d in enumerate(self.tsv_file_content_dict_ok):
