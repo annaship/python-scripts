@@ -284,8 +284,10 @@ class Mysql_util:
 
   def execute_insert_mariadb(self, table_name, field_name, val_list, sql = ""):
     try:
+      # if table_name == "type":
+      #   print("STOP")
       if sql == "":
-        sql = "INSERT INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
+        sql = "INSERT IGNORE INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
       if self.cursor:
         self.cursor.execute(sql, (val_list, val_list))
         self.conn.commit()
