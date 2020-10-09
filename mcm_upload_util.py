@@ -19,19 +19,18 @@ except ImportError:
 class DataManaging:
   """Clean data if needed"""
   def __init__(self):
+    self.identifier_table_name = "identifier"
+
     self.utils = util.Utils()
     self.upload = Upload()  # assigns class1 to your first class
 
   def check_type(self, type):
     return type[0]
 
-  def check_or_create_identifier(self, type):
-    identifier_table_name = "identifier"
+  def get_last_identifier(self, type):
     first_char = self.check_type(type)
-    # 1) get_last_id
     first_part = "MCMEH-{}".format(first_char)
-    get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
-    # class1.method1()
+    get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(self.identifier_table_name, first_part)
     get_last_id_q_res = self.upload.mysql_utils.execute_fetch_select(get_last_id_q)
     last_num_res = list(self.utils.extract(get_last_id_q_res))[0]
     if not last_num_res:
@@ -39,11 +38,15 @@ class DataManaging:
     last_num_res_arr = last_num_res.split("-")
     last_num = int(last_num_res_arr[1][1:])
     num_part = str(last_num + 1).zfill(6)
-    curr_identifier = first_part + num_part
+    return first_part + num_part
+
+  def check_or_create_identifier(self, type):
+    # 1) get_last_id
+    curr_identifier = self.get_last_identifier(type)
     # 2) insert_identifier
-    self.upload.mysql_utils.execute_insert_mariadb(identifier_table_name, identifier_table_name, curr_identifier)
+    self.upload.mysql_utils.execute_insert_mariadb(self.identifier_table_name, self.identifier_table_name, curr_identifier)
     # 3) get its id
-    db_id = self.upload.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
+    db_id = self.upload.mysql_utils.get_id_esc(self.identifier_table_name + "_id", self.identifier_table_name, self.identifier_table_name, curr_identifier)
 
     return (db_id, curr_identifier)
 
@@ -358,6 +361,8 @@ class File_retrival:
   def get_file_name(self, r_headers):
     file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
     file_name = file_name.replace('"', '')
+    if not file_name:
+      file_name = self.create_attachment_name_from_id()
     return os.path.join(self.files_path, file_name)
 
   def download_file(self, url, google_file_id = None):
@@ -372,6 +377,9 @@ class File_retrival:
       self.utils.print_both("Wrong URL: '{}'".format(url))
       pass
       # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
+
+  def create_attachment_name_from_id(self):
+    pass
 
 
 if __name__ == '__main__':
