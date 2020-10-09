@@ -82,11 +82,12 @@ class Metadata:
 
   def add_missing_identifier(self):
     for idx, d in enumerate(self.tsv_file_content_dict_ok):
-      if not d['identifier']:
+      if not d[self.data_managing.identifier_table_name]:
         type = d['type']
-        (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(type)
-        d['identifier'] = curr_identifier
-        self.not_empty_tsv_content_dict['identifier'][idx] = curr_identifier
+        identifiers_from_tsv = self.not_empty_tsv_content_dict[self.data_managing.identifier_table_name]
+        (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(type, identifiers_from_tsv)
+        d[self.data_managing.identifier_table_name] = curr_identifier
+        self.not_empty_tsv_content_dict[self.data_managing.identifier_table_name][idx] = curr_identifier
 
   def get_google_file_id_from_url(self, url):
     # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'

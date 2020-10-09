@@ -27,7 +27,12 @@ class DataManaging:
   def check_type(self, type):
     return type[0]
 
+  def upload_all_identifiers(self, identifiers_from_tsv):
+    val_arr = list(set(identifiers_from_tsv))
+    self.upload.mysql_utils.execute_insert_many(self.identifier_table_name, self.identifier_table_name, val_arr)
+
   def get_last_identifier(self, type):
+    # get the biggest one from db and compare with what's in csv
     first_char = self.check_type(type)
     first_part = "MCMEH-{}".format(first_char)
     get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(self.identifier_table_name, first_part)
@@ -40,7 +45,9 @@ class DataManaging:
     num_part = str(last_num + 1).zfill(6)
     return first_part + num_part
 
-  def check_or_create_identifier(self, type):
+  def check_or_create_identifier(self, type, identifiers_from_tsv):
+    # 0) upload all ids
+    self.upload_all_identifiers(identifiers_from_tsv)
     # 1) get_last_id
     curr_identifier = self.get_last_identifier(type)
     # 2) insert_identifier
