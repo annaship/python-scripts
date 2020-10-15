@@ -88,7 +88,7 @@ class Output(Upload):
     self.metadata_type_id = self.get_metadata_type_id()
 
     self.entry_rows_dict = defaultdict()
-    self.out_dict_of_vals = defaultdict()
+    self.out_list_of_dict_of_vals = []
     self.roles = defaultdict()
     if args.output_file:
       self.out_file_name = args.output_file
@@ -115,7 +115,7 @@ class Output(Upload):
       with open(self.out_file_name, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames = csv_columns)
         writer.writeheader()
-        for data in self.out_dict_of_vals:
+        for data in self.out_list_of_dict_of_vals:
           writer.writerow(data)
     except IOError:
       print("I/O error")
@@ -245,22 +245,22 @@ class Output(Upload):
 
   def make_out_dict_of_vals(self):
     for z_entry in export.all_items_dump:
-      z_key = z_entry['key']
-      self.out_dict_of_vals[z_key] = defaultdict()
+      temp_dict = defaultdict()
       for key, val in z_entry['data'].items():
         if val:
           try:
             db_tbl_field_name = self.zotero_to_sql_fields[key]
             (table_name, field_name) = db_tbl_field_name.split(".")
             if isinstance(val, list):
-              # self.update_person(data_val_dict, z_key, table_name, field_name)  # TODO: change parameters
               current_authors = self.flatten_person(val)
-              self.out_dict_of_vals[z_key]["Creator"] = current_authors
+              temp_dict["Creator"] = current_authors
             else:
               tsv_field_name = self.key_to_csv_field[field_name]
-              self.out_dict_of_vals[z_key][tsv_field_name] = val
+              temp_dict[tsv_field_name] = val
           except KeyError:
             pass
+      if len(temp_dict) > 0:
+        self.out_list_of_dict_of_vals.append(temp_dict)
 
   def flatten_person(self, val_dict):
     current_persons_list = []
@@ -272,7 +272,7 @@ class Output(Upload):
       # current_role = d['creatorType']
       # current_persons_dict[current_role] = full_name
 
-      # self.out_dict_of_vals[z_key]["creator"] = full_name
+      # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
     return "; ".join(current_persons_list)
 
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
