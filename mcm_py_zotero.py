@@ -5,6 +5,7 @@ from pyzotero import zotero
 from collections import defaultdict
 import util
 from mcm_upload_util import Upload, File_retrival, DataManaging
+import argparse
 
 """
     [account_type] => group
@@ -20,7 +21,7 @@ api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
 zot = zotero.Zotero(library_id, library_type, api_key)
 
 
-class ToMysql(Upload):
+class Output(Upload):
   def __init__(self):
     Upload.__init__(self)
     self.zotero_to_sql_fields = {
@@ -39,6 +40,8 @@ class ToMysql(Upload):
       'volume'      : 'source.source',
     }
 
+
+    args = self.check_args()
     self.data_managing = DataManaging()
     self.metadata_type_table_name = "type"
     self.identifier_first_character = "Z"
@@ -46,11 +49,28 @@ class ToMysql(Upload):
     self.metadata_type_id = self.get_metadata_type_id()
 
     self.entry_rows_dict = defaultdict()
-    # self.empty_identifier = defaultdict()
+    self.out_dict_of_vals = defaultdict()
     self.roles = defaultdict()
-    self.make_upload_queries()
-    self.insert_entry_row()
+    if args.output_file:
+      self.make_out_dict_of_vals()
+      self.out_to_tsv()
+    else:
+      self.make_upload_queries()
+      self.insert_entry_row()
     print("DONE uploading Zotero")
+
+  def check_args(self):
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-f', '--file_name',
+                        required = False, action = 'store', dest = 'output_file',
+                        help = '''Output file name''')
+    return parser.parse_args()
+
+  def out_to_tsv(self):
+    for key, val_dict in self.out_dict_of_vals:
+      print("z_entry")
+
 
   def insert_person_combination_and_get_id(self, person_list):
     persons_str = "; ".join(sorted(person_list))
@@ -87,7 +107,7 @@ class ToMysql(Upload):
 
   def check_or_create_identifier(self, val_dict):
     if 'identifier' not in val_dict.keys():
-      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character)
+      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.metadata_type, self.identifier_first_character)
       val_dict[self.data_managing.identifier_table_name + "_id"] = db_id
       return val_dict
 
@@ -175,6 +195,23 @@ class ToMysql(Upload):
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
 
+  def c(self):
+    for z_entry in export.all_items_dump:
+      z_key = z_entry['key']
+      self.out_dict_of_vals[z_key] = defaultdict()
+      for key, val in z_entry['data'].items():
+        if val:
+          try:
+            db_tbl_field_name = self.zotero_to_sql_fields[key]
+            (table_name, field_name) = db_tbl_field_name.split(".")
+            if isinstance(val, list):
+              # self.update_person(data_val_dict, z_key, table_name, field_name)  # TODO: change parameters
+              self.flatten_person(val, z_key, table_name, field_name)  # TODO: change parameters
+            else:
+              self.out_dict_of_vals[z_key][field_name] = val
+          except KeyError:
+            pass
+
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
       db_tbl_field_name = self.zotero_to_sql_fields[key]
@@ -251,5 +288,5 @@ if __name__ == '__main__':
 
   export = Export()
   file_from_url = DownloadFilesFromZotero()
+  import_to_mysql = Output()
 
-  import_to_mysql = ToMysql()
