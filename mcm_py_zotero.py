@@ -6,6 +6,8 @@ from collections import defaultdict
 import util
 from mcm_upload_util import Upload, File_retrival, DataManaging
 import argparse
+import csv
+
 
 """
     [account_type] => group
@@ -57,6 +59,7 @@ class Output(Upload):
       "subject_academic_field"     : "Subject.Academic.Field",
       "subject_other"              : "Subject.Other",
       "subject_season"             : "Subject.Season",
+      "season"                : "Date.Season",
       "date_season"                : "Date.Season",
       "date_season_yyyy"           : "Date.Season (YYYY)",
       "date_exact"                 : "Date.Exact",
@@ -88,6 +91,7 @@ class Output(Upload):
     self.out_dict_of_vals = defaultdict()
     self.roles = defaultdict()
     if args.output_file:
+      self.out_file_name = args.output_file
       self.make_out_dict_of_vals()
       self.out_to_tsv()
     else:
@@ -103,10 +107,18 @@ class Output(Upload):
                         help = '''Output file name''')
     return parser.parse_args()
 
-  def out_to_tsv(self):
-    for key, val_dict in self.out_dict_of_vals:
-      print("z_entry")
 
+  def out_to_tsv(self):
+    csv_columns = list(self.key_to_csv_field.values())
+
+    try:
+      with open(self.out_file_name, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames = csv_columns)
+        writer.writeheader()
+        for data in self.out_dict_of_vals:
+          writer.writerow(data)
+    except IOError:
+      print("I/O error")
 
   def insert_person_combination_and_get_id(self, person_list):
     persons_str = "; ".join(sorted(person_list))
@@ -243,9 +255,10 @@ class Output(Upload):
             if isinstance(val, list):
               # self.update_person(data_val_dict, z_key, table_name, field_name)  # TODO: change parameters
               current_authors = self.flatten_person(val)
-              self.out_dict_of_vals[z_key]["creator"] = current_authors
+              self.out_dict_of_vals[z_key]["Creator"] = current_authors
             else:
-              self.out_dict_of_vals[z_key][field_name] = val
+              tsv_field_name = self.key_to_csv_field[field_name]
+              self.out_dict_of_vals[z_key][tsv_field_name] = val
           except KeyError:
             pass
 
