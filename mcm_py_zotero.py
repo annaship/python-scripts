@@ -40,6 +40,42 @@ class Output(Upload):
       'volume'      : 'source.source',
     }
 
+    self.key_to_csv_field = {
+      "identifier"                 : "Identifier",
+      "title"                      : "Title",
+      "content"                    : "Content",
+      "content_url"                : "Content URL",
+      "content_url_audio"          : "Content URL (Audio)",
+      "content_url_transcript"     : "Content URL (Transcript)",
+      "creator"                    : "Creator",
+      "creator_other"              : "Creator.Other",
+      "subject_aplace"             : "Subject.Place",
+      "coverage_lat"               : "Coverage.Lat",
+      "coverage_long"              : "Coverage.Long",
+      "subject_associated_places"  : "Subject.Associated.Places",
+      "subject_people"             : "Subject.People",
+      "subject_academic_field"     : "Subject.Academic.Field",
+      "subject_other"              : "Subject.Other",
+      "subject_season"             : "Subject.Season",
+      "date_season"                : "Date.Season",
+      "date_season_yyyy"           : "Date.Season (YYYY)",
+      "date_exact"                 : "Date.Exact",
+      "date_digital"               : "Date.Digital",
+      "description"                : "Description",
+      "format"                     : "Format",
+      "digitization_specifications": "Digitization Specifications",
+      "contributor"                : "Contributor",
+      "type"                       : "Type",
+      "country"                    : "Country",
+      "language"                   : "Language",
+      "relation"                   : "Relation",
+      "source"                     : "Source",
+      "publisher"                  : "Publisher",
+      "publisher_location"         : "Publisher Location",
+      "bibliographic_citation"     : "Bibliographic Citation",
+      "Rights"                     : "rights"
+    }
+
 
     args = self.check_args()
     self.data_managing = DataManaging()
@@ -195,7 +231,7 @@ class Output(Upload):
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
 
-  def c(self):
+  def make_out_dict_of_vals(self):
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
       self.out_dict_of_vals[z_key] = defaultdict()
@@ -211,6 +247,26 @@ class Output(Upload):
               self.out_dict_of_vals[z_key][field_name] = val
           except KeyError:
             pass
+
+  def flatten_person(self, val_dict, z_key, table_name, field_name):
+    current_persons_list = []
+
+    for d in val_dict:
+      full_name = self.make_full_name(d)
+
+      current_role = d['creatorType']
+      try:
+        role_db_id1 = self.roles[current_role]
+      except KeyError:
+        role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, current_role)
+        self.roles[current_role] = role_db_id1
+      person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
+      current_persons_list.append(full_name)
+
+      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles could be in one dict
+
+    all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
+    self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
 
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
