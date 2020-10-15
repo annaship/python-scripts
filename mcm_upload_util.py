@@ -357,7 +357,7 @@ class File_retrival:
   def change_dl(self, urls):
     return [url.replace('?dl=0', '?dl=1', 1) for url in urls]
 
-  def download_all(self):
+  def download_all_from_content_url(self):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
     for entry_d in self.metadata.tsv_file_content_dict_no_empty:
       urls = self.get_current_urls(entry_d)
@@ -366,8 +366,11 @@ class File_retrival:
         file_name = self.download_file(url)
 
   def get_file_name(self, r_headers):
-    file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
-    file_name = file_name.replace('"', '')
+    try:
+      file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
+      file_name = file_name.replace('"', '')
+    except:
+      raise
     if not file_name:
       file_name = self.create_attachment_name_from_id()
     return os.path.join(self.files_path, file_name)
