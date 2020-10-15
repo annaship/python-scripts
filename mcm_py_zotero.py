@@ -242,31 +242,25 @@ class Output(Upload):
             (table_name, field_name) = db_tbl_field_name.split(".")
             if isinstance(val, list):
               # self.update_person(data_val_dict, z_key, table_name, field_name)  # TODO: change parameters
-              self.flatten_person(val, z_key, table_name, field_name)  # TODO: change parameters
+              current_authors = self.flatten_person(val)
+              self.out_dict_of_vals[z_key]["creator"] = current_authors
             else:
               self.out_dict_of_vals[z_key][field_name] = val
           except KeyError:
             pass
 
-  def flatten_person(self, val_dict, z_key, table_name, field_name):
+  def flatten_person(self, val_dict):
     current_persons_list = []
 
     for d in val_dict:
       full_name = self.make_full_name(d)
-
-      current_role = d['creatorType']
-      try:
-        role_db_id1 = self.roles[current_role]
-      except KeyError:
-        role_db_id1 = self.get_id_by_serch_or_insert(table_name, field_name, current_role)
-        self.roles[current_role] = role_db_id1
-      person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
       current_persons_list.append(full_name)
+      # make dict of creator_types to csv fields correspondens
+      # current_role = d['creatorType']
+      # current_persons_dict[current_role] = full_name
 
-      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles could be in one dict
-
-    all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
-    self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
+      # self.out_dict_of_vals[z_key]["creator"] = full_name
+    return "; ".join(current_persons_list)
 
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
