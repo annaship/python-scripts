@@ -178,7 +178,7 @@ class Metadata:
 class DownloadFilesFromDropbox(File_retrival):
   def __init__(self, metadata):
     File_retrival.__init__(self, metadata)
-    self.download_all()
+    self.download_all_from_content_url()
 
     utils.print_both("END of File_retrival = DownloadFilesFromDropbox")
 
