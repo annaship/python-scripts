@@ -113,7 +113,7 @@ class Output(Upload):
 
     try:
       with open(self.out_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames = csv_columns)
+        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = csv_columns)
         writer.writeheader()
         for data in self.out_list_of_dict_of_vals:
           writer.writerow(data)
@@ -324,9 +324,9 @@ class Export:
   def __init__(self):
 
     # USE this for real:
-    # self.all_items_dump = self.dump_all_items()
+    self.all_items_dump = self.dump_all_items()
     # debug short
-    self.all_items_dump = zot.top(limit = 5)
+    # self.all_items_dump = zot.top(limit = 5)
     # self.decoded_data_list = []
 
     self.all_items_fields = set()
