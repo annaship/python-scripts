@@ -356,7 +356,7 @@ class Export:
         keys.append(key)
         values.append(value)
 
-      f_name = "{}_{}.tsv".format(dump_all_items_tsv_file_name, d['key'])
+      f_name = "{}_{}.csv".format(dump_all_items_tsv_file_name, d['key'])
       with open(f_name, "w") as outfile:
         csvwriter = csv.writer(outfile)
         csvwriter.writerow(keys)
