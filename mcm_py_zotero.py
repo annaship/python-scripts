@@ -346,9 +346,7 @@ class Export:
     # all_text = zot.everything(zot.top())
     # all_text = zot.top(limit = 5)
     fieldnames = set()
-    n = 0
     for d in self.all_items_dump:
-      n += 1
       fieldnames.update(d['data'].keys())
       my_dict = d['data']
       res_f_d = utils.flatten_dict(my_dict)
@@ -358,7 +356,7 @@ class Export:
         keys.append(key)
         values.append(value)
 
-      f_name = "{}{}.tsv".format(dump_all_items_tsv_file_name, str(n))
+      f_name = "{}_{}.tsv".format(dump_all_items_tsv_file_name, d['key'])
       with open(f_name, "w") as outfile:
         csvwriter = csv.writer(outfile)
         csvwriter.writerow(keys)
