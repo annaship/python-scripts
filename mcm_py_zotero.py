@@ -93,7 +93,7 @@ class Output(Upload):
     if args.output_file:
       self.out_file_name = args.output_file
       self.make_out_dict_of_vals()
-      self.out_to_tsv()
+      self.out_to_tsv_file()
     else:
       self.make_upload_queries()
       self.insert_entry_row()
@@ -108,8 +108,10 @@ class Output(Upload):
     return parser.parse_args()
 
 
-  def out_to_tsv(self):
+  def out_to_tsv_file(self):
+
     csv_columns = list(self.key_to_csv_field.values())
+    csv_columns.insert(0, 'z_key')
 
     try:
       with open(self.out_file_name, 'w') as csvfile:
@@ -246,6 +248,7 @@ class Output(Upload):
   def make_out_dict_of_vals(self):
     for z_entry in export.all_items_dump:
       temp_dict = defaultdict()
+      temp_dict['z_key'] = z_entry['key']
       for key, val in z_entry['data'].items():
         if val:
           try:
@@ -324,10 +327,9 @@ class Export:
   def __init__(self):
 
     # USE this for real:
-    self.all_items_dump = self.dump_all_items()
+    # self.all_items_dump = self.dump_all_items()
     # debug short
-    # self.all_items_dump = zot.top(limit = 5)
-    # self.decoded_data_list = []
+    self.all_items_dump = zot.top(limit = 5)
 
     self.all_items_fields = set()
     self.get_all_zotero_fields()
