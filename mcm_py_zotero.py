@@ -350,6 +350,6 @@ if __name__ == '__main__':
   utils = util.Utils()
 
   export = Export()
-  file_from_url = DownloadFilesFromZotero()
+  # file_from_url = DownloadFilesFromZotero()
   import_to_mysql = Output()
 
