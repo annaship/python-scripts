@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 from pyzotero import zotero
 from collections import defaultdict
 import util
@@ -331,6 +332,13 @@ class Export:
     # debug short
     self.all_items_dump = zot.top(limit = 5)
 
+    home_dir = os.environ['HOME']
+    if utils.is_local():
+      self.files_path = "{}/work/MCM/temp".format(home_dir)
+    else:
+      # self.files_path = "/home/ashipuno"
+      self.files_path = "{}/mcmurdohistory/sites/default/files/raw_zotero_entries".format(home_dir)
+
     self.all_items_fields = set()
     self.get_all_zotero_fields()
     self.get_all_items_to_tsv_file()
@@ -342,7 +350,7 @@ class Export:
     dump_all_items.close()
 
   def get_all_items_to_tsv_file(self):
-    dump_all_items_tsv_file_name = '/Users/ashipunova/work/MCM/temp/zotero_item'
+    dump_all_items_tsv_file_name = 'zotero_item'
     # all_text = zot.everything(zot.top())
     # all_text = zot.top(limit = 5)
     fieldnames = set()
@@ -351,26 +359,14 @@ class Export:
       my_dict = d['data']
       res_f_d = utils.flatten_dict(my_dict)
       keys, values = [], []
-
       for key, value in res_f_d.items():
         keys.append(key)
         values.append(value)
-
-      f_name = "{}_{}.csv".format(dump_all_items_tsv_file_name, d['key'])
+      f_name = "{}/{}_{}.tsv".format(self.files_path, dump_all_items_tsv_file_name, d['key'])
       with open(f_name, "w") as outfile:
-        csvwriter = csv.writer(outfile)
+        csvwriter = csv.writer(outfile, delimiter = '\t')
         csvwriter.writerow(keys)
         csvwriter.writerow(values)
-
-    res = [list(utils.extract(d['data'])) for d in self.all_items_dump]
-    try:
-      with open(dump_all_items_tsv_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = fieldnames)
-        for data in res:
-          writer.writerow(data)
-    except IOError:
-      print("I/O error")
-
 
   def get_all_zotero_fields(self):
     for item in self.all_items_dump:
