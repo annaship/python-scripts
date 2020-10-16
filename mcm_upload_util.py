@@ -339,8 +339,8 @@ class File_retrival:
     if self.utils.is_local():
       self.files_path = "/Users/ashipunova/work/MCM"
     else:
-      self.files_path = "/home/ashipuno"
-      # self.files_path = "~/mcmurdohistory/sites/default/files"
+      # self.files_path = "/home/ashipuno"
+      self.files_path = "~/mcmurdohistory/sites/default/files/zotero_attachments"
 
   def get_current_urls(self, entry_d):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
