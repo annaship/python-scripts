@@ -81,7 +81,6 @@ class Output(Upload):
     }
 
 
-    args = self.check_args()
     self.data_managing = DataManaging()
     self.metadata_type_table_name = "type"
     self.identifier_first_character = "Z"
@@ -93,12 +92,17 @@ class Output(Upload):
     self.roles = defaultdict()
     if args.output_file:
       self.out_file_name = args.output_file
+      print("Downloading Zotero entries as a tsv file {}".format(self.out_file_name))
+
       self.make_out_dict_of_vals()
       self.out_to_tsv_file()
+      print("DONE downloading Zotero")
     else:
+      print("Uploading Zotero entries into the database")
+
       self.make_upload_queries()
       self.insert_entry_row()
-    print("DONE uploading Zotero")
+      print("DONE uploading Zotero")
 
   def check_args(self):
     parser = argparse.ArgumentParser()
@@ -328,20 +332,24 @@ class Export:
   def __init__(self):
 
     # USE this for real:
-    self.all_items_dump = self.dump_all_items()
+    # self.all_items_dump = self.dump_all_items()
     # debug short
-    # self.all_items_dump = zot.top(limit = 5)
+    self.all_items_dump = zot.top(limit = 5)
 
-    home_dir = os.environ['HOME']
-    if utils.is_local():
-      self.files_path = "{}/work/MCM/temp".format(home_dir)
-    else:
-      # self.files_path = "/home/ashipuno"
-      self.files_path = "{}/mcmurdohistory/sites/default/files/raw_zotero_entries".format(home_dir)
+    if args.raw_zotero_entries:
+      print("Downloading each Zotero entry into a separate tsv file")
 
-    self.all_items_fields = set()
-    self.get_all_zotero_fields()
-    self.get_all_items_to_tsv_file()
+      home_dir = os.environ['HOME']
+      if utils.is_local():
+        self.files_path = "{}/work/MCM/temp".format(home_dir)
+      else:
+        # self.files_path = "/home/ashipuno"
+        self.files_path = "{}/mcmurdohistory/sites/default/files/raw_zotero_entries".format(home_dir)
+
+      self.all_items_fields = set()
+      self.get_all_zotero_fields()
+      self.get_all_items_to_tsv_file()
+      print("DONE: downloading each Zotero entry into a separate tsv file")
 
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
@@ -379,7 +387,27 @@ class Export:
 if __name__ == '__main__':
   utils = util.Utils()
 
+  def check_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-f', '--file_name',
+                        required = False, action = 'store', dest = 'output_file',
+                        help = '''Output file name''')
+    parser.add_argument('-d', '--download_attachments',
+                        required = False, action = 'store_true', dest = 'download_attachments',
+                        help = '''Download Zoterro attachments''')
+    parser.add_argument('-r', '--raw_zotero_entries',
+                        required = False, action = 'store_true', dest = 'raw_zotero_entries',
+                        help = '''Dump all Zotero entries into individual tsv files''')
+    return parser.parse_args()
+
+  args = check_args()
+
   export = Export()
-  # file_from_url = DownloadFilesFromZotero()
+  if args.download_attachments:
+    print("Downloading Zotero attachments")
+    file_from_url = DownloadFilesFromZotero()
+    print("Done downloading Zotero attachments")
+
   import_to_mysql = Output()
 
