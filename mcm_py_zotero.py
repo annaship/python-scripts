@@ -328,9 +328,9 @@ class Export:
   def __init__(self):
 
     # USE this for real:
-    # self.all_items_dump = self.dump_all_items()
+    self.all_items_dump = self.dump_all_items()
     # debug short
-    self.all_items_dump = zot.top(limit = 5)
+    # self.all_items_dump = zot.top(limit = 5)
 
     home_dir = os.environ['HOME']
     if utils.is_local():
