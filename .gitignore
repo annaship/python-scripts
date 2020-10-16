@@ -8,3 +8,4 @@ RCS
 #######
 .idea/*
 *.bak
+*.tsv
