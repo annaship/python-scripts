@@ -97,21 +97,12 @@ class Output(Upload):
       self.make_out_dict_of_vals()
       self.out_to_tsv_file()
       print("DONE downloading Zotero")
-    else:
+    elif not args.no_db_upload:
       print("Uploading Zotero entries into the database")
 
       self.make_upload_queries()
       self.insert_entry_row()
       print("DONE uploading Zotero")
-
-  def check_args(self):
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('-f', '--file_name',
-                        required = False, action = 'store', dest = 'output_file',
-                        help = '''Output file name''')
-    return parser.parse_args()
-
 
   def out_to_tsv_file(self):
 
@@ -332,10 +323,12 @@ class DownloadFilesFromZotero(File_retrival):
 class Export:
   def __init__(self):
 
-    # USE this for real:
-    # self.all_items_dump = self.dump_all_items()
-    # debug short
-    self.all_items_dump = zot.top(limit = 5)
+    if args.get_5_zotero_entries:
+      # debug short
+      self.all_items_dump = zot.top(limit = 5)
+    else:
+      # USE this for real:
+      self.all_items_dump = self.dump_all_items()
 
     if args.raw_zotero_entries:
       print("Downloading each Zotero entry into a separate tsv file")
@@ -400,6 +393,13 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--raw_zotero_entries',
                         required = False, action = 'store_true', dest = 'raw_zotero_entries',
                         help = '''Dump all Zotero entries into individual tsv files''')
+    parser.add_argument('-n', '--no_db_upload',
+                        required = False, action = 'store_true', dest = 'no_db_upload',
+                        help = '''Do not upload data into the database''')
+    parser.add_argument('-na', '--get_5_zotero_entries',
+                        required = False, action = 'store_true', dest = 'get_5_zotero_entries',
+                        help = '''Get only 5 Zotero entries (not all) for debugging.''')
+
     return parser.parse_args()
 
   args = check_args()
