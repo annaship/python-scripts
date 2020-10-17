@@ -389,7 +389,7 @@ if __name__ == '__main__':
                         help = '''Output file name''')
     parser.add_argument('-d', '--download_attachments',
                         required = False, action = 'store_true', dest = 'download_attachments',
-                        help = '''Download Zoterro attachments''')
+                        help = '''Download Zotero attachments''')
     parser.add_argument('-r', '--raw_zotero_entries',
                         required = False, action = 'store_true', dest = 'raw_zotero_entries',
                         help = '''Dump all Zotero entries into individual tsv files''')
