@@ -336,25 +336,24 @@ class File_retrival:
   def __init__(self, metadata = None):
     self.utils = util.Utils()
     self.metadata = metadata
-    self.files_path = ""
-    self.get_files_path()
 
   def get_files_path(self, end_dir):
     home_dir = os.environ['HOME']
     if self.utils.is_local():
       end_dir = 'temp'
-      self.files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
+      files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
       end_dir = 'raw_zotero_entries'
-      self.files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+      files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
 
     if self.utils.is_local():
       end_dir = {}
-      self.files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
+      files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
       end_dir = 'zotero_attachments'
-      # self.files_path = '/home/ashipuno'
-      self.files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+      # files_path = '/home/ashipuno'
+      files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+    return files_path
 
 
   def get_current_urls(self, entry_d):
@@ -388,7 +387,9 @@ class File_retrival:
       raise
     if not file_name:
       file_name = self.create_attachment_name_from_id()
-    return os.path.join(self.files_path, file_name)
+
+    files_path = self.get_files_path('zotero_attachments')
+    return os.path.join(files_path, file_name)
 
   def download_file(self, url, google_file_id = None):
     try:
