@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # This is a common part for tsv to db and zotero to db scripts
@@ -14,6 +14,48 @@ except ImportError:
     import pymysql as mysql
   except ImportError:
     import MySQLdb as mysql
+
+
+class DataManaging:
+  """Clean data if needed"""
+  def __init__(self):
+    self.identifier_table_name = "identifier"
+
+    self.utils = util.Utils()
+    self.upload = Upload()  # assigns class1 to your first class
+
+  def check_type(self, type):
+    return type[0]
+
+  def upload_all_identifiers(self, identifiers_from_tsv):
+    val_arr = list(set(identifiers_from_tsv))
+    self.upload.mysql_utils.execute_insert_many(self.identifier_table_name, self.identifier_table_name, val_arr)
+
+  def get_last_identifier(self, type):
+    # get the biggest one from db and compare with what's in csv
+    first_char = self.check_type(type)
+    first_part = "MCMEH-{}".format(first_char)
+    get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(self.identifier_table_name, first_part)
+    get_last_id_q_res = self.upload.mysql_utils.execute_fetch_select(get_last_id_q)
+    last_num_res = list(self.utils.extract(get_last_id_q_res))[0]
+    if not last_num_res:
+      last_num_res = "{}000000".format(first_part)
+    last_num_res_arr = last_num_res.split("-")
+    last_num = int(last_num_res_arr[1][1:])
+    num_part = str(last_num + 1).zfill(6)
+    return first_part + num_part
+
+  def check_or_create_identifier(self, type, identifiers_from_tsv):
+    # 0) upload all ids
+    self.upload_all_identifiers(identifiers_from_tsv)
+    # 1) get_last_id
+    curr_identifier = self.get_last_identifier(type)
+    # 2) insert_identifier
+    self.upload.mysql_utils.execute_insert_mariadb(self.identifier_table_name, self.identifier_table_name, curr_identifier)
+    # 3) get its id
+    db_id = self.upload.mysql_utils.get_id_esc(self.identifier_table_name + "_id", self.identifier_table_name, self.identifier_table_name, curr_identifier)
+
+    return (db_id, curr_identifier)
 
 
 class Upload:
@@ -169,7 +211,7 @@ class Upload:
   def upload_all_from_tsv_into_temp_table(self):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
-    for current_row_d in self.metadata.tsv_file_content_dict_clean_keys:
+    for current_row_d in self.metadata.tsv_file_content_dict_ok:
       field_names_arr = list(current_row_d.keys())
       values_arr      = list(current_row_d.values())
 
@@ -218,7 +260,7 @@ class Upload:
   def update_many_values_to_one_field_ids(self):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
-    for current_row_d in self.metadata.tsv_file_content_dict_clean_keys:
+    for current_row_d in self.metadata.tsv_file_content_dict_ok:
       """TODO: go over each table values instead?     
       for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
       for tsv_field_name in tsv_field_names_to_upload:
@@ -273,7 +315,7 @@ class Upload:
   def upload_other_tables(self):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
-    for current_row_d in self.metadata.tsv_file_content_dict_clean_keys:
+    for current_row_d in self.metadata.tsv_file_content_dict_ok:
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
@@ -294,11 +336,25 @@ class File_retrival:
   def __init__(self, metadata = None):
     self.utils = util.Utils()
     self.metadata = metadata
+
+  def get_files_path(self, end_dir):
+    home_dir = os.environ['HOME']
     if self.utils.is_local():
-      self.files_path = "/Users/ashipunova/work/MCM"
+      # end_dir = 'temp'
+      files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
+      # else:
+      #   end_dir = 'raw_zotero_entries'
+      #   files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+      #
+      # if self.utils.is_local():
+      #   end_dir = {}
+      #   files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
-      self.files_path = "/home/ashipuno"
-      # self.files_path = "~/mcmurdohistory/sites/default/files"
+      # end_dir = 'zotero_attachments'
+      # files_path = '/home/ashipuno'
+      files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+    return files_path
+
 
   def get_current_urls(self, entry_d):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
@@ -315,30 +371,41 @@ class File_retrival:
   def change_dl(self, urls):
     return [url.replace('?dl=0', '?dl=1', 1) for url in urls]
 
-  def download_all(self):
+  def download_all_from_content_url(self):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
     for entry_d in self.metadata.tsv_file_content_dict_no_empty:
       urls = self.get_current_urls(entry_d)
       urls = self.change_dl(urls)
       for url in urls:
-        self.download_file(url)
+        file_name = self.download_file(url)
 
-  def get_file_name(self, url):
-    file_name = ""
-    if url.find('/'):
-      file_name = url.rsplit('/', 1)[1].split('?', 1)[0]
-    return os.path.join(self.files_path, file_name)
+  def get_file_name(self, r_headers):
+    try:
+      file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
+      file_name = file_name.replace('"', '')
+    except:
+      raise
+    if not file_name:
+      file_name = self.create_attachment_name_from_id()
 
-  def download_file(self, url):
+    files_path = self.get_files_path('zotero_attachments')
+    return os.path.join(files_path, file_name)
+
+  def download_file(self, url, google_file_id = None):
     try:
       r = requests.get(url, allow_redirects=True)
-      file_name = self.get_file_name(url)
+
+      file_name = self.get_file_name(r.headers)
+
       open(file_name, 'wb').write(r.content)
+      return file_name
     except requests.exceptions.MissingSchema:
       self.utils.print_both("Wrong URL: '{}'".format(url))
       pass
       # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
 
+  def create_attachment_name_from_id(self):
+    pass
 
 
 if __name__ == '__main__':

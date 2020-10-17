@@ -13,7 +13,8 @@ except ImportError:
 import timeit
 import time
 import csv
-from collections import Iterable
+# from collections import Iterable
+import collections
 
 import datetime
 import logging
@@ -284,8 +285,10 @@ class Mysql_util:
 
   def execute_insert_mariadb(self, table_name, field_name, val_list, sql = ""):
     try:
+      # if table_name == "type":
+      #   print("STOP")
       if sql == "":
-        sql = "INSERT INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
+        sql = "INSERT IGNORE INTO {0} ({1}) VALUES (%s) ON DUPLICATE KEY UPDATE {1} = %s".format(table_name, field_name)
       if self.cursor:
         self.cursor.execute(sql, (val_list, val_list))
         self.conn.commit()
@@ -506,6 +509,23 @@ class Utils:
     res_str = self.make_quoted_str(my_list)
     return res_str
 
+  def flatten_dict(self, d, sep = "_"):
+    obj = collections.OrderedDict()
+
+    def recurse(t, parent_key = ""):
+
+      if isinstance(t, list):
+        for i in range(len(t)):
+          recurse(t[i], parent_key + sep + str(i) if parent_key else str(i))
+      elif isinstance(t, dict):
+        for k, v in t.items():
+          recurse(v, parent_key + sep + k if parent_key else k)
+      else:
+        obj[parent_key] = t
+
+    recurse(d)
+    return obj
+
   def flatten_2d_list(self, my_list):
     return [item for sublist in my_list for item in sublist]
 
@@ -515,7 +535,7 @@ class Utils:
 
   def flatten(self, collection):
     for x in collection:
-      if isinstance(x, Iterable) and not isinstance(x, str):
+      if isinstance(x, collections.Iterable) and not isinstance(x, str):
         yield from self.flatten(x)
       else:
         yield x

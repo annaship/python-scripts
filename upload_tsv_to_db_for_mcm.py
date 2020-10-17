@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
@@ -8,12 +8,13 @@
 """
 import sys
 import util
-from mcm_upload_util import Upload, File_retrival
+from mcm_upload_util import Upload, File_retrival, DataManaging
 
 import argparse
 
 
 class Metadata:
+  # parse tsv
 
   metadata_to_field = {
     "Identifier"                 : "identifier",
@@ -51,10 +52,16 @@ class Metadata:
     "Rights"                     : "rights"
   }
 
-  def __init__(self, input_file):
+  default_tsv_template_url = "https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0"
+
+  def __init__(self, args):
+    self.file_downloads = File_retrival()
+    self.data_managing = DataManaging()
     self.tsv_file_content_list = []
     self.tsv_file_content_dict = {}
-    self.get_data_from_csv(input_file)
+
+    (input_file, delimiter) = self.url_or_dest(args)
+    self.get_data_from_tsv(input_file, delimiter)
     self.tsv_file_fields = self.tsv_file_content_list[0]
     self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
 
@@ -67,13 +74,54 @@ class Metadata:
     self.tsv_file_content_dict_no_empty = self.format_not_empty_dict()
     self.check_for_empty_keys()
 
-    self.tsv_file_content_dict_clean_keys = self.clean_keys_in_tsv_file_content_dict()
+    self.tsv_file_content_dict_ok = self.clean_keys_in_tsv_file_content_dict()
 
     self.add_missing_fields()
+    self.add_missing_identifier()
+    # print("STOP")
+
+  def add_missing_identifier(self):
+    for idx, d in enumerate(self.tsv_file_content_dict_ok):
+      if not d[self.data_managing.identifier_table_name]:
+        type = d['type']
+        identifiers_from_tsv = self.not_empty_tsv_content_dict[self.data_managing.identifier_table_name]
+        (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(type, identifiers_from_tsv)
+        d[self.data_managing.identifier_table_name] = curr_identifier
+        self.not_empty_tsv_content_dict[self.data_managing.identifier_table_name][idx] = curr_identifier
+
+  def get_google_file_id_from_url(self, url):
+    # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
+    return url.split('spreadsheets/d')[1].split('/')[1]
+    # '1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc'
+    """'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'.split('spreadsheets/d', 1)
+    {list: 2} 
+      0 = {str} 'https://docs.google.com/'
+      1 = {str} '/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
+    """
+
+  def url_or_dest(self, args):
+    if args.input_file:
+      input_file_name = args.input_file
+      delimiter = "\t"
+    else:
+      # if not args.input_file and not args.input_file_url:
+      input_url = self.default_tsv_template_url
+      # utils.print_both("The default google spreadsheet will be used.")
+      if args.input_file_url:
+        input_url = args.input_file_url
+      delimiter = ","
+      file_id = self.get_google_file_id_from_url(input_url)
+      output_format = "csv"
+      doc_url = 'https://docs.google.com/spreadsheet/ccc?key={}&output={}'.format(file_id, output_format)
+
+      # doc_url = 'https://docs.google.com/spreadsheet/ccc?key=1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc&output=tsv'
+
+      input_file_name = self.file_downloads.download_file(doc_url, file_id)
+    return (input_file_name, delimiter)
 
   def add_missing_fields(self):
     missing_fields = utils.subtraction(self.metadata_to_field.values(), self.tsv_file_fields)
-    for curr_d in self.tsv_file_content_dict_clean_keys:
+    for curr_d in self.tsv_file_content_dict_ok:
       for f in missing_fields:
         curr_d[f] = ""
 
@@ -90,9 +138,9 @@ class Metadata:
       utils.print_both("ERROR: Column (field names) shouldn't be empty!")
       sys.exit()
 
-  def get_data_from_csv(self, input_file):
-    self.tsv_file_content_list = utils.read_csv_into_list(input_file, "\t")
-    self.tsv_file_content_dict = utils.read_csv_into_dict(input_file, "\t")
+  def get_data_from_tsv(self, input_file, delimiter= "\t"):
+    self.tsv_file_content_list = utils.read_csv_into_list(input_file, delimiter)
+    self.tsv_file_content_dict = utils.read_csv_into_dict(input_file, delimiter)
 
   def format_not_empty_dict(self):
     temp_list_of_dict = []
@@ -130,7 +178,7 @@ class Metadata:
 class DownloadFilesFromDropbox(File_retrival):
   def __init__(self, metadata):
     File_retrival.__init__(self, metadata)
-    self.download_all()
+    self.download_all_from_content_url()
 
     utils.print_both("END of File_retrival = DownloadFilesFromDropbox")
 
@@ -160,18 +208,28 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
 
   parser.add_argument('-f', '--file_name',
-                      required = True, action = 'store', dest = 'input_file',
+                      required = False, action = 'store', dest = 'input_file',
                       help = '''Input file name''')
+  parser.add_argument('-u', '--url',
+                      required = False, action = 'store', dest = 'input_file_url',
+                      help = '''Input file URL (on Google docs)''')
   parser.add_argument("-ve", "--verbatim",
                       required = False, action = "store_true", dest = "is_verbatim",
                       help = """Print an additional information""")
+  # self.download_file(url)
 
   args = parser.parse_args()
+  # if not args.input_file and not args.input_file_url:
+  #   default_tsv_template_url = "https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0"
+  #   print("Please provide a tsv file name or its URL on Google docs")
+  #   sys.exit()
+
   utils.print_both('args = ')
   utils.print_both(args)
 
   is_verbatim = args.is_verbatim
 
-  metadata = Metadata(args.input_file)
+  metadata = Metadata(args)
   file_from_url = DownloadFilesFromDropbox(metadata)
   upload_metadata = UploadMetadata(metadata)
+
