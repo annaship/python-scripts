@@ -353,23 +353,29 @@ class Export:
     dump_all_items.close()
 
   def get_all_items_to_tsv_file(self):
-    dump_all_items_tsv_file_name = 'zotero_item'
     # all_text = zot.everything(zot.top())
     # all_text = zot.top(limit = 5)
     fieldnames = set()
     for d in self.all_items_dump:
       fieldnames.update(d['data'].keys())
       my_dict = d['data']
-      res_f_d = utils.flatten_dict(my_dict)
-      keys, values = [], []
-      for key, value in res_f_d.items():
-        keys.append(key)
-        values.append(value)
-      f_name = "{}/{}_{}.tsv".format(self.files_path, dump_all_items_tsv_file_name, d['key'])
-      with open(f_name, "w") as outfile:
-        csvwriter = csv.writer(outfile, delimiter = '\t')
-        csvwriter.writerow(keys)
-        csvwriter.writerow(values)
+      flat_dict = utils.flatten_dict(my_dict)
+      self.write_flat_dict_to_tsv(flat_dict)
+
+  def write_flat_dict_to_tsv(self, flat_dict):
+
+    keys, values = [], []
+    for key, value in flat_dict.items():
+      keys.append(key)
+      values.append(value)
+
+    dump_all_items_tsv_file_name_base = 'zotero_item'
+    f_name = "{}/{}_{}.tsv".format(self.files_path, dump_all_items_tsv_file_name_base, flat_dict['key'])
+
+    with open(f_name, "w") as outfile:
+      csvwriter = csv.writer(outfile, delimiter = '\t')
+      csvwriter.writerow(keys)
+      csvwriter.writerow(values)
 
   def get_all_zotero_fields(self):
     for item in self.all_items_dump:

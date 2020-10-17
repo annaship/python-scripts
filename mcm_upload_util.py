@@ -340,18 +340,10 @@ class File_retrival:
   def get_files_path(self, end_dir):
     home_dir = os.environ['HOME']
     if self.utils.is_local():
-      # end_dir = 'temp'
       files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
-      # else:
-      #   end_dir = 'raw_zotero_entries'
-      #   files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
-      #
-      # if self.utils.is_local():
-      #   end_dir = {}
-      #   files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
-      # end_dir = 'zotero_attachments'
       # files_path = '/home/ashipuno'
+      # end_dir = 'zotero_attachments'
       files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
     return files_path
 
