@@ -382,20 +382,26 @@ if __name__ == '__main__':
   utils = util.Utils()
 
   def check_args():
-    parser = argparse.ArgumentParser()
+    myusage = """
+        By default will write all Zotero entries into the database.
+        
+        Command line example: python3 %(prog)s -f /tmp/temp.tsv
+
+    """
+    parser = argparse.ArgumentParser(description=myusage)
 
     parser.add_argument('-f', '--file_name',
                         required = False, action = 'store', dest = 'output_file',
                         help = '''Output file name. Zotero entries go into the file, not into the database.''')
     parser.add_argument('-d', '--download_attachments',
                         required = False, action = 'store_true', dest = 'download_attachments',
-                        help = '''Download Zotero attachments''')
+                        help = '''Download Zotero attachments into sites/default/files/zotero_attachments''')
     parser.add_argument('-r', '--raw_zotero_entries',
                         required = False, action = 'store_true', dest = 'raw_zotero_entries',
-                        help = '''Dump all Zotero entries into individual tsv files''')
+                        help = '''Dump all Zotero entries into individual tsv files in sites/default/files/raw_zotero_entries.''')
     parser.add_argument('-n', '--no_db_upload',
                         required = False, action = 'store_true', dest = 'no_db_upload',
-                        help = '''Do not upload data into the database''')
+                        help = '''Do not upload data into the database.''')
     parser.add_argument('-na', '--get_5_zotero_entries',
                         required = False, action = 'store_true', dest = 'get_5_zotero_entries',
                         help = '''Get only 5 Zotero entries (not all) for debugging.''')
