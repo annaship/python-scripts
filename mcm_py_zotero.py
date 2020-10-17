@@ -322,7 +322,8 @@ class DownloadFilesFromZotero(File_retrival):
         att_size = attachment_d['attachmentSize']
         item_id = addr.rsplit('/', 1)[1]
 
-        zot.dump(item_id, path = self.files_path)
+        files_path = self.get_files_path('zotero_attachments')
+        zot.dump(item_id, path = files_path)
       except KeyError:
         """ No attachment """
         pass
