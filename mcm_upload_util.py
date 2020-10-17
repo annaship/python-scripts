@@ -336,11 +336,26 @@ class File_retrival:
   def __init__(self, metadata = None):
     self.utils = util.Utils()
     self.metadata = metadata
+    self.files_path = ""
+    self.get_files_path()
+
+  def get_files_path(self, end_dir):
+    home_dir = os.environ['HOME']
     if self.utils.is_local():
-      self.files_path = "/Users/ashipunova/work/MCM"
+      end_dir = 'temp'
+      self.files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
-      # self.files_path = "/home/ashipuno"
-      self.files_path = "/home/ashipuno/mcmurdohistory/sites/default/files/zotero_attachments"
+      end_dir = 'raw_zotero_entries'
+      self.files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+
+    if self.utils.is_local():
+      end_dir = {}
+      self.files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
+    else:
+      end_dir = 'zotero_attachments'
+      # self.files_path = '/home/ashipuno'
+      self.files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+
 
   def get_current_urls(self, entry_d):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']

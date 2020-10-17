@@ -338,14 +338,8 @@ class Export:
 
     if args.raw_zotero_entries:
       print("Downloading each Zotero entry into a separate tsv file")
-
-      home_dir = os.environ['HOME']
-      if utils.is_local():
-        self.files_path = "{}/work/MCM/temp".format(home_dir)
-      else:
-        # self.files_path = "/home/ashipuno"
-        self.files_path = "{}/mcmurdohistory/sites/default/files/raw_zotero_entries".format(home_dir)
-
+      files_util = File_retrival()
+      self.files_path = files_util.get_files_path("raw_zotero_entries")
       self.all_items_fields = set()
       self.get_all_zotero_fields()
       self.get_all_items_to_tsv_file()
