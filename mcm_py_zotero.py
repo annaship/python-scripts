@@ -386,7 +386,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-f', '--file_name',
                         required = False, action = 'store', dest = 'output_file',
-                        help = '''Output file name''')
+                        help = '''Output file name. Zotero entries go into the file, not into the database.''')
     parser.add_argument('-d', '--download_attachments',
                         required = False, action = 'store_true', dest = 'download_attachments',
                         help = '''Download Zotero attachments''')
