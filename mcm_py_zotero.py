@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 from pyzotero import zotero
 from collections import defaultdict
 import util
-from mcm_upload_util import Upload, File_retrival, DataManaging
-import argparse
-import csv
-
+from mcm_upload_util import Upload, File_retrival
 
 """
     [account_type] => group
@@ -24,7 +20,7 @@ api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
 zot = zotero.Zotero(library_id, library_type, api_key)
 
 
-class Output(Upload):
+class ToMysql(Upload):
   def __init__(self):
     Upload.__init__(self)
     self.zotero_to_sql_fields = {
@@ -43,89 +39,16 @@ class Output(Upload):
       'volume'      : 'source.source',
     }
 
-    self.key_to_csv_field = {
-      "identifier"                 : "Identifier",
-      "title"                      : "Title",
-      "content"                    : "Content",
-      "content_url"                : "Content URL",
-      "content_url_audio"          : "Content URL (Audio)",
-      "content_url_transcript"     : "Content URL (Transcript)",
-      "creator"                    : "Creator",
-      "creator_other"              : "Creator.Other",
-      "subject_aplace"             : "Subject.Place",
-      "coverage_lat"               : "Coverage.Lat",
-      "coverage_long"              : "Coverage.Long",
-      "subject_associated_places"  : "Subject.Associated.Places",
-      "subject_people"             : "Subject.People",
-      "subject_academic_field"     : "Subject.Academic.Field",
-      "subject_other"              : "Subject.Other",
-      "subject_season"             : "Subject.Season",
-      "season"                : "Date.Season",
-      "date_season"                : "Date.Season",
-      "date_season_yyyy"           : "Date.Season (YYYY)",
-      "date_exact"                 : "Date.Exact",
-      "date_digital"               : "Date.Digital",
-      "description"                : "Description",
-      "format"                     : "Format",
-      "digitization_specifications": "Digitization Specifications",
-      "contributor"                : "Contributor",
-      "type"                       : "Type",
-      "country"                    : "Country",
-      "language"                   : "Language",
-      "relation"                   : "Relation",
-      "source"                     : "Source",
-      "publisher"                  : "Publisher",
-      "publisher_location"         : "Publisher Location",
-      "bibliographic_citation"     : "Bibliographic Citation",
-      "Rights"                     : "rights"
-    }
-
-
-    self.data_managing = DataManaging()
     self.metadata_type_table_name = "type"
-    self.identifier_first_character = "Z"
     self.metadata_type = "Bibliographic Item"
     self.metadata_type_id = self.get_metadata_type_id()
 
     self.entry_rows_dict = defaultdict()
-    self.out_list_of_dict_of_vals = []
+    self.empty_identifier = defaultdict()
     self.roles = defaultdict()
-    if args.output_file:
-      self.out_file_name = args.output_file
-      print("Downloading Zotero entries as a tsv file {}".format(self.out_file_name))
-
-      self.make_out_dict_of_vals()
-      self.out_to_tsv_file()
-      print("DONE downloading Zotero")
-    else:
-      print("Uploading Zotero entries into the database")
-
-      self.make_upload_queries()
-      self.insert_entry_row()
-      print("DONE uploading Zotero")
-
-  def check_args(self):
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('-f', '--file_name',
-                        required = False, action = 'store', dest = 'output_file',
-                        help = '''Output file name''')
-    return parser.parse_args()
-
-
-  def out_to_tsv_file(self):
-
-    csv_columns = list(self.key_to_csv_field.values())
-    csv_columns.insert(0, 'z_key')
-
-    try:
-      with open(self.out_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = csv_columns)
-        writer.writeheader()
-        for data in self.out_list_of_dict_of_vals:
-          writer.writerow(data)
-    except IOError:
-      print("I/O error")
+    self.make_upload_queries()
+    self.insert_entry_row()
+    print("DONE uploading Zotero")
 
   def insert_person_combination_and_get_id(self, person_list):
     persons_str = "; ".join(sorted(person_list))
@@ -161,9 +84,25 @@ class Output(Upload):
     return val_dict
 
   def check_or_create_identifier(self, val_dict):
+    identifier_table_name = "identifier"
     if 'identifier' not in val_dict.keys():
-      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.metadata_type, self.identifier_first_character)
-      val_dict[self.data_managing.identifier_table_name + "_id"] = db_id
+      # 1) get_last_id
+      first_part = "MCMEH-Z"
+      get_last_id_q = """SELECT MAX({0}) FROM {0} WHERE {0} LIKE "{1}%";""".format(identifier_table_name, first_part)
+      get_last_id_q_res = self.mysql_utils.execute_fetch_select(get_last_id_q)
+      last_num_res = list(utils.extract(get_last_id_q_res))[0]
+      if not last_num_res:
+        last_num_res = "MCMEH-Z000000" # start with z
+      last_num_res_arr = last_num_res.split("-")
+      last_num = int(last_num_res_arr[1][1:])
+      num_part = str(last_num + 1).zfill(6)
+      curr_identifier = first_part + num_part
+      # 2) insert_identifier
+      self.mysql_utils.execute_insert_mariadb(identifier_table_name, identifier_table_name, curr_identifier)
+      # 3) get it's id
+      db_id = self.mysql_utils.get_id_esc(identifier_table_name + "_id", identifier_table_name, identifier_table_name, curr_identifier)
+      # 4) add to current dict
+      val_dict[identifier_table_name + "_id"] = db_id
       return val_dict
 
   def insert_entry_row(self):
@@ -250,39 +189,6 @@ class Output(Upload):
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
 
-  def make_out_dict_of_vals(self):
-    for z_entry in export.all_items_dump:
-      temp_dict = defaultdict()
-      temp_dict['z_key'] = z_entry['key']
-      for key, val in z_entry['data'].items():
-        if val:
-          try:
-            db_tbl_field_name = self.zotero_to_sql_fields[key]
-            (table_name, field_name) = db_tbl_field_name.split(".")
-            if isinstance(val, list):
-              current_authors = self.flatten_person(val)
-              temp_dict["Creator"] = current_authors
-            else:
-              tsv_field_name = self.key_to_csv_field[field_name]
-              temp_dict[tsv_field_name] = val
-          except KeyError:
-            pass
-      if len(temp_dict) > 0:
-        self.out_list_of_dict_of_vals.append(temp_dict)
-
-  def flatten_person(self, val_dict):
-    current_persons_list = []
-
-    for d in val_dict:
-      full_name = self.make_full_name(d)
-      current_persons_list.append(full_name)
-      # make dict of creator_types to csv fields correspondens
-      # current_role = d['creatorType']
-      # current_persons_dict[current_role] = full_name
-
-      # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
-    return "; ".join(current_persons_list)
-
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
       db_tbl_field_name = self.zotero_to_sql_fields[key]
@@ -322,8 +228,7 @@ class DownloadFilesFromZotero(File_retrival):
         att_size = attachment_d['attachmentSize']
         item_id = addr.rsplit('/', 1)[1]
 
-        files_path = self.get_files_path('zotero_attachments')
-        zot.dump(item_id, path = files_path)
+        zot.dump(item_id, path = self.files_path)
       except KeyError:
         """ No attachment """
         pass
@@ -336,46 +241,16 @@ class Export:
     # self.all_items_dump = self.dump_all_items()
     # debug short
     self.all_items_dump = zot.top(limit = 5)
+    # self.decoded_data_list = []
 
-    if args.raw_zotero_entries:
-      print("Downloading each Zotero entry into a separate tsv file")
-      files_util = File_retrival()
-      self.files_path = files_util.get_files_path("raw_zotero_entries")
-      self.all_items_fields = set()
-      self.get_all_zotero_fields()
-      self.get_all_items_to_tsv_file()
-      print("DONE: downloading each Zotero entry into a separate tsv file")
+    self.all_items_fields = set()
+    self.get_all_zotero_fields()
 
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
     all_text = self.decode(zot.everything(zot.top()))
     print(all_text, file = dump_all_items)
     dump_all_items.close()
-
-  def get_all_items_to_tsv_file(self):
-    # all_text = zot.everything(zot.top())
-    # all_text = zot.top(limit = 5)
-    fieldnames = set()
-    for d in self.all_items_dump:
-      fieldnames.update(d['data'].keys())
-      my_dict = d['data']
-      flat_dict = utils.flatten_dict(my_dict)
-      self.write_flat_dict_to_tsv(flat_dict)
-
-  def write_flat_dict_to_tsv(self, flat_dict):
-
-    keys, values = [], []
-    for key, value in flat_dict.items():
-      keys.append(key)
-      values.append(value)
-
-    dump_all_items_tsv_file_name_base = 'zotero_item'
-    f_name = "{}/{}_{}.tsv".format(self.files_path, dump_all_items_tsv_file_name_base, flat_dict['key'])
-
-    with open(f_name, "w") as outfile:
-      csvwriter = csv.writer(outfile, delimiter = '\t')
-      csvwriter.writerow(keys)
-      csvwriter.writerow(values)
 
   def get_all_zotero_fields(self):
     for item in self.all_items_dump:
@@ -388,27 +263,7 @@ class Export:
 if __name__ == '__main__':
   utils = util.Utils()
 
-  def check_args():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('-f', '--file_name',
-                        required = False, action = 'store', dest = 'output_file',
-                        help = '''Output file name''')
-    parser.add_argument('-d', '--download_attachments',
-                        required = False, action = 'store_true', dest = 'download_attachments',
-                        help = '''Download Zoterro attachments''')
-    parser.add_argument('-r', '--raw_zotero_entries',
-                        required = False, action = 'store_true', dest = 'raw_zotero_entries',
-                        help = '''Dump all Zotero entries into individual tsv files''')
-    return parser.parse_args()
-
-  args = check_args()
-
   export = Export()
-  if args.download_attachments:
-    print("Downloading Zotero attachments")
-    file_from_url = DownloadFilesFromZotero()
-    print("Done downloading Zotero attachments")
+  file_from_url = DownloadFilesFromZotero()
 
-  import_to_mysql = Output()
-
+  import_to_mysql = ToMysql()
