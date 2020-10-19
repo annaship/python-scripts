@@ -312,10 +312,27 @@ class Upload:
 
     return current_row_dict
 
+  def check_if_id_is_in_entry(self, current_id):
+    """
+    :param current_id:
+    :return:
+
+    SELECT * FROM entry JOIN identifier USING(identifier_id)
+WHERE identifier = "MCMEH-B0000023"
+limit 1;
+    """
+    identifier_table_name = self.metadata.data_managing.identifier_table_name
+    query = """
+    SELECT * FROM {0} JOIN {1} USING({2})
+WHERE {1} = "MCMEH-B0000023"
+limit 1;""".format(self.entry_table_name, identifier_table_name, identifier_table_name + "_id")
+    print(query)
+
   def upload_other_tables(self):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
+      self.check_if_id_is_in_entry(current_row_d['identifier'])
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
