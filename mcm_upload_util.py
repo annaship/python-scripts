@@ -46,7 +46,7 @@ class DataManaging:
     return first_part + num_part
 
   def check_or_create_identifier(self, type, identifiers_from_tsv):
-    # 0) upload all ids
+    # 0) upload all ids. TODO: do it once
     self.upload_all_identifiers(identifiers_from_tsv)
     # 1) get_last_id
     curr_identifier = self.get_last_identifier(type)
