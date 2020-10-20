@@ -348,13 +348,7 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       # IF empty and no id - get it
 
       # TODO: why diff from tsv_field_names_to_upload_ids?
-      all_fields = list(dict_w_all_ids.keys()) #had to be done again to remove a fields
-      # fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields]
-      # fields_to_update_str = ", ".join(fields_to_update)
-      #
-      # q_addition = ""
-      # if id_is_in_entry:
-      #   q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+      all_fields = list(dict_w_all_ids.keys())
       q_addition = self.format_update_duplicates(current_row_d, all_fields)
       self.mysql_utils.execute_many_fields_one_record(table_name_to_update, all_fields, tuple(dict_w_all_ids.values()), ignore = "", addition = q_addition)
 
