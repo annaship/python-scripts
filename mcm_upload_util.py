@@ -334,7 +334,6 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
-      id_is_in_entry = self.check_if_id_is_in_entry(current_row_d[self.metadata.data_managing.identifier_table_name ])
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
@@ -350,14 +349,25 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
 
       # TODO: why diff from tsv_field_names_to_upload_ids?
       all_fields = list(dict_w_all_ids.keys()) #had to be done again to remove a fields
-      fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields]
-      fields_to_update_str = ", ".join(fields_to_update)
-
-      q_addition = ""
-      if id_is_in_entry:
-        q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+      # fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields]
+      # fields_to_update_str = ", ".join(fields_to_update)
+      #
+      # q_addition = ""
+      # if id_is_in_entry:
+      #   q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+      q_addition = self.format_update_duplicates(current_row_d, all_fields)
       self.mysql_utils.execute_many_fields_one_record(table_name_to_update, all_fields, tuple(dict_w_all_ids.values()), ignore = "", addition = q_addition)
 
+  def format_update_duplicates(self, current_row_d, all_fields):
+    id_is_in_entry = self.check_if_id_is_in_entry(current_row_d[self.metadata.data_managing.identifier_table_name])
+
+    fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields]
+    fields_to_update_str = ", ".join(fields_to_update)
+
+    q_addition = ""
+    if id_is_in_entry:
+      q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+    return q_addition
 
 class File_retrival:
 
