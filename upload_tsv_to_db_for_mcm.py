@@ -8,7 +8,7 @@
 """
 import sys
 import util
-from mcm_upload_util import Upload, File_retrival, DataManaging
+from mcm_upload_util import Upload, FileRetrival, DataManaging
 
 import argparse
 
@@ -54,13 +54,13 @@ class Metadata:
 
   default_tsv_template_url = "https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0"
 
-  def __init__(self, args):
-    self.file_downloads = File_retrival()
+  def __init__(self, my_args):
+    self.file_downloads = FileRetrival()
     self.data_managing = DataManaging()
     self.tsv_file_content_list = []
     self.tsv_file_content_dict = {}
 
-    (input_file, delimiter) = self.url_or_dest(args)
+    (input_file, delimiter) = self.url_or_dest(my_args)
     self.get_data_from_tsv(input_file, delimiter)
     self.tsv_file_fields = self.tsv_file_content_list[0]
     self.transposed_vals = list(map(list, zip(*self.tsv_file_content_list[1])))
@@ -91,7 +91,13 @@ class Metadata:
 
   def get_google_file_id_from_url(self, url):
     # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
-    return url.split('spreadsheets/d')[1].split('/')[1]
+    try:
+      google_file = url.split('spreadsheets/d')[1].split('/')[1]
+      return google_file
+    except IndexError:
+      print("Please provide a valid google spreadsheet url")
+      sys.exit()
+
     # '1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc'
     """'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'.split('spreadsheets/d', 1)
     {list: 2} 
@@ -175,17 +181,17 @@ class Metadata:
             for field_name, val in my_dict.items()}
 
 
-class DownloadFilesFromDropbox(File_retrival):
+class DownloadFilesFromDropbox(FileRetrival):
   def __init__(self, metadata):
-    File_retrival.__init__(self, metadata)
+    FileRetrival.__init__(self, metadata)
     self.download_all_from_content_url()
 
-    utils.print_both("END of File_retrival = DownloadFilesFromDropbox")
+    utils.print_both("END of FileRetrival = DownloadFilesFromDropbox")
 
 
 class UploadMetadata(Upload):
-  def __init__(self, metadata):
-    Upload.__init__(self, metadata)
+  def __init__(self, my_metadata):
+    Upload.__init__(self, my_metadata)
     self.drop_temp_table()
     self.create_temp_table()
 
@@ -232,4 +238,3 @@ if __name__ == '__main__':
   metadata = Metadata(args)
   file_from_url = DownloadFilesFromDropbox(metadata)
   upload_metadata = UploadMetadata(metadata)
-

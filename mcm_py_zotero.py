@@ -5,7 +5,7 @@ import os
 from pyzotero import zotero
 from collections import defaultdict
 import util
-from mcm_upload_util import Upload, File_retrival, DataManaging
+from mcm_upload_util import Upload, FileRetrival, DataManaging
 import argparse
 import csv
 
@@ -296,12 +296,12 @@ class Output(Upload):
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
 
-class DownloadFilesFromZotero(File_retrival):
+class DownloadFilesFromZotero(FileRetrival):
   def __init__(self):
-    File_retrival.__init__(self)
+    FileRetrival.__init__(self)
     self.download_all_from_zotero()
 
-    print("END of File_retrival = download_files_from_zotero")
+    print("END of FileRetrival = download_files_from_zotero")
 
   def download_all_from_zotero(self):
     """'attachment': {'href': 'https://api.zotero.org/groups/1415490/items/M5BQR9VK', 'type': 'application/json', 'attachmentType': 'audio/mpeg', 'attachmentSize': 24740700}"""
@@ -332,7 +332,7 @@ class Export:
 
     if args.raw_zotero_entries:
       print("Downloading each Zotero entry into a separate tsv file")
-      files_util = File_retrival()
+      files_util = FileRetrival()
       self.files_path = files_util.get_files_path("raw_zotero_entries")
       self.all_items_fields = set()
       self.get_all_zotero_fields()

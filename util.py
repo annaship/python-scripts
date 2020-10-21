@@ -255,12 +255,12 @@ class Mysql_util:
         # self.utils.print_both(("ERROR: query = %s") % sql)
         raise
 
-  def execute_many_fields_one_record(self, table_name, field_names_arr, values_tuple, ignore = "IGNORE"):
+  def execute_many_fields_one_record(self, table_name, field_names_arr, values_tuple, ignore = "IGNORE", addition = ""):
     field_names_str = ', '.join(field_names_arr)
     values_str_pattern = ", ".join(['%s' for e in field_names_arr])
 
-    my_sql_insert_query = "INSERT {} INTO {} ({}) VALUES ({})".format(ignore, table_name, field_names_str,
-                                                                      values_str_pattern)
+    my_sql_insert_query = "INSERT {0} INTO {1} ({2}) VALUES ({3}){4}".format(ignore, table_name, field_names_str,
+                                                                      values_str_pattern, addition)
 
     # print("my_sql_insert_query FROM util: {}, ".format(my_sql_insert_query, values_tuple))
 
