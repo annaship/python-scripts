@@ -213,7 +213,7 @@ class Upload:
     table_name_id = table_name + "_id"
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
       field_names_arr = list(current_row_d.keys())
-      values_arr      = list(current_row_d.values())
+      values_arr = list(current_row_d.values())
 
       try:
         self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
@@ -308,7 +308,7 @@ class Upload:
 
       select_q = 'SELECT {} FROM {} WHERE {} = ""'.format(table_name_w_id + "_id", table_name_w_id, table_name_w_id)
       empty_id = self.mysql_utils.execute_fetch_select(select_q)
-      current_row_dict[field] = list (self.utils.extract(empty_id))[0]
+      current_row_dict[field] = list(self.utils.extract(empty_id))[0]
 
     return current_row_dict
 
@@ -329,7 +329,6 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       id_is_in_entry = True
     return id_is_in_entry
 
-
   def upload_other_tables(self):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
@@ -344,8 +343,8 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       select_q = '''SELECT {} FROM {} 
         WHERE {}'''.format(tsv_field_names_to_upload_ids_str, where_to_look_for_ids, where_part0)
       sql_res = self.mysql_utils.execute_fetch_select_to_dict(select_q, current_row_d.values())
-      dict_w_all_ids = self.find_empty_ids(sql_res[0])
       # IF empty and no id - get it
+      dict_w_all_ids = self.find_empty_ids(sql_res[0])
 
       # TODO: why diff from tsv_field_names_to_upload_ids?
       all_fields = list(dict_w_all_ids.keys())
@@ -363,7 +362,8 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
     return q_addition
 
-class File_retrival:
+
+class FileRetrival:
 
   def __init__(self, metadata = None):
     self.utils = util.Utils()
@@ -378,7 +378,6 @@ class File_retrival:
       # end_dir = 'zotero_attachments'
       files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
     return files_path
-
 
   def get_current_urls(self, entry_d):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
@@ -404,11 +403,11 @@ class File_retrival:
         file_name = self.download_file(url)
 
   def get_file_name(self, r_headers):
-    try:
-      file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
-      file_name = file_name.replace('"', '')
-    except:
-      raise
+    # try:
+    file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
+    file_name = file_name.replace('"', '')
+    # except:
+    #   raise
     if not file_name:
       file_name = self.create_attachment_name_from_id()
 
@@ -435,4 +434,3 @@ class File_retrival:
 if __name__ == '__main__':
   """Called from mcmPpy_zotero.py and upload_tsv_to_db_for_mcm.py"""
   pass
-
