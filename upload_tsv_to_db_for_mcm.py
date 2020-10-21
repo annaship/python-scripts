@@ -91,7 +91,13 @@ class Metadata:
 
   def get_google_file_id_from_url(self, url):
     # 'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'
-    return url.split('spreadsheets/d')[1].split('/')[1]
+    try:
+      google_file = url.split('spreadsheets/d')[1].split('/')[1]
+      return google_file
+    except IndexError:
+      print("Please provide a valid google spreadsheet url")
+      sys.exit()
+
     # '1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc'
     """'https://docs.google.com/spreadsheets/d/1CW0f2tVWAy6-ZH6h5cnHTlkYmVKFN-79pqPve7PMkUc/edit#gid=1112829154'.split('spreadsheets/d', 1)
     {list: 2} 

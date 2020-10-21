@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # This is a common part for tsv to db and zotero to db scripts
+import sys
+import os
 from collections import defaultdict
 import util
 import requests
-import os
 
 try:
   import mysqlclient as mysql
@@ -403,12 +404,15 @@ class FileRetrival:
         file_name = self.download_file(url)
 
   def get_file_name(self, r_headers):
-    # try:
-    file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
-    file_name = file_name.replace('"', '')
-    # except:
-    #   raise
-    if not file_name:
+    file_name = ""
+    try:
+      file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
+      file_name = file_name.replace('"', '')
+    except KeyError:
+      print("Please provide a valid google spreadsheet url")
+      sys.exit()
+
+    if file_name == "":
       file_name = self.create_attachment_name_from_id()
 
     files_path = self.get_files_path('zotero_attachments')
