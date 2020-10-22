@@ -184,6 +184,7 @@ class Metadata:
 class DownloadFilesFromDropbox(FileRetrival):
   def __init__(self, metadata):
     FileRetrival.__init__(self, metadata)
+    # TODO: add args quiet to supress the counter
     self.download_all_from_content_url()
 
     utils.print_both("END of FileRetrival = DownloadFilesFromDropbox")
@@ -196,12 +197,14 @@ class UploadMetadata(Upload):
     self.create_temp_table()
 
     self.upload_simple_tables()
+    print("=== upload_all_from_tsv_into_temp_table ===")
     self.upload_all_from_tsv_into_temp_table()
     self.mass_update_simple_ids()
 
     self.upload_many_values_to_one_field()
     self.update_many_values_to_one_field_ids()
 
+    print("=== Upload entries ===")
     self.upload_other_tables()
 
     utils.print_both("END of metadata upload")
@@ -210,18 +213,28 @@ class UploadMetadata(Upload):
 if __name__ == '__main__':
 
   utils = util.Utils()
+  myusage = """
+      By default (no arguments) will upload data from "mcmurdohistory_metadata template" (https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0) into the database.
+      
+      If a tab separated file provided it will be uploaded into the database instead.
+      Command line example: python3 %(prog)s -f Interviews.tsv
 
-  parser = argparse.ArgumentParser()
+  """
+  parser = argparse.ArgumentParser(description = myusage)
+  # parser = argparse.ArgumentParser()
 
   parser.add_argument('-f', '--file_name',
                       required = False, action = 'store', dest = 'input_file',
-                      help = '''Input file name''')
+                      help = '''Input tsv file name''')
   parser.add_argument('-u', '--url',
                       required = False, action = 'store', dest = 'input_file_url',
                       help = '''Input file URL (on Google docs)''')
-  parser.add_argument("-ve", "--verbatim",
-                      required = False, action = "store_true", dest = "is_verbatim",
-                      help = """Print an additional information""")
+  parser.add_argument('-nd', '--no_dropbox_download',
+                      required = False, action = 'store_true', dest = 'no_dropbox_download',
+                      help = '''Do not download Dropbox files from "Content URL..." columns.''')
+  # parser.add_argument("-ve", "--verbatim",
+  #                     required = False, action = "store_true", dest = "is_verbatim",
+  #                     help = """Print an additional information""")
   # self.download_file(url)
 
   args = parser.parse_args()
@@ -233,8 +246,9 @@ if __name__ == '__main__':
   utils.print_both('args = ')
   utils.print_both(args)
 
-  is_verbatim = args.is_verbatim
+  # is_verbatim = args.is_verbatim
 
   metadata = Metadata(args)
-  file_from_url = DownloadFilesFromDropbox(metadata)
+  if not args.no_dropbox_download:
+    file_from_url = DownloadFilesFromDropbox(metadata)
   upload_metadata = UploadMetadata(metadata)
