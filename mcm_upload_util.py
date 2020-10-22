@@ -429,7 +429,7 @@ class FileRetrival:
       open(file_name, 'wb').write(r.content)
       return file_name
     except requests.exceptions.MissingSchema:
-      self.utils.print_both("Wrong URL: '{}'".format(url))
+      self.utils.print_both("Can't download a file, wrong URL: '{}'".format(url))
       pass
       # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
 
