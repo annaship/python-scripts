@@ -11,7 +11,7 @@ import util
 from mcm_upload_util import Upload, FileRetrival, DataManaging
 
 import argparse
-
+import time
 
 class Metadata:
   # parse tsv
@@ -198,14 +198,27 @@ class UploadMetadata(Upload):
 
     self.upload_simple_tables()
     print("=== upload_all_from_tsv_into_temp_table ===")
-    self.upload_all_from_tsv_into_temp_table()
-    self.mass_update_simple_ids()
 
+    t0 = utils.benchmark_w_return_1("upload_all_from_tsv_into_temp_table")
+    self.upload_all_from_tsv_into_temp_table()
+    utils.benchmark_w_return_2(t0, "upload_all_from_tsv_into_temp_table")
+
+    t0 = utils.benchmark_w_return_1("mass_update_simple_ids")
+    self.mass_update_simple_ids()
+    utils.benchmark_w_return_2(t0, "mass_update_simple_ids")
+
+    t0 = utils.benchmark_w_return_1("upload_many_values_to_one_field")
     self.upload_many_values_to_one_field()
+    utils.benchmark_w_return_2(t0, "upload_many_values_to_one_field")
+
+    t0 = utils.benchmark_w_return_1("update_many_values_to_one_field_ids")
     self.update_many_values_to_one_field_ids()
+    utils.benchmark_w_return_2(t0, "update_many_values_to_one_field_ids")
 
     print("=== Upload entries ===")
+    t0 = utils.benchmark_w_return_1("upload_other_tables")
     self.upload_other_tables()
+    utils.benchmark_w_return_2(t0, "upload_other_tables")
 
     utils.print_both("END of metadata upload")
 
