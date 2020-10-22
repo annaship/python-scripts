@@ -124,8 +124,10 @@ class Upload:
     """
     self.utils = util.Utils()
     self.metadata = metadata
+    self.is_local = self.utils.is_local()
+    self.cnt_increment = 1000
 
-    if self.utils.is_local():
+    if self.is_local:
       self.db_schema = 'mcm_history'
       self.mysql_utils = util.Mysql_util(host = 'localhost', db = self.db_schema, read_default_group = 'clienthome')
       self.utils.print_both("host = 'localhost', db = {}".format(self.db_schema))
@@ -209,13 +211,20 @@ class Upload:
     except KeyError:
       self.insert_null(table_name)
 
-  def upload_all_from_tsv_into_temp_table(self):
+  def upload_all_from_tsv_into_temp_table(self, quiet = False):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
+    cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
+      cnt += 1
+      if (not quiet) and (cnt % self.cnt_increment == 0):
+        print('Uploading data into the "temp" table: %s' % cnt)
+
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
+      # TODO: add on duplicate key... to avoid ~/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry 'Cape Crozier' for key 'place'")
+      #   result = self._query(query)
       try:
         self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
       #   pymysql.err.OperationalError: (1054, "Unknown column 'title_old' in 'field list'")
@@ -330,10 +339,15 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       id_is_in_entry = True
     return id_is_in_entry
 
-  def upload_other_tables(self):
+  def upload_other_tables(self, quiet = False):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
+    cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
+      cnt += 1
+      if (not quiet) and (cnt % self.cnt_increment == 0):
+        print('Uploading rows into "Entry" table: %s' % cnt)
+
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
@@ -369,15 +383,18 @@ class FileRetrival:
   def __init__(self, metadata = None):
     self.utils = util.Utils()
     self.metadata = metadata
+    self.is_local = self.utils.is_local()
+    self.cnt_increment = 1000
 
-  def get_files_path(self, end_dir):
+  def get_files_path(self, end_dir = ''):
     home_dir = os.environ['HOME']
-    if self.utils.is_local():
+    if self.is_local:
       files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
       # files_path = '/home/ashipuno'
       # end_dir = 'zotero_attachments'
       files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+    # print("files_path = {}".format(files_path))
     return files_path
 
   def get_current_urls(self, entry_d):
@@ -395,13 +412,17 @@ class FileRetrival:
   def change_dl(self, urls):
     return [url.replace('?dl=0', '?dl=1', 1) for url in urls]
 
-  def download_all_from_content_url(self):
+  def download_all_from_content_url(self, quiet = False):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
+    cnt = 0
     for entry_d in self.metadata.tsv_file_content_dict_no_empty:
       urls = self.get_current_urls(entry_d)
       urls = self.change_dl(urls)
       for url in urls:
         file_name = self.download_file(url)
+      cnt += 1
+      if (not quiet) and (cnt % self.cnt_increment == 0):
+        print('Downloading files from Dropbox: %s' % cnt)
 
   def get_file_name(self, r_headers):
     file_name = ""
@@ -415,7 +436,7 @@ class FileRetrival:
     if file_name == "":
       file_name = self.create_attachment_name_from_id()
 
-    files_path = self.get_files_path('zotero_attachments')
+    files_path = self.get_files_path()
     return os.path.join(files_path, file_name)
 
   def download_file(self, url, google_file_id = None):
@@ -427,7 +448,7 @@ class FileRetrival:
       open(file_name, 'wb').write(r.content)
       return file_name
     except requests.exceptions.MissingSchema:
-      self.utils.print_both("Wrong URL: '{}'".format(url))
+      self.utils.print_both("Can't download a file, wrong URL: '{}'".format(url))
       pass
       # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
 
