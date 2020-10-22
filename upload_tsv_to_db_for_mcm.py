@@ -197,12 +197,14 @@ class UploadMetadata(Upload):
     self.create_temp_table()
 
     self.upload_simple_tables()
+    print("=== upload_all_from_tsv_into_temp_table ===")
     self.upload_all_from_tsv_into_temp_table()
     self.mass_update_simple_ids()
 
     self.upload_many_values_to_one_field()
     self.update_many_values_to_one_field_ids()
 
+    print("=== Upload entries ===")
     self.upload_other_tables()
 
     utils.print_both("END of metadata upload")
@@ -213,7 +215,8 @@ if __name__ == '__main__':
   utils = util.Utils()
   myusage = """
       By default (no arguments) will upload data from "mcmurdohistory_metadata template" (https://docs.google.com/spreadsheets/d/1lTNeLTV3vV4BwzsbmODQXwkaC_vqg-eFelRfYEloB00/edit#gid=0) into the database.
-
+      
+      If a tab separated file provided it will be uploaded into the database instead.
       Command line example: python3 %(prog)s -f Interviews.tsv
 
   """
@@ -222,7 +225,7 @@ if __name__ == '__main__':
 
   parser.add_argument('-f', '--file_name',
                       required = False, action = 'store', dest = 'input_file',
-                      help = '''Input file name''')
+                      help = '''Input tsv file name''')
   parser.add_argument('-u', '--url',
                       required = False, action = 'store', dest = 'input_file_url',
                       help = '''Input file URL (on Google docs)''')
