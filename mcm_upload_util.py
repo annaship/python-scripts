@@ -124,8 +124,9 @@ class Upload:
     """
     self.utils = util.Utils()
     self.metadata = metadata
+    self.is_local = self.utils.is_local()
 
-    if self.utils.is_local():
+    if self.is_local:
       self.db_schema = 'mcm_history'
       self.mysql_utils = util.Mysql_util(host = 'localhost', db = self.db_schema, read_default_group = 'clienthome')
       self.utils.print_both("host = 'localhost', db = {}".format(self.db_schema))
@@ -369,10 +370,11 @@ class FileRetrival:
   def __init__(self, metadata = None):
     self.utils = util.Utils()
     self.metadata = metadata
+    self.is_local = self.utils.is_local()
 
   def get_files_path(self, end_dir):
     home_dir = os.environ['HOME']
-    if self.utils.is_local():
+    if self.is_local:
       files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
     else:
       # files_path = '/home/ashipuno'
