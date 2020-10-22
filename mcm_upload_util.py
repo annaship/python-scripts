@@ -408,9 +408,7 @@ class FileRetrival:
         file_name = self.download_file(url)
       cnt += 1
       if (not quiet) and (cnt % 10 == 0):
-        sys.stderr.write('Downloading files from Dropbox: %s' % (cnt))
-        sys.stderr.flush()
-      # if cnt
+        print('Downloading files from Dropbox: %s' % cnt)
 
   def get_file_name(self, r_headers):
     file_name = ""
