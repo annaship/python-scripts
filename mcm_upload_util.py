@@ -372,7 +372,7 @@ class FileRetrival:
     self.metadata = metadata
     self.is_local = self.utils.is_local()
 
-  def get_files_path(self, end_dir):
+  def get_files_path(self, end_dir = ''):
     home_dir = os.environ['HOME']
     if self.is_local:
       files_path = '{}/work/MCM/{}'.format(home_dir, end_dir)
@@ -380,6 +380,7 @@ class FileRetrival:
       # files_path = '/home/ashipuno'
       # end_dir = 'zotero_attachments'
       files_path = '{}/mcmurdohistory/sites/default/files/{}'.format(home_dir, end_dir)
+    # print("files_path = {}".format(files_path))
     return files_path
 
   def get_current_urls(self, entry_d):
@@ -397,13 +398,19 @@ class FileRetrival:
   def change_dl(self, urls):
     return [url.replace('?dl=0', '?dl=1', 1) for url in urls]
 
-  def download_all_from_content_url(self):
+  def download_all_from_content_url(self, quiet = False):
     url_fields = ['content_url', 'content_url_audio', 'content_url_transcript']
+    cnt = 0
     for entry_d in self.metadata.tsv_file_content_dict_no_empty:
       urls = self.get_current_urls(entry_d)
       urls = self.change_dl(urls)
       for url in urls:
         file_name = self.download_file(url)
+      cnt += 1
+      if (not quiet) and (cnt % 10 == 0):
+        sys.stderr.write('Downloading files from Dropbox: %s' % (cnt))
+        sys.stderr.flush()
+      # if cnt
 
   def get_file_name(self, r_headers):
     file_name = ""
@@ -417,7 +424,7 @@ class FileRetrival:
     if file_name == "":
       file_name = self.create_attachment_name_from_id()
 
-    files_path = self.get_files_path('zotero_attachments')
+    files_path = self.get_files_path()
     return os.path.join(files_path, file_name)
 
   def download_file(self, url, google_file_id = None):
