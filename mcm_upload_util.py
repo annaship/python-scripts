@@ -125,6 +125,7 @@ class Upload:
     self.utils = util.Utils()
     self.metadata = metadata
     self.is_local = self.utils.is_local()
+    self.cnt_increment = 1000
 
     if self.is_local:
       self.db_schema = 'mcm_history'
@@ -210,13 +211,20 @@ class Upload:
     except KeyError:
       self.insert_null(table_name)
 
-  def upload_all_from_tsv_into_temp_table(self):
+  def upload_all_from_tsv_into_temp_table(self, quiet = False):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
+    cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
+      cnt += 1
+      if (not quiet) and (cnt % self.cnt_increment == 0):
+        print('Uploading data into the "temp" table: %s' % cnt)
+
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
+      # TODO: add on duplicate key... to avoid ~/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry 'Cape Crozier' for key 'place'")
+      #   result = self._query(query)
       try:
         self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
       #   pymysql.err.OperationalError: (1054, "Unknown column 'title_old' in 'field list'")
@@ -331,10 +339,15 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       id_is_in_entry = True
     return id_is_in_entry
 
-  def upload_other_tables(self):
+  def upload_other_tables(self, quiet = False):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
+    cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
+      cnt += 1
+      if (not quiet) and (cnt % self.cnt_increment == 0):
+        print('Uploading rows into "Entry" table: %s' % cnt)
+
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
@@ -371,6 +384,7 @@ class FileRetrival:
     self.utils = util.Utils()
     self.metadata = metadata
     self.is_local = self.utils.is_local()
+    self.cnt_increment = 1000
 
   def get_files_path(self, end_dir = ''):
     home_dir = os.environ['HOME']
@@ -407,7 +421,7 @@ class FileRetrival:
       for url in urls:
         file_name = self.download_file(url)
       cnt += 1
-      if (not quiet) and (cnt % 10 == 0):
+      if (not quiet) and (cnt % self.cnt_increment == 0):
         print('Downloading files from Dropbox: %s' % cnt)
 
   def get_file_name(self, r_headers):
