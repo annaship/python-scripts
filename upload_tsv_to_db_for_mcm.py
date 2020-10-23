@@ -11,7 +11,7 @@ import util
 from mcm_upload_util import Upload, FileRetrival, DataManaging
 
 import argparse
-import time
+# import time
 
 class Metadata:
   # parse tsv
