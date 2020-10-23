@@ -7,6 +7,7 @@ import os
 from collections import defaultdict
 import util
 import requests
+# import time
 
 try:
   import mysqlclient as mysql
@@ -214,12 +215,7 @@ class Upload:
   def upload_all_from_tsv_into_temp_table(self, quiet = False):
     table_name = self.table_name_temp_dump
     table_name_id = table_name + "_id"
-    cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
-      cnt += 1
-      if (not quiet) and (cnt % self.cnt_increment == 0):
-        print('Uploading data into the "temp" table: %s' % cnt)
-
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
@@ -267,12 +263,21 @@ class Upload:
           val_arr = list(set(self.metadata.not_empty_tsv_content_dict[tsv_field_name]))
           self.simple_mass_upload(table_name, table_name, val_arr)
 
-  def update_many_values_to_one_field_ids(self):
+  def update_many_values_to_one_field_ids(self, quiet = False):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
+    cnt = 0
+    # t0 = time.time()
+    t0 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
+
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
       """TODO: go over each table values instead?     
       for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
+      cnt += 1
+      if (not quiet) and (cnt % self.cnt_increment == 0):
+        print('update_many_values_to_one_field_ids: {}'.format(cnt))
+        self.utils.benchmark_w_return_2(t0, "for current_row_d in self.metadata.tsv_file_content_dict_ok")
+
       for tsv_field_name in tsv_field_names_to_upload:
         try:
           current_value = current_row_d[tsv_field_name]
@@ -342,11 +347,11 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
   def upload_other_tables(self, quiet = False):
     table_name_to_update = self.entry_table_name # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
-    cnt = 0
+    # cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
-      cnt += 1
-      if (not quiet) and (cnt % self.cnt_increment == 0):
-        print('Uploading rows into "Entry" table: %s' % cnt)
+      # cnt += 1
+      # if (not quiet) and (cnt % self.cnt_increment == 0):
+      #   print('Uploading rows into "Entry" table: %s' % cnt)
 
       tsv_field_names_to_upload = current_row_d.keys()
       tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
