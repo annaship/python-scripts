@@ -7,7 +7,7 @@ import os
 from collections import defaultdict
 import util
 import requests
-# import time
+import time
 
 try:
   import mysqlclient as mysql
@@ -20,6 +20,7 @@ except ImportError:
 
 class DataManaging:
   """Clean data if needed"""
+
   def __init__(self):
     self.identifier_table_name = "identifier"
 
@@ -53,9 +54,11 @@ class DataManaging:
     # 1) get_last_id
     curr_identifier = self.get_last_identifier(type)
     # 2) insert_identifier
-    self.upload.mysql_utils.execute_insert_mariadb(self.identifier_table_name, self.identifier_table_name, curr_identifier)
+    self.upload.mysql_utils.execute_insert_mariadb(self.identifier_table_name, self.identifier_table_name,
+                                                   curr_identifier)
     # 3) get its id
-    db_id = self.upload.mysql_utils.get_id_esc(self.identifier_table_name + "_id", self.identifier_table_name, self.identifier_table_name, curr_identifier)
+    db_id = self.upload.mysql_utils.get_id_esc(self.identifier_table_name + "_id", self.identifier_table_name,
+                                               self.identifier_table_name, curr_identifier)
 
     return (db_id, curr_identifier)
 
@@ -73,43 +76,43 @@ class Upload:
   table_name_temp_dump = "whole_tsv_dump"
   many_values_to_one_field = {
     "content_url": ["content_url", "content_url_audio", "content_url_transcript"],
-    "season": ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
-    "person": ["contributor", "creator", "creator_other", "subject_people"],
-    "place":  ["country", "publisher_location", "subject_associated_places", "subject_place"]
+    "season"     : ["date_digital", "date_exact", "date_season", "date_season_yyyy", "subject_season"],
+    "person"     : ["contributor", "creator", "creator_other", "subject_people"],
+    "place"      : ["country", "publisher_location", "subject_associated_places", "subject_place"]
   }
 
   where_to_look_if_not_the_same = {
     # "bibliographic_citation"   : "source.bibliographic_citation",
     # "content": "content",
-    "content_url"                 : "content_url",
-    "content_url_audio"           : "content_url",
-    "content_url_transcript"      : "content_url",
-    "contributor"                 : "person",
-    "country"                     : "place",
+    "content_url"              : "content_url",
+    "content_url_audio"        : "content_url",
+    "content_url_transcript"   : "content_url",
+    "contributor"              : "person",
+    "country"                  : "place",
     # "coverage_lat": "coverage_lat",
     # "coverage_long": "coverage_long",
-    "creator"                     : "person",
-    "creator_other"               : "person",
-    "date_digital"                : "season",
-    "date_exact"                  : "season",
-    "date_season"                 : "season",
-    "date_season_yyyy"            : "season",
+    "creator"                  : "person",
+    "creator_other"            : "person",
+    "date_digital"             : "season",
+    "date_exact"               : "season",
+    "date_season"              : "season",
+    "date_season_yyyy"         : "season",
     # "description"              : "content.description",
     # "digitization_specifications": "digitization_specifications",
     # "format": "format",
     # "identifier": "identifier",
     # "language": "language",
     # "publisher"                : "publisher",
-    "publisher_location"          : "place",
+    "publisher_location"       : "place",
     # "relation": "relation",
     # "rights"                   : "source.rights",
     # "source": "source",
-    "subject_academic_field"      : "subject_academic_field",
-    "subject_associated_places"   : "place",
+    "subject_academic_field"   : "subject_academic_field",
+    "subject_associated_places": "place",
     # "subject_other": "subject_other",
-    "subject_people"              : "person",
-    "subject_place"               : "place",
-    "subject_season"              : "season",
+    "subject_people"           : "person",
+    "subject_place"            : "place",
+    "subject_season"           : "season",
     # "title"                    : "content.title",
     # "type": "type",
   }
@@ -183,7 +186,8 @@ class Upload:
 
   def get_special_tables(self):
     special_tables = [self.table_name_temp_dump]
-    return special_tables + self.table_names_to_ignore + self.table_names_w_ids + list(self.many_values_to_one_field.keys())
+    return special_tables + self.table_names_to_ignore + self.table_names_w_ids + list(
+      self.many_values_to_one_field.keys())
     # ["entry", "person", "place", "season", "whole_tsv_dump"]
 
   def upload_empty(self):
@@ -263,31 +267,89 @@ class Upload:
           val_arr = list(set(self.metadata.not_empty_tsv_content_dict[tsv_field_name]))
           self.simple_mass_upload(table_name, table_name, val_arr)
 
+  def get_all_values_for_temp_update(self, tsv_field_names_to_upload, current_row_d):
+    # (1,1,1),(2,2,3),(3,9,3),(4,10,12)
+    all_vals = []
+    for tsv_field_name in tsv_field_names_to_upload:
+      row_vals = []
+
+      try:
+        current_value = current_row_d[tsv_field_name]
+      except KeyError:
+        continue
+
+      table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+      current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
+
+      # update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(self.table_name_temp_dump, tsv_field_name + '_id', current_id,
+      #                                                         tsv_field_name)
+      # print(update_q)
+      """
+      UPDATE whole_tsv_dump SET content_url_id = 2 WHERE content_url = %s
+      UPDATE whole_tsv_dump SET content_url_audio_id = 0 WHERE content_url_audio = %s
+      """
+
+  # TODO: refactor to do fewer db connections
   def update_many_values_to_one_field_ids(self, quiet = False):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
     cnt = 0
     # t0 = time.time()
     t0 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
-
+    t_get_id_esc = 0
+    t_execute_no_fetch = 0
+    tsv_file_content_list_dict_ok_w_ids = []
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
       """TODO: go over each table values instead?     
       for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
       cnt += 1
+
       if (not quiet) and (cnt % self.cnt_increment == 0):
         print('update_many_values_to_one_field_ids: {}'.format(cnt))
         self.utils.benchmark_w_return_2(t0, "for current_row_d in self.metadata.tsv_file_content_dict_ok")
 
+      all_values = self.get_all_values_for_temp_update(tsv_field_names_to_upload,
+                                                       current_row_d)  # (1,1,1),(2,2,3),(3,9,3),(4,10,12)
+      all_duplicate_updates = ""  # Col1=VALUES(Col1),Col2=VALUES(Col2)
+      all_update = """INSERT INTO {} ({}) VALUES 
+        ON DUPLICATE KEY UPDATE {};
+        """.format(table_name_to_update, ", ".join(tsv_field_names_to_upload), all_values, all_duplicate_updates)
+
       for tsv_field_name in tsv_field_names_to_upload:
+
         try:
           current_value = current_row_d[tsv_field_name]
         except KeyError:
           continue
-        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-        current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
+        # t01 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
 
-        update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name)
+        table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+        # t02 = self.utils.benchmark_w_return_1("get_id_esc")
+        t010 = time.time()
+        current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id,
+                                                 current_value)
+        t01 = time.time()
+        diff_t01 = float(t01 - t010) / 60
+        t_get_id_esc += diff_t01
+
+        update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id',
+                                                                current_id, tsv_field_name)
+        # print(update_q)
+        """
+        UPDATE whole_tsv_dump SET content_url_id = 2 WHERE content_url = %s
+        UPDATE whole_tsv_dump SET content_url_audio_id = 0 WHERE content_url_audio = %s
+        """
+        # t03 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
+        t020 = time.time()
         self.mysql_utils.execute_no_fetch(update_q, current_value)
+        t02 = time.time()
+        diff_t02 = float(t02 - t020) / 60
+        t_execute_no_fetch += diff_t02
+    """
+    INSERT INTO table (id,Col1,Col2) VALUES (1,1,1),(2,2,3),(3,9,3),(4,10,12)
+    ON DUPLICATE KEY UPDATE Col1=VALUES(Col1),Col2=VALUES(Col2);
+    """
+    print("t_get_id_esc total time: {}\nt_execute_no_fetch total time: {}".format(t_get_id_esc, t_execute_no_fetch))
 
   def get_entry_table_field_names(self):
     entry_field_names_q = """
@@ -308,7 +370,7 @@ class Upload:
     except TypeError:
       self.utils.print_both("current_row_dict = {}".format(current_row_dict))
       raise
-    
+
     res = list(set(self.utils.extract(entry_field_names_sql_res[0])) - set(have_field_names) - set(except_fields))
     return res
 
@@ -345,7 +407,7 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
     return id_is_in_entry
 
   def upload_other_tables(self, quiet = False):
-    table_name_to_update = self.entry_table_name # ["entry"]
+    table_name_to_update = self.entry_table_name  # ["entry"]
     where_to_look_for_ids = self.table_name_temp_dump
     # cnt = 0
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
@@ -354,7 +416,7 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       #   print('Uploading rows into "Entry" table: %s' % cnt)
 
       tsv_field_names_to_upload = current_row_d.keys()
-      tsv_field_names_to_upload_ids = [x+"_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
+      tsv_field_names_to_upload_ids = [x + "_id" for x in tsv_field_names_to_upload if not x.endswith("_id")]
       tsv_field_names_to_upload_ids_str = ', '.join(tsv_field_names_to_upload_ids)
 
       unique_keys = current_row_d.keys()
@@ -369,7 +431,8 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       # TODO: why diff from tsv_field_names_to_upload_ids?
       all_fields = list(dict_w_all_ids.keys())
       q_addition = self.format_update_duplicates(current_row_d, all_fields)
-      self.mysql_utils.execute_many_fields_one_record(table_name_to_update, all_fields, tuple(dict_w_all_ids.values()), ignore = "", addition = q_addition)
+      self.mysql_utils.execute_many_fields_one_record(table_name_to_update, all_fields, tuple(dict_w_all_ids.values()),
+                                                      ignore = "", addition = q_addition)
 
   def format_update_duplicates(self, current_row_d, all_fields):
     id_is_in_entry = self.check_if_id_is_in_entry(current_row_d[self.metadata.data_managing.identifier_table_name])
@@ -446,7 +509,7 @@ class FileRetrival:
 
   def download_file(self, url, google_file_id = None):
     try:
-      r = requests.get(url, allow_redirects=True)
+      r = requests.get(url, allow_redirects = True)
 
       file_name = self.get_file_name(r.headers)
 
