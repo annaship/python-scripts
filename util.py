@@ -151,6 +151,9 @@ class Mysql_util:
       self.utils.print_both(sys.exc_info()[0])
       raise  # re-throw caught exception
 
+  def escape_str(self, my_str):
+    return self.conn.escape_string(my_str)
+
   def execute_fetch_select(self, sql, params = None):
     # print("+" * 20)
     # print(sql)
