@@ -338,23 +338,35 @@ class Upload:
 
     tsv_file_content_list_dict_ok_w_ids = self.make_list_of_dicts_w_ids(tsv_field_names_to_upload)
 
-    # all_fields = tsv_file_content_list_dict_ok_w_ids - get all keys
+    # TODO: in chunks by 500?
+    all_values = ['", "'.join(str(x) for x in list(d.values())) for d in tsv_file_content_list_dict_ok_w_ids]
+    all_values_str = ', '.join('("{}")'.format(i) for i in all_values)
+      # ', '.join('("{}")'.format(i) for i in all_values)
 
-    all_values = [list(d.values()) for d in tsv_file_content_list_dict_ok_w_ids]
-
-    all_values_str = ', '.join([str(elem) for elem in all_values])
-
-    # all_values = [list(d.values()) for d in tsv_file_content_list_dict_ok_w_ids]
-    # join
     # all_duplicate_updates = ""
       # all_values = self.get_all_values_for_temp_update(tsv_field_names_to_upload,
       #                                                  current_row_d)  # (1,1,1),(2,2,3),(3,9,3),(4,10,12)
-    all_duplicate_updates = ""  # Col1=VALUES(Col1),Col2=VALUES(Col2)
-    all_update = """INSERT INTO {} ({}) VALUES
-      ON DUPLICATE KEY UPDATE {};
-      """.format(table_name_to_update, ", ".join(tsv_field_names_to_upload), all_values, all_duplicate_updates)
 
-      # for tsv_field_name in tsv_field_names_to_upload:
+    # TODO: use format_update_duplicates()
+    # todo: do not repeat!
+    all_fields = list(set([tuple(d.keys()) for d in tsv_file_content_list_dict_ok_w_ids]))
+      # list(set([d.keys() for d in tsv_file_content_list_dict_ok_w_ids]))
+    # all_duplicate_updates = ""  # Col1=VALUES(Col1),Col2=VALUES(Col2)
+
+    fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
+    fields_to_update_str = ", ".join(fields_to_update)
+
+    # q_addition = ""
+    # if id_is_in_entry:
+    # q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+
+    all_update_q = """INSERT INTO {} ({}) VALUES {}
+      ON DUPLICATE KEY UPDATE {};
+      """.format(table_name_to_update, ', '.join(all_fields[0]), all_values_str, fields_to_update_str)
+
+    self.mysql_utils.execute_no_fetch(all_update_q)
+
+    # for tsv_field_name in tsv_field_names_to_upload:
       #
       #   try:
       #     current_value = current_row_d[tsv_field_name]
@@ -499,6 +511,7 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
       self.mysql_utils.execute_many_fields_one_record(table_name_to_update, all_fields, tuple(dict_w_all_ids.values()),
                                                       ignore = "", addition = q_addition)
 
+  # TODO: rm id_is_in_entry check and use for all
   def format_update_duplicates(self, current_row_d, all_fields):
     id_is_in_entry = self.check_if_id_is_in_entry(current_row_d[self.metadata.data_managing.identifier_table_name])
 
