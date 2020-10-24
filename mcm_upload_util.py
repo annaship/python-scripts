@@ -289,67 +289,106 @@ class Upload:
       UPDATE whole_tsv_dump SET content_url_audio_id = 0 WHERE content_url_audio = %s
       """
 
-  # TODO: refactor to do fewer db connections
-  def update_many_values_to_one_field_ids(self, quiet = False):
-    table_name_to_update = self.table_name_temp_dump
-    tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
-    cnt = 0
-    # t0 = time.time()
-    t0 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
-    t_get_id_esc = 0
-    t_execute_no_fetch = 0
+  # def make_list_of_dicts_w_ids(self, tsv_field_names_to_upload):
+  #   tsv_file_content_list_dict_ok_w_ids = []
+  #   # TODO: why not go over key, value and use key + '_id' as table_name_w_id?
+  #   for current_row_d in self.metadata.tsv_file_content_dict_ok:
+  #     temp_dict = current_row_d
+  #     for tsv_field_name in tsv_field_names_to_upload:
+  #
+  #       try:
+  #         current_value = current_row_d[tsv_field_name]
+  #       except KeyError:
+  #         continue
+  #
+  #       table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+  #       current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id,
+  #                                                current_value)
+  #
+  #       temp_dict[tsv_field_name + '_id'] = current_id
+  #
+  #     tsv_file_content_list_dict_ok_w_ids.append(temp_dict)
+  #   return tsv_file_content_list_dict_ok_w_ids
+
+  def make_list_of_dicts_w_ids(self, tsv_field_names_to_upload):
     tsv_file_content_list_dict_ok_w_ids = []
+    # TODO: why not go over key, value and use key + '_id' as table_name_w_id?
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
-      """TODO: go over each table values instead?     
-      for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
-      cnt += 1
-
-      if (not quiet) and (cnt % self.cnt_increment == 0):
-        print('update_many_values_to_one_field_ids: {}'.format(cnt))
-        self.utils.benchmark_w_return_2(t0, "for current_row_d in self.metadata.tsv_file_content_dict_ok")
-
-      all_values = self.get_all_values_for_temp_update(tsv_field_names_to_upload,
-                                                       current_row_d)  # (1,1,1),(2,2,3),(3,9,3),(4,10,12)
-      all_duplicate_updates = ""  # Col1=VALUES(Col1),Col2=VALUES(Col2)
-      all_update = """INSERT INTO {} ({}) VALUES 
-        ON DUPLICATE KEY UPDATE {};
-        """.format(table_name_to_update, ", ".join(tsv_field_names_to_upload), all_values, all_duplicate_updates)
-
+      temp_dict = current_row_d
       for tsv_field_name in tsv_field_names_to_upload:
 
         try:
           current_value = current_row_d[tsv_field_name]
         except KeyError:
           continue
-        # t01 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
 
         table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
-        # t02 = self.utils.benchmark_w_return_1("get_id_esc")
-        t010 = time.time()
         current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id,
                                                  current_value)
-        t01 = time.time()
-        diff_t01 = float(t01 - t010) / 60
-        t_get_id_esc += diff_t01
 
-        update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id',
-                                                                current_id, tsv_field_name)
-        # print(update_q)
-        """
-        UPDATE whole_tsv_dump SET content_url_id = 2 WHERE content_url = %s
-        UPDATE whole_tsv_dump SET content_url_audio_id = 0 WHERE content_url_audio = %s
-        """
-        # t03 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
-        t020 = time.time()
-        self.mysql_utils.execute_no_fetch(update_q, current_value)
-        t02 = time.time()
-        diff_t02 = float(t02 - t020) / 60
-        t_execute_no_fetch += diff_t02
+        temp_dict[tsv_field_name + '_id'] = current_id
+
+      tsv_file_content_list_dict_ok_w_ids.append(temp_dict)
+    return tsv_file_content_list_dict_ok_w_ids
+
+
+  def update_many_values_to_one_field_ids(self):
+    table_name_to_update = self.table_name_temp_dump
+    tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
+
+    tsv_file_content_list_dict_ok_w_ids = self.make_list_of_dicts_w_ids(tsv_field_names_to_upload)
+
+    # all_fields = tsv_file_content_list_dict_ok_w_ids - get all keys
+
+    all_values = [list(d.values()) for d in tsv_file_content_list_dict_ok_w_ids]
+
+    all_values_str = ', '.join([str(elem) for elem in all_values])
+
+    # all_values = [list(d.values()) for d in tsv_file_content_list_dict_ok_w_ids]
+    # join
+    # all_duplicate_updates = ""
+      # all_values = self.get_all_values_for_temp_update(tsv_field_names_to_upload,
+      #                                                  current_row_d)  # (1,1,1),(2,2,3),(3,9,3),(4,10,12)
+    all_duplicate_updates = ""  # Col1=VALUES(Col1),Col2=VALUES(Col2)
+    all_update = """INSERT INTO {} ({}) VALUES
+      ON DUPLICATE KEY UPDATE {};
+      """.format(table_name_to_update, ", ".join(tsv_field_names_to_upload), all_values, all_duplicate_updates)
+
+      # for tsv_field_name in tsv_field_names_to_upload:
+      #
+      #   try:
+      #     current_value = current_row_d[tsv_field_name]
+      #   except KeyError:
+      #     continue
+      #   # t01 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
+      #
+      #   table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+      #   # t02 = self.utils.benchmark_w_return_1("get_id_esc")
+      #   t010 = time.time()
+      #   current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id,
+      #                                            current_value)
+      #   t01 = time.time()
+      #   diff_t01 = float(t01 - t010) / 60
+      #   t_get_id_esc += diff_t01
+      #
+      #   update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id',
+      #                                                           current_id, tsv_field_name)
+      #   # print(update_q)
+      #   """
+      #   UPDATE whole_tsv_dump SET content_url_id = 2 WHERE content_url = %s
+      #   UPDATE whole_tsv_dump SET content_url_audio_id = 0 WHERE content_url_audio = %s
+      #   """
+      #   # t03 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
+      #   t020 = time.time()
+      #   self.mysql_utils.execute_no_fetch(update_q, current_value)
+      #   t02 = time.time()
+      #   diff_t02 = float(t02 - t020) / 60
+      #   t_execute_no_fetch += diff_t02
     """
     INSERT INTO table (id,Col1,Col2) VALUES (1,1,1),(2,2,3),(3,9,3),(4,10,12)
     ON DUPLICATE KEY UPDATE Col1=VALUES(Col1),Col2=VALUES(Col2);
     """
-    print("t_get_id_esc total time: {}\nt_execute_no_fetch total time: {}".format(t_get_id_esc, t_execute_no_fetch))
+    # print("t_get_id_esc total time: {}\nt_execute_no_fetch total time: {}".format(t_get_id_esc, t_execute_no_fetch))
 
   def get_entry_table_field_names(self):
     entry_field_names_q = """
@@ -361,6 +400,32 @@ class Upload:
     """
     vals = (self.entry_table_name, self.db_schema, self.entry_table_name + "_id")
     return self.mysql_utils.execute_fetch_select(entry_field_names_q, vals)
+
+  #   def update_many_values_to_one_field_ids(self, quiet = False):
+  #     table_name_to_update = self.table_name_temp_dump
+  #     tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
+  #     cnt = 0
+  #     # t0 = time.time()
+  #     t0 = self.utils.benchmark_w_return_1("for current_row_d in self.metadata.tsv_file_content_dict_ok")
+  #
+  #     for current_row_d in self.metadata.tsv_file_content_dict_ok:
+  #       """TODO: go over each table values instead?
+  #       for table_name, tsv_field_names in self.many_values_to_one_field.items():"""
+  #       cnt += 1
+  #       if (not quiet) and (cnt % self.cnt_increment == 0):
+  #         print('update_many_values_to_one_field_ids: {}'.format(cnt))
+  #         self.utils.benchmark_w_return_2(t0, "for current_row_d in self.metadata.tsv_file_content_dict_ok")
+  #
+  #       for tsv_field_name in tsv_field_names_to_upload:
+  #         try:
+  #           current_value = current_row_d[tsv_field_name]
+  #         except KeyError:
+  #           continue
+  #         table_name_w_id = self.where_to_look_if_not_the_same[tsv_field_name]
+  #         current_id = self.mysql_utils.get_id_esc(table_name_w_id + '_id', table_name_w_id, table_name_w_id, current_value)
+  #
+  #         update_q = 'UPDATE {} SET {} = {} WHERE {} = %s'.format(table_name_to_update, tsv_field_name + '_id', current_id, tsv_field_name)
+  #         self.mysql_utils.execute_no_fetch(update_q, current_value)
 
   def get_empty_field_names(self, current_row_dict):
     except_fields = ["created", "updated"]
