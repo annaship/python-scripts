@@ -220,24 +220,38 @@ class Upload:
       self.insert_null(table_name)
 
   def upload_all_from_tsv_into_temp_table(self, quiet = False):
-    table_name = self.table_name_temp_dump
-    table_name_id = table_name + "_id"
+    # table_name = self.table_name_temp_dump
+    table_name_id = self.table_name_temp_dump + "_id"
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
+      """
+            concat_str = "CONCAT({})".format(", ".join(field_names_arr))
+      values_arr_combined = values_arr + [concat_str]
+      field_names_arr_combined = field_names_arr + ["combined"]
+
+      update whole_tsv_dump
+set combined = CONCAT_WS('|', identifier, title, content, content_url, content_url_audio, content_url_transcript, creator, creator_other, subject_place, coverage_lat, coverage_long, subject_associated_places, subject_people, subject_academic_field, subject_other, subject_season, date_season, date_season_yyyy, date_exact, date_digital, description, format, digitization_specifications, contributor, type, country, language, relation, source, publisher, publisher_location, bibliographic_citation, rights);
+      """
       # TODO: add on duplicate key... to avoid ~/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry 'Cape Crozier' for key 'place'")
       #   result = self._query(query)
       try:
-        self.mysql_utils.execute_many_fields_one_record(table_name, field_names_arr, tuple(values_arr))
+        self.mysql_utils.execute_many_fields_one_record(self.table_name_temp_dump, field_names_arr, tuple(values_arr))
       #   pymysql.err.OperationalError: (1054, "Unknown column 'title_old' in 'field list'")
       except mysql.OperationalError as e:
         self.utils.print_both(e)
         pass
 
       # separate as add_id_back
-      current_id = self.mysql_utils.get_id_esc(table_name_id, table_name, field_names_arr, values_arr)
+      current_id = self.mysql_utils.get_id_esc(table_name_id, self.table_name_temp_dump, field_names_arr, values_arr)
       current_row_d[table_name_id] = current_id
+
+      concat_str = "CONCAT({})".format(", ".join(field_names_arr))
+      combine_query = """UPDATE {}
+                          SET combined = {};
+      """.format(self.table_name_temp_dump, concat_str)
+      self.mysql_utils.execute_no_fetch(combine_query)
 
   def mass_update_simple_ids(self):
     for table_name in self.simple_tables:
