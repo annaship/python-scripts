@@ -339,7 +339,9 @@ class Upload:
     tsv_file_content_list_dict_ok_w_ids = self.make_list_of_dicts_w_ids(tsv_field_names_to_upload)
 
     # TODO: in chunks by 500?
-    all_values = ['", "'.join(str(x) for x in list(d.values())) for d in tsv_file_content_list_dict_ok_w_ids]
+    all_values = ['", "'.join(self.mysql_utils.escape_str(str(x))
+                              for x in list(d.values()))
+                  for d in tsv_file_content_list_dict_ok_w_ids]
     all_values_str = ', '.join('("{}")'.format(i) for i in all_values)
 
     # TODO: use format_update_duplicates()
@@ -349,11 +351,16 @@ class Upload:
     fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
     fields_to_update_str = ", ".join(fields_to_update)
 
+    # all_update_q = """INSERT INTO {} ({}) VALUES %s
+    #   ON DUPLICATE KEY UPDATE {};
+    #   """.format(table_name_to_update, ', '.join(all_fields[0]), fields_to_update_str)
+
     all_update_q = """INSERT INTO {} ({}) VALUES {}
       ON DUPLICATE KEY UPDATE {};
       """.format(table_name_to_update, ', '.join(all_fields[0]), all_values_str, fields_to_update_str)
 
-    self.mysql_utils.execute_no_fetch(all_update_q)
+    # TODO: properly escape all_values_str
+    self.mysql_utils.execute_no_fetch(all_update_q, all_values_str)
 
   def get_entry_table_field_names(self):
     entry_field_names_q = """
