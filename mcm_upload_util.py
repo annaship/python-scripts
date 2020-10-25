@@ -220,25 +220,15 @@ class Upload:
       self.insert_null(table_name)
 
   def upload_all_from_tsv_into_temp_table(self, quiet = False):
-    # table_name = self.table_name_temp_dump
     table_name_id = self.table_name_temp_dump + "_id"
     for current_row_d in self.metadata.tsv_file_content_dict_ok:
       field_names_arr = list(current_row_d.keys())
       values_arr = list(current_row_d.values())
 
-      """
-            concat_str = "CONCAT({})".format(", ".join(field_names_arr))
-      values_arr_combined = values_arr + [concat_str]
-      field_names_arr_combined = field_names_arr + ["combined"]
-
-      update whole_tsv_dump
-set combined = CONCAT_WS('|', identifier, title, content, content_url, content_url_audio, content_url_transcript, creator, creator_other, subject_place, coverage_lat, coverage_long, subject_associated_places, subject_people, subject_academic_field, subject_other, subject_season, date_season, date_season_yyyy, date_exact, date_digital, description, format, digitization_specifications, contributor, type, country, language, relation, source, publisher, publisher_location, bibliographic_citation, rights);
-      """
       # TODO: add on duplicate key... to avoid ~/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry 'Cape Crozier' for key 'place'")
       #   result = self._query(query)
       try:
         self.mysql_utils.execute_many_fields_one_record(self.table_name_temp_dump, field_names_arr, tuple(values_arr))
-      #   pymysql.err.OperationalError: (1054, "Unknown column 'title_old' in 'field list'")
       except mysql.OperationalError as e:
         self.utils.print_both(e)
         pass
@@ -246,7 +236,10 @@ set combined = CONCAT_WS('|', identifier, title, content, content_url, content_u
       # separate as add_id_back
       current_id = self.mysql_utils.get_id_esc(table_name_id, self.table_name_temp_dump, field_names_arr, values_arr)
       current_row_d[table_name_id] = current_id
+    # all_fields = list(set([tuple(d.keys()) for d in self.metadata.tsv_file_content_dict_ok]))
+      self.update_temp_w_combine(field_names_arr)
 
+  def update_temp_w_combine(self, field_names_arr):
       concat_str = "CONCAT({})".format(", ".join(field_names_arr))
       combine_query = """UPDATE {}
                           SET combined = {};
@@ -364,15 +357,22 @@ set combined = CONCAT_WS('|', identifier, title, content, content_url, content_u
         query_insert = "INSERT into `%s` SET %s ON DUPLICATE KEY UPDATE %s" %(insert_table, insert_values, insert_values)
         cursor.execute(query_insert, data * 2)
     """
-    insert_array = []
-    data = []
+    all_fields = list(set([tuple(d.keys()) for d in tsv_file_content_list_dict_ok_w_ids]))
+    all_fields_no_id = [f for f in all_fields[0] if not f.endswith("_id")]
+    fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
+    fields_to_update_str = ", ".join(fields_to_update)
+    concat_str = "combined = CONCAT({})".format(", ".join(all_fields_no_id))
+
     for d in tsv_file_content_list_dict_ok_w_ids:
+      insert_array = []
+      data = []
       for key, value in d.items():
         insert_array.append("%s = %%s" % key)  # results in key = %s
         data.append(value)
-    insert_values = ", ".join(insert_array)
-    query_insert = "INSERT INTO `%s` SET %s ON DUPLICATE KEY UPDATE %s" % (table_name_to_update, insert_values, insert_values)
-    self.mysql_utils.cursor.execute(query_insert, data * 2)
+      insert_array.append(concat_str)
+      insert_values = ", ".join(insert_array)
+      query_insert = "INSERT INTO `%s` SET %s ON DUPLICATE KEY UPDATE %s" % (table_name_to_update, insert_values, insert_values)
+      self.mysql_utils.cursor.execute(query_insert, data * 2)
 
     # # TODO: in chunks by 500?
     # all_values = ['", "'.join(self.mysql_utils.escape_str(str(x))
