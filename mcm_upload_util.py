@@ -543,41 +543,45 @@ class FileRetrival:
       urls = self.get_current_urls(entry_d)
       urls = self.change_dl(urls)
       for url in urls:
-        file_name = self.download_file(url)
+        file_name = self.download_file(url, entry_d['identifier'])
       cnt += 1
       if (not quiet) and (cnt % self.cnt_increment == 0):
         print('Downloading files from Dropbox: %s' % cnt)
 
-  def get_file_name(self, r_headers):
+  def get_file_name(self, r_headers, identifier):
     file_name = ""
     try:
       file_name = r_headers['Content-Disposition'].split(';')[1].rsplit('=', 1)[1]
       file_name = file_name.replace('"', '')
+      files_path = self.get_files_path()
+      return os.path.join(files_path, file_name)
+
     except KeyError:
-      print("Please provide a valid google spreadsheet url")
-      sys.exit()
+      print("Something is wrong with the attachment.")
+      # sys.exit()
 
-    if file_name == "":
-      file_name = self.create_attachment_name_from_id()
+    # if file_name == "":
+    #   file_name = self.create_attachment_name_from_id(identifier)
 
-    files_path = self.get_files_path()
-    return os.path.join(files_path, file_name)
+    # return os.path.join(files_path, file_name)
 
-  def download_file(self, url, google_file_id = None):
+  def download_file(self, url, identifier, google_file_id = None):
     try:
       r = requests.get(url, allow_redirects = True)
 
-      file_name = self.get_file_name(r.headers)
+      file_name = self.get_file_name(r.headers, identifier)
 
       open(file_name, 'wb').write(r.content)
       return file_name
     except requests.exceptions.MissingSchema:
       self.utils.print_both("Can't download a file, wrong URL: '{}'".format(url))
-      pass
       # Invalid URL 'NOT IN DROPBOX': No schema supplied. Perhaps you meant http://NOT IN DROPBOX?
+    except TypeError:
+      self.utils.print_both("Can't download this file: '{}'".format(url))
 
-  def create_attachment_name_from_id(self):
-    pass
+  # def create_attachment_name_from_id(self, identifier): How to know the extension?
+  #   file_name = identifier + ".png" # url.split("/")[-1]
+  #   print(file_name)
 
 
 if __name__ == '__main__':
