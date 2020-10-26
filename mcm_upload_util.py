@@ -162,8 +162,9 @@ class Upload:
     create_table_q = """
     CREATE TABLE IF NOT EXISTS `{0}` (
       `{0}_id` int(11) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
-      `created` datetime DEFAULT current_timestamp(),
-      `updated` datetime DEFAULT NULL
+      `updated` datetime DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+      `created` datetime DEFAULT CURRENT_TIMESTAMP()
+
     ) ENGINE=InnoDB;
     """.format(self.table_name_temp_dump)
     self.mysql_utils.execute_no_fetch(create_table_q)
@@ -342,6 +343,7 @@ class Upload:
     return tsv_file_content_list_dict_ok_w_ids
 
   """
+  TODO:
   In 500 chunks/rows do:
   INSERT INTO whole_tsv_dump
     (f1, f2, f3)
