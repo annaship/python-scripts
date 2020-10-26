@@ -341,26 +341,30 @@ class Upload:
       tsv_file_content_list_dict_ok_w_ids.append(temp_dict)
     return tsv_file_content_list_dict_ok_w_ids
 
-
+  """
+  In 500 chunks/rows do:
+  INSERT INTO whole_tsv_dump
+    (f1, f2, f3)
+    VALUES 
+        (%s, %s, %s),
+        (%s, %s, %s),
+        (%s, %s, %s),
+    ON DUPLICATE KEY UPDATE 
+        f1 = VALUES(f1),
+        f2 = VALUES(f2)...
+        
+  """
   def update_many_values_to_one_field_ids(self):
     table_name_to_update = self.table_name_temp_dump
     tsv_field_names_to_upload = self.utils.flatten_2d_list(self.many_values_to_one_field.values())
 
     tsv_file_content_list_dict_ok_w_ids = self.make_list_of_dicts_w_ids(tsv_field_names_to_upload)
 
-    """ data = []
-        for key, value in result_array.items():
-            # only proper if key is NOT user defined!
-            insert_array.append("%s = %%s" % key) # results in key = %s
-            data.append(value)
-        insert_values = " , ".join(insert_array)
-        query_insert = "INSERT into `%s` SET %s ON DUPLICATE KEY UPDATE %s" %(insert_table, insert_values, insert_values)
-        cursor.execute(query_insert, data * 2)
-    """
+    # TODO: use format_update_duplicates() ?
+
     all_fields = list(set([tuple(d.keys()) for d in tsv_file_content_list_dict_ok_w_ids]))
-    all_fields_no_id = [f for f in all_fields[0] if not f.endswith("_id")]
     fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
-    fields_to_update_str = ", ".join(fields_to_update)
+    all_fields_no_id = [f for f in all_fields[0] if not f.endswith("_id")]
     concat_str = "combined = CONCAT({})".format(", ".join(all_fields_no_id))
 
     for d in tsv_file_content_list_dict_ok_w_ids:
@@ -373,30 +377,6 @@ class Upload:
       insert_values = ", ".join(insert_array)
       query_insert = "INSERT INTO `%s` SET %s ON DUPLICATE KEY UPDATE %s" % (table_name_to_update, insert_values, insert_values)
       self.mysql_utils.cursor.execute(query_insert, data * 2)
-
-    # # TODO: in chunks by 500?
-    # all_values = ['", "'.join(self.mysql_utils.escape_str(str(x))
-    #                           for x in list(d.values()))
-    #               for d in tsv_file_content_list_dict_ok_w_ids]
-    # all_values_str = ', '.join('("{}")'.format(i) for i in all_values)
-    #
-    # # TODO: use format_update_duplicates()
-    # # todo: do not repeat!
-    # all_fields = list(set([tuple(d.keys()) for d in tsv_file_content_list_dict_ok_w_ids]))
-    #
-    # fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
-    # fields_to_update_str = ", ".join(fields_to_update)
-
-    # all_update_q = """INSERT INTO {} ({}) VALUES %s
-    #   ON DUPLICATE KEY UPDATE {};
-    #   """.format(table_name_to_update, ', '.join(all_fields[0]), fields_to_update_str)
-
-    # all_update_q = """INSERT INTO {} ({}) VALUES {}
-    #   ON DUPLICATE KEY UPDATE {};
-    #   """.format(table_name_to_update, ', '.join(all_fields[0]), all_values_str, fields_to_update_str)
-    #
-    # # TODO: properly escape all_values_str
-    # self.mysql_utils.execute_no_fetch(all_update_q, all_values_str)
 
   def get_entry_table_field_names(self):
     entry_field_names_q = """
