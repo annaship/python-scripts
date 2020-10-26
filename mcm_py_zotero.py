@@ -153,7 +153,7 @@ class Output(Upload):
 
   def check_or_create_identifier(self, val_dict):
     if 'identifier' not in val_dict.keys():
-      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.metadata_type, self.identifier_first_character)
+      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
       val_dict[self.data_managing.identifier_table_name + "_id"] = db_id
       return val_dict
 
