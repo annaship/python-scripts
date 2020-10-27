@@ -211,11 +211,17 @@ class Upload:
 
   def simple_mass_upload(self, table_name, field_name, val_arr = None):
     """Default argument values are evaluated only once at function definition time, which means that modifying the default value of the argument will affect all subsequent calls of the function.
+        all_fields = list(set([tuple(d.keys()) for d in tsv_file_content_list_dict_ok_w_ids]))
+    # fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
     """
+    # TODO: use format_update_duplicates() ?
+    fields_to_update_str = "{0} = VALUES({0})".format(field_name)
+    on_dup = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+
     try:
       if not val_arr:
         val_arr = list(set(self.metadata.not_empty_tsv_content_dict[field_name]))
-      self.mysql_utils.execute_insert_many(table_name, field_name, val_arr)
+      self.mysql_utils.execute_insert_many(table_name, field_name, val_arr, addition = on_dup)
 
     except KeyError:
       self.insert_null(table_name)
@@ -365,7 +371,7 @@ class Upload:
     # TODO: use format_update_duplicates() ?
 
     all_fields = list(set([tuple(d.keys()) for d in tsv_file_content_list_dict_ok_w_ids]))
-    fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
+    # fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields[0]]
     all_fields_no_id = [f for f in all_fields[0] if not f.endswith("_id")]
     concat_str = "combined = CONCAT({})".format(", ".join(all_fields_no_id))
 
