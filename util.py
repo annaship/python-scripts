@@ -274,9 +274,9 @@ class Mysql_util:
 
     # print("execute_many_fields_one_record FROM util res: {}".format(res))
 
-  def execute_insert_many(self, table_name, field_name, records_to_insert_arr, ignore = "IGNORE"):
+  def execute_insert_many(self, table_name, field_name, records_to_insert_arr, ignore = "IGNORE", addition = ""):
     try:
-      mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s)".format(ignore, table_name, field_name)
+      mySql_insert_query = "INSERT {} INTO {} ({}) VALUES (%s) {}".format(ignore, table_name, field_name, addition)
 
       if self.cursor:
         self.cursor.executemany(mySql_insert_query, records_to_insert_arr)
