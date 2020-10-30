@@ -20,6 +20,7 @@ import csv
 library_id = "1415490"
 library_type = "group"
 api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
+collectionIDs = ["AMJZ6VM2", "AQNRKZB2"]
 
 zot = zotero.Zotero(library_id, library_type, api_key)
 
@@ -322,14 +323,33 @@ class DownloadFilesFromZotero(FileRetrival):
 
 class Export:
   def __init__(self):
+    self.all_items_dump = []
+    all_keys = self.get_all_coll_key()
 
     if args.get_5_zotero_entries:
       # debug short
-      self.all_items_dump = zot.top(limit = 5)
+      # self.all_items_dump = zot.top(limit = 5)
+      # Zotero.collection_items(collectionID[, search/request parameters])
+      # Zotero.collection(collectionID[, search/request parameters])
+      # Zotero.all_collections([collectionID])
+
+      itemTypes = []
+      for collection_key in all_keys:
+        # "AMJZ6VM2"
+        try:
+          items = zot.everything(zot.collection_items(collection_key))
+          self.all_items_dump += items
+
+        except StopIteration:
+          print('\nAll items processed.\n')
+        except Exception as ex:
+          print(ex)
+
     else:
       # USE this for real:
       self.all_items_dump = self.dump_all_items()
-
+    # print("=" * 3)
+    # print(self.all_items_dump)
     if args.raw_zotero_entries:
       print("Downloading each Zotero entry into a separate tsv file")
       files_util = FileRetrival()
@@ -338,6 +358,13 @@ class Export:
       self.get_all_zotero_fields()
       self.get_all_items_to_tsv_file()
       print("DONE: downloading each Zotero entry into a separate tsv file")
+
+  def get_all_coll_key(self):
+    all_keys = []
+    for collectionID in collectionIDs:
+      z = zot.all_collections(collectionID)
+      all_keys += [x["key"] for x in z]
+    return all_keys
 
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
