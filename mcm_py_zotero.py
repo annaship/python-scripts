@@ -29,18 +29,21 @@ class Output(Upload):
   def __init__(self):
     Upload.__init__(self)
     self.zotero_to_sql_fields = {
-      'creators'    : 'role.role', # creator
-      'name'        : 'person.person',  # creator, #creator_other
-      'firstName'   : 'person.first_name',  # creator, #creator_other
-      'lastName'    : 'person.last_name',  # creator, #creator_other
+      'accessed'    : 'season.season', #date_digital
+      'url'         : 'content_url.content_url',
+      # 'source'      : 'source.source', #'Volume'('Issue'): 'Pages'
       'abstractNote': 'description.description',
       'bookTitle'   : 'title.title',
-      'title'       : 'title.title',
+      'creators'    : 'role.role', # creator
       'date'        : 'season.season',  # 'date_exact', 'date_season', 'date_season_yyyy',
+      'firstName'   : 'person.first_name',  # creator, #creator_other
       'language'    : 'language.language',
+      'lastName'    : 'person.last_name',  # creator, #creator_other
+      'name'        : 'person.person',  # creator, #creator_other
       'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
       'publisher'   : 'publisher.publisher',
       'rights'      : 'rights.rights',
+      'title'       : 'title.title',
       'volume'      : 'source.source',
     }
 
@@ -53,7 +56,7 @@ class Output(Upload):
       "content_url_transcript"     : "Content URL (Transcript)",
       "creator"                    : "Creator",
       "creator_other"              : "Creator.Other",
-      "subject_aplace"             : "Subject.Place",
+      "subject_place"             : "Subject.Place",
       "coverage_lat"               : "Coverage.Lat",
       "coverage_long"              : "Coverage.Long",
       "subject_associated_places"  : "Subject.Associated.Places",
@@ -61,7 +64,7 @@ class Output(Upload):
       "subject_academic_field"     : "Subject.Academic.Field",
       "subject_other"              : "Subject.Other",
       "subject_season"             : "Subject.Season",
-      "season"                : "Date.Season",
+      "season"                     : "Date.Season",
       "date_season"                : "Date.Season",
       "date_season_yyyy"           : "Date.Season (YYYY)",
       "date_exact"                 : "Date.Exact",
@@ -277,6 +280,31 @@ class Output(Upload):
 
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
+      # 'Source': 'Issue' and 'Pages' as well? So the formate would look like: 'Volume'('Issue'): 'Pages'
+      # 'Format': 'PDF'
+      """
+      'Date.Season (YYYY)': just the YYYY from the 'Date' field in Zotero
+
+'Bibliographic Citation':
+    The field 'DOI' (or 'ISSN', if there is no 'DOI') would be OK here. 
+
+However, ideally it would be better to concatonate a few of the fields and populate this field with the combined result. This way we could create a full bibliographic citation in Chicago style. 
+Something like:
+
+Authors + Title + Publication/ Book Title + Series + Volume + (Issue): + Pages. + URL
+ 
+example for row 2372:
+
+Adams, Byron J., Richard D. Bardgett, Edward Ayres, Diana H. Wall, Jackie Aislabie, Stuart Bamforth, Roberto Bargagli, et al. 2006. “Diversity and Distribution of Victoria Land Biota.” Soil Biology and Biochemistry, Antarctic Victoria Land Soil Ecology, 38 (10): 3003–18. https://doi.org/10.1016/j.soilbio.2006.04.030.
+
+      """
+
+      """
+      z_entry['data']['tags']
+      'Subject.Other':
+    From the Zotero GUI, there is a tab called 'Tags' which shows keywords for many publications. It would be great if these could be important here (separated by semi-colons). If not, no problem.
+      
+      """
       db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
 
@@ -374,22 +402,14 @@ class Export:
   def get_all_items_to_tsv_file(self):
     # all_text = zot.everything(zot.top())
     # all_text = zot.top(limit = 5)
-    all_collection_ids = []
     fieldnames = set()
     for d in self.all_items_dump:
       fieldnames.update(d['data'].keys())
       my_dict = d['data']
       flat_dict = utils.flatten_dict(my_dict)
       self.write_flat_dict_to_tsv(flat_dict)
-      for k in flat_dict.keys():
-        if k.startswith("collection") or k == 'parentItem':
-          all_collection_ids.append(flat_dict[k])
-    f_name = "parentItems.txt"
-    with open(f_name, "w") as outfile:
-      outfile.write("\n".join(all_collection_ids))
 
   def write_flat_dict_to_tsv(self, flat_dict):
-
     keys, values = [], []
     for key, value in flat_dict.items():
       keys.append(key)
