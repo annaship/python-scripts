@@ -323,33 +323,39 @@ class DownloadFilesFromZotero(FileRetrival):
 
 class Export:
   def __init__(self):
+
+    utils = util.Utils()
     self.all_items_dump = []
     all_keys = self.get_all_coll_key()
 
+    itemKeys = []
+
     if args.get_5_zotero_entries:
       # debug short
-      # self.all_items_dump = zot.top(limit = 5)
+      self.all_items_dump = zot.top(limit = 5)
       # Zotero.collection_items(collectionID[, search/request parameters])
       # Zotero.collection(collectionID[, search/request parameters])
       # Zotero.all_collections([collectionID])
 
-      itemTypes = []
+
+    else:
+      # USE this for real:
+      # self.all_items_dump = self.dump_all_items()
       for collection_key in all_keys:
         # "AMJZ6VM2"
         try:
           items = zot.everything(zot.collection_items(collection_key))
           self.all_items_dump += items
+          itemKeys += [x['key'] for x in items]
 
         except StopIteration:
           print('\nAll items processed.\n')
         except Exception as ex:
           print(ex)
 
-    else:
-      # USE this for real:
-      self.all_items_dump = self.dump_all_items()
     # print("=" * 3)
     # print(self.all_items_dump)
+
     if args.raw_zotero_entries:
       print("Downloading each Zotero entry into a separate tsv file")
       files_util = FileRetrival()
@@ -358,6 +364,10 @@ class Export:
       self.get_all_zotero_fields()
       self.get_all_items_to_tsv_file()
       print("DONE: downloading each Zotero entry into a separate tsv file")
+
+    f_name = "itemKeys.txt"
+    with open(f_name, "a") as outfile:
+      outfile.write("\n".join(itemKeys))
 
   def get_all_coll_key(self):
     all_keys = []
@@ -375,12 +385,19 @@ class Export:
   def get_all_items_to_tsv_file(self):
     # all_text = zot.everything(zot.top())
     # all_text = zot.top(limit = 5)
+    all_collection_ids = []
     fieldnames = set()
     for d in self.all_items_dump:
       fieldnames.update(d['data'].keys())
       my_dict = d['data']
       flat_dict = utils.flatten_dict(my_dict)
       self.write_flat_dict_to_tsv(flat_dict)
+      for k in flat_dict.keys():
+        if k.startswith("collection") or k == 'parentItem':
+          all_collection_ids.append(flat_dict[k])
+    f_name = "parentItems.txt"
+    with open(f_name, "w") as outfile:
+      outfile.write("\n".join(all_collection_ids))
 
   def write_flat_dict_to_tsv(self, flat_dict):
 
