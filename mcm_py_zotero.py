@@ -333,41 +333,30 @@ class Export:
     if args.get_5_zotero_entries:
       # debug short
       self.all_items_dump = zot.top(limit = 5)
-      # Zotero.collection_items(collectionID[, search/request parameters])
-      # Zotero.collection(collectionID[, search/request parameters])
-      # Zotero.all_collections([collectionID])
-
 
     else:
       # USE this for real:
       # self.all_items_dump = self.dump_all_items()
       for collection_key in all_keys:
-        # "AMJZ6VM2"
-        try:
-          items = zot.everything(zot.collection_items(collection_key))
-          self.all_items_dump += items
-          itemKeys += [x['key'] for x in items]
-
-        except StopIteration:
-          print('\nAll items processed.\n')
-        except Exception as ex:
-          print(ex)
-
-    # print("=" * 3)
-    # print(self.all_items_dump)
+        items = zot.everything(zot.collection_items(collection_key))
+        self.all_items_dump += items
+        # itemKeys += [x['key'] for x in items]
 
     if args.raw_zotero_entries:
-      print("Downloading each Zotero entry into a separate tsv file")
-      files_util = FileRetrival()
-      self.files_path = files_util.get_files_path("raw_zotero_entries")
-      self.all_items_fields = set()
-      self.get_all_zotero_fields()
-      self.get_all_items_to_tsv_file()
-      print("DONE: downloading each Zotero entry into a separate tsv file")
+      self.dump_raw_zotero_entries()
 
-    f_name = "itemKeys.txt"
-    with open(f_name, "a") as outfile:
-      outfile.write("\n".join(itemKeys))
+    # f_name = "itemKeys.txt"
+    # with open(f_name, "a") as outfile:
+    #   outfile.write("\n".join(itemKeys))
+
+  def dump_raw_zotero_entries(self):
+    print("Downloading each Zotero entry into a separate tsv file")
+    files_util = FileRetrival()
+    self.files_path = files_util.get_files_path("raw_zotero_entries")
+    self.all_items_fields = set()
+    self.get_all_zotero_fields()
+    self.get_all_items_to_tsv_file()
+    print("DONE: downloading each Zotero entry into a separate tsv file")
 
   def get_all_coll_key(self):
     all_keys = []
