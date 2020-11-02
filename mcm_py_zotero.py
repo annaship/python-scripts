@@ -29,22 +29,25 @@ class Output(Upload):
   def __init__(self):
     Upload.__init__(self)
     self.zotero_to_sql_fields = {
-      'accessed'    : 'season.season', #date_digital
+      # 'accessed'    : 'season.season', #date_digital
       'url'         : 'content_url.content_url',
-      # 'source'      : 'source.source', #'Volume'('Issue'): 'Pages'
+      'bibliographic_citation': 'bibliographic_citation.bibliographic_citation',
+      'source'      : 'source.source', #'Volume'('Issue'): 'Pages'
+      'format': 'format.format',
+      'subject_other': 'subject_other.subject_other',
       'abstractNote': 'description.description',
-      'bookTitle'   : 'title.title',
+      # 'bookTitle'   : 'title.title',
       'creators'    : 'role.role', # creator
       'date'        : 'season.season',  # 'date_exact', 'date_season', 'date_season_yyyy',
       'firstName'   : 'person.first_name',  # creator, #creator_other
       'language'    : 'language.language',
       'lastName'    : 'person.last_name',  # creator, #creator_other
       'name'        : 'person.person',  # creator, #creator_other
-      'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
+      # 'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
       'publisher'   : 'publisher.publisher',
       'rights'      : 'rights.rights',
       'title'       : 'title.title',
-      'volume'      : 'source.source',
+      # 'volume'      : 'source.source',
     }
 
     self.key_to_csv_field = {
@@ -278,36 +281,73 @@ class Output(Upload):
       # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
     return "; ".join(current_persons_list)
 
-  def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
+  def make_combined_values_from_z(self, z_entry_data):
+    combined_values_from_z = defaultdict()
     try:
-      # 'Source': 'Issue' and 'Pages' as well? So the formate would look like: 'Volume'('Issue'): 'Pages'
-      # 'Format': 'PDF'
-      """
-      'Date.Season (YYYY)': just the YYYY from the 'Date' field in Zotero
+      combined_values_from_z['source'] = "{}({}): {}".format(z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'])
+    except KeyError:
+      pass
+
+    combined_values_from_z['format'] = "PDF"
+
+    secTitle = ""
+    try:
+      secTitle = z_entry_data['bookTitle']
+    except KeyError:
+      pass
+    try:
+      secTitle = z_entry_data['publicationTitle']
+    except KeyError:
+      pass
+
+    creators = ""
+    try:
+      creators = self.flatten_person(z_entry_data['creators'])
+    except KeyError:
+      pass
+
+    try:
+      combined_values_from_z['bibliographic_citation'] = """{}. {}. {} {}. {} ({}): {}. {}""".format(creators, z_entry_data['title'], secTitle, z_entry_data['series'], z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'], z_entry_data['url'])
+    except KeyError:
+      pass
+
+    try:
+        combined_values_from_z['subject_other'] = ", ".join(z_entry_data['tags'])
+    except KeyError:
+      pass
+
+    return combined_values_from_z
+    """
+    'Source': 'Issue' and 'Pages' as well? So the formate would look like: 'Volume'('Issue'): 'Pages'
+    'Format': 'PDF'
+    'Date.Season (YYYY)': just the YYYY from the 'Date' field in Zotero
 
 'Bibliographic Citation':
-    The field 'DOI' (or 'ISSN', if there is no 'DOI') would be OK here. 
+  The field 'DOI' (or 'ISSN', if there is no 'DOI') would be OK here.
 
-However, ideally it would be better to concatonate a few of the fields and populate this field with the combined result. This way we could create a full bibliographic citation in Chicago style. 
+However, ideally it would be better to concatonate a few of the fields and populate this field with the combined result. This way we could create a full bibliographic citation in Chicago style.
 Something like:
 
 Authors + Title + Publication/ Book Title + Series + Volume + (Issue): + Pages. + URL
- 
+
 example for row 2372:
 
 Adams, Byron J., Richard D. Bardgett, Edward Ayres, Diana H. Wall, Jackie Aislabie, Stuart Bamforth, Roberto Bargagli, et al. 2006. “Diversity and Distribution of Victoria Land Biota.” Soil Biology and Biochemistry, Antarctic Victoria Land Soil Ecology, 38 (10): 3003–18. https://doi.org/10.1016/j.soilbio.2006.04.030.
 
-      """
+    """
 
-      """
-      z_entry['data']['tags']
-      'Subject.Other':
-    From the Zotero GUI, there is a tab called 'Tags' which shows keywords for many publications. It would be great if these could be important here (separated by semi-colons). If not, no problem.
-      
-      """
+    """
+    z_entry['data']['tags']
+    'Subject.Other':
+  From the Zotero GUI, there is a tab called 'Tags' which shows keywords for many publications. It would be great if these could be important here (separated by semi-colons). If not, no problem.
+
+    """
+
+
+  def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
+    try:
       db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
-
       if isinstance(data_val_dict, list):
         self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
       else:
@@ -317,12 +357,17 @@ Adams, Byron J., Richard D. Bardgett, Edward Ayres, Diana H. Wall, Jackie Aislab
       pass # zotero field is not in the db field names list
 
   def make_upload_queries(self):
+    all_collections = set()
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
       self.entry_rows_dict[z_key] = defaultdict()
-      for k, v in z_entry['data'].items():
+      combined_values_from_z = self.make_combined_values_from_z(z_entry['data'])
+      dict_to_use = {**combined_values_from_z, **z_entry['data']}
+      all_collections = all_collections | set(dict_to_use['collections'])
+      for k, v in dict_to_use.items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
+    print(set(all_collections))
 
 
 class DownloadFilesFromZotero(FileRetrival):
@@ -368,14 +413,9 @@ class Export:
       for collection_key in all_keys:
         items = zot.everything(zot.collection_items(collection_key))
         self.all_items_dump += items
-        # itemKeys += [x['key'] for x in items]
 
     if args.raw_zotero_entries:
       self.dump_raw_zotero_entries()
-
-    # f_name = "itemKeys.txt"
-    # with open(f_name, "a") as outfile:
-    #   outfile.write("\n".join(itemKeys))
 
   def dump_raw_zotero_entries(self):
     print("Downloading each Zotero entry into a separate tsv file")
