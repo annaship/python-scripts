@@ -184,11 +184,11 @@ class Output(Upload):
         val_dict = {defaultdict: 8} defaultdict(None, {'source_id': 305, 'format_id': 2, 'bibliographic_citation_id': 2, 'title_id': 3, 'role_id': 2, 'person_id': 2, 'description_id': 2, 'season_id': 2})
         """
         current_output_dict = self.correct_keys(val_dict)
-        current_output_dict = self.check_or_create_identifier(current_output_dict)
         current_output_dict = self.add_metadata_type(current_output_dict)
-        dict_w_all_ids = self.find_empty_ids(current_output_dict)
-        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
-                                                   tuple(dict_w_all_ids.values()))
+        current_output_dict = self.find_empty_ids(current_output_dict)
+        current_output_dict = self.check_or_create_identifier(current_output_dict)
+        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(current_output_dict.keys()),
+                                                   tuple(current_output_dict.values()))
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
@@ -316,9 +316,7 @@ class Output(Upload):
       pass
 
     try:
-      tags = []
-      for d in z_entry_data['tags']:
-        tags.append(d['tag'])
+      tags = [d['tag'] for d in z_entry_data['tags']]
       combined_values_from_z['subject_other'] = ", ".join(tags)
     except KeyError:
       pass
