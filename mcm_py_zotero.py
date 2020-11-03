@@ -50,6 +50,12 @@ class Output(Upload):
       # 'volume'      : 'source.source',
     }
 
+    self.substitute_keys = {
+      "person_id": "creator_id",
+      "season_id": "date_season_id",
+      "content_url_id": "content_url_id",
+    }
+
     self.key_to_csv_field = {
       "identifier"                 : "Identifier",
       "title"                      : "Title",
@@ -84,9 +90,8 @@ class Output(Upload):
       "publisher"                  : "Publisher",
       "publisher_location"         : "Publisher Location",
       "bibliographic_citation"     : "Bibliographic Citation",
-      "Rights"                     : "rights"
+      "rights"                     : "Rights"
     }
-
 
     self.data_managing = DataManaging()
     self.metadata_type_table_name = "type"
@@ -135,11 +140,10 @@ class Output(Upload):
     temp_dict = defaultdict()
     for k, v in val_dict.items():
       if k[:-3] in self.many_values_to_one_field.keys():
-        k_new = ""
-        if k == "person_id":
-          k_new = "creator_id"
-        elif k == "season_id":
-          k_new = "date_season_id"
+        try:
+          k_new = self.substitute_keys[k]
+        except KeyError:
+          k_new = ""
         temp_dict[k_new] = v
       else:
         temp_dict[k] = v
@@ -177,7 +181,7 @@ class Output(Upload):
     for key, val_dict in self.entry_rows_dict.items():
       if len(val_dict) > 0:
         """
-        self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
+        val_dict = {defaultdict: 8} defaultdict(None, {'source_id': 305, 'format_id': 2, 'bibliographic_citation_id': 2, 'title_id': 3, 'role_id': 2, 'person_id': 2, 'description_id': 2, 'season_id': 2})
         """
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
@@ -312,37 +316,23 @@ class Output(Upload):
       pass
 
     try:
-        combined_values_from_z['subject_other'] = ", ".join(z_entry_data['tags'])
+      tags = []
+      for d in z_entry_data['tags']:
+        tags.append(d['tag'])
+      combined_values_from_z['subject_other'] = ", ".join(tags)
     except KeyError:
       pass
+    # except TypeError:
+    #   print("TTT z_entry_data['tags'] {}".format(z_entry_data['tags']))
+    """TTT
+    z_entry_data['tags'][
+      {'tag': "chlorophyll <span class='italic'>a</span>", 'type': 1}, {'tag': 'conductivity', 'type': 1}, {
+        'tag': 'nutrients', 'type': 1
+      }, {'tag': 'pH', 'type': 1}, {'tag': 'pond ecosystems', 'type': 1}, {'tag': 'temporal change', 'type': 1}]
+    TTT
+    z_entry_data['tags'][{'tag': '#broken_attachments'}, {'tag': '#duplicate_attachments'}]"""
 
     return combined_values_from_z
-    """
-    'Source': 'Issue' and 'Pages' as well? So the formate would look like: 'Volume'('Issue'): 'Pages'
-    'Format': 'PDF'
-    'Date.Season (YYYY)': just the YYYY from the 'Date' field in Zotero
-
-'Bibliographic Citation':
-  The field 'DOI' (or 'ISSN', if there is no 'DOI') would be OK here.
-
-However, ideally it would be better to concatonate a few of the fields and populate this field with the combined result. This way we could create a full bibliographic citation in Chicago style.
-Something like:
-
-Authors + Title + Publication/ Book Title + Series + Volume + (Issue): + Pages. + URL
-
-example for row 2372:
-
-Adams, Byron J., Richard D. Bardgett, Edward Ayres, Diana H. Wall, Jackie Aislabie, Stuart Bamforth, Roberto Bargagli, et al. 2006. “Diversity and Distribution of Victoria Land Biota.” Soil Biology and Biochemistry, Antarctic Victoria Land Soil Ecology, 38 (10): 3003–18. https://doi.org/10.1016/j.soilbio.2006.04.030.
-
-    """
-
-    """
-    z_entry['data']['tags']
-    'Subject.Other':
-  From the Zotero GUI, there is a tab called 'Tags' which shows keywords for many publications. It would be great if these could be important here (separated by semi-colons). If not, no problem.
-
-    """
-
 
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
@@ -363,10 +353,14 @@ Adams, Byron J., Richard D. Bardgett, Edward Ayres, Diana H. Wall, Jackie Aislab
       self.entry_rows_dict[z_key] = defaultdict()
       combined_values_from_z = self.make_combined_values_from_z(z_entry['data'])
       dict_to_use = {**combined_values_from_z, **z_entry['data']}
-      all_collections = all_collections | set(dict_to_use['collections'])
+      try:
+        all_collections = all_collections | set(dict_to_use['collections'])
+      except KeyError:
+        pass
       for k, v in dict_to_use.items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
+    print("CCC set(all_collections)")
     print(set(all_collections))
 
 
