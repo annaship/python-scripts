@@ -20,7 +20,7 @@ import csv
 library_id = "1415490"
 library_type = "group"
 api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
-collectionIDs = ["AMJZ6VM2", "AQNRKZB2"]
+collectionIDs = ['37TI82V3', 'AQNRKZB2', 'AMJZ6VM2', 'DLLAHRNY', 'BN6W93P3', 'ZGX6YQIQ', 'KG7KJ3QE']
 
 zot = zotero.Zotero(library_id, library_type, api_key)
 
@@ -322,14 +322,13 @@ class Output(Upload):
       combined_values_from_z['subject_other'] = ", ".join(tags)
     except KeyError:
       pass
-    # except TypeError:
-    #   print("TTT z_entry_data['tags'] {}".format(z_entry_data['tags']))
-    """TTT
+
+    """
     z_entry_data['tags'][
       {'tag': "chlorophyll <span class='italic'>a</span>", 'type': 1}, {'tag': 'conductivity', 'type': 1}, {
         'tag': 'nutrients', 'type': 1
       }, {'tag': 'pH', 'type': 1}, {'tag': 'pond ecosystems', 'type': 1}, {'tag': 'temporal change', 'type': 1}]
-    TTT
+  
     z_entry_data['tags'][{'tag': '#broken_attachments'}, {'tag': '#duplicate_attachments'}]"""
 
     return combined_values_from_z
@@ -347,21 +346,14 @@ class Output(Upload):
       pass # zotero field is not in the db field names list
 
   def make_upload_queries(self):
-    all_collections = set()
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
       self.entry_rows_dict[z_key] = defaultdict()
       combined_values_from_z = self.make_combined_values_from_z(z_entry['data'])
       dict_to_use = {**combined_values_from_z, **z_entry['data']}
-      try:
-        all_collections = all_collections | set(dict_to_use['collections'])
-      except KeyError:
-        pass
       for k, v in dict_to_use.items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
-    print("CCC set(all_collections)")
-    print(set(all_collections))
 
 
 class DownloadFilesFromZotero(FileRetrival):
