@@ -101,6 +101,7 @@ class Output(Upload):
 
     self.entry_rows_dict = defaultdict()
     self.out_list_of_dict_of_vals = []
+    self.out_list_of_dict_of_vals_z_keys = []
     self.roles = defaultdict()
     if args.output_file:
       self.out_file_name = args.output_file
@@ -112,9 +113,15 @@ class Output(Upload):
     elif not args.no_db_upload:
       print("Uploading Zotero entries into the database")
 
+      self.upload_zotero_keys()
       self.make_upload_queries()
       self.insert_entry_row()
       print("DONE uploading Zotero")
+
+  def upload_zotero_keys(self):
+    """Upload all zotero keys and keep reference with MCM type identifier in order to have only one identifier per z-key"""
+    all_z_keys = [z_entry['key'] for z_entry in export.all_items_dump]
+    self.simple_mass_upload('zotero_key', 'zotero_key', all_z_keys)
 
   def out_to_tsv_file(self):
 
@@ -123,7 +130,7 @@ class Output(Upload):
 
     try:
       with open(self.out_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = csv_columns)
+        writer = csv.DictWriter(csvfile, delimiter = ",", fieldnames = csv_columns, quoting = csv.QUOTE_ALL)
         writer.writeheader()
         for data in self.out_list_of_dict_of_vals:
           writer.writerow(data)
@@ -162,12 +169,34 @@ class Output(Upload):
     val_dict[self.metadata_type_table_name + "_id"] = self.metadata_type_id
     return val_dict
 
-  def check_or_create_identifier(self, val_dict):
-    identifier_id = self.check_if_in_entry(val_dict)
+  def check_or_create_identifier(self, z_key, val_dict):
+    identifier_id = self.check_if_exists(z_key)
     if int(identifier_id) <= 0:
       (identifier_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
+      self.insert_identifier_id_into_z_key(z_key, identifier_id)
     val_dict[self.data_managing.identifier_table_name + "_id"] = identifier_id
     return val_dict
+
+  def insert_identifier_id_into_z_key(self, z_key, identifier_id):
+    zotero_key_table_name = "zotero_key"
+    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+
+    update_q = '''UPDATE {}
+      SET {} = %s 
+      WHERE {} = %s
+      '''.format(zotero_key_table_name, identifier_id_name, zotero_key_table_name)
+    self.mysql_utils.execute_no_fetch(update_q, [identifier_id, z_key])
+    "Update zotero_key set identifier_id = identifier_id where zotero_key = zotero_key"
+
+  def check_if_exists(self, z_key):
+    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+    zotero_key_table_name = "zotero_key"
+    # select_identifier_id_query = """SELECT {} FROM {} WHERE zotero_key = %s""".format(identifier_id_name, zotero_key_table_name) #z_key
+    try:
+      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, zotero_key_table_name, [zotero_key_table_name], [z_key])
+    except IndexError:
+      identifier_id = 0
+    return identifier_id
 
   def check_if_in_entry(self, val_dict):
     identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
@@ -191,7 +220,7 @@ class Output(Upload):
          select_q = '''SELECT entry_id FROM entry WHERE {}'''.format(all_ids_row)
     *) if not exists insert
     """
-    for key, val_dict in self.entry_rows_dict.items():
+    for z_key, val_dict in self.entry_rows_dict.items():
       if len(val_dict) > 0:
         """
         val_dict = {defaultdict: 8} defaultdict(None, {'source_id': 305, 'format_id': 2, 'bibliographic_citation_id': 2, 'title_id': 3, 'role_id': 2, 'person_id': 2, 'description_id': 2, 'season_id': 2})
@@ -199,7 +228,7 @@ class Output(Upload):
         current_output_dict = self.correct_keys(val_dict)
         current_output_dict = self.add_metadata_type(current_output_dict)
         current_output_dict = self.find_empty_ids(current_output_dict)
-        current_output_dict = self.check_or_create_identifier(current_output_dict)
+        current_output_dict = self.check_or_create_identifier(z_key, current_output_dict)
         """ TODO: Add "On duplicate update
         /Users/ashipunova/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry '3' for key 'identifier_id'")
 
@@ -240,7 +269,7 @@ class Output(Upload):
 
   def single_quote_encoding_err_handle(self, table_name, field_name, value):
     value_part = value.split("'")[0] + "%"
-    id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name + "_id", table_name, field_name)
+    id_query = "SELECT {} FROM {} WHERE {} LIKE %s".format(field_name + "_id", table_name, field_name)
     id_result_full = self.mysql_utils.execute_fetch_select(id_query, value_part)
     db_id = list(utils.extract(id_result_full))[0]
     return db_id
@@ -286,8 +315,10 @@ class Output(Upload):
               temp_dict[tsv_field_name] = val
           except KeyError:
             pass
-      if len(temp_dict) > 0:
-        self.out_list_of_dict_of_vals.append(temp_dict)
+      if temp_dict['z_key'] not in self.out_list_of_dict_of_vals_z_keys:
+        self.out_list_of_dict_of_vals_z_keys.append(temp_dict['z_key'])
+        if len(temp_dict) > 0:
+          self.out_list_of_dict_of_vals.append(temp_dict)
 
   def flatten_person(self, val_dict):
     current_persons_list = []
