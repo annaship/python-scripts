@@ -163,10 +163,23 @@ class Output(Upload):
     return val_dict
 
   def check_or_create_identifier(self, val_dict):
-    if 'identifier' not in val_dict.keys():
-      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
-      val_dict[self.data_managing.identifier_table_name + "_id"] = db_id
-      return val_dict
+    identifier_id = self.check_if_in_entry(val_dict)
+    if int(identifier_id) <= 0:
+      (identifier_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
+    val_dict[self.data_managing.identifier_table_name + "_id"] = identifier_id
+    return val_dict
+
+  def check_if_in_entry(self, val_dict):
+    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+    dict_copy = dict(val_dict)
+    del dict_copy[identifier_id_name]
+    try:
+      # test wrong one
+      # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
+    except IndexError:
+      identifier_id = 0
+    return identifier_id
 
   def insert_entry_row(self):
     """
@@ -187,6 +200,10 @@ class Output(Upload):
         current_output_dict = self.add_metadata_type(current_output_dict)
         current_output_dict = self.find_empty_ids(current_output_dict)
         current_output_dict = self.check_or_create_identifier(current_output_dict)
+        """ TODO: Add "On duplicate update
+        /Users/ashipunova/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry '3' for key 'identifier_id'")
+
+        """
         self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(current_output_dict.keys()),
                                                    tuple(current_output_dict.values()))
 
