@@ -191,7 +191,6 @@ class Output(Upload):
   def check_if_exists(self, z_key):
     identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
     zotero_key_table_name = "zotero_key"
-    # select_identifier_id_query = """SELECT {} FROM {} WHERE zotero_key = %s""".format(identifier_id_name, zotero_key_table_name) #z_key
     try:
       identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, zotero_key_table_name, [zotero_key_table_name], [z_key])
     except IndexError:
@@ -203,8 +202,6 @@ class Output(Upload):
     dict_copy = dict(val_dict)
     del dict_copy[identifier_id_name]
     try:
-      # test wrong one
-      # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
       identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
     except IndexError:
       identifier_id = 0
@@ -293,7 +290,7 @@ class Output(Upload):
       person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
       current_persons_list.append(full_name)
 
-      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles could be in one dict
+      self.entry_rows_dict[z_key]["role_id"] = role_db_id1
 
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
@@ -326,11 +323,6 @@ class Output(Upload):
     for d in val_dict:
       full_name = self.make_full_name(d)
       current_persons_list.append(full_name)
-      # make dict of creator_types to csv fields correspondens
-      # current_role = d['creatorType']
-      # current_persons_dict[current_role] = full_name
-
-      # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
     return "; ".join(current_persons_list)
 
   def make_combined_values_from_z(self, z_entry_data):
@@ -369,14 +361,6 @@ class Output(Upload):
     except KeyError:
       pass
 
-    """
-    z_entry_data['tags'][
-      {'tag': "chlorophyll <span class='italic'>a</span>", 'type': 1}, {'tag': 'conductivity', 'type': 1}, {
-        'tag': 'nutrients', 'type': 1
-      }, {'tag': 'pH', 'type': 1}, {'tag': 'pond ecosystems', 'type': 1}, {'tag': 'temporal change', 'type': 1}]
-  
-    z_entry_data['tags'][{'tag': '#broken_attachments'}, {'tag': '#duplicate_attachments'}]"""
-
     return combined_values_from_z
 
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
@@ -384,7 +368,7 @@ class Output(Upload):
       db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
       if isinstance(data_val_dict, list):
-        self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
+        self.update_person(data_val_dict, z_key, table_name, field_name)
       else:
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, data_val_dict)
         self.entry_rows_dict[z_key][field_name + "_id"] = db_id
@@ -441,7 +425,6 @@ class Export:
 
     else:
       # USE this for real:
-      # self.all_items_dump = self.dump_all_items()
       for collection_key in all_keys:
         items = zot.everything(zot.collection_items(collection_key))
         self.all_items_dump += items
