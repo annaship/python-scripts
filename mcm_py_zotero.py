@@ -20,6 +20,7 @@ import csv
 library_id = "1415490"
 library_type = "group"
 api_key = "U4CPfWiKzcs7iyJV9IdPnEZU"
+collectionIDs = ['37TI82V3', 'AQNRKZB2', 'AMJZ6VM2', 'DLLAHRNY', 'BN6W93P3', 'ZGX6YQIQ', 'KG7KJ3QE']
 
 zot = zotero.Zotero(library_id, library_type, api_key)
 
@@ -28,19 +29,31 @@ class Output(Upload):
   def __init__(self):
     Upload.__init__(self)
     self.zotero_to_sql_fields = {
-      'creators'    : 'role.role', # creator
-      'name'        : 'person.person',  # creator, #creator_other
-      'firstName'   : 'person.first_name',  # creator, #creator_other
-      'lastName'    : 'person.last_name',  # creator, #creator_other
+      # 'accessed'    : 'season.season', #date_digital
+      'url'         : 'content_url.content_url',
+      'bibliographic_citation': 'bibliographic_citation.bibliographic_citation',
+      'source'      : 'source.source', #'Volume'('Issue'): 'Pages'
+      'format': 'format.format',
+      'subject_other': 'subject_other.subject_other',
       'abstractNote': 'description.description',
-      'bookTitle'   : 'title.title',
-      'title'       : 'title.title',
+      # 'bookTitle'   : 'title.title',
+      'creators'    : 'role.role', # creator
       'date'        : 'season.season',  # 'date_exact', 'date_season', 'date_season_yyyy',
+      'firstName'   : 'person.first_name',  # creator, #creator_other
       'language'    : 'language.language',
-      'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
+      'lastName'    : 'person.last_name',  # creator, #creator_other
+      'name'        : 'person.person',  # creator, #creator_other
+      # 'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
       'publisher'   : 'publisher.publisher',
       'rights'      : 'rights.rights',
-      'volume'      : 'source.source',
+      'title'       : 'title.title',
+      # 'volume'      : 'source.source',
+    }
+
+    self.substitute_keys = {
+      "person_id": "creator_id",
+      "season_id": "date_season_id",
+      "content_url_id": "content_url_id",
     }
 
     self.key_to_csv_field = {
@@ -52,7 +65,7 @@ class Output(Upload):
       "content_url_transcript"     : "Content URL (Transcript)",
       "creator"                    : "Creator",
       "creator_other"              : "Creator.Other",
-      "subject_aplace"             : "Subject.Place",
+      "subject_place"             : "Subject.Place",
       "coverage_lat"               : "Coverage.Lat",
       "coverage_long"              : "Coverage.Long",
       "subject_associated_places"  : "Subject.Associated.Places",
@@ -60,7 +73,7 @@ class Output(Upload):
       "subject_academic_field"     : "Subject.Academic.Field",
       "subject_other"              : "Subject.Other",
       "subject_season"             : "Subject.Season",
-      "season"                : "Date.Season",
+      "season"                     : "Date.Season",
       "date_season"                : "Date.Season",
       "date_season_yyyy"           : "Date.Season (YYYY)",
       "date_exact"                 : "Date.Exact",
@@ -77,9 +90,8 @@ class Output(Upload):
       "publisher"                  : "Publisher",
       "publisher_location"         : "Publisher Location",
       "bibliographic_citation"     : "Bibliographic Citation",
-      "Rights"                     : "rights"
+      "rights"                     : "Rights"
     }
-
 
     self.data_managing = DataManaging()
     self.metadata_type_table_name = "type"
@@ -89,6 +101,7 @@ class Output(Upload):
 
     self.entry_rows_dict = defaultdict()
     self.out_list_of_dict_of_vals = []
+    self.out_list_of_dict_of_vals_z_keys = []
     self.roles = defaultdict()
     if args.output_file:
       self.out_file_name = args.output_file
@@ -100,9 +113,15 @@ class Output(Upload):
     elif not args.no_db_upload:
       print("Uploading Zotero entries into the database")
 
+      self.upload_zotero_keys()
       self.make_upload_queries()
       self.insert_entry_row()
       print("DONE uploading Zotero")
+
+  def upload_zotero_keys(self):
+    """Upload all zotero keys and keep reference with MCM type identifier in order to have only one identifier per z-key"""
+    all_z_keys = [z_entry['key'] for z_entry in export.all_items_dump]
+    self.simple_mass_upload('zotero_key', 'zotero_key', all_z_keys)
 
   def out_to_tsv_file(self):
 
@@ -111,7 +130,7 @@ class Output(Upload):
 
     try:
       with open(self.out_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = csv_columns)
+        writer = csv.DictWriter(csvfile, delimiter = ",", fieldnames = csv_columns, quoting = csv.QUOTE_ALL)
         writer.writeheader()
         for data in self.out_list_of_dict_of_vals:
           writer.writerow(data)
@@ -128,11 +147,10 @@ class Output(Upload):
     temp_dict = defaultdict()
     for k, v in val_dict.items():
       if k[:-3] in self.many_values_to_one_field.keys():
-        k_new = ""
-        if k == "person_id":
-          k_new = "creator_id"
-        elif k == "season_id":
-          k_new = "date_season_id"
+        try:
+          k_new = self.substitute_keys[k]
+        except KeyError:
+          k_new = ""
         temp_dict[k_new] = v
       else:
         temp_dict[k] = v
@@ -151,11 +169,46 @@ class Output(Upload):
     val_dict[self.metadata_type_table_name + "_id"] = self.metadata_type_id
     return val_dict
 
-  def check_or_create_identifier(self, val_dict):
-    if 'identifier' not in val_dict.keys():
-      (db_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
-      val_dict[self.data_managing.identifier_table_name + "_id"] = db_id
-      return val_dict
+  def check_or_create_identifier(self, z_key, val_dict):
+    identifier_id = self.check_if_exists(z_key)
+    if int(identifier_id) <= 0:
+      (identifier_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
+      self.insert_identifier_id_into_z_key(z_key, identifier_id)
+    val_dict[self.data_managing.identifier_table_name + "_id"] = identifier_id
+    return val_dict
+
+  def insert_identifier_id_into_z_key(self, z_key, identifier_id):
+    zotero_key_table_name = "zotero_key"
+    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+
+    update_q = '''UPDATE {}
+      SET {} = %s 
+      WHERE {} = %s
+      '''.format(zotero_key_table_name, identifier_id_name, zotero_key_table_name)
+    self.mysql_utils.execute_no_fetch(update_q, [identifier_id, z_key])
+    "Update zotero_key set identifier_id = identifier_id where zotero_key = zotero_key"
+
+  def check_if_exists(self, z_key):
+    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+    zotero_key_table_name = "zotero_key"
+    # select_identifier_id_query = """SELECT {} FROM {} WHERE zotero_key = %s""".format(identifier_id_name, zotero_key_table_name) #z_key
+    try:
+      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, zotero_key_table_name, [zotero_key_table_name], [z_key])
+    except IndexError:
+      identifier_id = 0
+    return identifier_id
+
+  def check_if_in_entry(self, val_dict):
+    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+    dict_copy = dict(val_dict)
+    del dict_copy[identifier_id_name]
+    try:
+      # test wrong one
+      # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
+    except IndexError:
+      identifier_id = 0
+    return identifier_id
 
   def insert_entry_row(self):
     """
@@ -167,17 +220,21 @@ class Output(Upload):
          select_q = '''SELECT entry_id FROM entry WHERE {}'''.format(all_ids_row)
     *) if not exists insert
     """
-    for key, val_dict in self.entry_rows_dict.items():
+    for z_key, val_dict in self.entry_rows_dict.items():
       if len(val_dict) > 0:
         """
-        self.entry_rows_dict = {defaultdict: 5} defaultdict(None, {'JSQB7M8J': defaultdict(None, {'title_id': 4791, 'person': [{'person_id': 1121, 'role_id': 1}], 'publisher_id': 14, 'source_id': 802, 'season_id': 457}), 'NKVCAI2K': defaultdict(None, {}), '4Q3GMMWU': defaultdict(None, {}),...
+        val_dict = {defaultdict: 8} defaultdict(None, {'source_id': 305, 'format_id': 2, 'bibliographic_citation_id': 2, 'title_id': 3, 'role_id': 2, 'person_id': 2, 'description_id': 2, 'season_id': 2})
         """
         current_output_dict = self.correct_keys(val_dict)
-        current_output_dict = self.check_or_create_identifier(current_output_dict)
         current_output_dict = self.add_metadata_type(current_output_dict)
-        dict_w_all_ids = self.find_empty_ids(current_output_dict)
-        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(dict_w_all_ids.keys()),
-                                                   tuple(dict_w_all_ids.values()))
+        current_output_dict = self.find_empty_ids(current_output_dict)
+        current_output_dict = self.check_or_create_identifier(z_key, current_output_dict)
+        """ TODO: Add "On duplicate update
+        /Users/ashipunova/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry '3' for key 'identifier_id'")
+
+        """
+        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(current_output_dict.keys()),
+                                                   tuple(current_output_dict.values()))
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
@@ -212,7 +269,7 @@ class Output(Upload):
 
   def single_quote_encoding_err_handle(self, table_name, field_name, value):
     value_part = value.split("'")[0] + "%"
-    id_query = "SELECT {} FROM {} WHERE {} like %s".format(field_name + "_id", table_name, field_name)
+    id_query = "SELECT {} FROM {} WHERE {} LIKE %s".format(field_name + "_id", table_name, field_name)
     id_result_full = self.mysql_utils.execute_fetch_select(id_query, value_part)
     db_id = list(utils.extract(id_result_full))[0]
     return db_id
@@ -258,8 +315,10 @@ class Output(Upload):
               temp_dict[tsv_field_name] = val
           except KeyError:
             pass
-      if len(temp_dict) > 0:
-        self.out_list_of_dict_of_vals.append(temp_dict)
+      if temp_dict['z_key'] not in self.out_list_of_dict_of_vals_z_keys:
+        self.out_list_of_dict_of_vals_z_keys.append(temp_dict['z_key'])
+        if len(temp_dict) > 0:
+          self.out_list_of_dict_of_vals.append(temp_dict)
 
   def flatten_person(self, val_dict):
     current_persons_list = []
@@ -274,11 +333,56 @@ class Output(Upload):
       # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
     return "; ".join(current_persons_list)
 
+  def make_combined_values_from_z(self, z_entry_data):
+    combined_values_from_z = defaultdict()
+    try:
+      combined_values_from_z['source'] = "{}({}): {}".format(z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'])
+    except KeyError:
+      pass
+
+    combined_values_from_z['format'] = "PDF"
+
+    secTitle = ""
+    try:
+      secTitle = z_entry_data['bookTitle']
+    except KeyError:
+      pass
+    try:
+      secTitle = z_entry_data['publicationTitle']
+    except KeyError:
+      pass
+
+    creators = ""
+    try:
+      creators = self.flatten_person(z_entry_data['creators'])
+    except KeyError:
+      pass
+
+    try:
+      combined_values_from_z['bibliographic_citation'] = """{}. {}. {} {}. {} ({}): {}. {}""".format(creators, z_entry_data['title'], secTitle, z_entry_data['series'], z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'], z_entry_data['url'])
+    except KeyError:
+      pass
+
+    try:
+      tags = [d['tag'] for d in z_entry_data['tags']]
+      combined_values_from_z['subject_other'] = ", ".join(tags)
+    except KeyError:
+      pass
+
+    """
+    z_entry_data['tags'][
+      {'tag': "chlorophyll <span class='italic'>a</span>", 'type': 1}, {'tag': 'conductivity', 'type': 1}, {
+        'tag': 'nutrients', 'type': 1
+      }, {'tag': 'pH', 'type': 1}, {'tag': 'pond ecosystems', 'type': 1}, {'tag': 'temporal change', 'type': 1}]
+  
+    z_entry_data['tags'][{'tag': '#broken_attachments'}, {'tag': '#duplicate_attachments'}]"""
+
+    return combined_values_from_z
+
   def make_entry_rows_dict_of_ids(self, key, data_val_dict, z_key):
     try:
       db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
-
       if isinstance(data_val_dict, list):
         self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
       else:
@@ -291,7 +395,9 @@ class Output(Upload):
     for z_entry in export.all_items_dump:
       z_key = z_entry['key']
       self.entry_rows_dict[z_key] = defaultdict()
-      for k, v in z_entry['data'].items():
+      combined_values_from_z = self.make_combined_values_from_z(z_entry['data'])
+      dict_to_use = {**combined_values_from_z, **z_entry['data']}
+      for k, v in dict_to_use.items():
         if v:
           self.make_entry_rows_dict_of_ids(k, v, z_key)
 
@@ -323,21 +429,41 @@ class DownloadFilesFromZotero(FileRetrival):
 class Export:
   def __init__(self):
 
+    utils = util.Utils()
+    self.all_items_dump = []
+    all_keys = self.get_all_coll_key()
+
+    itemKeys = []
+
     if args.get_5_zotero_entries:
       # debug short
       self.all_items_dump = zot.top(limit = 5)
+
     else:
       # USE this for real:
-      self.all_items_dump = self.dump_all_items()
+      # self.all_items_dump = self.dump_all_items()
+      for collection_key in all_keys:
+        items = zot.everything(zot.collection_items(collection_key))
+        self.all_items_dump += items
 
     if args.raw_zotero_entries:
-      print("Downloading each Zotero entry into a separate tsv file")
-      files_util = FileRetrival()
-      self.files_path = files_util.get_files_path("raw_zotero_entries")
-      self.all_items_fields = set()
-      self.get_all_zotero_fields()
-      self.get_all_items_to_tsv_file()
-      print("DONE: downloading each Zotero entry into a separate tsv file")
+      self.dump_raw_zotero_entries()
+
+  def dump_raw_zotero_entries(self):
+    print("Downloading each Zotero entry into a separate tsv file")
+    files_util = FileRetrival()
+    self.files_path = files_util.get_files_path("raw_zotero_entries")
+    self.all_items_fields = set()
+    self.get_all_zotero_fields()
+    self.get_all_items_to_tsv_file()
+    print("DONE: downloading each Zotero entry into a separate tsv file")
+
+  def get_all_coll_key(self):
+    all_keys = []
+    for collectionID in collectionIDs:
+      z = zot.all_collections(collectionID)
+      all_keys += [x["key"] for x in z]
+    return all_keys
 
   def get_all_items_to_file(self):
     dump_all_items = open('dump_all_items.txt', 'w')
@@ -356,7 +482,6 @@ class Export:
       self.write_flat_dict_to_tsv(flat_dict)
 
   def write_flat_dict_to_tsv(self, flat_dict):
-
     keys, values = [], []
     for key, value in flat_dict.items():
       keys.append(key)
