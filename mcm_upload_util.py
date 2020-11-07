@@ -450,22 +450,22 @@ class Upload:
 
     return current_row_dict
 
-  def check_if_id_is_in_entry(self, current_id):
-    """
-    :param current_id:
-    :return: boolean
-    """
-    identifier_table_name = self.metadata.data_managing.identifier_table_name
-    query = """
-    SELECT * FROM {0} JOIN {1} USING({1}_id)
-WHERE {1} = %s
-limit 1;""".format(self.entry_table_name, identifier_table_name)
-    # print(query)
-    res = self.mysql_utils.execute_fetch_select(query, current_id)
-    id_is_in_entry = False
-    if len(res[0]) > 0:
-      id_is_in_entry = True
-    return id_is_in_entry
+#   def check_if_id_is_in_entry(self, current_id):
+#     """
+#     :param current_id:
+#     :return: boolean
+#     """
+#     identifier_table_name = self.metadata.data_managing.identifier_table_name
+#     query = """
+#     SELECT * FROM {0} JOIN {1} USING({1}_id)
+# WHERE {1} = %s
+# limit 1;""".format(self.entry_table_name, identifier_table_name)
+#     # print(query)
+#     res = self.mysql_utils.execute_fetch_select(query, current_id)
+#     id_is_in_entry = False
+#     if len(res[0]) > 0:
+#       id_is_in_entry = True
+#     return id_is_in_entry
 
   def upload_other_tables(self, quiet = False):
     table_name_to_update = self.entry_table_name  # ["entry"]
@@ -491,20 +491,27 @@ limit 1;""".format(self.entry_table_name, identifier_table_name)
 
       # TODO: why diff from tsv_field_names_to_upload_ids?
       all_fields = list(dict_w_all_ids.keys())
-      q_addition = self.format_update_duplicates(current_row_d, all_fields)
+      q_addition = self.format_update_duplicates(all_fields)
       self.mysql_utils.execute_many_fields_one_record(table_name_to_update, all_fields, tuple(dict_w_all_ids.values()),
                                                       ignore = "", addition = q_addition)
 
   # TODO: rm id_is_in_entry check and use for all
-  def format_update_duplicates(self, current_row_d, all_fields):
-    id_is_in_entry = self.check_if_id_is_in_entry(current_row_d[self.metadata.data_managing.identifier_table_name])
+  # def format_update_duplicates(self, current_row_d, all_fields):
+  #   id_is_in_entry = self.check_if_id_is_in_entry(current_row_d[self.metadata.data_managing.identifier_table_name])
+  #
+  #   fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields]
+  #   fields_to_update_str = ", ".join(fields_to_update)
+  #
+  #   q_addition = ""
+  #   if id_is_in_entry:
+  #     q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+  #   return q_addition
 
-    fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in all_fields]
+  def format_update_duplicates(self, fields):
+    fields_to_update = ["{0} = VALUES({0})".format(field_name) for field_name in fields]
     fields_to_update_str = ", ".join(fields_to_update)
 
-    q_addition = ""
-    if id_is_in_entry:
-      q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
+    q_addition = """ ON DUPLICATE KEY UPDATE {}""".format(fields_to_update_str)
     return q_addition
 
 
