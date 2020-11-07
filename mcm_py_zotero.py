@@ -130,7 +130,7 @@ class Output(Upload):
 
     try:
       with open(self.out_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter = ",", fieldnames = csv_columns, quoting = csv.QUOTE_ALL)
+        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = csv_columns, quoting = csv.QUOTE_ALL)
         writer.writeheader()
         for data in self.out_list_of_dict_of_vals:
           writer.writerow(data)
@@ -231,9 +231,13 @@ class Output(Upload):
         current_output_dict = self.check_or_create_identifier(z_key, current_output_dict)
         """ TODO: Add "On duplicate update
         /Users/ashipunova/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry '3' for key 'identifier_id'")
+          fields_to_update_str = "{0} = VALUES({0})".format(field_name)
+          on_dup = "ON DUPLICATE KEY UPDATE {}".format(fields_to_update_str)
 
         """
-        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(current_output_dict.keys()),
+        all_fields = list(current_output_dict.keys())
+        q_addition = self.format_update_duplicates(all_fields)
+        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, all_fields,
                                                    tuple(current_output_dict.values()))
 
   def make_full_name(self, val_d):
@@ -334,23 +338,48 @@ class Output(Upload):
     return "; ".join(current_persons_list)
 
   def make_combined_values_from_z(self, z_entry_data):
-    combined_values_from_z = defaultdict()
-    try:
-      combined_values_from_z['source'] = "{}({}): {}".format(z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'])
-    except KeyError:
-      pass
+    # TODO: DRY
+    keys_from_z_entry_data = ['bookTitle',
+'creators',
+'issue',
+'pages',
+'publicationTitle',
+'series',
+'tags',
+'tags',
+'title',
+'url',
+'volume']
 
-    combined_values_from_z['format'] = "PDF"
+    keys_for_combined_values_from_z = ['bibliographic_citation',
+'format',
+'source',
+'subject_other']
+
+    combined_values_from_z = defaultdict()
+    exist_from_z_entry_data = defaultdict()
+
+    for key in keys_from_z_entry_data:
+      if key in z_entry_data.keys() and len(z_entry_data[key]) > 0:
+        exist_from_z_entry_data[key] = z_entry_data[key]
+
+    issue = ""
+    if 'issue' in exist_from_z_entry_data.keys():
+      issue = "({})".format(exist_from_z_entry_data['issue'])
+    vol_iss = ""
+    if 'volume' in exist_from_z_entry_data.keys() and issue:
+      vol_iss = "{}{}: ".format(exist_from_z_entry_data['volume'], issue)
+    if 'pages' in exist_from_z_entry_data.keys() and vol_iss:
+      combined_values_from_z['source'] = "{}{} ".format(vol_iss, exist_from_z_entry_data['pages'])
+
+    if 'title' in exist_from_z_entry_data.keys():
+      combined_values_from_z['format'] = "PDF "
 
     secTitle = ""
-    try:
-      secTitle = z_entry_data['bookTitle']
-    except KeyError:
-      pass
-    try:
-      secTitle = z_entry_data['publicationTitle']
-    except KeyError:
-      pass
+    if 'bookTitle' in exist_from_z_entry_data.keys():
+        secTitle = exist_from_z_entry_data['bookTitle']
+    if 'publicationTitle' in exist_from_z_entry_data.keys():
+        secTitle = exist_from_z_entry_data['publicationTitle']
 
     creators = ""
     try:
@@ -359,15 +388,16 @@ class Output(Upload):
       pass
 
     try:
-      combined_values_from_z['bibliographic_citation'] = """{}. {}. {} {}. {} ({}): {}. {}""".format(creators, z_entry_data['title'], secTitle, z_entry_data['series'], z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'], z_entry_data['url'])
+      combined_values_from_z['bibliographic_citation'] = """{} {}. {}{}. {}{}""".format(creators,
+                                                                                          z_entry_data['title'],
+                                                                                          secTitle,
+                                                                                          z_entry_data['series'], combined_values_from_z['source'], z_entry_data['url'])
     except KeyError:
       pass
 
-    try:
-      tags = [d['tag'] for d in z_entry_data['tags']]
+    if 'tags' in exist_from_z_entry_data.keys():
+      tags = [d['tag'] for d in exist_from_z_entry_data['tags']]
       combined_values_from_z['subject_other'] = ", ".join(tags)
-    except KeyError:
-      pass
 
     """
     z_entry_data['tags'][
