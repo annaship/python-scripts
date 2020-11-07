@@ -198,17 +198,17 @@ class Output(Upload):
       identifier_id = 0
     return identifier_id
 
-  def check_if_in_entry(self, val_dict):
-    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
-    dict_copy = dict(val_dict)
-    del dict_copy[identifier_id_name]
-    try:
-      # test wrong one
-      # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
-    except IndexError:
-      identifier_id = 0
-    return identifier_id
+  # def check_if_in_entry(self, val_dict):
+  #   identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+  #   dict_copy = dict(val_dict)
+  #   del dict_copy[identifier_id_name]
+  #   try:
+  #     # test wrong one
+  #     # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+  #     identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
+  #   except IndexError:
+  #     identifier_id = 0
+  #   return identifier_id
 
   def insert_entry_row(self):
     """
@@ -238,7 +238,7 @@ class Output(Upload):
         all_fields = list(current_output_dict.keys())
         q_addition = self.format_update_duplicates(all_fields)
         self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, all_fields,
-                                                   tuple(current_output_dict.values()))
+                                                   tuple(current_output_dict.values()), addition = q_addition)
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
