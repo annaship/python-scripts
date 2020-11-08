@@ -181,10 +181,13 @@ class Output(Upload):
     zotero_key_table_name = "zotero_key"
     identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
 
+    # q_addition = self.format_update_duplicates([zotero_key_table_name])
+
     update_q = '''UPDATE {}
       SET {} = %s 
       WHERE {} = %s
       '''.format(zotero_key_table_name, identifier_id_name, zotero_key_table_name)
+
     self.mysql_utils.execute_no_fetch(update_q, [identifier_id, z_key])
     "Update zotero_key set identifier_id = identifier_id where zotero_key = zotero_key"
 
@@ -229,12 +232,6 @@ class Output(Upload):
         current_output_dict = self.add_metadata_type(current_output_dict)
         current_output_dict = self.find_empty_ids(current_output_dict)
         current_output_dict = self.check_or_create_identifier(z_key, current_output_dict)
-        """ TODO: Add "On duplicate update
-        /Users/ashipunova/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry '3' for key 'identifier_id'")
-          fields_to_update_str = "{0} = VALUES({0})".format(field_name)
-          on_dup = "ON DUPLICATE KEY UPDATE {}".format(fields_to_update_str)
-
-        """
         all_fields = list(current_output_dict.keys())
         q_addition = self.format_update_duplicates(all_fields)
         self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, all_fields,
