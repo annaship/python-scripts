@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+# import os
 from pyzotero import zotero
 from collections import defaultdict
 import util
@@ -32,7 +32,7 @@ class Output(Upload):
       # 'accessed'    : 'season.season', #date_digital
       'url'         : 'content_url.content_url',
       'bibliographic_citation': 'bibliographic_citation.bibliographic_citation',
-      'source'      : 'source.source', #'Volume'('Issue'): 'Pages'
+      'source'      : 'source.source', # 'Volume'('Issue'): 'Pages'
       'format': 'format.format',
       'subject_other': 'subject_other.subject_other',
       'abstractNote': 'description.description',
@@ -180,8 +180,6 @@ class Output(Upload):
   def insert_identifier_id_into_z_key(self, z_key, identifier_id):
     zotero_key_table_name = "zotero_key"
     identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
-
-    # q_addition = self.format_update_duplicates([zotero_key_table_name])
 
     update_q = '''UPDATE {}
       SET {} = %s 
@@ -348,10 +346,10 @@ class Output(Upload):
 'url',
 'volume']
 
-    keys_for_combined_values_from_z = ['bibliographic_citation',
-'format',
-'source',
-'subject_other']
+#     keys_for_combined_values_from_z = ['bibliographic_citation',
+# 'format',
+# 'source',
+# 'subject_other']
 
     combined_values_from_z = defaultdict()
     exist_from_z_entry_data = defaultdict()
@@ -372,11 +370,11 @@ class Output(Upload):
     if 'title' in exist_from_z_entry_data.keys():
       combined_values_from_z['format'] = "PDF "
 
-    secTitle = ""
+    sec_title = ""
     if 'bookTitle' in exist_from_z_entry_data.keys():
-        secTitle = exist_from_z_entry_data['bookTitle']
+        sec_title = exist_from_z_entry_data['bookTitle']
     if 'publicationTitle' in exist_from_z_entry_data.keys():
-        secTitle = exist_from_z_entry_data['publicationTitle']
+        sec_title = exist_from_z_entry_data['publicationTitle']
 
     creators = ""
     try:
@@ -387,7 +385,7 @@ class Output(Upload):
     try:
       combined_values_from_z['bibliographic_citation'] = """{} {}. {}{}. {}{}""".format(creators,
                                                                                           z_entry_data['title'],
-                                                                                          secTitle,
+                                                                                          sec_title,
                                                                                           z_entry_data['series'], combined_values_from_z['source'], z_entry_data['url'])
     except KeyError:
       pass
@@ -442,8 +440,8 @@ class DownloadFilesFromZotero(FileRetrival):
       try:
         attachment_d = entry['links']['attachment']
         addr = attachment_d['href']
-        att_type = attachment_d['attachmentType']
-        att_size = attachment_d['attachmentSize']
+        # att_type = attachment_d['attachmentType']
+        # att_size = attachment_d['attachmentSize']
         item_id = addr.rsplit('/', 1)[1]
 
         files_path = self.get_files_path('zotero_attachments')
@@ -456,11 +454,9 @@ class DownloadFilesFromZotero(FileRetrival):
 class Export:
   def __init__(self):
 
-    utils = util.Utils()
+    # utils = util.Utils()
     self.all_items_dump = []
     all_keys = self.get_all_coll_key()
-
-    itemKeys = []
 
     if args.get_5_zotero_entries:
       # debug short
