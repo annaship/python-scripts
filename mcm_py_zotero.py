@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+# import os
 from pyzotero import zotero
 from collections import defaultdict
 import util
@@ -32,7 +32,7 @@ class Output(Upload):
       # 'accessed'    : 'season.season', #date_digital
       'url'         : 'content_url.content_url',
       'bibliographic_citation': 'bibliographic_citation.bibliographic_citation',
-      'source'      : 'source.source', #'Volume'('Issue'): 'Pages'
+      'source'      : 'source.source', # 'Volume'('Issue'): 'Pages'
       'format': 'format.format',
       'subject_other': 'subject_other.subject_other',
       'abstractNote': 'description.description',
@@ -130,7 +130,7 @@ class Output(Upload):
 
     try:
       with open(self.out_file_name, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter = ",", fieldnames = csv_columns, quoting = csv.QUOTE_ALL)
+        writer = csv.DictWriter(csvfile, delimiter = "\t", fieldnames = csv_columns, quoting = csv.QUOTE_ALL)
         writer.writeheader()
         for data in self.out_list_of_dict_of_vals:
           writer.writerow(data)
@@ -185,27 +185,31 @@ class Output(Upload):
       SET {} = %s 
       WHERE {} = %s
       '''.format(zotero_key_table_name, identifier_id_name, zotero_key_table_name)
+
     self.mysql_utils.execute_no_fetch(update_q, [identifier_id, z_key])
     "Update zotero_key set identifier_id = identifier_id where zotero_key = zotero_key"
 
   def check_if_exists(self, z_key):
     identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
     zotero_key_table_name = "zotero_key"
+    # select_identifier_id_query = """SELECT {} FROM {} WHERE zotero_key = %s""".format(identifier_id_name, zotero_key_table_name) #z_key
     try:
       identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, zotero_key_table_name, [zotero_key_table_name], [z_key])
     except IndexError:
       identifier_id = 0
     return identifier_id
 
-  def check_if_in_entry(self, val_dict):
-    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
-    dict_copy = dict(val_dict)
-    del dict_copy[identifier_id_name]
-    try:
-      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
-    except IndexError:
-      identifier_id = 0
-    return identifier_id
+  # def check_if_in_entry(self, val_dict):
+  #   identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+  #   dict_copy = dict(val_dict)
+  #   del dict_copy[identifier_id_name]
+  #   try:
+  #     # test wrong one
+  #     # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+  #     identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
+  #   except IndexError:
+  #     identifier_id = 0
+  #   return identifier_id
 
   def insert_entry_row(self):
     """
@@ -226,12 +230,10 @@ class Output(Upload):
         current_output_dict = self.add_metadata_type(current_output_dict)
         current_output_dict = self.find_empty_ids(current_output_dict)
         current_output_dict = self.check_or_create_identifier(z_key, current_output_dict)
-        """ TODO: Add "On duplicate update
-        /Users/ashipunova/opt/anaconda3/lib/python3.7/site-packages/pymysql/cursors.py:170: Warning: (1062, "Duplicate entry '3' for key 'identifier_id'")
-
-        """
-        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, list(current_output_dict.keys()),
-                                                   tuple(current_output_dict.values()))
+        all_fields = list(current_output_dict.keys())
+        q_addition = self.format_update_duplicates(all_fields)
+        self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, all_fields,
+                                                   tuple(current_output_dict.values()), addition = q_addition)
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
@@ -290,7 +292,7 @@ class Output(Upload):
       person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
       current_persons_list.append(full_name)
 
-      self.entry_rows_dict[z_key]["role_id"] = role_db_id1
+      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles could be in one dict
 
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
@@ -323,26 +325,56 @@ class Output(Upload):
     for d in val_dict:
       full_name = self.make_full_name(d)
       current_persons_list.append(full_name)
+      # make dict of creator_types to csv fields correspondens
+      # current_role = d['creatorType']
+      # current_persons_dict[current_role] = full_name
+
+      # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
     return "; ".join(current_persons_list)
 
   def make_combined_values_from_z(self, z_entry_data):
+    # TODO: DRY
+    keys_from_z_entry_data = ['bookTitle',
+'creators',
+'issue',
+'pages',
+'publicationTitle',
+'series',
+'tags',
+'tags',
+'title',
+'url',
+'volume']
+
+#     keys_for_combined_values_from_z = ['bibliographic_citation',
+# 'format',
+# 'source',
+# 'subject_other']
+
     combined_values_from_z = defaultdict()
-    try:
-      combined_values_from_z['source'] = "{}({}): {}".format(z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'])
-    except KeyError:
-      pass
+    exist_from_z_entry_data = defaultdict()
 
-    combined_values_from_z['format'] = "PDF"
+    for key in keys_from_z_entry_data:
+      if key in z_entry_data.keys() and len(z_entry_data[key]) > 0:
+        exist_from_z_entry_data[key] = z_entry_data[key]
 
-    secTitle = ""
-    try:
-      secTitle = z_entry_data['bookTitle']
-    except KeyError:
-      pass
-    try:
-      secTitle = z_entry_data['publicationTitle']
-    except KeyError:
-      pass
+    issue = ""
+    if 'issue' in exist_from_z_entry_data.keys():
+      issue = "({})".format(exist_from_z_entry_data['issue'])
+    vol_iss = ""
+    if 'volume' in exist_from_z_entry_data.keys() and issue:
+      vol_iss = "{}{}: ".format(exist_from_z_entry_data['volume'], issue)
+    if 'pages' in exist_from_z_entry_data.keys() and vol_iss:
+      combined_values_from_z['source'] = "{}{} ".format(vol_iss, exist_from_z_entry_data['pages'])
+
+    if 'title' in exist_from_z_entry_data.keys():
+      combined_values_from_z['format'] = "PDF "
+
+    sec_title = ""
+    if 'bookTitle' in exist_from_z_entry_data.keys():
+        sec_title = exist_from_z_entry_data['bookTitle']
+    if 'publicationTitle' in exist_from_z_entry_data.keys():
+        sec_title = exist_from_z_entry_data['publicationTitle']
 
     creators = ""
     try:
@@ -351,15 +383,24 @@ class Output(Upload):
       pass
 
     try:
-      combined_values_from_z['bibliographic_citation'] = """{}. {}. {} {}. {} ({}): {}. {}""".format(creators, z_entry_data['title'], secTitle, z_entry_data['series'], z_entry_data['volume'], z_entry_data['issue'], z_entry_data['pages'], z_entry_data['url'])
+      combined_values_from_z['bibliographic_citation'] = """{} {}. {}{}. {}{}""".format(creators,
+                                                                                          z_entry_data['title'],
+                                                                                          sec_title,
+                                                                                          z_entry_data['series'], combined_values_from_z['source'], z_entry_data['url'])
     except KeyError:
       pass
 
-    try:
-      tags = [d['tag'] for d in z_entry_data['tags']]
+    if 'tags' in exist_from_z_entry_data.keys():
+      tags = [d['tag'] for d in exist_from_z_entry_data['tags']]
       combined_values_from_z['subject_other'] = ", ".join(tags)
-    except KeyError:
-      pass
+
+    """
+    z_entry_data['tags'][
+      {'tag': "chlorophyll <span class='italic'>a</span>", 'type': 1}, {'tag': 'conductivity', 'type': 1}, {
+        'tag': 'nutrients', 'type': 1
+      }, {'tag': 'pH', 'type': 1}, {'tag': 'pond ecosystems', 'type': 1}, {'tag': 'temporal change', 'type': 1}]
+  
+    z_entry_data['tags'][{'tag': '#broken_attachments'}, {'tag': '#duplicate_attachments'}]"""
 
     return combined_values_from_z
 
@@ -368,7 +409,7 @@ class Output(Upload):
       db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
       if isinstance(data_val_dict, list):
-        self.update_person(data_val_dict, z_key, table_name, field_name)
+        self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
       else:
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, data_val_dict)
         self.entry_rows_dict[z_key][field_name + "_id"] = db_id
@@ -399,8 +440,8 @@ class DownloadFilesFromZotero(FileRetrival):
       try:
         attachment_d = entry['links']['attachment']
         addr = attachment_d['href']
-        att_type = attachment_d['attachmentType']
-        att_size = attachment_d['attachmentSize']
+        # att_type = attachment_d['attachmentType']
+        # att_size = attachment_d['attachmentSize']
         item_id = addr.rsplit('/', 1)[1]
 
         files_path = self.get_files_path('zotero_attachments')
@@ -413,11 +454,9 @@ class DownloadFilesFromZotero(FileRetrival):
 class Export:
   def __init__(self):
 
-    utils = util.Utils()
+    # utils = util.Utils()
     self.all_items_dump = []
     all_keys = self.get_all_coll_key()
-
-    itemKeys = []
 
     if args.get_5_zotero_entries:
       # debug short
@@ -425,6 +464,7 @@ class Export:
 
     else:
       # USE this for real:
+      # self.all_items_dump = self.dump_all_items()
       for collection_key in all_keys:
         items = zot.everything(zot.collection_items(collection_key))
         self.all_items_dump += items
