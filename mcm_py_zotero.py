@@ -9,7 +9,6 @@ from mcm_upload_util import Upload, FileRetrival, DataManaging
 import argparse
 import csv
 
-
 """
     [account_type] => group
     [account_id] => 1415490
@@ -30,29 +29,29 @@ class Output(Upload):
     Upload.__init__(self)
     self.zotero_to_sql_fields = {
       # 'accessed'    : 'season.season', #date_digital
-      'url'         : 'content_url.content_url',
+      'url'                   : 'content_url.content_url',
       'bibliographic_citation': 'bibliographic_citation.bibliographic_citation',
-      'source'      : 'source.source', # 'Volume'('Issue'): 'Pages'
-      'format': 'format.format',
-      'subject_other': 'subject_other.subject_other',
-      'abstractNote': 'description.description',
+      'source'                : 'source.source',  # 'Volume'('Issue'): 'Pages'
+      'format'                : 'format.format',
+      'subject_other'         : 'subject_other.subject_other',
+      'abstractNote'          : 'description.description',
       # 'bookTitle'   : 'title.title',
-      'creators'    : 'role.role', # creator
-      'date'        : 'season.season',  # 'date_exact', 'date_season', 'date_season_yyyy',
-      'firstName'   : 'person.first_name',  # creator, #creator_other
-      'language'    : 'language.language',
-      'lastName'    : 'person.last_name',  # creator, #creator_other
-      'name'        : 'person.person',  # creator, #creator_other
+      'creators'              : 'role.role',  # creator
+      'date'                  : 'season.season',  # 'date_exact', 'date_season', 'date_season_yyyy',
+      'firstName'             : 'person.first_name',  # creator, #creator_other
+      'language'              : 'language.language',
+      'lastName'              : 'person.last_name',  # creator, #creator_other
+      'name'                  : 'person.person',  # creator, #creator_other
       # 'publicationTitle': 'publisher.publisher', # ? 'title.title' ?
-      'publisher'   : 'publisher.publisher',
-      'rights'      : 'rights.rights',
-      'title'       : 'title.title',
+      'publisher'             : 'publisher.publisher',
+      'rights'                : 'rights.rights',
+      'title'                 : 'title.title',
       # 'volume'      : 'source.source',
     }
 
     self.substitute_keys = {
-      "person_id": "creator_id",
-      "season_id": "date_season_id",
+      "person_id"     : "creator_id",
+      "season_id"     : "date_season_id",
       "content_url_id": "content_url_id",
     }
 
@@ -65,7 +64,7 @@ class Output(Upload):
       "content_url_transcript"     : "Content URL (Transcript)",
       "creator"                    : "Creator",
       "creator_other"              : "Creator.Other",
-      "subject_place"             : "Subject.Place",
+      "subject_place"              : "Subject.Place",
       "coverage_lat"               : "Coverage.Lat",
       "coverage_long"              : "Coverage.Long",
       "subject_associated_places"  : "Subject.Associated.Places",
@@ -158,11 +157,14 @@ class Output(Upload):
     return temp_dict
 
   def get_metadata_type_id(self):
-    metadata_type_ins_res = self.mysql_utils.execute_insert_mariadb(self.metadata_type_table_name, self.metadata_type_table_name,
-                                                          self.metadata_type)
+    metadata_type_ins_res = self.mysql_utils.execute_insert_mariadb(self.metadata_type_table_name,
+                                                                    self.metadata_type_table_name,
+                                                                    self.metadata_type)
     metadata_type_id = metadata_type_ins_res[1]
     if metadata_type_id == 0:
-      metadata_type_id = self.mysql_utils.get_id_esc(self.metadata_type_table_name + "_id", self.metadata_type_table_name, self.metadata_type_table_name, self.metadata_type)
+      metadata_type_id = self.mysql_utils.get_id_esc(self.metadata_type_table_name + "_id",
+                                                     self.metadata_type_table_name, self.metadata_type_table_name,
+                                                     self.metadata_type)
     return metadata_type_id
 
   def add_metadata_type(self, val_dict):
@@ -172,14 +174,15 @@ class Output(Upload):
   def check_or_create_identifier(self, z_key, val_dict):
     identifier_id = self.check_if_exists(z_key)
     if int(identifier_id) <= 0:
-      (identifier_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character, "")
+      (identifier_id, curr_identifier) = self.data_managing.check_or_create_identifier(self.identifier_first_character,
+                                                                                       "")
       self.insert_identifier_id_into_z_key(z_key, identifier_id)
     val_dict[self.data_managing.identifier_table_name + "_id"] = identifier_id
     return val_dict
 
   def insert_identifier_id_into_z_key(self, z_key, identifier_id):
     zotero_key_table_name = "zotero_key"
-    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+    identifier_id_name = self.data_managing.identifier_table_name + "_id"  # 'identifier_id'
 
     update_q = '''UPDATE {}
       SET {} = %s 
@@ -190,26 +193,14 @@ class Output(Upload):
     "Update zotero_key set identifier_id = identifier_id where zotero_key = zotero_key"
 
   def check_if_exists(self, z_key):
-    identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
+    identifier_id_name = self.data_managing.identifier_table_name + "_id"  # 'identifier_id'
     zotero_key_table_name = "zotero_key"
-    # select_identifier_id_query = """SELECT {} FROM {} WHERE zotero_key = %s""".format(identifier_id_name, zotero_key_table_name) #z_key
     try:
-      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, zotero_key_table_name, [zotero_key_table_name], [z_key])
+      identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, zotero_key_table_name, [zotero_key_table_name],
+                                                  [z_key])
     except IndexError:
       identifier_id = 0
     return identifier_id
-
-  # def check_if_in_entry(self, val_dict):
-  #   identifier_id_name = self.data_managing.identifier_table_name + "_id" # 'identifier_id'
-  #   dict_copy = dict(val_dict)
-  #   del dict_copy[identifier_id_name]
-  #   try:
-  #     # test wrong one
-  #     # identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), [2, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-  #     identifier_id = self.mysql_utils.get_id_esc(identifier_id_name, "entry", list(dict_copy.keys()), list(dict_copy.values()))
-  #   except IndexError:
-  #     identifier_id = 0
-  #   return identifier_id
 
   def insert_entry_row(self):
     """
@@ -233,7 +224,7 @@ class Output(Upload):
         all_fields = list(current_output_dict.keys())
         q_addition = self.format_update_duplicates(all_fields)
         self.mysql_utils.execute_many_fields_one_record(self.entry_table_name, all_fields,
-                                                   tuple(current_output_dict.values()), addition = q_addition)
+                                                        tuple(current_output_dict.values()), addition = q_addition)
 
   def make_full_name(self, val_d):
     return "{}, {}".format(val_d['lastName'], val_d['firstName'])
@@ -262,7 +253,7 @@ class Output(Upload):
       try:
         mysql_res = self.mysql_utils.execute_insert_mariadb(table_name, field_name, value)
         db_id = self.mysql_utils.get_id_esc(field_name_id, table_name, field_name, value)
-      except IndexError: # A weird one with a single quote in utf8 (came from a tsv) vs. latin (came from Zotero): man’s vs. man's
+      except IndexError:  # A weird one with a single quote in utf8 (came from a tsv) vs. latin (came from Zotero): man’s vs. man's
         db_id = self.single_quote_encoding_err_handle(table_name, field_name, value)
     return db_id
 
@@ -292,7 +283,7 @@ class Output(Upload):
       person_id_list.append({"person_id": person_db_id, "role_id": role_db_id1})
       current_persons_list.append(full_name)
 
-      self.entry_rows_dict[z_key]["role_id"] = role_db_id1  # TODO: check if different roles could be in one dict
+      self.entry_rows_dict[z_key]["role_id"] = role_db_id1
 
     all_cur_persons_id = self.insert_person_combination_and_get_id(current_persons_list)
     self.entry_rows_dict[z_key]["person_id"] = all_cur_persons_id
@@ -325,31 +316,20 @@ class Output(Upload):
     for d in val_dict:
       full_name = self.make_full_name(d)
       current_persons_list.append(full_name)
-      # make dict of creator_types to csv fields correspondens
-      # current_role = d['creatorType']
-      # current_persons_dict[current_role] = full_name
-
-      # self.out_list_of_dict_of_vals[z_key]["creator"] = full_name
     return "; ".join(current_persons_list)
 
   def make_combined_values_from_z(self, z_entry_data):
-    # TODO: DRY
     keys_from_z_entry_data = ['bookTitle',
-'creators',
-'issue',
-'pages',
-'publicationTitle',
-'series',
-'tags',
-'tags',
-'title',
-'url',
-'volume']
-
-#     keys_for_combined_values_from_z = ['bibliographic_citation',
-# 'format',
-# 'source',
-# 'subject_other']
+                              'creators',
+                              'issue',
+                              'pages',
+                              'publicationTitle',
+                              'series',
+                              'tags',
+                              'tags',
+                              'title',
+                              'url',
+                              'volume']
 
     combined_values_from_z = defaultdict()
     exist_from_z_entry_data = defaultdict()
@@ -372,9 +352,9 @@ class Output(Upload):
 
     sec_title = ""
     if 'bookTitle' in exist_from_z_entry_data.keys():
-        sec_title = exist_from_z_entry_data['bookTitle']
+      sec_title = exist_from_z_entry_data['bookTitle']
     if 'publicationTitle' in exist_from_z_entry_data.keys():
-        sec_title = exist_from_z_entry_data['publicationTitle']
+      sec_title = exist_from_z_entry_data['publicationTitle']
 
     creators = ""
     try:
@@ -384,9 +364,12 @@ class Output(Upload):
 
     try:
       combined_values_from_z['bibliographic_citation'] = """{} {}. {}{}. {}{}""".format(creators,
-                                                                                          z_entry_data['title'],
-                                                                                          sec_title,
-                                                                                          z_entry_data['series'], combined_values_from_z['source'], z_entry_data['url'])
+                                                                                        z_entry_data['title'],
+                                                                                        sec_title,
+                                                                                        z_entry_data['series'],
+                                                                                        combined_values_from_z[
+                                                                                          'source'],
+                                                                                        z_entry_data['url'])
     except KeyError:
       pass
 
@@ -409,12 +392,12 @@ class Output(Upload):
       db_tbl_field_name = self.zotero_to_sql_fields[key]
       (table_name, field_name) = db_tbl_field_name.split(".")
       if isinstance(data_val_dict, list):
-        self.update_person(data_val_dict, z_key, table_name, field_name) # TODO: change parameters
+        self.update_person(data_val_dict, z_key, table_name, field_name)
       else:
         db_id = self.get_id_by_serch_or_insert(table_name, field_name, data_val_dict)
         self.entry_rows_dict[z_key][field_name + "_id"] = db_id
     except KeyError:
-      pass # zotero field is not in the db field names list
+      pass  # zotero field is not in the db field names list
 
   def make_upload_queries(self):
     for z_entry in export.all_items_dump:
@@ -440,8 +423,6 @@ class DownloadFilesFromZotero(FileRetrival):
       try:
         attachment_d = entry['links']['attachment']
         addr = attachment_d['href']
-        # att_type = attachment_d['attachmentType']
-        # att_size = attachment_d['attachmentSize']
         item_id = addr.rsplit('/', 1)[1]
 
         files_path = self.get_files_path('zotero_attachments')
@@ -453,8 +434,6 @@ class DownloadFilesFromZotero(FileRetrival):
 
 class Export:
   def __init__(self):
-
-    # utils = util.Utils()
     self.all_items_dump = []
     all_keys = self.get_all_coll_key()
 
@@ -463,8 +442,8 @@ class Export:
       self.all_items_dump = zot.top(limit = 5)
 
     else:
-      # USE this for real:
       # self.all_items_dump = self.dump_all_items()
+      # USE this for real:
       for collection_key in all_keys:
         items = zot.everything(zot.collection_items(collection_key))
         self.all_items_dump += items
@@ -495,8 +474,6 @@ class Export:
     dump_all_items.close()
 
   def get_all_items_to_tsv_file(self):
-    # all_text = zot.everything(zot.top())
-    # all_text = zot.top(limit = 5)
     fieldnames = set()
     for d in self.all_items_dump:
       fieldnames.update(d['data'].keys())
@@ -529,6 +506,7 @@ class Export:
 if __name__ == '__main__':
   utils = util.Utils()
 
+
   def check_args():
     myusage = """
         By default will write all Zotero entries into the database.
@@ -536,7 +514,7 @@ if __name__ == '__main__':
         Command line example: python3 %(prog)s -f /tmp/temp.tsv
 
     """
-    parser = argparse.ArgumentParser(description=myusage)
+    parser = argparse.ArgumentParser(description = myusage)
 
     parser.add_argument('-f', '--file_name',
                         required = False, action = 'store', dest = 'output_file',
@@ -556,6 +534,7 @@ if __name__ == '__main__':
 
     return parser.parse_args()
 
+
   args = check_args()
 
   export = Export()
@@ -565,4 +544,3 @@ if __name__ == '__main__':
     print("Done downloading Zotero attachments")
 
   import_to_mysql = Output()
-
